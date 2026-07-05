@@ -224,7 +224,7 @@ export default async function SyaratKetentuanPage({
               <h2>2. Aturan Penggunaan Embun App dan Website</h2>
               <p>
                 Embun App dan Website disediakan untuk membantu Tamu menemukan dan memesan spot
-                camping, serta membantu Mitra (&quot;Partner&quot;) mengelola ketersediaan dan
+                camping, serta membantu pengelola campsite (&quot;Mitra&quot;) mengelola ketersediaan dan
                 pemesanan campsite miliknya. Setiap pengguna wajib menggunakan Embun App dan Website
                 sesuai dengan tujuan tersebut dan sesuai dengan hukum yang berlaku di Indonesia.
               </p>
@@ -315,10 +315,10 @@ export default async function SyaratKetentuanPage({
               <h2>6. Batasan Tanggung Jawab Embun</h2>
               <p>
                 Embun berkedudukan sebagai platform penghubung (<em>marketplace</em>) antara Tamu
-                dan Mitra, dan bukan merupakan pihak yang menyediakan layanan camping secara
+                dan pengelola campsite (Mitra), dan bukan merupakan pihak yang menyediakan layanan camping secara
                 langsung. Layanan camping, termasuk kondisi fisik campsite, fasilitas, keamanan area,
                 dan kualitas pelayanan di lokasi, disediakan dan menjadi tanggung jawab penuh Mitra
-                selaku pemilik atau pengelola campsite yang bersangkutan.
+                selaku pengelola campsite yang bersangkutan.
               </p>
               <p>
                 Embun berupaya menjaga akurasi informasi yang ditampilkan di Embun App dan Website,

@@ -179,9 +179,9 @@ export default async function KebijakanMitraPage({
                 dipantau secara real-time oleh Mitra melalui dashboard backoffice Embun.
               </p>
 
-              <h2>Kewajiban Mitra</h2>
+              <h2>Kewajiban Pengelola Campsite (Mitra)</h2>
               <p>
-                Sebagai mitra Embun, Mitra bertanggung jawab untuk menjaga keakuratan data
+                Sebagai mitra Embun, pengelola campsite (Mitra) bertanggung jawab untuk menjaga keakuratan data
                 ketersediaan (kalender, kuota spot, dan status blok) pada dashboard backoffice
                 sehingga Tamu tidak menerima informasi yang menyesatkan saat melakukan pemesanan.
               </p>

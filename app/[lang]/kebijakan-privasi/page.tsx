@@ -172,7 +172,7 @@ export default async function KebijakanPrivasiPage({
                 pemesanan, tanggal check-in dan check-out, dan metode pembayaran yang digunakan.
               </p>
               <p>
-                Jika Anda mendaftar sebagai Mitra melalui Contact Form pada halaman Mitra,
+                Jika Anda mendaftar sebagai pengelola campsite (Mitra) melalui Contact Form pada halaman Mitra,
                 Embun juga menyimpan data tambahan seperti nama campsite dan pesan yang Anda kirimkan.
               </p>
               <p>
@@ -214,7 +214,7 @@ export default async function KebijakanPrivasiPage({
                 operasional platform, layanan pelanggan, dan verifikasi transaksi.
               </p>
               <p>
-                Mitra Embun dapat mengakses data pemesanan Tamu yang
+                Pengelola campsite (Mitra Embun) dapat mengakses data pemesanan Tamu yang
                 relevan dengan reservasi di campsite milik mereka sendiri, seperti nama tamu, tanggal
                 menginap, dan jumlah tamu, semata-mata untuk keperluan operasional reservasi tersebut.
               </p>

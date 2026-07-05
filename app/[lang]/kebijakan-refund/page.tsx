@@ -155,7 +155,7 @@ export default async function KebijakanRefundPage({
                 yang bersangkutan berhak atas pengembalian dana sesuai dengan ketentuan pada halaman
                 ini. Tamu disarankan untuk memeriksa tenggat waktu pembatalan pada setiap pesanan,
                 karena tenggat waktu dapat berbeda antar campsite tergantung kebijakan masing-masing
-                Mitra yang bermitra dengan Embun.
+                pengelola campsite (Mitra) yang bermitra dengan Embun.
               </p>
 
               <h2>Mekanisme Pengembalian Dana</h2>
@@ -188,9 +188,9 @@ export default async function KebijakanRefundPage({
                 harga sewa tersebut.
               </p>
 
-              <h2>Pembatalan oleh Mitra atau Force Majeure</h2>
+              <h2>Pembatalan oleh Pengelola Campsite (Mitra) atau Force Majeure</h2>
               <p>
-                Jika pesanan dibatalkan secara sepihak oleh Mitra, Tamu berhak atas
+                Jika pesanan dibatalkan secara sepihak oleh pengelola campsite (Mitra), Tamu berhak atas
                 pengembalian dana penuh (100%), terlepas dari tenggat waktu pembatalan reguler yang
                 berlaku pada pesanan tersebut.
               </p>
