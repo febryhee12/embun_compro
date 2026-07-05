@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Lora, Inter } from "next/font/google";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildOrganizationJsonLd } from "@/lib/seo/structuredData";
-import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
+import "../globals.css";
 
 const lora = Lora({
   variable: "--font-lora",
@@ -38,19 +39,34 @@ export const metadata: Metadata = {
   manifest: "/site.webmanifest",
 };
 
-export default function RootLayout({
+export async function generateStaticParams() {
+  return [{ lang: 'id' }, { lang: 'en' }];
+}
+
+export default async function RootLayout({
   children,
+  params,
 }: Readonly<{
   children: React.ReactNode;
+  params: Promise<{ lang: string }>;
 }>) {
+  const { lang } = await params;
   return (
     <html
-      lang="id"
+      lang={lang}
       className={`${lora.variable} ${inter.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col font-sans bg-background text-foreground">
-        <JsonLd data={buildOrganizationJsonLd()} />
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <JsonLd data={buildOrganizationJsonLd()} />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

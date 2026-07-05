@@ -35,6 +35,23 @@
   --shadow-soft: 0 4px 16px rgba(8, 65, 181, 0.08); /* soft blue-tinted shadow */
 }
 
+.dark {
+  --background: #121212;
+  --surface: #1e1e1e;
+  --surface-dark: #000000;
+  
+  --brand-black: #ffffff;
+  
+  --foreground: #ffffff;
+  --foreground-muted: #b0b0b0;
+  --foreground-placeholder: #9ca3af;
+  
+  --border: #333333;
+  --border-focus: var(--brand-lime);
+  --error: var(--error-on-dark);
+}
+
+
 @theme inline {
   --color-background: var(--background);
   --color-surface: var(--surface);

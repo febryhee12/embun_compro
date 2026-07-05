@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Moon, Sun } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { Container } from '@/components/ui/Container';
 import { BUTTON_BASE_CLASS, BUTTON_VARIANT_CLASS } from '@/components/ui/Button';
 
@@ -54,6 +55,10 @@ const FOCUS_VISIBLE_CLASS =
 export function SiteHeader() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { theme, setTheme, systemTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     function handleScroll() {
@@ -103,7 +108,7 @@ export function SiteHeader() {
             className={['inline-flex items-center rounded-sm', FOCUS_VISIBLE_CLASS].join(' ')}
           >
             <Image
-              src="/images/logo/model1_blue.svg"
+              src={mounted && (theme === 'dark' || (theme === 'system' && systemTheme === 'dark')) ? "/images/logo/model1_white.svg" : "/images/logo/model1_blue.svg"}
               alt="Embun"
               width={158}
               height={36}
@@ -131,7 +136,16 @@ export function SiteHeader() {
             </ul>
           </nav>
 
-          <div className="hidden md:block">
+          <div className="hidden md:flex md:items-center md:gap-4">
+            {mounted && (
+              <button
+                onClick={() => setTheme((theme === 'dark' || (theme === 'system' && systemTheme === 'dark')) ? 'light' : 'dark')}
+                className={['p-2 text-foreground transition-colors hover:text-brand-blue rounded-md', FOCUS_VISIBLE_CLASS].join(' ')}
+                aria-label="Toggle dark mode"
+              >
+                {(theme === 'dark' || (theme === 'system' && systemTheme === 'dark')) ? <Sun size={20} /> : <Moon size={20} />}
+              </button>
+            )}
             <Link
               href={CONTACT_HREF}
               className={[BUTTON_BASE_CLASS, BUTTON_VARIANT_CLASS.primary, FOCUS_VISIBLE_CLASS].join(' ')}
@@ -179,6 +193,18 @@ export function SiteHeader() {
                     </Link>
                   </li>
                 ))}
+                {mounted && (
+                  <li className="mt-2 flex items-center justify-between border-t border-border pt-4">
+                    <span className="text-base font-medium text-foreground">Mode Gelap</span>
+                    <button
+                      onClick={() => setTheme((theme === 'dark' || (theme === 'system' && systemTheme === 'dark')) ? 'light' : 'dark')}
+                      className={['p-2 text-foreground transition-colors hover:text-brand-blue rounded-md', FOCUS_VISIBLE_CLASS].join(' ')}
+                      aria-label="Toggle dark mode"
+                    >
+                      {(theme === 'dark' || (theme === 'system' && systemTheme === 'dark')) ? <Sun size={20} /> : <Moon size={20} />}
+                    </button>
+                  </li>
+                )}
               </ul>
             </nav>
 
