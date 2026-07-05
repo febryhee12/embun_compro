@@ -1,26 +1,116 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Surfaces — warm off-white page canvas */
+  --background: #faf9f6;        /* Linen — primary page background */
+  --surface:    #f4f4f4;        /* slightly elevated panels/cards */
+  --surface-dark: #1a1a1a;      /* Embun Black — dark section backgrounds */
+
+  /* Brand identity colors */
+  --brand-blue:  #0841b5;       /* Embun Blue — primary CTA, logo, links */
+  --brand-blue-hover: #062f8a;  /* slightly darker on hover */
+  --brand-black: #1a1a1a;       /* Embun Black — headings, primary text */
+  --brand-lime:  #cefb0a;       /* Embun Lime — accents, hover highlights */
+  --brand-white: #ffffff;       /* Embun White — text on dark/blue surfaces */
+
+  /* Text */
+  --foreground: #1a1a1a;        /* Embun Black */
+  --foreground-muted: #4a4a4a;  /* secondary copy on light backgrounds */
+  --foreground-on-dark: #ffffff; /* text on --surface-dark sections */
+  --foreground-muted-on-dark: #b0b0b0; /* muted text on dark sections */
+  --foreground-placeholder: #6b6b6b; /* faded input placeholder text (WCAG AA on --surface) */
+
+  /* Lines & states */
+  --border:        #e0dfd8;     /* 1px faded warm-gray border */
+  --border-focus:  #0841b5;     /* focus ring = Embun Blue */
+  --error:         #b03428;     /* WCAG AA fix: darkened from #c0392b. The original was ~5.16:1 on plain --background (passes) but only ~4.28:1 against the actual rendered `bg-error/10` tinted banner in ContactForm (fails 4.5:1 AA for the 14px error text). #b03428 reaches ~4.91:1 on that tinted banner, ~5.7-5.95:1 on plain --surface/--background */
+  --error-on-dark: #e8615a;     /* WCAG AA fix: new token. --error only reaches ~3.2:1 on --surface-dark (fails AA for normal text), needed because CTAButton's navigation-error message renders on the dark CallToAction section. #e8615a reaches ~5.21:1 on --surface-dark */
+
+  /* Radius & elevation */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  /* Requirement 10.4 caps shadows at `0 4px 16px rgba(0,0,0,0.08)` max
+     (offset ≤4px, blur ≤16px). Capped exactly at that ceiling while keeping
+     the blue brand tint. */
+  --shadow-soft: 0 4px 16px rgba(8, 65, 181, 0.08); /* soft blue-tinted shadow */
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-dark: var(--surface-dark);
+  --color-brand-blue: var(--brand-blue);
+  --color-brand-blue-hover: var(--brand-blue-hover);
+  --color-brand-black: var(--brand-black);
+  --color-brand-lime: var(--brand-lime);
+  --color-brand-white: var(--brand-white);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-foreground-on-dark: var(--foreground-on-dark);
+  --color-foreground-muted-on-dark: var(--foreground-muted-on-dark);
+  --color-border: var(--border);
+  --color-error: var(--error);
+  --color-error-on-dark: var(--error-on-dark);
+  --color-foreground-placeholder: var(--foreground-placeholder);
+
+  --font-serif: var(--font-lora);
+  --font-sans: var(--font-inter);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+html {
+  /* Lets plain `<a href="#section">` anchors (e.g. Hero/CTA buttons) smooth
+     scroll to in-page sections without requiring client-side JS. */
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/*
+ * Global focus-visible indicator (Requirements 8.4, 8.7).
+ *
+ * Every native interactive element (links, buttons, form controls) and any
+ * element opted into the tab order via `tabindex` gets ONE consistent,
+ * clearly visible focus ring by default, driven by `--border-focus` (Embun
+ * Blue). This replaces per-component ad-hoc focus styling as the baseline —
+ * components only need a local override when the default blue ring would
+ * fail contrast, which is the case on dark (`--surface-dark`) backgrounds:
+ * Embun Blue against Embun Black falls below the WCAG 2.1 non-text 3:1
+ * contrast minimum, so `SiteFooter` and the CTA button inside
+ * `CallToAction` locally override the ring color to `--brand-lime`, which
+ * does meet contrast on dark backgrounds.
+ *
+ * The default browser outline is removed everywhere and only restored on
+ * `:focus-visible` (not plain `:focus`), so mouse/pointer interactions stay
+ * visually clean while keyboard navigation always gets a visible ring.
+ */
+a,
+button,
+input,
+textarea,
+select,
+[tabindex]:not([tabindex='-1']) {
+  outline: none;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[tabindex]:not([tabindex='-1']):focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
 }

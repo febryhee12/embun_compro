@@ -1,65 +1,68 @@
-import Image from "next/image";
+import type { Metadata } from 'next';
+import { SiteHeader } from '@/components/layout/SiteHeader';
+import AppHero from '@/components/sections/app/Hero';
+import AppFeatures from '@/components/sections/app/Features';
+import AppScreenshots from '@/components/sections/app/Screenshots';
+import Faq from '@/components/sections/Faq';
+import AppDownloadCta from '@/components/sections/app/DownloadCta';
+import { SiteFooter } from '@/components/layout/SiteFooter';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { appFaq } from '@/lib/content/appFaq';
+import { buildPageMetadata } from '@/lib/seo/metadata';
+import { buildSoftwareApplicationJsonLd } from '@/lib/seo/structuredData';
 
+/**
+ * Forces fully static rendering for this route (Requirement 9.4).
+ *
+ * The page has no data fetching and no dynamic APIs (`cookies()`,
+ * `headers()`, `searchParams`) anywhere in its render tree — Next.js would
+ * already statically prerender it by default. This declaration makes that
+ * intent explicit and acts as a build-time guard: if a dynamic API is ever
+ * introduced into this tree by mistake, `next build` fails loudly instead
+ * of silently opting the route into server rendering.
+ */
+export const dynamic = 'force-static';
+
+/**
+ * SEO metadata for the App Landing Page (Requirements 13.1, 13.2).
+ */
+export const metadata: Metadata = buildPageMetadata({
+  path: '/',
+  title: 'Embun — Cari dan Pesan Campsite Favoritmu',
+  description:
+    'Temukan dan pesan spot camping terbaik lewat Embun App: pencarian campsite, pemesanan mudah, pembayaran aman, dan riwayat perjalananmu dalam satu aplikasi.',
+});
+
+/**
+ * Home — the App Landing Page, the single page / only route of the site
+ * (Server Component).
+ *
+ * Composes the App Landing Page sections in the required order (Requirements
+ * 1.1, 1.2): `Hero` → `Features` → `Screenshots` → `Faq` → `DownloadCta`,
+ * all sourced from `components/sections/app/*` and scoped entirely to Guest
+ * audiences. Each section owns its own anchor `id` (`#hero`, `#features`,
+ * `#screenshots`, `#faq`, `#download`) via the shared `Section` primitive.
+ * `SiteHeader` and `SiteFooter` sit outside `<main>` since they are global
+ * layout chrome rather than page content.
+ *
+ * No owner/commission/partnership content (e.g. the old single-page
+ * `Ethos`, `Features`, `Portfolio`, `Contact`, `CallToAction` sections)
+ * renders on this route (Requirement 1.3/1.4) — that content now lives on
+ * the `/mitra` route instead.
+ */
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+    <>
+      <JsonLd data={buildSoftwareApplicationJsonLd()} />
+      <SiteHeader />
+      <main>
+        <AppHero />
+        <AppFeatures />
+        <AppScreenshots />
+        <Faq items={appFaq} />
+        <AppDownloadCta />
       </main>
-    </div>
+      <SiteFooter />
+    </>
   );
 }
