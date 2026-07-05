@@ -92,8 +92,7 @@ export default async function SyaratKetentuanPage({
                   committing fraud in any form.
                 </li>
                 <li>
-                  Users are prohibited from accessing, altering, or damaging the data of other users, Campsite Management
-                  data, or Embun systems without authorization.
+                  Users are prohibited from accessing, altering, or damaging campsite data (including photos, prices, and availability), nor hacking Campsite Management accounts, nor Embun systems without authorization.
                 </li>
                 <li>
                   Users are prohibited from using the Embun App or Website for unlawful purposes,
@@ -154,9 +153,9 @@ export default async function SyaratKetentuanPage({
                 provider are beyond Embun's control and responsibility.
               </p>
               <p>
-                Some Campsite Managements may require a security deposit for equipment rentals or location cleanliness guarantees. 
-                The provisions for retaining and returning the deposit are the prerogative of each Campsite Management and are 
-                displayed on the campsite details page or order summary before payment is confirmed.
+                Some Campsite Managements may require a security deposit for tent or equipment rentals on site. 
+                The amount and provisions for returning the deposit are the prerogative of each Campsite Management and are 
+                displayed on the campsite details page.
               </p>
 
               <h2>6. Limitation of Embun's Liability</h2>

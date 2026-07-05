@@ -74,21 +74,19 @@ export default async function KebijakanMitraPage({
                 for each transaction can be monitored by the Campsite Management via the Embun backoffice dashboard.
               </p>
               <p>
-                Embun reserves the right to change the commission structure in the future with prior notice
-                to Campsite Managements via Embun's official communication channels before they take effect.
+                Future changes to the commission structure will be communicated in advance
+                to Campsite Managements via Embun's official communication channels before taking effect.
               </p>
 
               <h2>Settlement Schedule</h2>
               <p>
-                Campsite Management funds for a given transaction period will be marked as &quot;Ready to Disburse&quot; 
-                after the Guest has successfully checked out. Disbursement of funds (settlement) is carried out periodically 
-                according to the schedule chosen or assigned during registration (e.g., weekly or bi-weekly) to the 
-                bank account registered in the system.
+                Campsite Management funds for a given transaction period will have the status &quot;Ready to Disburse&quot; 
+                after the cancellation deadline (Refund_Window) on all transactions related to that period ends, according to the refund policy 
+                applicable to each transaction. Disbursement can be carried out partially (partial settlement) according to the funds that are ready to be disbursed.
               </p>
               <p>
-                Embun strives to ensure settlements run on time, but delays may occur due to constraints 
-                on the payment gateway or destination bank. The history of all disbursements and outstanding balances can be monitored 
-                by Campsite Managements via the Embun backoffice dashboard.
+                The fund readiness status and the history of every fund transfer that has been carried out can be 
+                monitored in real-time by the Campsite Management via the Embun backoffice dashboard.
               </p>
 
               <h2>Campsite Management Obligations</h2>
@@ -115,7 +113,7 @@ export default async function KebijakanMitraPage({
                 are entitled to a full refund (100%) as detailed in the{' '}
                 <Link href={`/${lang}/kebijakan-refund`}>Refund &amp; Cancellation Policy</Link>, and Embun reserves 
                 the right to impose a penalty on the Campsite Management for costs arising from the cancellation, including but not 
-                limited to the deduction of commissions or temporary suspension of the account.
+                limited to non-refundable payment gateway transaction fees.
               </p>
               <p>
                 The Campsite Management agrees not to set rental prices on the Embun App higher than the direct selling price (walk-in) 
