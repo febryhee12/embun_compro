@@ -65,7 +65,7 @@ export default async function Home({
       <SiteHeader />
       <main>
         <AppHero headline={dict.hero.headline} subcopy={dict.hero.subcopy} />
-        <AppFeatures items={dict.features} />
+        <AppFeatures headline={dict.featuresHeading} subcopy={dict.featuresSubcopy} items={dict.features} />
         <AppScreenshots headline={dict.screenshots.headline} subcopy={dict.screenshots.subcopy} items={dict.screenshots.items} />
         <Faq items={dict.faq.items || appFaq} heading={dict.faq.heading} />
         <AppDownloadCta heading={dict.downloadCta.headline} subcopy={dict.downloadCta.subcopy} />

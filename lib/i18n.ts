@@ -5,6 +5,8 @@ export const i18n = {
         headline: 'Cari dan Pesan Campsite Favoritmu, Semudah Itu',
         subcopy: 'Embun App membantu kamu menemukan dan memesan campsite terbaik dalam hitungan menit. Bayar aman, pesanan langsung terkonfirmasi.',
       },
+      featuresHeading: undefined, // uses default
+      featuresSubcopy: undefined,
       features: undefined, // uses default
       screenshots: {
         headline: 'Semua Kebutuhan Campingmu dalam Satu Aplikasi',
@@ -56,6 +58,8 @@ export const i18n = {
         headline: 'Find and Book Your Favorite Campsite, Just Like That',
         subcopy: 'Embun App helps you discover and book the best campsites in minutes. Secure payments, instant confirmations.',
       },
+      featuresHeading: 'Features that Make Camping Easier',
+      featuresSubcopy: 'From searching for a spot to paying, everything can be done right from your fingertips without having to repeatedly call the campsite owner.',
       features: [
         {
           id: 'pencarian-campsite',
@@ -127,20 +131,20 @@ export const i18n = {
         heading: 'Frequently Asked Questions',
         items: [
           {
-            question: 'Is Embun App free to download?',
-            answer: 'Yes, Embun App is completely free to download on both App Store and Google Play. You only pay for the campsite reservations you make.'
+            question: 'What is Embun App?',
+            answer: 'Embun App is a mobile application for finding and booking campsites from various Embun partners across Indonesia. Through Embun App, users can view camping spot details, book available dates, and complete payments directly from their phones without needing to manually contact the campsite owner.'
           },
           {
-            question: 'How do I know my booking is confirmed?',
-            answer: 'Once your payment is successful, you will instantly receive a digital booking voucher in the app and via email. You just need to show this voucher at the campsite.'
+            question: 'How do I book a campsite through Embun App?',
+            answer: 'To book a campsite via Embun App, simply search for your desired location or campsite name, select the available dates and spots, and complete the payment within the app. Booking confirmation will appear instantly in the app once payment is successful, with no need to wait for a manual reply from the campsite owner.'
           },
           {
-            question: 'Can I cancel or reschedule my booking?',
-            answer: 'Yes, you can request a cancellation or reschedule directly from the app. Please note that refunds and changes are subject to the specific policy of each campsite.'
+            question: 'Are payments in Embun App secure?',
+            answer: 'Yes, Embun App supports secure cashless payments through trusted payment gateways, including bank transfers and e-wallets. Every transaction is automatically recorded in the app, so users don\'t need to make direct manual transfers to the campsite owner.'
           },
           {
-            question: 'What payment methods are supported?',
-            answer: 'We support various secure payment methods including bank transfers (Virtual Accounts), credit cards, and popular e-wallets like GoPay, OVO, and ShopeePay.'
+            question: 'What should I do if I want to cancel a booking?',
+            answer: 'Users who wish to cancel a booking can open their booking history in the Embun App and submit a cancellation request according to the cancellation and refund policy of the respective campsite. Full terms regarding cancellations and refunds can be read on the Refund & Cancellation Policy page on the Embun Website.'
           }
         ]
       },

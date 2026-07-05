@@ -5,6 +5,8 @@ import Section from '@/components/ui/Section';
 import { appFeatures, type AppFeatureItem } from '@/lib/content/appFeatures';
 
 export interface AppFeaturesProps {
+  headline?: string;
+  subcopy?: string;
   items?: AppFeatureItem[];
 }
 
@@ -36,7 +38,11 @@ export interface AppFeaturesProps {
  * subtle-shadow brand rule, single-column stacking on mobile, and `fill`
  * images inside a reserved `aspect-[4/3]` box to avoid layout shift.
  */
-export default function Features({ items = appFeatures }: AppFeaturesProps = {}) {
+export default function Features({
+  headline = 'Fitur yang Bikin Camping Lebih Mudah',
+  subcopy = 'Dari mencari spot hingga bayar, semua bisa dilakukan langsung dari genggaman tanpa perlu bolak-balik telepon pemilik campsite.',
+  items = appFeatures
+}: AppFeaturesProps = {}) {
   const visibleItems = items.filter(
     (item) => Boolean(item.title) && Boolean(item.description) && Boolean(item.mockupSrc)
   );
@@ -45,11 +51,10 @@ export default function Features({ items = appFeatures }: AppFeaturesProps = {})
     <Section id="features" variant="default">
       <Container>
         <h2 className="font-serif text-[2.5rem] leading-[1.1] text-brand-black md:text-5xl">
-          Fitur yang Bikin Camping Lebih Mudah
+          {headline}
         </h2>
         <p className="mt-4 max-w-xl text-lg leading-[1.7] text-foreground-muted">
-          Dari mencari spot hingga bayar, semua bisa dilakukan langsung dari
-          genggaman tanpa perlu bolak-balik telepon pemilik campsite.
+          {subcopy}
         </p>
 
         <div className="mt-12 flex flex-col gap-16 md:mt-16 md:gap-20">
