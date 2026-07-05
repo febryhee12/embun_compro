@@ -4,6 +4,7 @@ export type StoreKind = 'apple' | 'google';
 
 export interface StoreBadgeProps {
   store: StoreKind;
+  lead?: string;
   /** Optional style override for the wrapper (e.g. width on mobile). */
   style?: CSSProperties;
   className?: string;
@@ -52,9 +53,9 @@ function GooglePlayGlyph() {
  * appropriate `<a>`/interactive element so this stays reusable across the
  * Hero (plain anchor) and the DownloadCta (client anchor with error handling).
  */
-export function StoreBadge({ store, style, className }: StoreBadgeProps) {
+export function StoreBadge({ store, lead: customLead, style, className }: StoreBadgeProps) {
   const isApple = store === 'apple';
-  const lead = isApple ? 'Unduh di' : 'Dapatkan di';
+  const lead = customLead || (isApple ? 'Unduh di' : 'Dapatkan di');
   const name = isApple ? 'App Store' : 'Google Play';
 
   return (

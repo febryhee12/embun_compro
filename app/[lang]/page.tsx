@@ -64,11 +64,11 @@ export default async function Home({
       <JsonLd data={buildSoftwareApplicationJsonLd()} />
       <SiteHeader />
       <main>
-        <AppHero headline={dict.hero.headline} subcopy={dict.hero.subcopy} />
-        <AppFeatures headline={dict.featuresHeading} subcopy={dict.featuresSubcopy} items={dict.features} />
+        <AppHero headline={dict.hero.headline} subcopy={dict.hero.subcopy} appStoreLead={dict.hero.appStoreLead} googlePlayLead={dict.hero.googlePlayLead} />
+        <AppFeatures headline={dict.featuresHeading} subcopy={dict.featuresSubcopy} comingSoonLabel={dict.featuresComingSoonLabel} items={dict.features} />
         <AppScreenshots headline={dict.screenshots.headline} subcopy={dict.screenshots.subcopy} items={dict.screenshots.items} />
         <Faq items={dict.faq.items || appFaq} heading={dict.faq.heading} />
-        <AppDownloadCta heading={dict.downloadCta.headline} subcopy={dict.downloadCta.subcopy} />
+        <AppDownloadCta heading={dict.downloadCta.headline} subcopy={dict.downloadCta.subcopy} appStoreLead={dict.downloadCta.appStoreLead} googlePlayLead={dict.downloadCta.googlePlayLead} />
       </main>
       <SiteFooter />
     </>

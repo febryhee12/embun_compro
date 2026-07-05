@@ -6,6 +6,7 @@ import { StoreBadge, type StoreKind } from '@/components/ui/StoreBadge';
 export interface DownloadCtaButtonProps {
   href: string; // external app store URL, e.g. 'https://apps.apple.com/...'
   store: StoreKind;
+  lead?: string;
   className?: string;
 }
 
@@ -30,7 +31,7 @@ const STORE_LABEL: Record<StoreKind, string> = {
  * informative error notice is shown (Requirement 4.4); otherwise the native
  * anchor behavior proceeds normally, opening the store link in a new tab.
  */
-export function DownloadCtaButton({ href, store, className }: DownloadCtaButtonProps) {
+export function DownloadCtaButton({ href, store, lead, className }: DownloadCtaButtonProps) {
   const [navigationError, setNavigationError] = useState(false);
 
   function handleClick(event: React.MouseEvent<HTMLAnchorElement>) {
@@ -54,7 +55,7 @@ export function DownloadCtaButton({ href, store, className }: DownloadCtaButtonP
         onClick={handleClick}
         className={[FOCUS_VISIBLE_CLASS, 'inline-block', className ?? ''].filter(Boolean).join(' ')}
       >
-        <StoreBadge store={store} />
+        <StoreBadge store={store} lead={lead} />
       </a>
       {navigationError ? (
         // Renders on the Embun Black (`--surface-dark`) section background

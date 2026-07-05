@@ -7,6 +7,7 @@ import { appFeatures, type AppFeatureItem } from '@/lib/content/appFeatures';
 export interface AppFeaturesProps {
   headline?: string;
   subcopy?: string;
+  comingSoonLabel?: string;
   items?: AppFeatureItem[];
 }
 
@@ -41,6 +42,7 @@ export interface AppFeaturesProps {
 export default function Features({
   headline = 'Fitur yang Bikin Camping Lebih Mudah',
   subcopy = 'Dari mencari spot hingga bayar, semua bisa dilakukan langsung dari genggaman tanpa perlu bolak-balik telepon pemilik campsite.',
+  comingSoonLabel = 'Segera Hadir',
   items = appFeatures
 }: AppFeaturesProps = {}) {
   const visibleItems = items.filter(
@@ -92,7 +94,7 @@ export default function Features({
                 >
                   {item.comingSoon ? (
                     <span className="inline-block rounded-full bg-brand-lime px-3 py-1 text-xs font-semibold uppercase tracking-wide text-black">
-                      Segera Hadir
+                      {comingSoonLabel}
                     </span>
                   ) : null}
                   <h3 className="mt-2 font-sans text-2xl font-semibold text-brand-black">

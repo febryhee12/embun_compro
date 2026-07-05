@@ -7,6 +7,8 @@ export interface DownloadCtaProps {
   subcopy: string;
   appStoreHref: string;
   googlePlayHref: string;
+  appStoreLead?: string;
+  googlePlayLead?: string;
 }
 
 const DEFAULT_PROPS: DownloadCtaProps = {
@@ -33,7 +35,7 @@ const DEFAULT_PROPS: DownloadCtaProps = {
  * how `CallToAction` delegates to `CTAButton`.
  */
 export function DownloadCta(props: Partial<DownloadCtaProps> = {}) {
-  const { heading, subcopy, appStoreHref, googlePlayHref } = {
+  const { heading, subcopy, appStoreHref, googlePlayHref, appStoreLead, googlePlayLead } = {
     ...DEFAULT_PROPS,
     ...props,
   };
@@ -47,8 +49,8 @@ export function DownloadCta(props: Partial<DownloadCtaProps> = {}) {
           </h2>
           <p className="mt-6 text-lg leading-[1.7] text-foreground-muted-on-dark">{subcopy}</p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <DownloadCtaButton href={appStoreHref} store="apple" />
-            <DownloadCtaButton href={googlePlayHref} store="google" />
+            <DownloadCtaButton href={appStoreHref} store="apple" lead={appStoreLead} />
+            <DownloadCtaButton href={googlePlayHref} store="google" lead={googlePlayLead} />
           </div>
         </div>
       </Container>

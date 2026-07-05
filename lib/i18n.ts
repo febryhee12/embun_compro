@@ -4,9 +4,12 @@ export const i18n = {
       hero: {
         headline: 'Cari dan Pesan Campsite Favoritmu, Semudah Itu',
         subcopy: 'Embun App membantu kamu menemukan dan memesan campsite terbaik dalam hitungan menit. Bayar aman, pesanan langsung terkonfirmasi.',
+        appStoreLead: undefined,
+        googlePlayLead: undefined,
       },
       featuresHeading: undefined, // uses default
       featuresSubcopy: undefined,
+      featuresComingSoonLabel: undefined,
       features: undefined, // uses default
       screenshots: {
         headline: 'Semua Kebutuhan Campingmu dalam Satu Aplikasi',
@@ -20,6 +23,8 @@ export const i18n = {
       downloadCta: {
         headline: 'Siap untuk Petualangan Selanjutnya?',
         subcopy: 'Unduh Embun App sekarang. Temukan dan pesan campsite favoritmu langsung dari genggaman. Tersedia gratis di App Store dan Google Play.',
+        appStoreLead: undefined,
+        googlePlayLead: undefined,
       }
     },
     partner: {
@@ -57,9 +62,12 @@ export const i18n = {
       hero: {
         headline: 'Find and Book Your Favorite Campsite, Just Like That',
         subcopy: 'Embun App helps you discover and book the best campsites in minutes. Secure payments, instant confirmations.',
+        appStoreLead: 'Download on the',
+        googlePlayLead: 'Get it on',
       },
       featuresHeading: 'Features that Make Camping Easier',
       featuresSubcopy: 'From searching for a spot to paying, everything can be done right from your fingertips without having to repeatedly call the campsite owner.',
+      featuresComingSoonLabel: 'Coming Soon',
       features: [
         {
           id: 'pencarian-campsite',
@@ -151,6 +159,8 @@ export const i18n = {
       downloadCta: {
         headline: 'Ready for Your Next Adventure?',
         subcopy: 'Download Embun App now. Find and book your favorite campsite right from your fingertips. Available for free on the App Store and Google Play.',
+        appStoreLead: 'Download on the',
+        googlePlayLead: 'Get it on',
       }
     },
     partner: {

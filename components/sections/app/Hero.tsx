@@ -15,6 +15,8 @@ export interface AppHeroProps {
   imageAlt: string;
   appStoreHref: string;
   googlePlayHref: string;
+  appStoreLead?: string;
+  googlePlayLead?: string;
 }
 
 const DEFAULT_PROPS: AppHeroProps = {
@@ -50,7 +52,7 @@ const DEFAULT_PROPS: AppHeroProps = {
  * rather than duplicating that logic.
  */
 export function Hero(props: Partial<AppHeroProps> = {}) {
-  const { headline, subcopy, imageSrc, imageAlt, appStoreHref, googlePlayHref } = {
+  const { headline, subcopy, imageSrc, imageAlt, appStoreHref, googlePlayHref, appStoreLead, googlePlayLead } = {
     ...DEFAULT_PROPS,
     ...props,
   };
@@ -80,7 +82,7 @@ export function Hero(props: Partial<AppHeroProps> = {}) {
                   aria-label="Unduh Embun App di App Store"
                   className={FOCUS_VISIBLE_CLASS}
                 >
-                  <StoreBadge store="apple" />
+                  <StoreBadge store="apple" lead={appStoreLead} />
                 </a>
                 <a
                   href={googlePlayHref}
@@ -89,7 +91,7 @@ export function Hero(props: Partial<AppHeroProps> = {}) {
                   aria-label="Dapatkan Embun App di Google Play"
                   className={FOCUS_VISIBLE_CLASS}
                 >
-                  <StoreBadge store="google" />
+                  <StoreBadge store="google" lead={googlePlayLead} />
                 </a>
               </div>
             </Reveal>
