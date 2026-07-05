@@ -52,8 +52,13 @@ export const metadata: Metadata = buildPageMetadata({
  * Every section below the Hero renders `<h2>`/`<h3>` headings only, so this
  * page has exactly one `<h1>` (Requirement 13.8).
  */
-export default function MitraPage() {
-  const breadcrumbItems = [{ label: 'Beranda', href: '/' }, { label: 'Mitra' }];
+export default async function MitraPage({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang } = await params;
+  const breadcrumbItems = [{ label: 'Beranda', href: `/${lang}` }, { label: 'Mitra' }];
 
   return (
     <>
@@ -62,7 +67,7 @@ export default function MitraPage() {
       <main>
         <Hero />
         <Benefits />
-        <DirectoryTeaser />
+        <DirectoryTeaser directoryHref={`/${lang}/mitra/direktori`} />
         <Faq items={partnerFaq} />
         <Contact />
         <CallToAction />

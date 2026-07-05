@@ -1,3 +1,6 @@
+'use client';
+
+import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Container } from '@/components/ui/Container';
@@ -14,11 +17,11 @@ interface LegalLink {
   label: string;
 }
 
-const LEGAL_LINKS: LegalLink[] = [
-  { href: '/kebijakan-privasi', label: 'Kebijakan Privasi' },
-  { href: '/syarat-ketentuan', label: 'Syarat & Ketentuan' },
-  { href: '/kebijakan-refund', label: 'Kebijakan Refund' },
-  { href: '/kebijakan-mitra', label: 'Kebijakan Mitra' },
+const getLegalLinks = (lang: string): LegalLink[] => [
+  { href: `/${lang}/kebijakan-privasi`, label: 'Kebijakan Privasi' },
+  { href: `/${lang}/syarat-ketentuan`, label: 'Syarat & Ketentuan' },
+  { href: `/${lang}/kebijakan-refund`, label: 'Kebijakan Refund' },
+  { href: `/${lang}/kebijakan-mitra`, label: 'Kebijakan Mitra' },
 ];
 
 /**
@@ -34,6 +37,10 @@ const FOCUS_VISIBLE_CLASS =
   'focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-lime focus-visible:outline-offset-2';
 
 export function SiteFooter() {
+  const params = useParams();
+  const lang = (params?.lang as string) || 'id';
+  const legalLinks = getLegalLinks(lang);
+  
   const year = new Date().getFullYear();
 
   return (
@@ -57,7 +64,7 @@ export function SiteFooter() {
           {/* Legal Page links */}
           <nav aria-label="Tautan legal">
             <ul className="flex flex-col gap-2 md:items-end">
-              {LEGAL_LINKS.map((link) => (
+              {legalLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}

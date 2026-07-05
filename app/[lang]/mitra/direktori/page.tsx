@@ -35,10 +35,15 @@ export const metadata: Metadata = buildPageMetadata({
  * for the same reason (we must not publish unverified partners as structured
  * data). A visible link back to `/mitra` is always shown (Requirement 6.8).
  */
-export default function DirektoriPage() {
+export default async function DirektoriPage({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang } = await params;
   const breadcrumbItems = [
-    { label: 'Beranda', href: '/' },
-    { label: 'Mitra', href: '/mitra' },
+    { label: 'Beranda', href: `/${lang}` },
+    { label: 'Mitra', href: `/${lang}/mitra` },
     { label: 'Direktori Mitra' },
   ];
 

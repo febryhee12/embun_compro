@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Menu, X, Moon, Sun } from 'lucide-react';
@@ -18,14 +19,13 @@ import { BUTTON_BASE_CLASS, BUTTON_VARIANT_CLASS } from '@/components/ui/Button'
  * - `/mitra`            — Partner Landing Page (Mitra)
  * - `/mitra/direktori`  — Partner Directory (Direktori Mitra)
  */
-const NAV_LINKS: Array<{ href: string; label: string }> = [
-  { href: '/', label: 'Beranda' },
-  { href: '/mitra', label: 'Mitra' },
-  { href: '/mitra/direktori', label: 'Direktori Mitra' },
+const getNavLinks = (lang: string) => [
+  { href: `/${lang}`, label: 'Beranda' },
+  { href: `/${lang}/mitra`, label: 'Mitra' },
+  { href: `/${lang}/mitra/direktori`, label: 'Direktori Mitra' },
 ];
 
-/** Route + anchor the "Hubungi Kami" CTA links to — the Contact Form lives on `/mitra` (Requirement 7.2). */
-const CONTACT_HREF = '/mitra#contact';
+const getContactHref = (lang: string) => `/${lang}/mitra#contact`;
 
 /** Scroll offset (px) past which the header is treated as "past the Hero". */
 const STICKY_SCROLL_THRESHOLD = 80;
@@ -57,6 +57,11 @@ export function SiteHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { theme, setTheme, systemTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  
+  const params = useParams();
+  const lang = (params?.lang as string) || 'id';
+  const navLinks = getNavLinks(lang);
+  const contactHref = getContactHref(lang);
 
   useEffect(() => setMounted(true), []);
 
@@ -104,7 +109,7 @@ export function SiteHeader() {
       <Container>
         <div className="flex h-20 items-center justify-between">
           <Link
-            href="/"
+            href={`/${lang}`}
             className={['inline-flex items-center rounded-sm', FOCUS_VISIBLE_CLASS].join(' ')}
           >
             <Image
@@ -120,7 +125,7 @@ export function SiteHeader() {
           {/* Desktop nav — visible on viewport ≥ 769px (Tailwind `md` = 768px). */}
           <nav aria-label="Navigasi utama" className="hidden md:flex">
             <ul className="flex items-center gap-6">
-              {NAV_LINKS.map((link) => (
+              {navLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
@@ -147,7 +152,7 @@ export function SiteHeader() {
               </button>
             )}
             <Link
-              href={CONTACT_HREF}
+              href={contactHref}
               className={[BUTTON_BASE_CLASS, BUTTON_VARIANT_CLASS.primary, FOCUS_VISIBLE_CLASS].join(' ')}
             >
               Hubungi Kami
@@ -179,7 +184,7 @@ export function SiteHeader() {
           >
             <nav aria-label="Navigasi mobile">
               <ul className="flex flex-col gap-1 pt-4">
-                {NAV_LINKS.map((link) => (
+                {navLinks.map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
@@ -209,7 +214,7 @@ export function SiteHeader() {
             </nav>
 
             <Link
-              href={CONTACT_HREF}
+              href={contactHref}
               onClick={closeMobileMenu}
               className={[
                 BUTTON_BASE_CLASS,
