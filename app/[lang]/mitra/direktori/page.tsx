@@ -42,9 +42,9 @@ export default async function DirektoriPage({
 }) {
   const { lang } = await params;
   const breadcrumbItems = [
-    { label: 'Beranda', href: `/${lang}` },
-    { label: 'Mitra', href: `/${lang}/mitra` },
-    { label: 'Direktori Mitra' },
+    { label: lang === 'en' ? 'Home' : 'Beranda', href: `/${lang}` },
+    { label: lang === 'en' ? 'Partner' : 'Mitra', href: `/${lang}/mitra` },
+    { label: lang === 'en' ? 'Partner Directory' : 'Direktori Mitra' },
   ];
 
   return (
@@ -55,11 +55,11 @@ export default async function DirektoriPage({
         <Section variant="default" compactTop>
           <Container>
             <h1 className="font-serif text-[2.5rem] font-medium leading-[1.1] text-brand-black md:text-5xl">
-              Direktori Mitra
+              {lang === 'en' ? 'Partner Directory' : 'Direktori Mitra'}
             </h1>
           </Container>
         </Section>
-        <PartnerDirectoryEmptyState message="Direktori mitra akan segera hadir. Jadilah salah satu campsite pertama yang bergabung dengan Embun." />
+        <PartnerDirectoryEmptyState message={lang === 'en' ? 'Partner directory coming soon. Be one of the first campsites to join Embun.' : 'Direktori mitra akan segera hadir. Jadilah salah satu campsite pertama yang bergabung dengan Embun.'} />
       </main>
       <SiteFooter />
     </>

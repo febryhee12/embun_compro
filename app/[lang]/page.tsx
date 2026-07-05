@@ -10,6 +10,7 @@ import { JsonLd } from '@/components/seo/JsonLd';
 import { appFaq } from '@/lib/content/appFaq';
 import { buildPageMetadata } from '@/lib/seo/metadata';
 import { buildSoftwareApplicationJsonLd } from '@/lib/seo/structuredData';
+import { i18n } from '@/lib/i18n';
 
 /**
  * Forces fully static rendering for this route (Requirement 9.4).
@@ -50,17 +51,24 @@ export const metadata: Metadata = buildPageMetadata({
  * renders on this route (Requirement 1.3/1.4) — that content now lives on
  * the `/mitra` route instead.
  */
-export default function Home() {
+export default async function Home({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang } = await params;
+  const dict = lang === 'en' ? i18n.en.app : i18n.id.app;
+
   return (
     <>
       <JsonLd data={buildSoftwareApplicationJsonLd()} />
       <SiteHeader />
       <main>
-        <AppHero />
-        <AppFeatures />
-        <AppScreenshots />
-        <Faq items={appFaq} />
-        <AppDownloadCta />
+        <AppHero headline={dict.hero.headline} subcopy={dict.hero.subcopy} />
+        <AppFeatures items={dict.features} />
+        <AppScreenshots headline={dict.screenshots.headline} subcopy={dict.screenshots.subcopy} items={dict.screenshots.items} />
+        <Faq items={dict.faq.items || appFaq} heading={dict.faq.heading} />
+        <AppDownloadCta heading={dict.downloadCta.headline} subcopy={dict.downloadCta.subcopy} />
       </main>
       <SiteFooter />
     </>

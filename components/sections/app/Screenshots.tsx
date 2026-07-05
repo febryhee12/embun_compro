@@ -6,6 +6,8 @@ import Section from '@/components/ui/Section';
 import { screenshots as screenshotItems, type ScreenshotItem } from '@/lib/content/screenshots';
 
 export interface ScreenshotsProps {
+  headline?: string;
+  subcopy?: string;
   items?: ScreenshotItem[]; // ≥3 items required
 }
 
@@ -22,16 +24,19 @@ export interface ScreenshotsProps {
  * `Reveal` with an `index * 100` stagger for a subtle scroll-in effect,
  * matching the pattern already established in `Features.tsx`.
  */
-export default function Screenshots({ items = screenshotItems }: ScreenshotsProps = {}) {
+export default function Screenshots({ 
+  headline = 'Lihat Tampilan Aslinya',
+  subcopy = 'Dari mencari campsite, melihat detailnya, hingga menyelesaikan pemesanan — semua berlangsung mulus di dalam Embun App.',
+  items = screenshotItems 
+}: ScreenshotsProps = {}) {
   return (
     <Section id="screenshots" variant="muted">
       <Container>
         <h2 className="font-serif text-[2.5rem] leading-[1.1] text-brand-black md:text-5xl">
-          Lihat Tampilan Aslinya
+          {headline}
         </h2>
         <p className="mt-4 max-w-xl text-lg leading-[1.7] text-foreground-muted">
-          Dari mencari campsite, melihat detailnya, hingga menyelesaikan pemesanan — semua
-          berlangsung mulus di dalam Embun App.
+          {subcopy}
         </p>
 
         <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 md:mt-16 lg:grid-cols-3">

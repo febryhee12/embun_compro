@@ -18,10 +18,10 @@ interface LegalLink {
 }
 
 const getLegalLinks = (lang: string): LegalLink[] => [
-  { href: `/${lang}/kebijakan-privasi`, label: 'Kebijakan Privasi' },
-  { href: `/${lang}/syarat-ketentuan`, label: 'Syarat & Ketentuan' },
-  { href: `/${lang}/kebijakan-refund`, label: 'Kebijakan Refund' },
-  { href: `/${lang}/kebijakan-mitra`, label: 'Kebijakan Mitra' },
+  { href: `/${lang}/kebijakan-privasi`, label: lang === 'en' ? 'Privacy Policy' : 'Kebijakan Privasi' },
+  { href: `/${lang}/syarat-ketentuan`, label: lang === 'en' ? 'Terms & Conditions' : 'Syarat & Ketentuan' },
+  { href: `/${lang}/kebijakan-refund`, label: lang === 'en' ? 'Refund Policy' : 'Kebijakan Refund' },
+  { href: `/${lang}/kebijakan-mitra`, label: lang === 'en' ? 'Partner Policy' : 'Kebijakan Mitra' },
 ];
 
 /**
@@ -57,12 +57,14 @@ export function SiteFooter() {
               unoptimized
             />
             <p className="mt-3 text-sm text-foreground-muted-on-dark">
-              Sepraktis embun pagi. Pesan campsite tanpa basa-basi.
+              {lang === 'en' 
+                ? 'As simple as morning dew. Book campsites without the hassle.' 
+                : 'Sepraktis embun pagi. Pesan campsite tanpa basa-basi.'}
             </p>
           </div>
 
           {/* Legal Page links */}
-          <nav aria-label="Tautan legal">
+          <nav aria-label={lang === 'en' ? 'Legal links' : 'Tautan legal'}>
             <ul className="flex flex-col gap-2 md:items-end">
               {legalLinks.map((link) => (
                 <li key={link.href}>
@@ -84,7 +86,7 @@ export function SiteFooter() {
         {/* Copyright */}
         <div className="border-t border-white/10 py-6">
           <p className="text-xs text-foreground-muted-on-dark">
-            © {year} Embun. Seluruh hak cipta dilindungi.
+            © {year} Embun. {lang === 'en' ? 'All rights reserved.' : 'Seluruh hak cipta dilindungi.'}
           </p>
         </div>
       </Container>

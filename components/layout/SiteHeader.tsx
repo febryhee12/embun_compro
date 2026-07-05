@@ -20,9 +20,9 @@ import { BUTTON_BASE_CLASS, BUTTON_VARIANT_CLASS } from '@/components/ui/Button'
  * - `/mitra/direktori`  — Partner Directory (Direktori Mitra)
  */
 const getNavLinks = (lang: string) => [
-  { href: `/${lang}`, label: 'Beranda' },
-  { href: `/${lang}/mitra`, label: 'Mitra' },
-  { href: `/${lang}/mitra/direktori`, label: 'Direktori Mitra' },
+  { href: `/${lang}`, label: lang === 'en' ? 'Home' : 'Beranda' },
+  { href: `/${lang}/mitra`, label: lang === 'en' ? 'Partner' : 'Mitra' },
+  { href: `/${lang}/mitra/direktori`, label: lang === 'en' ? 'Partner Directory' : 'Direktori Mitra' },
 ];
 
 const getContactHref = (lang: string) => `/${lang}/mitra#contact`;
@@ -165,7 +165,7 @@ export function SiteHeader() {
               href={contactHref}
               className={[BUTTON_BASE_CLASS, BUTTON_VARIANT_CLASS.primary, FOCUS_VISIBLE_CLASS].join(' ')}
             >
-              Hubungi Kami
+              {lang === 'en' ? 'Contact Us' : 'Hubungi Kami'}
             </Link>
           </div>
 
@@ -179,7 +179,7 @@ export function SiteHeader() {
             ].join(' ')}
             aria-expanded={isMenuOpen}
             aria-controls={MOBILE_DRAWER_ID}
-            aria-label={isMenuOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi'}
+            aria-label={isMenuOpen ? (lang === 'en' ? 'Close navigation menu' : 'Tutup menu navigasi') : (lang === 'en' ? 'Open navigation menu' : 'Buka menu navigasi')}
             onClick={() => setIsMenuOpen((open) => !open)}
           >
             {isMenuOpen ? <X aria-hidden="true" size={24} /> : <Menu aria-hidden="true" size={24} />}
@@ -192,7 +192,7 @@ export function SiteHeader() {
             id={MOBILE_DRAWER_ID}
             className="md:hidden border-t border-border bg-background/95 backdrop-blur-sm pb-6"
           >
-            <nav aria-label="Navigasi mobile">
+            <nav aria-label={lang === 'en' ? 'Mobile navigation' : 'Navigasi mobile'}>
               <ul className="flex flex-col gap-1 pt-4">
                 {navLinks.map((link) => (
                   <li key={link.href}>
@@ -210,7 +210,7 @@ export function SiteHeader() {
                 ))}
                 {mounted && (
                   <li className="mt-2 flex items-center justify-between border-t border-border pt-4">
-                    <span className="text-base font-medium text-foreground">Mode Gelap</span>
+                    <span className="text-base font-medium text-foreground">{lang === 'en' ? 'Dark Mode' : 'Mode Gelap'}</span>
                     <button
                       onClick={() => setTheme((theme === 'dark' || (theme === 'system' && systemTheme === 'dark')) ? 'light' : 'dark')}
                       className={['p-2 text-foreground transition-colors hover:text-brand-blue rounded-md', FOCUS_VISIBLE_CLASS].join(' ')}
@@ -221,7 +221,7 @@ export function SiteHeader() {
                   </li>
                 )}
                 <li className="flex items-center justify-between border-t border-border pt-4 pb-2">
-                  <span className="text-base font-medium text-foreground">Bahasa</span>
+                  <span className="text-base font-medium text-foreground">{lang === 'en' ? 'Language' : 'Bahasa'}</span>
                   <Link
                     href={switchHref}
                     className={['px-4 py-2 text-sm font-bold text-foreground transition-colors hover:text-brand-blue rounded-md border border-border', FOCUS_VISIBLE_CLASS].join(' ')}
@@ -243,7 +243,7 @@ export function SiteHeader() {
                 FOCUS_VISIBLE_CLASS,
               ].join(' ')}
             >
-              Hubungi Kami
+              {lang === 'en' ? 'Contact Us' : 'Hubungi Kami'}
             </Link>
           </div>
         ) : null}

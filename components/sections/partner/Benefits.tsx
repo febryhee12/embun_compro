@@ -5,6 +5,8 @@ import Section from '@/components/ui/Section';
 import { partnerBenefits, type PartnerBenefitItem } from '@/lib/content/partnerBenefits';
 
 export interface BenefitsProps {
+  heading?: string;
+  subcopy?: string;
   items?: PartnerBenefitItem[];
 }
 
@@ -24,7 +26,11 @@ export interface BenefitsProps {
  * same robustness the homepage section has, even though the current
  * `partnerBenefits` content always has all three fields populated.
  */
-export default function Benefits({ items = partnerBenefits }: BenefitsProps = {}) {
+export default function Benefits({ 
+  heading = 'Yang Anda Dapatkan Sebagai Mitra', 
+  subcopy = 'Reservasi tercatat otomatis dan komisi terhitung sendiri, jadi Anda bisa fokus mengelola campsite tanpa repot administrasi manual.', 
+  items = partnerBenefits 
+}: BenefitsProps = {}) {
   const visibleItems = items.filter(
     (item) => Boolean(item.title) && Boolean(item.description) && Boolean(item.mockupSrc)
   );
@@ -33,11 +39,10 @@ export default function Benefits({ items = partnerBenefits }: BenefitsProps = {}
     <Section id="benefits" variant="default">
       <Container>
         <h2 className="font-serif text-[2.5rem] leading-[1.1] text-brand-black md:text-5xl">
-          Yang Anda Dapatkan Sebagai Mitra
+          {heading}
         </h2>
         <p className="mt-4 max-w-xl text-lg leading-[1.7] text-foreground-muted">
-          Reservasi tercatat otomatis dan komisi terhitung sendiri, jadi Anda
-          bisa fokus mengelola campsite tanpa repot administrasi manual.
+          {subcopy}
         </p>
 
         <div className="mt-12 flex flex-col gap-16 md:mt-16 md:gap-20">

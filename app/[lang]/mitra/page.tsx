@@ -11,6 +11,7 @@ import { JsonLd } from '@/components/seo/JsonLd';
 import { partnerFaq } from '@/lib/content/partnerFaq';
 import { buildPageMetadata } from '@/lib/seo/metadata';
 import { buildBreadcrumbJsonLd } from '@/lib/seo/structuredData';
+import { i18n } from '@/lib/i18n';
 
 /**
  * Forces fully static rendering for this route (Requirement 15.4).
@@ -58,19 +59,42 @@ export default async function MitraPage({
   params: Promise<{ lang: string }>;
 }) {
   const { lang } = await params;
-  const breadcrumbItems = [{ label: 'Beranda', href: `/${lang}` }, { label: 'Mitra' }];
+  const breadcrumbItems = [{ label: lang === 'en' ? 'Home' : 'Beranda', href: `/${lang}` }, { label: lang === 'en' ? 'Partner' : 'Mitra' }];
+  const dict = lang === 'en' ? i18n.en.partner : i18n.id.partner;
 
   return (
     <>
       <JsonLd data={buildBreadcrumbJsonLd(breadcrumbItems)} />
       <SiteHeader />
       <main>
-        <Hero />
-        <Benefits />
-        <DirectoryTeaser directoryHref={`/${lang}/mitra/direktori`} />
-        <Faq items={partnerFaq} />
-        <Contact />
-        <CallToAction />
+        <Hero 
+          headline={dict.hero.headline} 
+          subcopy={dict.hero.subcopy} 
+          ctaLabel={dict.hero.ctaLabel} 
+        />
+        <Benefits 
+          heading={dict.benefits.heading} 
+          subcopy={dict.benefits.subcopy} 
+          items={dict.benefits.items as any} 
+        />
+        <DirectoryTeaser 
+          heading={dict.directoryTeaser.heading} 
+          subcopy={dict.directoryTeaser.subcopy} 
+          directoryHref={`/${lang}/mitra/direktori`} 
+        />
+        <Faq 
+          heading={dict.faq.heading} 
+          items={dict.faq.items || partnerFaq} 
+        />
+        <Contact 
+          heading={dict.contact.heading} 
+          subcopy={dict.contact.subcopy} 
+        />
+        <CallToAction 
+          heading={dict.cta.heading} 
+          subcopy={dict.cta.subcopy} 
+          ctaLabel={dict.cta.ctaLabel} 
+        />
       </main>
       <SiteFooter />
     </>
