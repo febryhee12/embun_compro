@@ -61,14 +61,14 @@ export function StoreBadge({ store, style, className }: StoreBadgeProps) {
     <span
       style={style}
       className={[
-        'inline-flex items-center gap-3 rounded-md bg-brand-black px-4 py-2.5 text-brand-white',
+        'inline-flex items-center gap-3 rounded-md bg-brand-black px-4 py-2.5 text-brand-white dark:text-black',
         'transition-colors duration-200 hover:bg-black',
         className ?? '',
       ]
         .filter(Boolean)
         .join(' ')}
     >
-      <span className="shrink-0 text-brand-white">
+      <span className="shrink-0 text-brand-white dark:text-black">
         {isApple ? <AppleGlyph /> : <GooglePlayGlyph />}
       </span>
       <span className="flex flex-col leading-none">

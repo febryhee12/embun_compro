@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Menu, X, Moon, Sun } from 'lucide-react';
@@ -59,9 +59,12 @@ export function SiteHeader() {
   const [mounted, setMounted] = useState(false);
   
   const params = useParams();
+  const pathname = usePathname();
   const lang = (params?.lang as string) || 'id';
   const navLinks = getNavLinks(lang);
   const contactHref = getContactHref(lang);
+  const switchLang = lang === 'id' ? 'en' : 'id';
+  const switchHref = pathname ? pathname.replace(`/${lang}`, `/${switchLang}`) : `/${switchLang}`;
 
   useEffect(() => setMounted(true), []);
 
@@ -142,6 +145,13 @@ export function SiteHeader() {
           </nav>
 
           <div className="hidden md:flex md:items-center md:gap-4">
+            <Link
+              href={switchHref}
+              className={['px-2 py-1 text-sm font-bold text-foreground transition-colors hover:text-brand-blue rounded-md', FOCUS_VISIBLE_CLASS].join(' ')}
+              aria-label="Switch language"
+            >
+              {lang === 'id' ? 'EN' : 'ID'}
+            </Link>
             {mounted && (
               <button
                 onClick={() => setTheme((theme === 'dark' || (theme === 'system' && systemTheme === 'dark')) ? 'light' : 'dark')}
@@ -210,6 +220,16 @@ export function SiteHeader() {
                     </button>
                   </li>
                 )}
+                <li className="flex items-center justify-between border-t border-border pt-4 pb-2">
+                  <span className="text-base font-medium text-foreground">Bahasa</span>
+                  <Link
+                    href={switchHref}
+                    className={['px-4 py-2 text-sm font-bold text-foreground transition-colors hover:text-brand-blue rounded-md border border-border', FOCUS_VISIBLE_CLASS].join(' ')}
+                    aria-label="Switch language"
+                  >
+                    {lang === 'id' ? 'English (EN)' : 'Indonesia (ID)'}
+                  </Link>
+                </li>
               </ul>
             </nav>
 
