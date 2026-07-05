@@ -16,15 +16,16 @@
  * draft-content notice. Text uses `--foreground` (not muted) so the notice
  * reads as slightly emphasized against the surrounding body copy.
  */
-export function LegalDisclaimer() {
+export function LegalDisclaimer({ lang = 'id' }: { lang?: string }) {
   return (
     <div
       role="note"
       className="rounded-md border border-border bg-surface px-4 py-3 text-sm text-foreground"
     >
       <p>
-        Konten pada halaman ini merupakan draf awal dan disarankan untuk ditinjau oleh penasihat
-        hukum sebelum publikasi produksi final.
+        {lang === 'en' 
+          ? 'The content on this page is an initial draft and should be reviewed by legal counsel before final production publication.' 
+          : 'Konten pada halaman ini merupakan draf awal dan disarankan untuk ditinjau oleh penasihat hukum sebelum publikasi produksi final.'}
       </p>
     </div>
   );
