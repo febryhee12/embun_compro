@@ -71,7 +71,7 @@ export default async function KebijakanRefundPage({
                 Cancellations submitted before the applicable cancellation deadline for the respective order are 
                 entitled to a refund in accordance with the provisions on this page. Guests are advised to check 
                 the cancellation deadline on each order, as deadlines may vary between campsites depending on the 
-                policy of each Partner (Mitra) affiliated with Embun.
+                policy of each Campsite Management affiliated with Embun.
               </p>
 
               <h2>Refund Mechanism</h2>
@@ -99,9 +99,9 @@ export default async function KebijakanRefundPage({
                 The applicable refund percentage is calculated from the rental price.
               </p>
 
-              <h2>Cancellation by Partner or Force Majeure</h2>
+              <h2>Cancellation by Campsite Management or Force Majeure</h2>
               <p>
-                If an order is unilaterally canceled by the Partner, the Guest is entitled to a full refund (100%), 
+                If an order is unilaterally canceled by the Campsite Management, the Guest is entitled to a full refund (100%), 
                 regardless of the regular cancellation deadline applicable to that order.
               </p>
               <p>
@@ -155,7 +155,7 @@ export default async function KebijakanRefundPage({
                 yang bersangkutan berhak atas pengembalian dana sesuai dengan ketentuan pada halaman
                 ini. Tamu disarankan untuk memeriksa tenggat waktu pembatalan pada setiap pesanan,
                 karena tenggat waktu dapat berbeda antar campsite tergantung kebijakan masing-masing
-                pengelola campsite (Mitra) yang bermitra dengan Embun.
+                pengelola campsite yang bermitra dengan Embun.
               </p>
 
               <h2>Mekanisme Pengembalian Dana</h2>
@@ -188,9 +188,9 @@ export default async function KebijakanRefundPage({
                 harga sewa tersebut.
               </p>
 
-              <h2>Pembatalan oleh Pengelola Campsite (Mitra) atau Force Majeure</h2>
+              <h2>Pembatalan oleh Pengelola Campsite atau Force Majeure</h2>
               <p>
-                Jika pesanan dibatalkan secara sepihak oleh pengelola campsite (Mitra), Tamu berhak atas
+                Jika pesanan dibatalkan secara sepihak oleh pengelola campsite, Tamu berhak atas
                 pengembalian dana penuh (100%), terlepas dari tenggat waktu pembatalan reguler yang
                 berlaku pada pesanan tersebut.
               </p>

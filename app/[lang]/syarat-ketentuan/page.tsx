@@ -78,9 +78,9 @@ export default async function SyaratKetentuanPage({
               <h2>2. Rules for Using the Embun App and Website</h2>
               <p>
                 The Embun App and Website are provided to help Guests find and book camping spots,
-                and to help Partners (Mitra) manage the availability and bookings of their campsites.
-                Every user is required to use the Embun App and Website for these purposes and in accordance
-                with the applicable laws in Indonesia.
+                and to help Campsite Managements manage the availability and bookings of their campsites.
+                Every user must use the Embun App and Website in accordance with these purposes and in 
+                compliance with the laws applicable in Indonesia.
               </p>
               <p>
                 Users are prohibited from abusing the Embun App or Website, including but not
@@ -92,8 +92,8 @@ export default async function SyaratKetentuanPage({
                   committing fraud in any form.
                 </li>
                 <li>
-                  Users are prohibited from accessing, altering, or damaging the data of other users, Partner
-                  data, or the Embun system without permission.
+                  Users are prohibited from accessing, altering, or damaging the data of other users, Campsite Management
+                  data, or Embun systems without authorization.
                 </li>
                 <li>
                   Users are prohibited from using the Embun App or Website for unlawful purposes,
@@ -139,12 +139,10 @@ export default async function SyaratKetentuanPage({
                 Reviews must be based on actual experiences, be objective, and use appropriate language.
               </p>
               <p>
-                Users are prohibited from uploading reviews or other content that contains elements of SARA
-                (Ethnicity, Religion, Race, and Inter-group relations), hate speech, profanity, harassment,
-                spam, or content aimed at unlawfully ruining the reputation of Partners or Embun.
-              </p>
-              <p>
-                Embun acts as a platform moderator and has the prerogative to review, hide,
+                Users are prohibited from posting reviews or other content that contains elements of SARA 
+                (Ethnicity, Religion, Race, and Inter-group relations), hate speech, profanity, harassment, 
+                spam, or content aimed at unlawfully ruining the reputation of Campsite Managements or Embun.
+                Embun reserves the right to remove reviews that violate these terms. Embun acts as a platform moderator and has the prerogative to review, hide,
                 or delete user content that is proven to violate the above provisions without prior notice
                 to the content creator.
               </p>
@@ -156,29 +154,29 @@ export default async function SyaratKetentuanPage({
                 provider are beyond Embun's control and responsibility.
               </p>
               <p>
-                Some Partners may require a security deposit for equipment rentals or location cleanliness guarantees.
-                The provisions for retaining and returning the deposit are the prerogative of each Partner and are
-                displayed on the campsite details page or the order summary before the payment is confirmed.
+                Some Campsite Managements may require a security deposit for equipment rentals or location cleanliness guarantees. 
+                The provisions for retaining and returning the deposit are the prerogative of each Campsite Management and are 
+                displayed on the campsite details page or order summary before payment is confirmed.
               </p>
 
               <h2>6. Limitation of Embun's Liability</h2>
               <p>
-                Embun acts as a connecting platform (<em>marketplace</em>) between Guests and Partners,
-                and is not a party that provides camping services directly. Camping services, including the physical
-                condition of the campsite, facilities, area security, and the quality of service on-site, are provided
-                by and are the sole responsibility of the Partner as the owner or manager of the respective campsite.
+                Embun acts as a connecting platform (<em>marketplace</em>) between Guests and Campsite Managements,
+                and is not a party that directly provides camping services. Camping services, including physical 
+                campsite conditions, facilities, area security, and on-site service quality, are provided 
+                by and are the sole responsibility of the Campsite Management of the respective campsite.
               </p>
               <p>
-                Embun strives to maintain the accuracy of the information displayed on the Embun App and Website,
-                but cannot guarantee that all information regarding campsites, availability, or prices uploaded by
-                Partners is always free from errors. Embun is not liable for any losses, accidents, damages, or
-                injuries arising while Guests are at the campsite location, unless such losses are directly caused by
-                Embun's negligence in carrying out its functions as a platform.
+                Embun strives to maintain the accuracy of information displayed on the Embun App and Website, 
+                but cannot guarantee that all information regarding campsites, availability, and prices uploaded by 
+                Campsite Managements is always free from errors. Embun is not liable for any losses, accidents, damages, or 
+                injuries incurred while Guests are on the campsite premises, unless such losses are directly caused 
+                by Embun's negligence in carrying out its functions as a platform.
               </p>
               <p>
-                Disputes arising between Guests and Partners regarding the implementation of camping services on-site,
-                including but not limited to facility conditions and service complaints, are the responsibility of the
-                Guest and Partner to resolve, with Embun potentially acting as a communication facilitator if needed.
+                Disputes arising between Guests and Campsite Managements regarding the implementation of camping services on-site, 
+                including but not limited to facility conditions and service complaints, are the responsibility of the 
+                Guest and Campsite Management to resolve, with Embun potentially acting as a communication facilitator if needed.
               </p>
 
               <h2>7. Dispute Resolution</h2>
@@ -224,7 +222,7 @@ export default async function SyaratKetentuanPage({
               <h2>2. Aturan Penggunaan Embun App dan Website</h2>
               <p>
                 Embun App dan Website disediakan untuk membantu Tamu menemukan dan memesan spot
-                camping, serta membantu pengelola campsite (&quot;Mitra&quot;) mengelola ketersediaan dan
+                camping, serta membantu pengelola campsite mengelola ketersediaan dan
                 pemesanan campsite miliknya. Setiap pengguna wajib menggunakan Embun App dan Website
                 sesuai dengan tujuan tersebut dan sesuai dengan hukum yang berlaku di Indonesia.
               </p>
@@ -238,8 +236,7 @@ export default async function SyaratKetentuanPage({
                   melakukan kecurangan dalam bentuk apa pun.
                 </li>
                 <li>
-                  Pengguna dilarang mengakses, mengubah, atau merusak data pengguna lain, data
-                  Mitra, maupun sistem Embun tanpa izin.
+                  Pengguna dilarang mengakses, mengubah, atau merusak data campsite (termasuk foto, harga, dan ketersediaan), maupun meretas akun pengelola campsite, maupun sistem Embun tanpa izin.
                 </li>
                 <li>
                   Pengguna dilarang menggunakan Embun App atau Website untuk tujuan yang melanggar
@@ -270,7 +267,7 @@ export default async function SyaratKetentuanPage({
                 Pengguna bertanggung jawab penuh untuk menjaga kerahasiaan kredensial login (termasuk
                 kata sandi, PIN, atau metode masuk pihak ketiga seperti Google/Apple Sign-In) dan
                 seluruh aktivitas yang terjadi di bawah akun Anda. Segera hubungi tim dukungan Embun
-                melalui email <a href="mailto:help@embun.app">help@embun.app</a> apabila Anda
+                medalui email <a href="mailto:help@embun.app">help@embun.app</a> apabila Anda
                 mencurigai adanya akses tidak sah ke akun Anda.
               </p>
               <p>
@@ -289,8 +286,8 @@ export default async function SyaratKetentuanPage({
               <p>
                 Pengguna dilarang mengunggah ulasan atau konten lain yang mengandung unsur SARA
                 (Suku, Agama, Ras, dan Antargolongan), ujaran kebencian, kata-kata kasar, pelecehan,
-                spam, atau konten yang bertujuan menjatuhkan reputasi Mitra maupun Embun
-                secara tidak sah.
+                spam, atau konten yang bertujuan menjatuhkan reputasi pengelola campsite maupun Embun
+                secara tidak wajar. Embun berhak menghapus ulasan yang melanggar ketentuan ini.
               </p>
               <p>
                 Embun bertindak sebagai moderator platform dan memiliki hak prerogatif untuk meninjau,
@@ -306,32 +303,32 @@ export default async function SyaratKetentuanPage({
                 tanggung jawab Embun.
               </p>
               <p>
-                Beberapa Mitra dapat mewajibkan uang jaminan (deposit) untuk penyewaan
-                peralatan atau jaminan kebersihan lokasi. Ketentuan penahanan dan pengembalian deposit
-                merupakan hak prerogatif masing-masing Mitra dan ditampilkan pada halaman
-                detail campsite atau ringkasan pesanan sebelum pembayaran dikonfirmasi.
+                Beberapa pengelola campsite dapat mewajibkan uang jaminan (deposit) untuk penyewaan
+                tenda atau peralatan di lokasi. Besaran dan ketentuan pengembalian deposit ini
+                merupakan hak prerogatif masing-masing pengelola campsite dan ditampilkan pada halaman
+                detail campsite.
               </p>
 
               <h2>6. Batasan Tanggung Jawab Embun</h2>
               <p>
                 Embun berkedudukan sebagai platform penghubung (<em>marketplace</em>) antara Tamu
-                dan pengelola campsite (Mitra), dan bukan merupakan pihak yang menyediakan layanan camping secara
+                dan pengelola campsite, dan bukan merupakan pihak yang menyediakan layanan camping secara
                 langsung. Layanan camping, termasuk kondisi fisik campsite, fasilitas, keamanan area,
-                dan kualitas pelayanan di lokasi, disediakan dan menjadi tanggung jawab penuh Mitra
-                selaku pengelola campsite yang bersangkutan.
+                dan kualitas pelayanan di lokasi, disediakan dan menjadi tanggung jawab penuh
+                pengelola campsite yang bersangkutan.
               </p>
               <p>
                 Embun berupaya menjaga akurasi informasi yang ditampilkan di Embun App dan Website,
                 namun tidak dapat menjamin bahwa seluruh informasi mengenai campsite, ketersediaan,
-                maupun harga yang diunggah oleh Mitra selalu bebas dari kesalahan. Embun tidak
+                maupun harga yang diunggah oleh pengelola campsite selalu bebas dari kesalahan. Embun tidak
                 bertanggung jawab atas kerugian, kecelakaan, kehilangan, atau kerusakan yang timbul
                 selama Tamu berada di lokasi campsite, kecuali kerugian tersebut secara langsung
                 disebabkan oleh kelalaian Embun dalam menjalankan fungsinya sebagai platform.
               </p>
               <p>
-                Sengketa yang timbul antara Tamu dan Mitra terkait pelaksanaan layanan camping di
+                Sengketa yang timbul antara Tamu dan pengelola campsite terkait pelaksanaan layanan camping di
                 lokasi, termasuk namun tidak terbatas pada kondisi fasilitas dan keluhan layanan,
-                merupakan tanggung jawab Tamu dan Mitra untuk menyelesaikannya, dengan Embun dapat
+                merupakan tanggung jawab Tamu dan pengelola campsite untuk menyelesaikannya, dengan Embun dapat
                 berperan sebagai fasilitator komunikasi apabila diperlukan.
               </p>
 

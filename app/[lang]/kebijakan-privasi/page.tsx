@@ -69,7 +69,7 @@ export default async function KebijakanPrivasiPage({
                 check-in and check-out dates, and payment methods used.
               </p>
               <p>
-                If you register as an Embun Partner (Mitra) via the Contact Form on the Partner page,
+                If you register as a Campsite Management via the Contact Form on the Partner page,
                 Embun also stores additional data such as your campsite name and the message you sent.
               </p>
               <p>
@@ -109,7 +109,7 @@ export default async function KebijakanPrivasiPage({
                 platform operations, customer service, and transaction verification.
               </p>
               <p>
-                Partners (Mitra) can access Guest booking data relevant to reservations at their own campsite,
+                Campsite Managements can access Guest booking data relevant to reservations at their own campsite,
                 such as guest name, stay dates, and number of guests, solely for the operational purposes of that reservation.
               </p>
               <p>
@@ -172,7 +172,7 @@ export default async function KebijakanPrivasiPage({
                 pemesanan, tanggal check-in dan check-out, dan metode pembayaran yang digunakan.
               </p>
               <p>
-                Jika Anda mendaftar sebagai pengelola campsite (Mitra) melalui Contact Form pada halaman Mitra,
+                Jika Anda mendaftar sebagai pengelola campsite melalui Contact Form pada halaman Mitra,
                 Embun juga menyimpan data tambahan seperti nama campsite dan pesan yang Anda kirimkan.
               </p>
               <p>
@@ -214,7 +214,7 @@ export default async function KebijakanPrivasiPage({
                 operasional platform, layanan pelanggan, dan verifikasi transaksi.
               </p>
               <p>
-                Pengelola campsite (Mitra Embun) dapat mengakses data pemesanan Tamu yang
+                Pengelola campsite dapat mengakses data pemesanan Tamu yang
                 relevan dengan reservasi di campsite milik mereka sendiri, seperti nama tamu, tanggal
                 menginap, dan jumlah tamu, semata-mata untuk keperluan operasional reservasi tersebut.
               </p>

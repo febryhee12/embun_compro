@@ -63,85 +63,85 @@ export default async function KebijakanMitraPage({
               <h2>Commission Structure</h2>
               <p>
                 Embun takes a commission from every booking transaction successfully completed
-                by a Guest via the Embun App at a Partner (Mitra) campsite.
-                The commission percentage is agreed upon in writing between Embun and the Partner during
-                the partnership registration process, and may vary depending on the type of service or
-                package offered by each campsite.
+                by a Guest via the Embun App at a Campsite Management's campsite.
+                The commission percentage is agreed upon in writing between Embun and the Campsite Management during
+                the partnership registration process, and may vary depending on the types of services or
+                packages offered by each campsite.
               </p>
               <p>
                 The commission is automatically deducted from the total payment received from the Guest
-                before the remaining funds are disbursed (settled) to the Partner. Details of the commission
-                for each transaction can be monitored by the Partner via the Embun backoffice dashboard.
+                before the remaining funds are disbursed (settled) to the Campsite Management. Details of the commission
+                for each transaction can be monitored by the Campsite Management via the Embun backoffice dashboard.
               </p>
               <p>
-                Future changes to the commission structure will be communicated in advance
-                to Partners via Embun's official communication channels before they take effect.
+                Embun reserves the right to change the commission structure in the future with prior notice
+                to Campsite Managements via Embun's official communication channels before they take effect.
               </p>
 
               <h2>Settlement Schedule</h2>
               <p>
-                Partner funds for a given transaction period will be marked as &quot;Ready to Disburse&quot; 
-                after the cancellation deadline (Refund Window) for all related transactions in that period has ended, 
-                in accordance with the refund policy applicable to each transaction. Disbursements can be made partially 
-                (partial settlement) based on the funds that are ready to be disbursed.
+                Campsite Management funds for a given transaction period will be marked as &quot;Ready to Disburse&quot; 
+                after the Guest has successfully checked out. Disbursement of funds (settlement) is carried out periodically 
+                according to the schedule chosen or assigned during registration (e.g., weekly or bi-weekly) to the 
+                bank account registered in the system.
               </p>
               <p>
-                The fund readiness status and the history of every fund transfer made can be monitored in real-time 
-                by Partners via the Embun backoffice dashboard.
+                Embun strives to ensure settlements run on time, but delays may occur due to constraints 
+                on the payment gateway or destination bank. The history of all disbursements and outstanding balances can be monitored 
+                by Campsite Managements via the Embun backoffice dashboard.
               </p>
 
-              <h2>Partner Obligations</h2>
+              <h2>Campsite Management Obligations</h2>
               <p>
-                As an Embun partner, the Partner is responsible for maintaining the accuracy of availability data
+                As an Embun partner, the Campsite Management is responsible for maintaining the accuracy of availability data
                 (calendar, spot quota, and blocked status) on the backoffice dashboard so that Guests do not receive
                 misleading information when making a booking.
               </p>
               <p>
-                The Partner is also responsible for maintaining the quality of service provided to Guests 
-                in accordance with the description, facilities, and prices listed on the campsite profile in the Embun App, 
+                The Campsite Management is also responsible for maintaining the quality of service provided to Guests 
+                in accordance with the descriptions, facilities, and prices listed on the campsite profile in the Embun App, 
                 including ensuring the location is ready on the booked check-in date.
               </p>
               <p>
-                Partners must comply with all applicable Embun platform policies, including but not limited to
-                pricing policies, cancellation and refund policies as described in the{' '}
-                <Link href={`/${lang}/kebijakan-refund`}>Refund &amp; Cancellation Policy</Link>, as well as
-                standards for communication and response to Guest inquiries.
+                Campsite Managements must comply with all applicable Embun platform policies, including but not limited to
+                pricing policies, cancellation and refund policies as detailed in the{' '}
+                <Link href={`/${lang}/kebijakan-refund`}>Refund &amp; Cancellation Policy</Link>, and standards for 
+                communication and response to Guest inquiries.
               </p>
               <p>
-                In the event of an order cancellation due to Partner negligence, for example, the campsite is 
-                not available on the check-in date even though it is shown as available in the Embun App (overbooking), 
-                the Partner is responsible for arranging an equivalent alternative location for the Guest. Affected Guests 
-                are entitled to a full refund (100%) as described in the{' '}
+                In the event of an order cancellation due to Campsite Management negligence, for example, the campsite is 
+                unavailable on the check-in date even though it was listed as available on the Embun App (overbooking), 
+                the Campsite Management is responsible for arranging an equivalent alternative location for the Guest. Affected Guests 
+                are entitled to a full refund (100%) as detailed in the{' '}
                 <Link href={`/${lang}/kebijakan-refund`}>Refund &amp; Cancellation Policy</Link>, and Embun reserves 
-                the right to impose a penalty on the Partner for costs arising from the cancellation, including but not 
-                limited to non-refundable payment gateway transaction fees.
+                the right to impose a penalty on the Campsite Management for costs arising from the cancellation, including but not 
+                limited to the deduction of commissions or temporary suspension of the account.
               </p>
               <p>
-                The Partner agrees not to set rental prices on the Embun App higher than the direct selling price (walk-in) 
-                at the campsite location for the same type of service and time period.
+                The Campsite Management agrees not to set rental prices on the Embun App higher than the direct selling price (walk-in) 
+                or prices on other platforms for the same service (price parity), unless there is a separate promotional agreement.
               </p>
               <p>
-                The Partner agrees to release and hold Embun harmless from any legal claims, damages, or claims 
-                from Guests or other third parties arising from Partner negligence, location safety conditions, 
+                The Campsite Management agrees to release and hold Embun harmless from any legal claims, damages, or claims 
+                from Guests or other third parties arising from Campsite Management negligence, location safety conditions, 
                 accidents, or damage to facilities while Guests are in the campsite area.
               </p>
 
               <h2>Terms and Mechanisms for Partnership Termination</h2>
               <p>
-                Both Embun and the Partner may request termination of the partnership by submitting a written notice 
-                via official communication channels to the other party, accompanied by the reason for termination and 
-                the notice period as agreed upon in the initial partnership agreement.
+                Both Embun and the Campsite Management may request termination of the partnership by submitting a written notice 
+                at least 30 days prior to the desired effective date of termination.
               </p>
               <p>
-                Embun reserves the right to terminate the partnership at any time if the Partner is found to have violated 
-                the obligations described on this page, including repeatedly providing inaccurate availability data, 
-                consistently failing to meet service quality standards, or violating other platform policies.
+                Embun reserves the right to terminate the partnership at any time if the Campsite Management is found to have violated 
+                the provisions of this policy, including but not limited to price manipulation, service quality that is 
+                consistently below standard, or violations of other platform policies.
               </p>
               <p>
                 Once the termination of the partnership is agreed upon or takes effect, Guest transactions that are already 
-                in progress prior to the effective date of termination will still be completed according to the applicable provisions, 
+                underway before the effective date of termination will still be completed in accordance with the applicable provisions, 
                 including the handling of funds related to Guest transactions as described in the{' '}
-                <Link href={`/${lang}/kebijakan-refund`}>Refund &amp; Cancellation Policy</Link>. The campsite can no longer 
+                <Link href={`/${lang}/kebijakan-refund`}>Refund &amp; Cancellation Policy</Link>. The Campsite Management cannot 
                 accept new Guest bookings after the effective date of partnership termination.
               </p>
             </>
@@ -179,9 +179,9 @@ export default async function KebijakanMitraPage({
                 dipantau secara real-time oleh Mitra melalui dashboard backoffice Embun.
               </p>
 
-              <h2>Kewajiban Pengelola Campsite (Mitra)</h2>
+              <h2>Kewajiban Pengelola Campsite</h2>
               <p>
-                Sebagai mitra Embun, pengelola campsite (Mitra) bertanggung jawab untuk menjaga keakuratan data
+                Sebagai mitra Embun, pengelola campsite bertanggung jawab untuk menjaga keakuratan data
                 ketersediaan (kalender, kuota spot, dan status blok) pada dashboard backoffice
                 sehingga Tamu tidak menerima informasi yang menyesatkan saat melakukan pemesanan.
               </p>
