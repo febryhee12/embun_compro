@@ -86,7 +86,7 @@ export default function Features({ items = appFeatures }: AppFeaturesProps = {})
                   ].join(' ')}
                 >
                   {item.comingSoon ? (
-                    <span className="inline-block rounded-full bg-brand-lime px-3 py-1 text-xs font-semibold uppercase tracking-wide text-brand-black">
+                    <span className="inline-block rounded-full bg-brand-lime px-3 py-1 text-xs font-semibold uppercase tracking-wide text-black">
                       Segera Hadir
                     </span>
                   ) : null}
