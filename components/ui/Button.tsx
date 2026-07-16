@@ -19,7 +19,7 @@ export const BUTTON_BASE_CLASS =
 export const BUTTON_VARIANT_CLASS: Record<NonNullable<ButtonProps['variant']>, string> = {
   primary: 'bg-brand-blue text-brand-white px-6 py-3 hover:bg-brand-blue-hover',
   ghost:
-    'bg-transparent text-brand-blue border border-border px-6 py-3 hover:bg-surface',
+    'bg-transparent text-brand-blue dark:text-foreground border border-border px-6 py-3 hover:bg-surface',
   link: 'bg-transparent text-brand-blue underline-offset-4 hover:underline',
 };
 

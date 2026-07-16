@@ -9,6 +9,7 @@ import Contact from '@/components/sections/Contact';
 import CallToAction from '@/components/sections/partner/CallToAction';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { partnerFaq } from '@/lib/content/partnerFaq';
+import type { PartnerBenefitItem } from '@/lib/content/partnerBenefits';
 import { buildPageMetadata } from '@/lib/seo/metadata';
 import { buildBreadcrumbJsonLd } from '@/lib/seo/structuredData';
 import { i18n } from '@/lib/i18n';
@@ -59,7 +60,10 @@ export default async function MitraPage({
   params: Promise<{ lang: string }>;
 }) {
   const { lang } = await params;
-  const breadcrumbItems = [{ label: lang === 'en' ? 'Home' : 'Beranda', href: `/${lang}` }, { label: lang === 'en' ? 'Partner' : 'Mitra' }];
+  const breadcrumbItems = [
+    { label: lang === 'en' ? 'Home' : 'Beranda', href: `/${lang}` },
+    { label: lang === 'en' ? 'Partner' : 'Mitra' },
+  ];
   const dict = lang === 'en' ? i18n.en.partner : i18n.id.partner;
 
   return (
@@ -67,33 +71,31 @@ export default async function MitraPage({
       <JsonLd data={buildBreadcrumbJsonLd(breadcrumbItems)} />
       <SiteHeader />
       <main>
-        <Hero 
-          headline={dict.hero.headline} 
-          subcopy={dict.hero.subcopy} 
-          ctaLabel={dict.hero.ctaLabel} 
+        <Hero
+          headline={dict.hero.headline}
+          subcopy={dict.hero.subcopy}
+          ctaLabel={dict.hero.ctaLabel}
         />
-        <Benefits 
-          heading={dict.benefits.heading} 
-          subcopy={dict.benefits.subcopy} 
-          items={dict.benefits.items as any} 
+        <Benefits
+          heading={dict.benefits.heading}
+          subcopy={dict.benefits.subcopy}
+          items={dict.benefits.items as PartnerBenefitItem[] | undefined}
         />
-        <DirectoryTeaser 
-          heading={dict.directoryTeaser.heading} 
-          subcopy={dict.directoryTeaser.subcopy} 
-          directoryHref={`/${lang}/mitra/direktori`} 
+        <DirectoryTeaser
+          heading={dict.directoryTeaser.heading}
+          subcopy={dict.directoryTeaser.subcopy}
+          ctaLabel={dict.directoryTeaser.ctaLabel}
+          directoryHref={`/${lang}/mitra/direktori`}
         />
-        <Faq 
-          heading={dict.faq.heading} 
-          items={dict.faq.items || partnerFaq} 
+        <Faq heading={dict.faq.heading} items={dict.faq.items || partnerFaq} />
+        <Contact
+          heading={dict.contact.heading}
+          subcopy={dict.contact.subcopy}
         />
-        <Contact 
-          heading={dict.contact.heading} 
-          subcopy={dict.contact.subcopy} 
-        />
-        <CallToAction 
-          heading={dict.cta.heading} 
-          subcopy={dict.cta.subcopy} 
-          ctaLabel={dict.cta.ctaLabel} 
+        <CallToAction
+          heading={dict.cta.heading}
+          subcopy={dict.cta.subcopy}
+          ctaLabel={dict.cta.ctaLabel}
         />
       </main>
       <SiteFooter />

@@ -9,6 +9,7 @@ export interface DirectoryTeaserProps {
   heading: string;
   subcopy: string;
   directoryHref: string; // '/mitra/direktori'
+  ctaLabel: string;
 }
 
 const DEFAULT_PROPS: DirectoryTeaserProps = {
@@ -16,6 +17,7 @@ const DEFAULT_PROPS: DirectoryTeaserProps = {
   subcopy:
     'Kami sedang menyiapkan direktori mitra Embun. Jadilah salah satu campsite pertama yang bergabung dan tampil di sana.',
   directoryHref: '/mitra/direktori',
+  ctaLabel: 'Lihat Direktori',
 };
 
 /**
@@ -34,7 +36,7 @@ const DEFAULT_PROPS: DirectoryTeaserProps = {
  * for visual rhythm (Requirement 1.7/10.6 handled by `Section`).
  */
 export function DirectoryTeaser(props: Partial<DirectoryTeaserProps> = {}) {
-  const { heading, subcopy, directoryHref } = {
+  const { heading, subcopy, directoryHref, ctaLabel } = {
     ...DEFAULT_PROPS,
     ...props,
   };
@@ -53,7 +55,7 @@ export function DirectoryTeaser(props: Partial<DirectoryTeaserProps> = {}) {
                 href={directoryHref}
                 className={[BUTTON_BASE_CLASS, BUTTON_VARIANT_CLASS.ghost].join(' ')}
               >
-                Lihat Direktori
+                {ctaLabel}
               </Link>
             </div>
           </div>
