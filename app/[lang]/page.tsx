@@ -8,6 +8,7 @@ import AppDownloadCta from '@/components/sections/app/DownloadCta';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { appFaq } from '@/lib/content/appFaq';
+import type { AppFeatureItem } from '@/lib/content/appFeatures';
 import { buildPageMetadata } from '@/lib/seo/metadata';
 import { buildSoftwareApplicationJsonLd } from '@/lib/seo/structuredData';
 import { i18n } from '@/lib/i18n';
@@ -64,11 +65,30 @@ export default async function Home({
       <JsonLd data={buildSoftwareApplicationJsonLd()} />
       <SiteHeader />
       <main>
-        <AppHero headline={dict.hero.headline} subcopy={dict.hero.subcopy} appStoreLead={dict.hero.appStoreLead} googlePlayLead={dict.hero.googlePlayLead} />
-        <AppFeatures headline={dict.featuresHeading} subcopy={dict.featuresSubcopy} comingSoonLabel={dict.featuresComingSoonLabel} items={dict.features} />
-        <AppScreenshots headline={dict.screenshots.headline} subcopy={dict.screenshots.subcopy} items={dict.screenshots.items} />
+        <AppHero
+          headline={dict.hero.headline}
+          subcopy={dict.hero.subcopy}
+          appStoreLead={dict.hero.appStoreLead}
+          googlePlayLead={dict.hero.googlePlayLead}
+        />
+        <AppFeatures
+          headline={dict.featuresHeading}
+          subcopy={dict.featuresSubcopy}
+          comingSoonLabel={dict.featuresComingSoonLabel}
+          items={dict.features as AppFeatureItem[]}
+        />
+        <AppScreenshots
+          headline={dict.screenshots.headline}
+          subcopy={dict.screenshots.subcopy}
+          items={dict.screenshots.items}
+        />
         <Faq items={dict.faq.items || appFaq} heading={dict.faq.heading} />
-        <AppDownloadCta heading={dict.downloadCta.headline} subcopy={dict.downloadCta.subcopy} appStoreLead={dict.downloadCta.appStoreLead} googlePlayLead={dict.downloadCta.googlePlayLead} />
+        <AppDownloadCta
+          heading={dict.downloadCta.headline}
+          subcopy={dict.downloadCta.subcopy}
+          appStoreLead={dict.downloadCta.appStoreLead}
+          googlePlayLead={dict.downloadCta.googlePlayLead}
+        />
       </main>
       <SiteFooter />
     </>
