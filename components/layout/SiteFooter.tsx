@@ -21,7 +21,6 @@ const getLegalLinks = (lang: string): LegalLink[] => [
   { href: `/${lang}/kebijakan-privasi`, label: lang === 'en' ? 'Privacy Policy' : 'Kebijakan Privasi' },
   { href: `/${lang}/syarat-ketentuan`, label: lang === 'en' ? 'Terms & Conditions' : 'Syarat & Ketentuan' },
   { href: `/${lang}/kebijakan-refund`, label: lang === 'en' ? 'Refund Policy' : 'Kebijakan Refund' },
-  { href: `/${lang}/kebijakan-mitra`, label: lang === 'en' ? 'Partner Policy' : 'Kebijakan Mitra' },
 ];
 
 /**

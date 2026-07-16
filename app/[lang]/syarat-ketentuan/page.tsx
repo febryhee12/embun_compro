@@ -65,9 +65,8 @@ export default async function SyaratKetentuanPage({
               </p>
               <p>
                 These Terms and Conditions form an integral and inseparable part of Embun's{' '}
-                <Link href={`/${lang}/kebijakan-privasi`}>Privacy Policy</Link>,{' '}
-                <Link href={`/${lang}/kebijakan-refund`}>Refund &amp; Cancellation Policy</Link>, and{' '}
-                <Link href={`/${lang}/kebijakan-mitra`}>Partner Policy</Link>. By agreeing to
+                <Link href={`/${lang}/kebijakan-privasi`}>Privacy Policy</Link>, and{' '}
+                <Link href={`/${lang}/kebijakan-refund`}>Refund &amp; Cancellation Policy</Link>. By agreeing to
                 these Terms and Conditions, you are also deemed to have agreed to all provisions in
                 those documents.
               </p>
@@ -208,9 +207,8 @@ export default async function SyaratKetentuanPage({
               </p>
               <p>
                 Syarat dan Ketentuan ini merupakan satu kesatuan dan tidak terpisahkan dengan{' '}
-                <Link href={`/${lang}/kebijakan-privasi`}>Kebijakan Privasi</Link>,{' '}
-                <Link href={`/${lang}/kebijakan-refund`}>Kebijakan Refund &amp; Pembatalan</Link>, dan{' '}
-                <Link href={`/${lang}/kebijakan-mitra`}>Kebijakan Kemitraan</Link> Embun. Dengan menyetujui
+                <Link href={`/${lang}/kebijakan-privasi`}>Kebijakan Privasi</Link>, dan{' '}
+                <Link href={`/${lang}/kebijakan-refund`}>Kebijakan Refund &amp; Pembatalan</Link> Embun. Dengan menyetujui
                 Syarat dan Ketentuan ini, Anda juga dianggap telah menyetujui seluruh ketentuan pada
                 dokumen-dokumen tersebut.
               </p>
