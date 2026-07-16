@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Section from '@/components/ui/Section';
 import { Container } from '@/components/ui/Container';
-import { Reveal, RevealGroup } from '@/components/ui/Reveal';
+import { Reveal } from '@/components/ui/Reveal';
 
 export interface SupportedType {
   id: string;
@@ -32,7 +32,7 @@ export function SupportedTypes({ heading, subcopy, types }: SupportedTypesProps)
           </div>
         </Reveal>
 
-        <RevealGroup className="mt-12">
+        <div className="mt-12">
           {/* Mobile: Horizontal scroll snapping, Desktop: CSS Grid */}
           <div className="flex w-full snap-x snap-mandatory overflow-x-auto pb-8 md:grid md:grid-cols-3 lg:grid-cols-4 md:gap-6 md:overflow-x-visible md:pb-0 hide-scrollbar space-x-4 md:space-x-0 px-4 md:px-0 -mx-4 md:mx-0">
             {types.map((type, index) => (
@@ -61,7 +61,7 @@ export function SupportedTypes({ heading, subcopy, types }: SupportedTypesProps)
               </div>
             ))}
           </div>
-        </RevealGroup>
+        </div>
       </Container>
 
       {/* Hide scrollbar styles inline for simplicity */}
