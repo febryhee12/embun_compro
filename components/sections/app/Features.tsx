@@ -1,7 +1,7 @@
-import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
 import Reveal from '@/components/ui/Reveal';
 import Section from '@/components/ui/Section';
+import { MockupImage } from '@/components/ui/MockupImage';
 import { appFeatures, type AppFeatureItem } from '@/lib/content/appFeatures';
 
 export interface AppFeaturesProps {
@@ -43,10 +43,13 @@ export default function Features({
   headline = 'Fitur yang Bikin Camping Lebih Mudah',
   subcopy = 'Dari mencari spot hingga bayar, semua bisa dilakukan langsung dari genggaman tanpa perlu bolak-balik telepon pemilik campsite.',
   comingSoonLabel = 'Segera Hadir',
-  items = appFeatures
+  items = appFeatures,
 }: AppFeaturesProps = {}) {
   const visibleItems = items.filter(
-    (item) => Boolean(item.title) && Boolean(item.description) && Boolean(item.mockupSrc)
+    (item) =>
+      Boolean(item.title) &&
+      Boolean(item.description) &&
+      Boolean(item.mockupSrc),
   );
 
   return (
@@ -76,13 +79,12 @@ export default function Features({
                     imageFirst ? 'md:order-2' : 'md:order-1',
                   ].join(' ')}
                 >
-                  <Image
+                  <MockupImage
                     src={item.mockupSrc}
                     alt={item.mockupAlt}
-                    fill
-                    loading="lazy"
+                    variant="wide"
                     sizes="(min-width: 768px) 50vw, 100vw"
-                    className="object-cover"
+                    label={item.title}
                   />
                 </div>
 

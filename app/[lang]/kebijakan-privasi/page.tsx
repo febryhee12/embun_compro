@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { LegalLayout } from '@/components/sections/legal/LegalLayout';
-import { LegalDisclaimer } from '@/components/sections/legal/LegalDisclaimer';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { buildPageMetadata } from '@/lib/seo/metadata';
 import { buildBreadcrumbJsonLd } from '@/lib/seo/structuredData';
@@ -28,7 +27,7 @@ export const metadata: Metadata = buildPageMetadata({
  * Privacy Policy (`/kebijakan-privasi`) — Requirement 8.
  *
  * Composes `LegalLayout` (page title + last-updated line) with
- * `LegalDisclaimer` (draft/legal-review notice) and the policy body itself.
+ * the policy body itself.
  * The body covers: data types collected (8.2), purpose of collection (8.2),
  * who can access the data (8.2), UU PDP No. 27/2022 compliance (8.3), and a
  * contact section for privacy questions or data-deletion requests (8.5).
@@ -54,8 +53,6 @@ export default async function KebijakanPrivasiPage({
           title={isEn ? "Privacy Policy" : "Kebijakan Privasi"} 
           lastUpdated="2026-07-03"
         >
-          <LegalDisclaimer lang={lang} />
-
           {isEn ? (
             <>
               <h2>Personal Data We Collect</h2>

@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.embun.app",
+      "sha256_cert_fingerprints": [
+        "94:75:C7:46:FB:0C:0B:DB:DA:F7:51:9D:85:49:11:B6:97:3D:17:8A:8D:82:8A:F5:5B:2A:65:04:8A:54:07:07"
+      ]
+    }
+  }
+]

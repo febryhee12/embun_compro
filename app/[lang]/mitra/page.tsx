@@ -4,6 +4,7 @@ import { SiteFooter } from '@/components/layout/SiteFooter';
 import Hero from '@/components/sections/partner/Hero';
 import Benefits from '@/components/sections/partner/Benefits';
 import DirectoryTeaser from '@/components/sections/partner/DirectoryTeaser';
+import SupportedTypes from '@/components/sections/partner/SupportedTypes';
 import Faq from '@/components/sections/Faq';
 import Contact from '@/components/sections/Contact';
 import CallToAction from '@/components/sections/partner/CallToAction';
@@ -75,6 +76,11 @@ export default async function MitraPage({
           headline={dict.hero.headline}
           subcopy={dict.hero.subcopy}
           ctaLabel={dict.hero.ctaLabel}
+        />
+        <SupportedTypes
+          heading={dict.supportedTypes.heading}
+          subcopy={dict.supportedTypes.subcopy}
+          types={dict.supportedTypes.types}
         />
         <Benefits
           heading={dict.benefits.heading}

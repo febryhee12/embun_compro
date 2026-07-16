@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { LegalLayout } from '@/components/sections/legal/LegalLayout';
-import { LegalDisclaimer } from '@/components/sections/legal/LegalDisclaimer';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { buildPageMetadata } from '@/lib/seo/metadata';
 import { buildBreadcrumbJsonLd } from '@/lib/seo/structuredData';
@@ -28,7 +27,6 @@ export const metadata: Metadata = buildPageMetadata({
  * Refund & Cancellation Policy (`/kebijakan-refund`) (Requirement 10).
  *
  * Server Component composed from `LegalLayout` (title + last-updated line)
- * and `LegalDisclaimer` (fixed draft-content notice, Requirement 10.6),
  * followed by the policy body covering cancellation deadlines, the
  * payment-gateway refund mechanism, and non-refundable scenarios
  * (Requirements 10.2–10.5). The payment processor is referred to generically
@@ -56,8 +54,6 @@ export default async function KebijakanRefundPage({
           title={isEn ? "Refund & Cancellation Policy" : "Kebijakan Refund & Pembatalan"} 
           lastUpdated="2026-07-03"
         >
-          <LegalDisclaimer lang={lang} />
-
           {isEn ? (
             <>
               <h2>Terms and Cancellation Deadlines</h2>

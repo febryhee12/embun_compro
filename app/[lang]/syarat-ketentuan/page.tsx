@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { LegalLayout } from '@/components/sections/legal/LegalLayout';
-import { LegalDisclaimer } from '@/components/sections/legal/LegalDisclaimer';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { buildPageMetadata } from '@/lib/seo/metadata';
 import { buildBreadcrumbJsonLd } from '@/lib/seo/structuredData';
@@ -29,8 +28,8 @@ export const metadata: Metadata = buildPageMetadata({
 /**
  * Terms of Service (`/syarat-ketentuan`) (Requirement 9.1-9.6).
  *
- * Composes `LegalLayout` (title + last-updated) with `LegalDisclaimer`
- * (draft-content notice) and the policy body covering usage rules,
+ * Composes `LegalLayout` (title + last-updated)
+ * and the policy body covering usage rules,
  * limitation of liability, and dispute resolution.
  */
 export default async function SyaratKetentuanPage({
@@ -54,8 +53,6 @@ export default async function SyaratKetentuanPage({
           title={isEn ? "Terms & Conditions" : "Syarat & Ketentuan"} 
           lastUpdated="2026-07-03"
         >
-          <LegalDisclaimer lang={lang} />
-
           {isEn ? (
             <>
               <h2>1. Acceptance of Terms and Conditions</h2>

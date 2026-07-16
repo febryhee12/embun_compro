@@ -44,6 +44,19 @@ export const i18n = {
           'Booking, ketersediaan, dan pendapatan tersusun lebih rapi, sehingga operasional campsite tetap mudah dipantau tanpa banyak pekerjaan manual.',
         items: undefined,
       },
+      supportedTypes: {
+        heading: 'Apapun Tipe Campsite Anda, Kami Siap Mendukung',
+        subcopy: 'Dari camping ground tradisional hingga glamping mewah, Embun dirancang untuk mengakomodasi berbagai jenis properti alam.',
+        types: [
+          { id: 'glamping', label: 'Glamping' },
+          { id: 'cabin', label: 'Cabin' },
+          { id: 'dome', label: 'Dome' },
+          { id: 'campervan', label: 'Campervan' },
+          { id: 'motocamp', label: 'Motocamp' },
+          { id: 'bikecamp', label: 'Bikecamp' },
+          { id: 'camping-ground', label: 'Camping Ground' },
+        ],
+      },
       directoryTeaser: {
         heading: 'Direktori Mitra Segera Hadir',
         subcopy:
@@ -226,6 +239,19 @@ export const i18n = {
             mockupSrc: '/images/mockups/manajemen-blok.png',
             mockupAlt: 'Camping area availability settings for Embun partners',
           },
+        ],
+      },
+      supportedTypes: {
+        heading: 'Whatever Your Campsite Type, We Support It',
+        subcopy: 'From traditional camping grounds to luxurious glamping, Embun is designed to accommodate various types of nature properties.',
+        types: [
+          { id: 'glamping', label: 'Glamping' },
+          { id: 'cabin', label: 'Cabin' },
+          { id: 'dome', label: 'Dome' },
+          { id: 'campervan', label: 'Campervan' },
+          { id: 'motocamp', label: 'Motocamp' },
+          { id: 'bikecamp', label: 'Bikecamp' },
+          { id: 'camping-ground', label: 'Camping Ground' },
         ],
       },
       directoryTeaser: {

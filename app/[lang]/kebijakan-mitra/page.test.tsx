@@ -23,14 +23,6 @@ describe('KebijakanMitraPage', () => {
     expect(screen.getByText(/Terakhir diperbarui/i)).toBeInTheDocument();
   });
 
-  it('shows the LegalDisclaimer notice (Requirement 11.5)', () => {
-    render(<KebijakanMitraPage />);
-
-    expect(
-      screen.getByText(/disarankan untuk ditinjau oleh penasihat hukum/i)
-    ).toBeInTheDocument();
-  });
-
   it('renders three valid cross-reference links to /kebijakan-refund (Requirement 11.6)', () => {
     render(<KebijakanMitraPage />);
 

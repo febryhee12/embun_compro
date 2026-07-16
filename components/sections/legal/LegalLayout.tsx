@@ -49,7 +49,7 @@ function formatLastUpdated(isoDate: string): string {
  */
 export function LegalLayout({ title, lastUpdated, children }: LegalLayoutProps) {
   return (
-    <Section id="legal" variant="default">
+    <Section id="legal" variant="default" compactTop={true}>
       <Container>
         <h1 className="font-serif text-[2.5rem] font-medium leading-[1.1] text-brand-black md:text-5xl">
           {title}

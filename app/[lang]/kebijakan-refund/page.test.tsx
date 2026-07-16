@@ -22,12 +22,4 @@ describe('KebijakanRefundPage', () => {
 
     expect(screen.getByText(/Terakhir diperbarui/i)).toBeInTheDocument();
   });
-
-  it('shows the LegalDisclaimer notice (Requirement 10.5)', () => {
-    render(<KebijakanRefundPage />);
-
-    expect(
-      screen.getByText(/disarankan untuk ditinjau oleh penasihat hukum/i)
-    ).toBeInTheDocument();
-  });
 });

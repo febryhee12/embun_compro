@@ -1,8 +1,11 @@
-import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
 import Reveal from '@/components/ui/Reveal';
 import Section from '@/components/ui/Section';
-import { partnerBenefits, type PartnerBenefitItem } from '@/lib/content/partnerBenefits';
+import { MockupImage } from '@/components/ui/MockupImage';
+import {
+  partnerBenefits,
+  type PartnerBenefitItem,
+} from '@/lib/content/partnerBenefits';
 
 export interface BenefitsProps {
   heading?: string;
@@ -26,13 +29,16 @@ export interface BenefitsProps {
  * same robustness the homepage section has, even though the current
  * `partnerBenefits` content always has all three fields populated.
  */
-export default function Benefits({ 
-  heading = 'Yang Anda Dapatkan Sebagai Mitra', 
-  subcopy = 'Reservasi tercatat otomatis dan komisi terhitung sendiri, jadi Anda bisa fokus mengelola campsite tanpa repot administrasi manual.', 
-  items = partnerBenefits 
+export default function Benefits({
+  heading = 'Yang Anda Dapatkan Sebagai Mitra',
+  subcopy = 'Booking, ketersediaan, dan pendapatan tersusun lebih rapi, sehingga operasional campsite tetap mudah dipantau tanpa banyak pekerjaan manual.',
+  items = partnerBenefits,
 }: BenefitsProps = {}) {
   const visibleItems = items.filter(
-    (item) => Boolean(item.title) && Boolean(item.description) && Boolean(item.mockupSrc)
+    (item) =>
+      Boolean(item.title) &&
+      Boolean(item.description) &&
+      Boolean(item.mockupSrc),
   );
 
   return (
@@ -62,13 +68,12 @@ export default function Benefits({
                     imageFirst ? 'md:order-2' : 'md:order-1',
                   ].join(' ')}
                 >
-                  <Image
+                  <MockupImage
                     src={item.mockupSrc}
                     alt={item.mockupAlt}
-                    fill
-                    loading="lazy"
+                    variant="wide"
+                    label={item.title}
                     sizes="(min-width: 768px) 50vw, 100vw"
-                    className="object-cover"
                   />
                 </div>
 

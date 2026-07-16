@@ -1,0 +1,13 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "873VG5V8K2.com.embun.app",
+        "paths": [
+          "/spot/*"
+        ]
+      }
+    ]
+  }
+}

@@ -15,26 +15,27 @@ export interface PartnerBenefitItem {
 export const partnerBenefits: PartnerBenefitItem[] = [
   {
     id: 'reservasi',
-    title: 'Manajemen Reservasi',
+    title: 'Booking Masuk Lebih Rapi',
     description:
-      'Semua booking yang masuk dari tamu di platform Embun tercatat otomatis, lengkap dengan status dan ketersediaan spot secara real-time. Mitra tidak perlu lagi mencatat manual di buku atau spreadsheet.',
+      'Setiap pesanan dari tamu tercatat otomatis dengan status yang mudah dipantau. Tim campsite tidak perlu lagi mengandalkan catatan manual atau percakapan yang tercecer.',
     mockupSrc: '/images/mockups/reservasi.png',
-    mockupAlt: 'Tampilan dashboard daftar reservasi dengan status booking dan kalender ketersediaan spot',
+    mockupAlt: 'Ringkasan booking masuk dan status pemesanan untuk mitra Embun',
   },
   {
     id: 'bagi-hasil-otomatis',
-    title: 'Bagi Hasil Otomatis',
+    title: 'Pendapatan Mudah Dipantau',
     description:
-      'Setiap transaksi yang berhasil dihitung dan dicatat otomatis, tanpa tagihan manual. Mitra langsung menerima laporan pendapatan bersih dari setiap pemesanan.',
+      'Ringkasan pendapatan dari pemesanan tersaji jelas, termasuk status pembayaran dan pencairan. Pemilik campsite bisa membaca performa usaha tanpa membuka laporan teknis yang rumit.',
     mockupSrc: '/images/mockups/komisi.png',
-    mockupAlt: 'Tampilan dashboard rincian transaksi otomatis dan ringkasan pendapatan bersih mitra',
+    mockupAlt: 'Ringkasan pendapatan dan status pembayaran untuk mitra Embun',
   },
   {
     id: 'manajemen-blok-spot',
-    title: 'Manajemen Blok & Spot',
+    title: 'Ketersediaan Selalu Terkontrol',
     description:
-      'Atur layout, harga, dan kapasitas setiap titik camping dengan mudah melalui editor visual. Perubahan langsung tersinkron ke halaman pencarian tamu di platform Embun.',
+      'Tanggal, kapasitas, dan pilihan area camping bisa diatur dari satu tempat. Informasi yang dilihat tamu tetap selaras dengan kondisi operasional di lokasi.',
     mockupSrc: '/images/mockups/manajemen-blok.png',
-    mockupAlt: 'Tampilan editor visual peta blok dan spot camping dengan pengaturan harga dan kapasitas',
+    mockupAlt:
+      'Tampilan pengaturan ketersediaan area camping untuk mitra Embun',
   },
 ];

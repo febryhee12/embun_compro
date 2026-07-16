@@ -1,9 +1,11 @@
-import Image from 'next/image';
-
 import { Container } from '@/components/ui/Container';
 import Reveal from '@/components/ui/Reveal';
 import Section from '@/components/ui/Section';
-import { screenshots as screenshotItems, type ScreenshotItem } from '@/lib/content/screenshots';
+import { MockupImage } from '@/components/ui/MockupImage';
+import {
+  screenshots as screenshotItems,
+  type ScreenshotItem,
+} from '@/lib/content/screenshots';
 
 export interface ScreenshotsProps {
   headline?: string;
@@ -24,10 +26,10 @@ export interface ScreenshotsProps {
  * `Reveal` with an `index * 100` stagger for a subtle scroll-in effect,
  * matching the pattern already established in `Features.tsx`.
  */
-export default function Screenshots({ 
+export default function Screenshots({
   headline = 'Lihat Tampilan Aslinya',
   subcopy = 'Dari mencari campsite, melihat detailnya, hingga menyelesaikan pemesanan — semua berlangsung mulus di dalam Embun App.',
-  items = screenshotItems 
+  items = screenshotItems,
 }: ScreenshotsProps = {}) {
   return (
     <Section id="screenshots" variant="muted">
@@ -41,15 +43,18 @@ export default function Screenshots({
 
         <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 md:mt-16 lg:grid-cols-3">
           {items.map((item, index) => (
-            <Reveal key={item.id} as="figure" delay={index * 100} className="flex flex-col gap-4">
+            <Reveal
+              key={item.id}
+              as="figure"
+              delay={index * 100}
+              className="flex flex-col gap-4"
+            >
               <div className="relative aspect-[9/16] w-full overflow-hidden rounded-md shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
-                <Image
+                <MockupImage
                   src={item.src}
                   alt={item.alt}
-                  fill
-                  loading="lazy"
+                  variant="phone"
                   sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                  className="object-cover"
                 />
               </div>
               {item.caption && (

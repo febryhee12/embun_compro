@@ -21,12 +21,4 @@ describe('KebijakanPrivasiPage', () => {
 
     expect(screen.getByText(/Terakhir diperbarui/i)).toBeInTheDocument();
   });
-
-  it('shows the LegalDisclaimer notice (Requirement 8.4)', () => {
-    render(<KebijakanPrivasiPage />);
-
-    expect(
-      screen.getByText(/disarankan untuk ditinjau oleh penasihat hukum/i)
-    ).toBeInTheDocument();
-  });
 });

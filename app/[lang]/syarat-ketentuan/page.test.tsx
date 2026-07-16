@@ -24,12 +24,4 @@ describe('SyaratKetentuanPage', () => {
     // only the `LastUpdated` line rendered by `LegalLayout`.
     expect(screen.getByText(/Terakhir diperbarui:/i)).toBeInTheDocument();
   });
-
-  it('shows the LegalDisclaimer notice (Requirement 9.5)', () => {
-    render(<SyaratKetentuanPage />);
-
-    expect(
-      screen.getByText(/disarankan untuk ditinjau oleh penasihat hukum/i)
-    ).toBeInTheDocument();
-  });
 });

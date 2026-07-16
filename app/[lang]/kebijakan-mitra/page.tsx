@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { LegalLayout } from '@/components/sections/legal/LegalLayout';
-import { LegalDisclaimer } from '@/components/sections/legal/LegalDisclaimer';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { buildPageMetadata } from '@/lib/seo/metadata';
 import { buildBreadcrumbJsonLd } from '@/lib/seo/structuredData';
@@ -30,7 +29,6 @@ export const metadata: Metadata = buildPageMetadata({
  * Kebijakan Kemitraan (`/kebijakan-mitra`) (Requirement 11).
  *
  * Server Component composed from `LegalLayout` (title + last-updated line)
- * and `LegalDisclaimer` (fixed draft-content notice, Requirement 11.7),
  * followed by the policy body covering the commission structure, Campsite
  * Owner obligations, partnership termination terms, and a cross-link to
  * `/kebijakan-refund` for Guest refund context (Requirements 11.2–11.5).
@@ -56,8 +54,6 @@ export default async function KebijakanMitraPage({
           title={isEn ? "Partner Policy" : "Kebijakan Kemitraan"} 
           lastUpdated="2026-07-03"
         >
-          <LegalDisclaimer lang={lang} />
-
           {isEn ? (
             <>
               <h2>Commission Structure</h2>
