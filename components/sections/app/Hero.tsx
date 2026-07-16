@@ -21,7 +21,7 @@ export interface AppHeroProps {
 }
 
 const DEFAULT_PROPS: AppHeroProps = {
-  eyebrow: 'Sepraktis embun pagi, seluas caramu menikmati alam',
+  eyebrow: undefined,
   headline: 'Cari dan Pesan Campsite Favoritmu, Semudah Itu',
   subcopy:
     'Apapun gaya liburan alammu, mulai dari camping seru, glamping, sampai staycation di cabin, Embun App bantu kamu menemukan dan memesannya dalam hitungan menit. Bayar aman, pesanan langsung terkonfirmasi.',

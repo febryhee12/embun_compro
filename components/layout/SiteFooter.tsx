@@ -58,8 +58,8 @@ export function SiteFooter() {
             />
             <p className="mt-3 text-sm text-foreground-muted-on-dark">
               {lang === 'en' 
-                ? 'As simple as morning dew. Book campsites without the hassle.' 
-                : 'Sepraktis embun pagi. Pesan campsite tanpa basa-basi.'}
+                ? 'As simple as morning dew, as vast as your way of enjoying nature.' 
+                : 'Sepraktis embun pagi, seluas caramu menikmati alam.'}
             </p>
           </div>
 
