@@ -1,7 +1,7 @@
 import Section from '@/components/ui/Section';
 import { Container } from '@/components/ui/Container';
 import { StoreBadge } from '@/components/ui/StoreBadge';
-import { HeroImage } from '@/components/sections/HeroImage';
+import { MockupImage } from '@/components/ui/MockupImage';
 import { Reveal } from '@/components/ui/Reveal';
 
 /** Shared focus-visible ring for the store-badge anchors (Requirement 8.7). */
@@ -9,6 +9,7 @@ const FOCUS_VISIBLE_CLASS =
   'rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--border-focus)] focus-visible:outline-offset-2';
 
 export interface AppHeroProps {
+  eyebrow?: string; // short brand tagline shown above the headline
   headline: string; // ≤10 words, guest value prop
   subcopy: string; // ≤2 sentences
   imageSrc: string;
@@ -20,9 +21,10 @@ export interface AppHeroProps {
 }
 
 const DEFAULT_PROPS: AppHeroProps = {
+  eyebrow: 'Sepraktis embun pagi, seluas caramu menikmati alam',
   headline: 'Cari dan Pesan Campsite Favoritmu, Semudah Itu',
   subcopy:
-    'Embun App membantu kamu menemukan dan memesan campsite terbaik dalam hitungan menit. Bayar aman, pesanan langsung terkonfirmasi.',
+    'Apapun gaya liburan alammu, mulai dari camping seru, glamping, sampai staycation di cabin, Embun App bantu kamu menemukan dan memesannya dalam hitungan menit. Bayar aman, pesanan langsung terkonfirmasi.',
   // NOTE: placeholder path — no real app screenshot asset exists yet. A
   // later content/asset task must supply the actual mockup at this path.
   imageSrc: '/images/app-hero-mockup.png',
@@ -52,7 +54,17 @@ const DEFAULT_PROPS: AppHeroProps = {
  * rather than duplicating that logic.
  */
 export function Hero(props: Partial<AppHeroProps> = {}) {
-  const { headline, subcopy, imageSrc, imageAlt, appStoreHref, googlePlayHref, appStoreLead, googlePlayLead } = {
+  const {
+    eyebrow,
+    headline,
+    subcopy,
+    imageSrc,
+    imageAlt,
+    appStoreHref,
+    googlePlayHref,
+    appStoreLead,
+    googlePlayLead,
+  } = {
     ...DEFAULT_PROPS,
     ...props,
   };
@@ -63,17 +75,24 @@ export function Hero(props: Partial<AppHeroProps> = {}) {
         <div className="flex flex-col items-center gap-12 lg:flex-row lg:items-center lg:gap-8">
           {/* Copy column — ~5/12 on desktop */}
           <div className="w-full lg:w-5/12">
-            <Reveal delay={0}>
-              <h1 className="font-serif text-5xl leading-[1.05] text-brand-black sm:text-6xl lg:text-7xl">
+            {eyebrow ? (
+              <Reveal delay={0}>
+                <p className="font-medium tracking-wide text-brand-blue">
+                  {eyebrow}
+                </p>
+              </Reveal>
+            ) : null}
+            <Reveal delay={100}>
+              <h1 className="mt-2 font-serif text-5xl leading-[1.05] text-brand-black sm:text-6xl lg:text-7xl">
                 {headline}
               </h1>
             </Reveal>
-            <Reveal delay={150}>
+            <Reveal delay={250}>
               <p className="mt-6 max-w-md text-lg leading-[1.7] text-foreground-muted">
                 {subcopy}
               </p>
             </Reveal>
-            <Reveal delay={300}>
+            <Reveal delay={400}>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <a
                   href={appStoreHref}
@@ -98,13 +117,17 @@ export function Hero(props: Partial<AppHeroProps> = {}) {
           </div>
 
           {/* Image column — ~7/12 on desktop, offset rather than centered */}
-          <Reveal delay={200} offset={32} className="w-full lg:w-7/12 lg:translate-y-6">
+          <Reveal
+            delay={200}
+            offset={32}
+            className="w-full lg:w-7/12 lg:translate-y-6"
+          >
             <div className="relative aspect-[4/5] w-full overflow-hidden rounded-md shadow-[var(--shadow-soft)] lg:ml-auto lg:max-w-[560px]">
-              <HeroImage
+              <MockupImage
                 src={imageSrc}
                 alt={imageAlt}
-                width={800}
-                height={1000}
+                variant="phone"
+                sizes="(min-width: 1024px) 560px, 100vw"
                 priority
               />
             </div>
