@@ -60,7 +60,7 @@ export default function Benefits({
                 key={item.id}
                 as="article"
                 delay={index * 100}
-                className="flex flex-col gap-8 border-l border-border/30 pl-6 md:flex-row md:items-center md:gap-12 md:border-l-0 md:pl-0"
+                className="flex flex-col gap-8 border-l border-border/30 md:flex-row md:items-center md:gap-12 md:border-l-0 md:pl-0 sm:pl-0"
               >
                 <div
                   className={[

@@ -7,7 +7,10 @@ import Link from 'next/link';
 import { Menu, X, Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Container } from '@/components/ui/Container';
-import { BUTTON_BASE_CLASS, BUTTON_VARIANT_CLASS } from '@/components/ui/Button';
+import {
+  BUTTON_BASE_CLASS,
+  BUTTON_VARIANT_CLASS,
+} from '@/components/ui/Button';
 
 /**
  * Primary route links for the global header nav (Requirements 12.1, 12.2).
@@ -21,8 +24,14 @@ import { BUTTON_BASE_CLASS, BUTTON_VARIANT_CLASS } from '@/components/ui/Button'
  */
 const getNavLinks = (lang: string) => [
   { href: `/${lang}`, label: lang === 'en' ? 'Home' : 'Beranda' },
-  { href: `/${lang}/mitra`, label: lang === 'en' ? 'Partner' : 'Mitra' },
-  { href: `/${lang}/mitra/direktori`, label: lang === 'en' ? 'Partner Directory' : 'Direktori Mitra' },
+  {
+    href: `/${lang}/mitra`,
+    label: lang === 'en' ? 'Become a Partner' : 'Gabung jadi Mitra',
+  },
+  {
+    href: `/${lang}/mitra/direktori`,
+    label: lang === 'en' ? 'Partner Directory' : 'Direktori Mitra',
+  },
 ];
 
 const getContactHref = (lang: string) => `/${lang}/mitra#contact`;
@@ -57,14 +66,16 @@ export function SiteHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { theme, setTheme, systemTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  
+
   const params = useParams();
   const pathname = usePathname();
   const lang = (params?.lang as string) || 'id';
   const navLinks = getNavLinks(lang);
   const contactHref = getContactHref(lang);
   const switchLang = lang === 'id' ? 'en' : 'id';
-  const switchHref = pathname ? pathname.replace(`/${lang}`, `/${switchLang}`) : `/${switchLang}`;
+  const switchHref = pathname
+    ? pathname.replace(`/${lang}`, `/${switchLang}`)
+    : `/${switchLang}`;
 
   useEffect(() => setMounted(true), []);
 
@@ -86,9 +97,7 @@ export function SiteHeader() {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         setIsMenuOpen(false);
-        document
-          .getElementById('mobile-nav-toggle')
-          ?.focus();
+        document.getElementById('mobile-nav-toggle')?.focus();
       }
     }
 
@@ -113,10 +122,19 @@ export function SiteHeader() {
         <div className="flex h-20 items-center justify-between">
           <Link
             href={`/${lang}`}
-            className={['inline-flex items-center rounded-sm', FOCUS_VISIBLE_CLASS].join(' ')}
+            className={[
+              'inline-flex items-center rounded-sm',
+              FOCUS_VISIBLE_CLASS,
+            ].join(' ')}
           >
             <Image
-              src={mounted && (theme === 'dark' || (theme === 'system' && systemTheme === 'dark')) ? "/images/logo/model1_white.svg" : "/images/logo/model1_blue.svg"}
+              src={
+                mounted &&
+                (theme === 'dark' ||
+                  (theme === 'system' && systemTheme === 'dark'))
+                  ? '/images/logo/model1_white.svg'
+                  : '/images/logo/model1_blue.svg'
+              }
               alt="Embun"
               width={158}
               height={36}
@@ -147,23 +165,45 @@ export function SiteHeader() {
           <div className="hidden md:flex md:items-center md:gap-4">
             <Link
               href={switchHref}
-              className={['px-2 py-1 text-sm font-bold text-foreground transition-colors hover:text-brand-blue rounded-md', FOCUS_VISIBLE_CLASS].join(' ')}
+              className={[
+                'px-2 py-1 text-sm font-bold text-foreground transition-colors hover:text-brand-blue rounded-md',
+                FOCUS_VISIBLE_CLASS,
+              ].join(' ')}
               aria-label="Switch language"
             >
               {lang === 'id' ? 'EN' : 'ID'}
             </Link>
             {mounted && (
               <button
-                onClick={() => setTheme((theme === 'dark' || (theme === 'system' && systemTheme === 'dark')) ? 'light' : 'dark')}
-                className={['p-2 text-foreground transition-colors hover:text-brand-blue rounded-md', FOCUS_VISIBLE_CLASS].join(' ')}
+                onClick={() =>
+                  setTheme(
+                    theme === 'dark' ||
+                      (theme === 'system' && systemTheme === 'dark')
+                      ? 'light'
+                      : 'dark',
+                  )
+                }
+                className={[
+                  'p-2 text-foreground transition-colors hover:text-brand-blue rounded-md',
+                  FOCUS_VISIBLE_CLASS,
+                ].join(' ')}
                 aria-label="Toggle dark mode"
               >
-                {(theme === 'dark' || (theme === 'system' && systemTheme === 'dark')) ? <Sun size={20} /> : <Moon size={20} />}
+                {theme === 'dark' ||
+                (theme === 'system' && systemTheme === 'dark') ? (
+                  <Sun size={20} />
+                ) : (
+                  <Moon size={20} />
+                )}
               </button>
             )}
             <Link
               href={contactHref}
-              className={[BUTTON_BASE_CLASS, BUTTON_VARIANT_CLASS.primary, FOCUS_VISIBLE_CLASS].join(' ')}
+              className={[
+                BUTTON_BASE_CLASS,
+                BUTTON_VARIANT_CLASS.primary,
+                FOCUS_VISIBLE_CLASS,
+              ].join(' ')}
             >
               {lang === 'en' ? 'Contact Us' : 'Hubungi Kami'}
             </Link>
@@ -179,10 +219,22 @@ export function SiteHeader() {
             ].join(' ')}
             aria-expanded={isMenuOpen}
             aria-controls={MOBILE_DRAWER_ID}
-            aria-label={isMenuOpen ? (lang === 'en' ? 'Close navigation menu' : 'Tutup menu navigasi') : (lang === 'en' ? 'Open navigation menu' : 'Buka menu navigasi')}
+            aria-label={
+              isMenuOpen
+                ? lang === 'en'
+                  ? 'Close navigation menu'
+                  : 'Tutup menu navigasi'
+                : lang === 'en'
+                  ? 'Open navigation menu'
+                  : 'Buka menu navigasi'
+            }
             onClick={() => setIsMenuOpen((open) => !open)}
           >
-            {isMenuOpen ? <X aria-hidden="true" size={24} /> : <Menu aria-hidden="true" size={24} />}
+            {isMenuOpen ? (
+              <X aria-hidden="true" size={24} />
+            ) : (
+              <Menu aria-hidden="true" size={24} />
+            )}
           </button>
         </div>
 
@@ -192,7 +244,11 @@ export function SiteHeader() {
             id={MOBILE_DRAWER_ID}
             className="md:hidden border-t border-border bg-background/95 backdrop-blur-sm pb-6"
           >
-            <nav aria-label={lang === 'en' ? 'Mobile navigation' : 'Navigasi mobile'}>
+            <nav
+              aria-label={
+                lang === 'en' ? 'Mobile navigation' : 'Navigasi mobile'
+              }
+            >
               <ul className="flex flex-col gap-1 pt-4">
                 {navLinks.map((link) => (
                   <li key={link.href}>
@@ -210,21 +266,43 @@ export function SiteHeader() {
                 ))}
                 {mounted && (
                   <li className="mt-2 flex items-center justify-between border-t border-border pt-4">
-                    <span className="text-base font-medium text-foreground">{lang === 'en' ? 'Dark Mode' : 'Mode Gelap'}</span>
+                    <span className="text-base font-medium text-foreground">
+                      {lang === 'en' ? 'Dark Mode' : 'Mode Gelap'}
+                    </span>
                     <button
-                      onClick={() => setTheme((theme === 'dark' || (theme === 'system' && systemTheme === 'dark')) ? 'light' : 'dark')}
-                      className={['p-2 text-foreground transition-colors hover:text-brand-blue rounded-md', FOCUS_VISIBLE_CLASS].join(' ')}
+                      onClick={() =>
+                        setTheme(
+                          theme === 'dark' ||
+                            (theme === 'system' && systemTheme === 'dark')
+                            ? 'light'
+                            : 'dark',
+                        )
+                      }
+                      className={[
+                        'p-2 text-foreground transition-colors hover:text-brand-blue rounded-md',
+                        FOCUS_VISIBLE_CLASS,
+                      ].join(' ')}
                       aria-label="Toggle dark mode"
                     >
-                      {(theme === 'dark' || (theme === 'system' && systemTheme === 'dark')) ? <Sun size={20} /> : <Moon size={20} />}
+                      {theme === 'dark' ||
+                      (theme === 'system' && systemTheme === 'dark') ? (
+                        <Sun size={20} />
+                      ) : (
+                        <Moon size={20} />
+                      )}
                     </button>
                   </li>
                 )}
                 <li className="flex items-center justify-between border-t border-border pt-4 pb-2">
-                  <span className="text-base font-medium text-foreground">{lang === 'en' ? 'Language' : 'Bahasa'}</span>
+                  <span className="text-base font-medium text-foreground">
+                    {lang === 'en' ? 'Language' : 'Bahasa'}
+                  </span>
                   <Link
                     href={switchHref}
-                    className={['px-4 py-2 text-sm font-bold text-foreground transition-colors hover:text-brand-blue rounded-md border border-border', FOCUS_VISIBLE_CLASS].join(' ')}
+                    className={[
+                      'px-4 py-2 text-sm font-bold text-foreground transition-colors hover:text-brand-blue rounded-md border border-border',
+                      FOCUS_VISIBLE_CLASS,
+                    ].join(' ')}
                     aria-label="Switch language"
                   >
                     {lang === 'id' ? 'English (EN)' : 'Indonesia (ID)'}

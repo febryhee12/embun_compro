@@ -18,9 +18,18 @@ interface LegalLink {
 }
 
 const getLegalLinks = (lang: string): LegalLink[] => [
-  { href: `/${lang}/kebijakan-privasi`, label: lang === 'en' ? 'Privacy Policy' : 'Kebijakan Privasi' },
-  { href: `/${lang}/syarat-ketentuan`, label: lang === 'en' ? 'Terms & Conditions' : 'Syarat & Ketentuan' },
-  { href: `/${lang}/kebijakan-refund`, label: lang === 'en' ? 'Refund Policy' : 'Kebijakan Refund' },
+  {
+    href: `/${lang}/kebijakan-privasi`,
+    label: lang === 'en' ? 'Privacy Policy' : 'Kebijakan Privasi',
+  },
+  {
+    href: `/${lang}/syarat-ketentuan`,
+    label: lang === 'en' ? 'Terms & Conditions' : 'Syarat & Ketentuan',
+  },
+  {
+    href: `/${lang}/kebijakan-refund`,
+    label: lang === 'en' ? 'Refund Policy' : 'Kebijakan Refund',
+  },
 ];
 
 /**
@@ -39,7 +48,7 @@ export function SiteFooter() {
   const params = useParams();
   const lang = (params?.lang as string) || 'id';
   const legalLinks = getLegalLinks(lang);
-  
+
   const year = new Date().getFullYear();
 
   return (
@@ -56,8 +65,8 @@ export function SiteFooter() {
               unoptimized
             />
             <p className="mt-3 text-sm text-foreground-muted-on-dark">
-              {lang === 'en' 
-                ? 'As simple as morning dew, as vast as your way of enjoying nature.' 
+              {lang === 'en'
+                ? 'As simple as morning dew, as vast as your way of enjoying nature.'
                 : 'Sepraktis embun pagi, seluas caramu menikmati alam.'}
             </p>
           </div>
@@ -85,7 +94,10 @@ export function SiteFooter() {
         {/* Copyright */}
         <div className="border-t border-white/10 py-6">
           <p className="text-xs text-foreground-muted-on-dark">
-            © {year} Embun. {lang === 'en' ? 'All rights reserved.' : 'Seluruh hak cipta dilindungi.'}
+            © {year} Embun | PT Alam Kelana Digital.{' '}
+            {lang === 'en'
+              ? 'All rights reserved.'
+              : 'Seluruh hak cipta dilindungi.'}
           </p>
         </div>
       </Container>

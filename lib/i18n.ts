@@ -26,17 +26,17 @@ export const i18n = {
       downloadCta: {
         headline: 'Siap untuk Petualangan Selanjutnya?',
         subcopy:
-          'Unduh Embun App sekarang. Temukan dan pesan campsite favoritmu langsung dari genggaman. Tersedia gratis di App Store dan Google Play.',
+          'Download Embun App sekarang. Temukan dan pesan spot outdoor favoritmu langsung dari genggaman. Gratis di App Store dan Google Play.',
         appStoreLead: undefined,
         googlePlayLead: undefined,
       },
     },
     partner: {
       hero: {
-        headline: 'Kelola Campsite Anda, Reservasi Biar Kami yang Urus',
+        headline: 'Kelola Properti Kamu, Serahkan Urusan Reservasi ke Kami',
         subcopy:
-          'Embun mencatat setiap reservasi dan pembayaran secara otomatis, jadi Anda bisa fokus mengelola campsite tanpa repot administrasi manual.',
-        ctaLabel: 'Daftar Jadi Mitra',
+          'Embun mencatat setiap reservasi dan pembayaran secara otomatis, jadi Anda bisa fokus mengelola bisnis outdoor Anda tanpa repot administrasi manual.',
+        ctaLabel: 'Gabung jadi Mitra',
       },
       benefits: {
         heading: 'Yang Anda Dapatkan Sebagai Mitra',
@@ -46,7 +46,8 @@ export const i18n = {
       },
       supportedTypes: {
         heading: 'Apapun Tipe Campsite Anda, Kami Siap Mendukung',
-        subcopy: 'Dari camping ground tradisional hingga glamping mewah, Embun dirancang untuk mengakomodasi berbagai jenis properti alam.',
+        subcopy:
+          'Dari camping ground tradisional hingga glamping mewah, Embun dirancang untuk mengakomodasi berbagai jenis properti alam.',
         types: [
           { id: 'glamping', label: 'Glamping' },
           { id: 'cabin', label: 'Cabin' },
@@ -60,7 +61,7 @@ export const i18n = {
       directoryTeaser: {
         heading: 'Direktori Mitra Segera Hadir',
         subcopy:
-          'Kami sedang menyiapkan direktori mitra Embun. Jadilah salah satu campsite pertama yang bergabung dan tampil di sana.',
+          'Kami sedang menyiapkan direktori mitra Embun. Jadilah salah satu campsite pertama yang bergabung.',
         ctaLabel: 'Lihat Direktori',
       },
       faq: {
@@ -175,39 +176,39 @@ export const i18n = {
           {
             question: 'What is Embun App?',
             answer:
-              'Embun App is a mobile application for finding and booking campsites from various Embun partners across Indonesia. Through Embun App, users can view camping spot details, book available dates, and complete payments directly from their phones without needing to manually contact the campsite owner.',
+              'Embun App is an app for finding and booking outdoor spots from Embun partners across Indonesia — including glamping, cabins, campervans, motocamps, bikecamps, saung, and traditional camping areas. Complete with spot details, date availability',
           },
           {
             question: 'How do I book a campsite through Embun App?',
             answer:
-              'To book a campsite via Embun App, simply search for your desired location or campsite name, select the available dates and spots, and complete the payment within the app. Booking confirmation will appear instantly in the app once payment is successful, with no need to wait for a manual reply from the campsite owner.',
+              'Search for the location or spot name, choose an available date and accommodation type, then pay directly in the app. Booking confirmation appears automatically once payment succeeds.',
           },
           {
             question: 'Are payments in Embun App secure?',
             answer:
-              "Yes, Embun App supports secure cashless payments through trusted payment gateways, including bank transfers and e-wallets. Every transaction is automatically recorded in the app, so users don't need to make direct manual transfers to the campsite owner.",
+              'Yes, payments are processed through a trusted payment gateway and recorded automatically in the app no manual transfer to the campsite owner needed.',
           },
           {
             question: 'What should I do if I want to cancel a booking?',
             answer:
-              'Users who wish to cancel a booking can open their booking history in the Embun App and submit a cancellation request according to the cancellation and refund policy of the respective campsite. Full terms regarding cancellations and refunds can be read on the Refund & Cancellation Policy page on the Embun Website.',
+              "Open your booking history in the app and submit a cancellation request according to Embun's policy. Full details are available on the Refund & Cancellation Policy page on the Embun website.",
           },
         ],
       },
       downloadCta: {
         headline: 'Ready for Your Next Adventure?',
         subcopy:
-          'Download Embun App now. Find and book your favorite campsite right from your fingertips. Available for free on the App Store and Google Play.',
+          'Download Embun App now. Find and book your favorite outdoor spot right from your fingertips. Available for free on the App Store and Google Play.',
         appStoreLead: 'Download on the',
         googlePlayLead: 'Get it on',
       },
     },
     partner: {
       hero: {
-        headline: 'Manage Your Campsite, Let Us Handle the Reservations',
+        headline: 'Manage Your Property, Let Us Handle the Reservations',
         subcopy:
-          'Embun records every reservation and payment automatically, so you can focus on managing your campsite without the hassle of manual administration.',
-        ctaLabel: 'Register as Partner',
+          'Embun automatically records every reservation and payment, so you can focus on running your outdoor business without the hassle of manual admin.',
+        ctaLabel: 'Become a Partner',
       },
       benefits: {
         heading: 'What You Get as a Partner',
@@ -243,7 +244,8 @@ export const i18n = {
       },
       supportedTypes: {
         heading: 'Whatever Your Campsite Type, We Support It',
-        subcopy: 'From traditional camping grounds to luxurious glamping, Embun is designed to accommodate various types of nature properties.',
+        subcopy:
+          'From traditional camping grounds to luxurious glamping, Embun is designed to accommodate various types of nature properties.',
         types: [
           { id: 'glamping', label: 'Glamping' },
           { id: 'cabin', label: 'Cabin' },

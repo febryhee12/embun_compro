@@ -20,21 +20,21 @@ export const appFaq: FaqItem[] = [
   {
     question: 'Apa itu Embun App?',
     answer:
-      'Embun App adalah aplikasi mobile untuk mencari dan memesan campsite dari berbagai mitra Embun di seluruh Indonesia. Melalui Embun App, pengguna dapat melihat detail spot camping, memesan tanggal yang tersedia, dan menyelesaikan pembayaran langsung dari ponsel tanpa perlu menghubungi pemilik campsite secara manual.',
+      'Embun App adalah aplikasi untuk mencari dan memesan spot outdoor dari mitra Embun di seluruh Indonesia — mulai dari glamping, cabin, campervan, motocamp, bikecamp, saung, hingga area camping biasa. Lengkap dengan detail spot, ketersediaan tanggal, dan pembayaran langsung dari ponsel tanpa perlu menghubungi pemilik secara manual.',
   },
   {
-    question: 'Bagaimana cara memesan campsite lewat Embun App?',
+    question: 'Bagaimana cara memesan spot lewat Embun App?',
     answer:
-      'Untuk memesan campsite lewat Embun App, pengguna cukup mencari lokasi atau nama campsite yang diinginkan, memilih tanggal dan spot yang tersedia, lalu menyelesaikan pembayaran di dalam aplikasi. Konfirmasi pesanan akan langsung muncul di aplikasi setelah pembayaran berhasil, tanpa perlu menunggu balasan manual dari pemilik campsite.',
+      'Cari lokasi atau nama spot yang diinginkan, pilih tanggal dan tipe akomodasi yang tersedia, lalu bayar langsung di aplikasi. Konfirmasi pesanan muncul otomatis setelah pembayaran berhasil.',
   },
   {
     question: 'Apakah pembayaran di Embun App aman?',
     answer:
-      'Ya, Embun App mendukung pembayaran non-tunai yang aman melalui payment gateway tepercaya, termasuk transfer bank dan e-wallet. Setiap transaksi tercatat secara otomatis di dalam aplikasi sehingga pengguna tidak perlu melakukan transfer manual langsung ke pemilik campsite.',
+      'Ya, pembayaran diproses lewat payment gateway tepercaya dan tercatat otomatis di aplikasi tidak perlu transfer manual ke pemilik campsite.',
   },
   {
     question: 'Apa yang harus dilakukan jika ingin membatalkan pesanan?',
     answer:
-      'Pengguna yang ingin membatalkan pesanan dapat membuka riwayat pemesanan di dalam Embun App dan mengajukan pembatalan sesuai dengan kebijakan pembatalan dan refund yang berlaku pada campsite terkait. Ketentuan lengkap mengenai pembatalan dan pengembalian dana dapat dibaca pada halaman Kebijakan Refund & Pembatalan di Website Embun.',
+      'Buka riwayat pemesanan di aplikasi dan ajukan pembatalan sesuai kebijakan Embun. Detail lengkap ada di halaman Kebijakan Refund & Pembatalan di website Embun.',
   },
 ];

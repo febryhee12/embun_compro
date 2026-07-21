@@ -36,11 +36,29 @@ function AppleGlyph() {
  */
 function GooglePlayGlyph() {
   return (
-    <svg viewBox="0 0 24 24" width={20} height={20} aria-hidden="true" focusable="false">
-      <path d="M3.6 2.3c-.24.25-.38.63-.38 1.13v17.14c0 .5.14.88.38 1.13l.06.05L13 12.06v-.12L3.66 2.25l-.06.05z" fill="#00D0FF" />
-      <path d="M16.5 15.56 13 12.06v-.12l3.5-3.5.08.05 4.15 2.36c1.18.67 1.18 1.77 0 2.45l-4.15 2.36-.08.05z" fill="#FFCE00" />
-      <path d="M16.58 15.51 13 12l-9.4 9.4c.39.41 1.03.46 1.76.05l11.22-6.44" fill="#FF3D44" />
-      <path d="M16.58 8.49 5.36 2.05C4.63 1.64 3.99 1.69 3.6 2.1L13 11.5l3.58-3.01z" fill="#00F076" />
+    <svg
+      viewBox="0 0 24 24"
+      width={20}
+      height={20}
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        d="M3.6 2.3c-.24.25-.38.63-.38 1.13v17.14c0 .5.14.88.38 1.13l.06.05L13 12.06v-.12L3.66 2.25l-.06.05z"
+        fill="#00D0FF"
+      />
+      <path
+        d="M16.5 15.56 13 12.06v-.12l3.5-3.5.08.05 4.15 2.36c1.18.67 1.18 1.77 0 2.45l-4.15 2.36-.08.05z"
+        fill="#FFCE00"
+      />
+      <path
+        d="M16.58 15.51 13 12l-9.4 9.4c.39.41 1.03.46 1.76.05l11.22-6.44"
+        fill="#FF3D44"
+      />
+      <path
+        d="M16.58 8.49 5.36 2.05C4.63 1.64 3.99 1.69 3.6 2.1L13 11.5l3.58-3.01z"
+        fill="#00F076"
+      />
     </svg>
   );
 }
@@ -53,7 +71,12 @@ function GooglePlayGlyph() {
  * appropriate `<a>`/interactive element so this stays reusable across the
  * Hero (plain anchor) and the DownloadCta (client anchor with error handling).
  */
-export function StoreBadge({ store, lead: customLead, style, className }: StoreBadgeProps) {
+export function StoreBadge({
+  store,
+  lead: customLead,
+  style,
+  className,
+}: StoreBadgeProps) {
   const isApple = store === 'apple';
   const lead = customLead || (isApple ? 'Unduh di' : 'Dapatkan di');
   const name = isApple ? 'App Store' : 'Google Play';
@@ -62,7 +85,7 @@ export function StoreBadge({ store, lead: customLead, style, className }: StoreB
     <span
       style={style}
       className={[
-        'inline-flex items-center gap-3 rounded-md bg-foreground px-4 py-2.5 text-background',
+        'inline-flex items-center gap-3 justify-start w-40 rounded-md bg-foreground px-4 py-2.5 text-background',
         'transition-colors duration-200 hover:opacity-80',
         className ?? '',
       ]
@@ -73,7 +96,9 @@ export function StoreBadge({ store, lead: customLead, style, className }: StoreB
         {isApple ? <AppleGlyph /> : <GooglePlayGlyph />}
       </span>
       <span className="flex flex-col leading-none">
-        <span className="text-[0.625rem] font-normal tracking-wide">{lead}</span>
+        <span className="text-[0.625rem] font-normal tracking-wide">
+          {lead}
+        </span>
         <span className="mt-0.5 font-semibold leading-tight">{name}</span>
       </span>
     </span>

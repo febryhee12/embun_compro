@@ -2,7 +2,10 @@ import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
 import Reveal from '@/components/ui/Reveal';
 import Section from '@/components/ui/Section';
-import { features as featureItems, type FeatureItem } from '@/lib/content/features';
+import {
+  features as featureItems,
+  type FeatureItem,
+} from '@/lib/content/features';
 
 const AUDIENCE_LABEL: Record<FeatureItem['audience'], string> = {
   owner: 'Untuk Pemilik',
@@ -41,7 +44,10 @@ export interface FeaturesProps {
  */
 export default function Features({ items = featureItems }: FeaturesProps = {}) {
   const visibleItems = items.filter(
-    (item) => Boolean(item.title) && Boolean(item.description) && Boolean(item.mockupSrc)
+    (item) =>
+      Boolean(item.title) &&
+      Boolean(item.description) &&
+      Boolean(item.mockupSrc),
   );
 
   return (
@@ -64,7 +70,7 @@ export default function Features({ items = featureItems }: FeaturesProps = {}) {
                 key={item.id}
                 as="article"
                 delay={index * 100}
-                className="flex flex-col gap-8 border-l border-border/30 pl-6 md:flex-row md:items-center md:gap-12 md:border-l-0 md:pl-0"
+                className="flex flex-col gap-8 border-l border-border/30 md:flex-row md:items-center md:gap-12 md:border-l-0 md:pl-0"
               >
                 <div
                   className={[

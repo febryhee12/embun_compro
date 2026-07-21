@@ -59,7 +59,13 @@ export default async function DirektoriPage({
             </h1>
           </Container>
         </Section>
-        <PartnerDirectoryEmptyState message={lang === 'en' ? 'Partner directory coming soon. Be one of the first campsites to join Embun.' : 'Direktori mitra akan segera hadir. Jadilah salah satu campsite pertama yang bergabung dengan Embun.'} />
+        <PartnerDirectoryEmptyState
+          message={
+            lang === 'en'
+              ? 'Partner directory coming soon. Be one of the first campsites to join Embun.'
+              : 'Direktori mitra akan segera hadir. Jadilah salah satu campsite pertama yang bergabung dengan Embun.'
+          }
+        />
       </main>
       <SiteFooter />
     </>

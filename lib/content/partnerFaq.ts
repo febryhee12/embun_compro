@@ -10,21 +10,21 @@ export const partnerFaq: FaqItem[] = [
   {
     question: 'Bagaimana skema biaya layanan Embun untuk mitra?',
     answer:
-      'Embun menerapkan skema bagi hasil berupa persentase dari setiap transaksi booking yang berhasil melalui platform. Besarannya disepakati bersama pada saat pendaftaran mitra, dan tidak ada biaya tersembunyi lain yang dipotong dari hasil penjualan campsite.',
+      'Embun menerapkan sistem komisi dari setiap transaksi pemesanan yang berhasil, di mana besaran persentasenya akan disepakati bersama saat pendaftaran tanpa ada biaya tersembunyi.',
   },
   {
     question: 'Bagaimana cara mendaftar sebagai mitra Embun?',
     answer:
-      'Pemilik campsite yang ingin bergabung sebagai mitra Embun dapat menghubungi tim Embun melalui formulir kontak yang tersedia di halaman Mitra pada Website Embun. Tim Embun akan menindaklanjuti pendaftaran dengan proses verifikasi lokasi dan penyiapan akun sebelum campsite dapat mulai menerima booking.',
+      'Pemilik campsite dapat mengisi formulir pada halaman Mitra, dan selanjutnya tim Embun akan menindaklanjuti untuk proses verifikasi lokasi hingga pengaktifan akun.',
   },
   {
     question: 'Apakah ada biaya untuk bergabung sebagai mitra?',
     answer:
-      'Tidak ada biaya pendaftaran atau biaya bulanan untuk bergabung sebagai mitra Embun. Embun hanya menerapkan bagi hasil dari transaksi booking yang berhasil, sehingga pemilik campsite tidak menanggung biaya di muka sebelum mendapatkan penjualan.',
+      'Pendaftaran sebagai mitra Embun sepenuhnya gratis, tanpa dikenakan biaya awal maupun biaya langganan bulanan.',
   },
   {
     question: 'Bagaimana proses pencairan dana (settlement) untuk mitra?',
     answer:
-      'Dana hasil booking dicairkan ke rekening mitra secara berkala setelah dikurangi biaya layanan Embun, sesuai dengan siklus settlement yang berlaku. Mitra dapat memantau riwayat transaksi dan status pencairan dana melalui akun mitra pada sistem Embun.',
+      'Dana hasil pemesanan akan ditransfer secara otomatis ke rekening bank mitra, dan seluruh riwayat pencairan dapat dipantau secara transparan melalui dashboard sistem Embun.',
   },
 ];

@@ -2,7 +2,10 @@ import Link from 'next/link';
 
 import Section from '@/components/ui/Section';
 import { Container } from '@/components/ui/Container';
-import { BUTTON_BASE_CLASS, BUTTON_VARIANT_CLASS } from '@/components/ui/Button';
+import {
+  BUTTON_BASE_CLASS,
+  BUTTON_VARIANT_CLASS,
+} from '@/components/ui/Button';
 import { Reveal } from '@/components/ui/Reveal';
 
 export interface DirectoryTeaserProps {
@@ -15,7 +18,7 @@ export interface DirectoryTeaserProps {
 const DEFAULT_PROPS: DirectoryTeaserProps = {
   heading: 'Direktori Mitra Segera Hadir',
   subcopy:
-    'Kami sedang menyiapkan direktori mitra Embun. Jadilah salah satu campsite pertama yang bergabung dan tampil di sana.',
+    'Kami sedang menyiapkan direktori mitra Embun. Jadilah salah satu campsite pertama yang bergabung.',
   directoryHref: '/mitra/direktori',
   ctaLabel: 'Lihat Direktori',
 };
@@ -49,11 +52,15 @@ export function DirectoryTeaser(props: Partial<DirectoryTeaserProps> = {}) {
             <h2 className="font-serif text-3xl leading-[1.15] text-brand-black md:text-4xl">
               {heading}
             </h2>
-            <p className="mt-4 text-lg leading-[1.7] text-foreground-muted">{subcopy}</p>
+            <p className="mt-4 text-lg leading-[1.7] text-foreground-muted">
+              {subcopy}
+            </p>
             <div className="mt-6">
               <Link
                 href={directoryHref}
-                className={[BUTTON_BASE_CLASS, BUTTON_VARIANT_CLASS.ghost].join(' ')}
+                className={[BUTTON_BASE_CLASS, BUTTON_VARIANT_CLASS.ghost].join(
+                  ' ',
+                )}
               >
                 {ctaLabel}
               </Link>
