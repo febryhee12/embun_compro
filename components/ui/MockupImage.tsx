@@ -12,17 +12,12 @@ export interface MockupImageProps {
   priority?: boolean;
   /** Short label shown inside the placeholder screen (e.g. feature name). */
   label?: string;
+  className?: string;
 }
 
 /**
  * MockupImage — drop-in replacement for the raw `next/image` usages on the
  * App Landing Page (Hero, Features, Screenshots).
- *
- * Tries to load the real asset at `src`; while missing (404) it renders a
- * branded, intentional-looking phone mockup placeholder instead of a broken
- * white box: a device frame with a gradient screen, the Embun logogram, and
- * a skeleton UI (search bar + cards). When the real screenshots are added
- * at the same paths later, they will render automatically — no code change.
  */
 export function MockupImage({
   src,
@@ -31,6 +26,7 @@ export function MockupImage({
   sizes,
   priority,
   label,
+  className,
 }: MockupImageProps) {
   const [hasError, setHasError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -54,6 +50,8 @@ export function MockupImage({
     checkImageExists();
   }, [src, hasError]);
 
+  const imageClass = className || 'object-contain';
+
   if (!hasError && isLoaded) {
     return (
       <Image
@@ -63,7 +61,7 @@ export function MockupImage({
         priority={priority}
         loading={priority ? undefined : 'lazy'}
         sizes={sizes}
-        className="object-cover"
+        className={imageClass}
       />
     );
   }
@@ -77,7 +75,7 @@ export function MockupImage({
         priority={priority}
         loading={priority ? undefined : 'lazy'}
         sizes={sizes}
-        className="object-cover"
+        className={imageClass}
         onLoadingComplete={(result) => {
           if (result.naturalWidth > 0 && result.naturalHeight > 0) {
             setIsLoaded(true);

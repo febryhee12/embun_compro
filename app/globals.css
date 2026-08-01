@@ -2,7 +2,7 @@
 
 :root {
   /* Surfaces — warm off-white page canvas */
-  --background: #faf9f6;        /* Linen — primary page background */
+  --background: #ffffff;        /* Linen — primary page background */
   --surface:    #f4f4f4;        /* slightly elevated panels/cards */
   --surface-dark: #1a1a1a;      /* Embun Black — dark section backgrounds */
 

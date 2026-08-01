@@ -1,17 +1,17 @@
 import Section from '@/components/ui/Section';
 import { Container } from '@/components/ui/Container';
 import { StoreBadge } from '@/components/ui/StoreBadge';
-import { MockupImage } from '@/components/ui/MockupImage';
 import { Reveal } from '@/components/ui/Reveal';
+import Image from 'next/image';
 
-/** Shared focus-visible ring for the store-badge anchors (Requirement 8.7). */
+/** Shared focus-visible ring for store buttons (Requirement 8.7). */
 const FOCUS_VISIBLE_CLASS =
   'rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--border-focus)] focus-visible:outline-offset-2';
 
 export interface AppHeroProps {
-  eyebrow?: string; // short brand tagline shown above the headline
-  headline: string; // ≤10 words, guest value prop
-  subcopy: string; // ≤2 sentences
+  eyebrow?: string;
+  headline: string;
+  subcopy: string;
   imageSrc: string;
   imageAlt: string;
   appStoreHref: string;
@@ -22,36 +22,25 @@ export interface AppHeroProps {
 
 const DEFAULT_PROPS: AppHeroProps = {
   eyebrow: undefined,
-  headline: 'Cari dan Pesan Campsite Favoritmu, Semudah Itu',
+  headline: 'Jelajah Tanpa Batas, Reservasi Tanpa Cemas.',
   subcopy:
-    'Apapun gaya liburan alammu, mulai dari camping seru, glamping, sampai staycation di cabin, Embun App bantu kamu menemukan dan memesannya dalam hitungan menit. Bayar aman, pesanan langsung terkonfirmasi.',
-  // NOTE: placeholder path — no real app screenshot asset exists yet. A
-  // later content/asset task must supply the actual mockup at this path.
-  imageSrc: '/images/app-hero-mockup.png',
-  imageAlt: 'Tangkapan layar Embun App menampilkan hasil pencarian campsite',
+    'Embun App membantu kamu menemukan dan memesan campsite terbaik dalam hitungan menit. Bayar aman, pesanan langsung terkonfirmasi.',
+  imageSrc: '/images/embun_1.png',
+  imageAlt: 'Embun App - Jelajah tanpa batas, reservasi tanpa cemas',
   appStoreHref: 'https://apps.apple.com/app/embun',
   googlePlayHref: 'https://play.google.com/store/apps/details?id=app.embun',
 };
 
 /**
- * Hero (App Landing Page) — first-viewport marketing section (Server
- * Component) targeted entirely at Guest audiences (Requirement 1.3): no
- * copy about campsite/owner management appears here.
+ * Hero (App Landing Page) — 12 Column Grid layout matching client specifications.
  *
- * Reuses the same asymmetric two-column layout as the single-page
- * `Hero.tsx`: copy column (~5/12) beside an offset image column (~7/12) on
- * desktop, stacking vertically on mobile — the app screenshot/mockup is a
- * bounded, framed image rather than a full-bleed background (Requirement
- * 2.2).
+ * Left column (5 out of 12 cols):
+ * - Headline ("Jelajah Tanpa Batas, Reservasi Tanpa Cemas.")
+ * - Subcopy ("Embun App membantu kamu menemukan dan memesan campsite terbaik...")
+ * - Action buttons ("StoreBadge" for App Store and Google Play)
  *
- * Renders two download CTAs (App Store, Google Play) as plain
- * `<a target="_blank" rel="noopener noreferrer">` links styled like
- * `Button`'s `ghost` variant, each opening the respective store link in a
- * new tab (Requirement 2.4) without needing any client JS.
- *
- * The image itself is delegated to the existing `HeroImage` (`'use client'`)
- * component to reuse its `onError` broken-image fallback (Requirement 2.5/2.6)
- * rather than duplicating that logic.
+ * Right column (7 out of 12 cols):
+ * - Clean Embun Hero image (embun_1.png) without green card wrapper.
  */
 export function Hero(props: Partial<AppHeroProps> = {}) {
   const {
@@ -70,30 +59,31 @@ export function Hero(props: Partial<AppHeroProps> = {}) {
   };
 
   return (
-    <Section id="hero" variant="default" compactTop>
+    <Section id="hero" variant="default" compactTop className="py-6 sm:py-10 lg:py-14">
       <Container>
-        <div className="flex flex-col items-center gap-12 lg:flex-row lg:items-center lg:gap-8">
-          {/* Copy column — ~5/12 on desktop */}
-          <div className="w-full lg:w-5/12">
+        {/* 12-Column Grid Layout */}
+        <div className="grid grid-cols-12 gap-8 lg:gap-12 items-center">
+          {/* Left Column: 5 of 12 columns on desktop */}
+          <div className="col-span-12 lg:col-span-5 flex flex-col justify-center">
             {eyebrow ? (
               <Reveal delay={0}>
-                <p className="font-medium tracking-wide text-brand-blue">
+                <p className="font-medium tracking-wide text-brand-blue mb-3">
                   {eyebrow}
                 </p>
               </Reveal>
             ) : null}
             <Reveal delay={100}>
-              <h1 className="mt-2 font-serif text-5xl leading-[1.05] text-brand-black sm:text-6xl lg:text-7xl">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground leading-[1.12]">
                 {headline}
               </h1>
             </Reveal>
-            <Reveal delay={250}>
-              <p className="mt-6 max-w-md text-lg leading-[1.7] text-foreground-muted">
+            <Reveal delay={200}>
+              <p className="mt-6 text-base sm:text-lg text-foreground-muted leading-relaxed max-w-lg">
                 {subcopy}
               </p>
             </Reveal>
-            <Reveal delay={400}>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Reveal delay={300}>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <a
                   href={appStoreHref}
                   target="_blank"
@@ -116,19 +106,17 @@ export function Hero(props: Partial<AppHeroProps> = {}) {
             </Reveal>
           </div>
 
-          {/* Image column — ~7/12 on desktop, offset rather than centered */}
-          <Reveal
-            delay={200}
-            offset={32}
-            className="w-full lg:w-7/12 lg:translate-y-6"
-          >
-            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-md shadow-[var(--shadow-soft)] lg:ml-auto lg:max-w-[560px]">
-              <MockupImage
+          {/* Right Column: 7 of 12 columns on desktop */}
+          <Reveal delay={200} offset={20} className="col-span-12 lg:col-span-7 flex justify-center lg:justify-end">
+            <div className="relative w-full max-w-[680px]">
+              <Image
                 src={imageSrc}
                 alt={imageAlt}
-                variant="phone"
-                sizes="(min-width: 1024px) 560px, 100vw"
+                width={1200}
+                height={800}
+                className="w-full h-auto object-contain rounded-2xl"
                 priority
+                sizes="(min-width: 1024px) 680px, 100vw"
               />
             </div>
           </Reveal>
@@ -139,3 +127,4 @@ export function Hero(props: Partial<AppHeroProps> = {}) {
 }
 
 export default Hero;
+

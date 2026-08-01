@@ -24,7 +24,7 @@ export const partnerBenefits: PartnerBenefit[] = [
     id: 'reservasi-otomatis',
     title: 'Reservasi Otomatis',
     description:
-      'Booking, ketersediaan spot, dan konfirmasi tamu tercatat otomatis — tidak perlu lagi dicatat manual.',
+      'Reservasi, ketersediaan spot, dan konfirmasi tamu tercatat otomatis — tidak perlu lagi dicatat manual.',
   },
   {
     id: 'bagi-hasil-transparan',

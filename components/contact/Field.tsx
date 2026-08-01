@@ -45,7 +45,7 @@ const FIELD_CLASS =
  *   — darkened from the original `#9E9E9E` design spec so it clears the
  *   WCAG 2.1 AA 4.5:1 text contrast minimum against `--surface`/
  *   `--background`; placeholder text isn't strictly required to meet AA
- *   since it's non-essential hint content, but `#9E9E9E` on `#faf9f6` sits
+ *   since it's non-essential hint content, but `#9E9E9E` on `#ffffff` sits
  *   at ~1.6:1, which reads as illegible rather than intentionally muted),
  *   no bold/emphasis (Requirement 7.7).
  * - Inline error message rendered below the field with `role="alert"` plus

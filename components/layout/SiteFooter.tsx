@@ -52,19 +52,19 @@ export function SiteFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-surface-dark text-foreground-on-dark">
+    <footer className="bg-[#FAFEE8] text-brand-black">
       <Container>
         <div className="flex flex-col gap-6 py-12 md:flex-row md:items-start md:justify-between">
           {/* Logo + tagline */}
           <div className="max-w-xs">
             <Image
-              src="/images/logo/model1_white.svg"
+              src="/images/logo/model1_blue.svg"
               alt="Embun"
               width={158}
               height={36}
               unoptimized
             />
-            <p className="mt-3 text-sm text-foreground-muted-on-dark">
+            <p className="mt-3 text-sm text-foreground-muted">
               {lang === 'en'
                 ? 'As simple as morning dew, as vast as your way of enjoying nature.'
                 : 'Sepraktis embun pagi, seluas caramu menikmati alam.'}
@@ -78,10 +78,7 @@ export function SiteFooter() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className={[
-                      'rounded-sm text-sm text-foreground-muted-on-dark transition-colors hover:text-foreground-on-dark',
-                      FOCUS_VISIBLE_CLASS,
-                    ].join(' ')}
+                    className="rounded-sm text-sm text-foreground-muted transition-colors hover:text-brand-blue"
                   >
                     {link.label}
                   </Link>
@@ -92,8 +89,8 @@ export function SiteFooter() {
         </div>
 
         {/* Copyright */}
-        <div className="border-t border-white/10 py-6">
-          <p className="text-xs text-foreground-muted-on-dark">
+        <div className="border-t border-black/10 py-6">
+          <p className="text-xs text-foreground-muted">
             © {year} Embun | PT Alam Kelana Digital.{' '}
             {lang === 'en'
               ? 'All rights reserved.'

@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "embun-d91eb",
     "public": "out",
     "cleanUrls": true,
     "trailingSlash": true,

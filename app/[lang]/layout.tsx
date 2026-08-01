@@ -3,6 +3,8 @@ import { Lora, Inter } from 'next/font/google';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { buildOrganizationJsonLd } from '@/lib/seo/structuredData';
 import { ThemeProvider } from '@/components/theme-provider';
+import { ScrollToTop } from '@/components/ui/ScrollToTop';
+import { CookieConsent } from '@/components/ui/CookieConsent';
 import '../globals.css';
 
 const lora = Lora({
@@ -63,12 +65,14 @@ export default async function RootLayout({
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="light"
+          forcedTheme="light"
           disableTransitionOnChange
         >
           <JsonLd data={buildOrganizationJsonLd()} />
           {children}
+          <ScrollToTop />
+          <CookieConsent />
         </ThemeProvider>
       </body>
     </html>

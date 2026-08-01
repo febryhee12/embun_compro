@@ -18,10 +18,10 @@ export const features: FeatureItem[] = [
     id: 'reservasi',
     title: 'Manajemen Reservasi',
     description:
-      'Semua booking yang masuk dari tamu di platform Embun tercatat otomatis, lengkap dengan status dan ketersediaan spot secara real-time. Mitra tidak perlu lagi mencatat manual di buku atau spreadsheet.',
+      'Semua pesanan yang masuk dari tamu di platform Embun tercatat otomatis, lengkap dengan status dan ketersediaan spot secara real-time. Mitra tidak perlu lagi mencatat manual di buku atau spreadsheet.',
     audience: 'owner',
     mockupSrc: '/images/mockups/reservasi.png',
-    mockupAlt: 'Tampilan dashboard daftar reservasi dengan status booking dan kalender ketersediaan spot',
+    mockupAlt: 'Tampilan dashboard daftar reservasi dengan status reservasi dan kalender ketersediaan spot',
   },
   {
     id: 'komisi-otomatis',
@@ -54,9 +54,9 @@ export const features: FeatureItem[] = [
     id: 'pemesanan-mudah',
     title: 'Pemesanan Mudah',
     description:
-      'Pesan spot favorit dalam beberapa langkah singkat, tanpa ribet dan tanpa perlu telepon pemilik campsite. Konfirmasi booking diterima langsung di aplikasi.',
+      'Pesan spot favorit dalam beberapa langkah singkat, tanpa ribet dan tanpa perlu telepon pemilik campsite. Konfirmasi pesanan diterima langsung di aplikasi.',
     audience: 'guest',
     mockupSrc: '/images/mockups/pemesanan.png',
-    mockupAlt: 'Tampilan alur pemesanan spot camping dari pilih tanggal hingga konfirmasi booking',
+    mockupAlt: 'Tampilan alur pemesanan spot camping dari pilih tanggal hingga konfirmasi pesanan',
   },
 ];

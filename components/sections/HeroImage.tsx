@@ -43,7 +43,7 @@ export function HeroImage({ src, alt, width, height, priority, className }: Hero
       height={height}
       priority={priority}
       className={className}
-      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+      style={{ width: '100%', height: 'auto', objectFit: 'contain' }}
       onError={() => setHasError(true)}
     />
   );

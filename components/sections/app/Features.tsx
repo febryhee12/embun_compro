@@ -40,7 +40,7 @@ export interface AppFeaturesProps {
  * images inside a reserved `aspect-[4/3]` box to avoid layout shift.
  */
 export default function Features({
-  headline = 'Fitur yang Bikin Camping Lebih Mudah',
+  headline = 'Camping seru anti ribet.',
   subcopy = 'Dari mencari spot hingga bayar, semua bisa dilakukan langsung dari genggaman tanpa perlu bolak-balik telepon pemilik campsite.',
   comingSoonLabel = 'Segera Hadir',
   items = appFeatures,
@@ -53,16 +53,19 @@ export default function Features({
   );
 
   return (
-    <Section id="features" variant="default">
+    <Section id="features" variant="default" className="py-16 lg:py-24">
       <Container>
-        <h2 className="font-serif text-[2.5rem] leading-[1.1] text-brand-black md:text-5xl">
-          {headline}
-        </h2>
-        <p className="mt-4 max-w-xl text-lg leading-[1.7] text-foreground-muted">
-          {subcopy}
-        </p>
+        {/* Centered Heading and Subcopy */}
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="font-sans text-3xl font-bold tracking-tight text-brand-black sm:text-4xl lg:text-5xl leading-[1.2]">
+            {headline}
+          </h2>
+          <p className="mt-4 text-base sm:text-lg text-foreground-muted leading-relaxed">
+            {subcopy}
+          </p>
+        </div>
 
-        <div className="mt-12 flex flex-col gap-16 md:mt-16 md:gap-20">
+        <div className="mt-16 flex flex-col gap-16 md:mt-20 md:gap-24">
           {visibleItems.map((item, index) => {
             const imageFirst = index % 2 === 1;
 
@@ -71,11 +74,12 @@ export default function Features({
                 key={item.id}
                 as="article"
                 delay={index * 100}
-                className="flex flex-col gap-8 border-l border-border/30 md:flex-row md:items-center md:gap-12 md:border-l-0 md:pl-0 sm:pl-0"
+                className="flex flex-col gap-8 md:flex-row md:items-center md:gap-12 lg:gap-16"
               >
+                {/* Mockup Container — clean transparent wrapper so image asset renders without double background */}
                 <div
                   className={[
-                    'relative aspect-[4/3] w-full overflow-hidden rounded-md shadow-[0_2px_12px_rgba(0,0,0,0.08)] md:w-1/2',
+                    'relative aspect-[4/3] w-full overflow-hidden rounded-2xl md:w-1/2 flex items-center justify-center bg-transparent',
                     imageFirst ? 'md:order-2' : 'md:order-1',
                   ].join(' ')}
                 >
@@ -85,6 +89,7 @@ export default function Features({
                     variant="wide"
                     sizes="(min-width: 768px) 50vw, 100vw"
                     label={item.title}
+                    className="object-contain w-full h-full"
                   />
                 </div>
 
@@ -95,14 +100,14 @@ export default function Features({
                   ].join(' ')}
                 >
                   {item.comingSoon ? (
-                    <span className="inline-block rounded-full bg-brand-lime px-3 py-1 text-xs font-semibold uppercase tracking-wide text-black">
+                    <span className="inline-block rounded-full bg-[#cbfd00] px-3.5 py-1 text-xs font-semibold text-[#0841b5] mb-3 shadow-xs">
                       {comingSoonLabel}
                     </span>
                   ) : null}
-                  <h3 className="mt-2 font-sans text-2xl font-semibold text-brand-black">
+                  <h3 className="font-sans text-2xl font-bold text-brand-black sm:text-3xl">
                     {item.title}
                   </h3>
-                  <p className="mt-3 text-base leading-[1.7] text-foreground-muted">
+                  <p className="mt-3 text-base sm:text-lg leading-[1.7] text-foreground-muted">
                     {item.description}
                   </p>
                 </div>

@@ -1,6 +1,5 @@
 import Section from '@/components/ui/Section';
 import { Container } from '@/components/ui/Container';
-import { BUTTON_BASE_CLASS, BUTTON_VARIANT_CLASS } from '@/components/ui/Button';
 import { HeroImage } from '@/components/sections/HeroImage';
 import { Reveal } from '@/components/ui/Reveal';
 
@@ -14,44 +13,18 @@ export interface PartnerHeroProps {
 }
 
 const DEFAULT_PROPS: PartnerHeroProps = {
-  headline: 'Kelola Campsite Anda, Reservasi Biar Kami yang Urus',
+  headline: 'Anda membangun pengalaman menginap. Kami mengurus setiap reservasi.',
   subcopy:
-    'Embun mencatat setiap reservasi dan pembayaran secara otomatis, jadi Anda bisa fokus mengelola campsite tanpa repot administrasi manual.',
-  // NOTE: placeholder path — no real owner-dashboard mockup asset exists yet.
-  // A later content/asset task must supply the actual mockup at this path.
-  imageSrc: '/images/partner-hero-mockup.png',
-  imageAlt: 'Tangkapan layar dashboard mitra Embun menampilkan daftar reservasi dan pendapatan',
+    'Embun mencatat setiap reservasi dan pembayaran secara otomatis, jadi Anda bisa fokus mengelola bisnis outdoor Anda tanpa repot administrasi manual.',
+  imageSrc: '/images/mitra1.png',
+  imageAlt: 'Dashboard mitra Embun - Anda membangun pengalaman menginap, kami mengurus setiap reservasi',
   ctaHref: '#contact',
-  ctaLabel: 'Daftar Jadi Mitra',
+  ctaLabel: 'Gabung sekarang juga',
 };
 
 /**
- * Hero (Partner Landing Page) — first-viewport marketing section (Server
- * Component) targeted entirely at Campsite Owners (Requirement 5.2): the
- * headline and subcopy speak directly to reservation/commission management,
- * not to Guest-facing search/booking language.
- *
- * Reuses the same asymmetric two-column layout as the original single-page
- * `Hero.tsx` and the App Landing Page's `Hero.tsx`: copy column (~5/12)
- * beside an offset image column (~7/12) on desktop, stacking vertically on
- * mobile — the owner-dashboard mockup is a bounded, framed image rather
- * than a full-bleed background.
- *
- * The CTA is a single in-page anchor (`<a href="#contact">`) styled like
- * `Button`'s `primary` variant, relying on the global
- * `html { scroll-behavior: smooth }` rule to smooth-scroll down to this
- * page's Contact Form section — no store-badge links here, unlike the App
- * Landing Page's Hero, since `/mitra` has a single lead-capture CTA rather
- * than external download links. This keeps the component a pure Server
- * Component with zero client JS.
- *
- * The image itself is delegated to the existing `HeroImage` (`'use client'`)
- * component to reuse its `onError` broken-image fallback rather than
- * duplicating that logic.
- *
- * Renders this page's only `<h1>` (Requirement 13.8) — the eventual
- * `/mitra` page assembly must not render another `<h1>` elsewhere on the
- * page.
+ * Hero (Partner Landing Page) — first-viewport marketing section targeted at Campsite Owners.
+ * Renders centered title, description, green CTA button, and mitra1.png dashboard screenshot below.
  */
 export function Hero(props: Partial<PartnerHeroProps> = {}) {
   const { headline, subcopy, imageSrc, imageAlt, ctaHref, ctaLabel } = {
@@ -60,40 +33,43 @@ export function Hero(props: Partial<PartnerHeroProps> = {}) {
   };
 
   return (
-    <Section id="hero" variant="default" compactTop>
+    <Section id="hero" variant="default" compactTop className="pt-12 pb-16 lg:pt-16 lg:pb-24">
       <Container>
-        <div className="flex flex-col items-center gap-12 lg:flex-row lg:items-center lg:gap-8">
-          {/* Copy column — ~5/12 on desktop */}
-          <div className="w-full lg:w-5/12">
-            <Reveal delay={0}>
-              <h1 className="font-serif text-5xl leading-[1.05] text-brand-black sm:text-6xl lg:text-7xl">
-                {headline}
-              </h1>
-            </Reveal>
-            <Reveal delay={150}>
-              <p className="mt-6 max-w-md text-lg leading-[1.7] text-foreground-muted">
-                {subcopy}
-              </p>
-            </Reveal>
-            <Reveal delay={300}>
-              <a
-                href={ctaHref}
-                className={[BUTTON_BASE_CLASS, BUTTON_VARIANT_CLASS.primary, 'mt-8'].join(' ')}
-              >
-                {ctaLabel}
-              </a>
-            </Reveal>
-          </div>
+        <div className="flex flex-col items-center text-center">
+          {/* Centered Title */}
+          <Reveal delay={0}>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground leading-[1.15] max-w-4xl mx-auto">
+              {headline}
+            </h1>
+          </Reveal>
 
-          {/* Image column — ~7/12 on desktop, offset rather than centered */}
-          <Reveal delay={200} offset={32} className="w-full lg:w-7/12 lg:translate-y-6">
-            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-md shadow-[var(--shadow-soft)] lg:ml-auto lg:max-w-[560px]">
+          {/* Centered Description */}
+          <Reveal delay={150}>
+            <p className="mt-6 text-base sm:text-lg text-foreground-muted leading-relaxed max-w-2xl mx-auto">
+              {subcopy}
+            </p>
+          </Reveal>
+
+          {/* Centered CTA Button */}
+          <Reveal delay={300}>
+            <a
+              href={ctaHref}
+              className="mt-8 inline-flex items-center justify-center rounded-xl bg-[#cbfd00] hover:bg-[#b8e600] text-[#0841b5] font-semibold px-8 py-3.5 text-base transition-all duration-200 shadow-sm active:scale-95"
+            >
+              {ctaLabel}
+            </a>
+          </Reveal>
+
+          {/* Centered Hero Image below button (clean, transparent container without border or shadow) */}
+          <Reveal delay={200} offset={32} className="w-full mt-12 sm:mt-16">
+            <div className="relative w-full max-w-[1040px] mx-auto">
               <HeroImage
                 src={imageSrc}
                 alt={imageAlt}
-                width={800}
-                height={1000}
+                width={1899}
+                height={947}
                 priority
+                className="w-full h-auto object-contain"
               />
             </div>
           </Reveal>

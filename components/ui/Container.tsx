@@ -16,8 +16,8 @@ export interface ContainerProps {
  */
 export function Container({ children, className, bleed = false }: ContainerProps) {
   const classes = [
-    'mx-auto w-full px-6 sm:px-8 lg:px-10',
-    bleed ? '' : 'max-w-[1200px]',
+    'mx-auto w-full px-6 sm:px-10 lg:px-16 xl:px-20',
+    bleed ? '' : 'max-w-[1440px]',
     className ?? '',
   ]
     .filter(Boolean)

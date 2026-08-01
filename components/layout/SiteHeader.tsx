@@ -23,18 +23,21 @@ import {
  * - `/mitra/direktori`  — Partner Directory (Direktori Mitra)
  */
 const getNavLinks = (lang: string) => [
-  { href: `/${lang}`, label: lang === 'en' ? 'Home' : 'Beranda' },
   {
     href: `/${lang}/mitra`,
-    label: lang === 'en' ? 'Become a Partner' : 'Gabung jadi Mitra',
+    label: lang === 'en' ? 'Become a Partner' : 'Gabung jadi mitra',
   },
   {
     href: `/${lang}/mitra/direktori`,
-    label: lang === 'en' ? 'Partner Directory' : 'Direktori Mitra',
+    label: lang === 'en' ? 'Our Partners' : 'Mitra kami',
   },
 ];
 
-const getContactHref = (lang: string) => `/${lang}/mitra#contact`;
+const getContactHref = (lang: string) => `/${lang}/mitra/#contact`;
+
+const CONTACT_ANCHOR_ID = 'contact';
+const CONTACT_HASH = `#${CONTACT_ANCHOR_ID}`;
+const HEADER_ANCHOR_OFFSET = 88;
 
 /** Scroll offset (px) past which the header is treated as "past the Hero". */
 const STICKY_SCROLL_THRESHOLD = 80;
@@ -77,7 +80,47 @@ export function SiteHeader() {
     ? pathname.replace(`/${lang}`, `/${switchLang}`)
     : `/${switchLang}`;
 
+  function scrollToContactForm(behavior: ScrollBehavior) {
+    const contactElem = document.getElementById(CONTACT_ANCHOR_ID);
+    if (!contactElem) return false;
+
+    const top =
+      contactElem.getBoundingClientRect().top +
+      window.scrollY -
+      HEADER_ANCHOR_OFFSET;
+    window.scrollTo({ top, behavior });
+    return true;
+  }
+
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    const targetPath = contactHref.split('#')[0].replace(/\/$/, '');
+    const currentPath = pathname?.replace(/\/$/, '');
+
+    if (currentPath !== targetPath || window.location.hash !== CONTACT_HASH) {
+      return;
+    }
+
+    let retryId: number | undefined;
+    let attempts = 0;
+
+    function scrollWhenReady() {
+      attempts += 1;
+
+      if (!scrollToContactForm('smooth') && attempts < 10) {
+        retryId = window.setTimeout(scrollWhenReady, 50);
+      }
+    }
+
+    retryId = window.setTimeout(scrollWhenReady, 0);
+
+    return () => {
+      if (retryId !== undefined) {
+        window.clearTimeout(retryId);
+      }
+    };
+  }, [contactHref, pathname]);
 
   useEffect(() => {
     function handleScroll() {
@@ -108,6 +151,45 @@ export function SiteHeader() {
   function closeMobileMenu() {
     setIsMenuOpen(false);
   }
+
+  const handleNavClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    href: string
+  ) => {
+    setIsMenuOpen(false);
+    const targetPath = href.replace(/\/$/, '');
+    const currentPath = pathname?.replace(/\/$/, '');
+
+    if (currentPath === targetPath) {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.history.pushState(null, '', targetPath);
+    } else {
+      if (href.endsWith('/mitra') || href.endsWith('/mitra/')) {
+        e.preventDefault();
+        window.location.assign(href);
+      }
+    }
+  };
+
+  const handleContactClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    setIsMenuOpen(false);
+
+    const targetPath = contactHref.split('#')[0].replace(/\/$/, '');
+    const currentPath = pathname?.replace(/\/$/, '');
+    const isContactPage = currentPath === targetPath;
+
+    if (!isContactPage) {
+      e.preventDefault();
+      window.location.assign(contactHref);
+      return;
+    }
+
+    if (scrollToContactForm('smooth')) {
+      e.preventDefault();
+      window.history.pushState(null, '', contactHref);
+    }
+  };
 
   return (
     <header
@@ -143,70 +225,50 @@ export function SiteHeader() {
             />
           </Link>
 
-          {/* Desktop nav — visible on viewport ≥ 769px (Tailwind `md` = 768px). */}
-          <nav aria-label="Navigasi utama" className="hidden md:flex">
-            <ul className="flex items-center gap-6">
-              {navLinks.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className={[
-                      'text-sm font-medium text-foreground transition-colors hover:text-brand-blue rounded-sm',
-                      FOCUS_VISIBLE_CLASS,
-                    ].join(' ')}
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
+          {/* Right-aligned Header Items — Nav Links + CTA + Lang */}
+          <div className="hidden md:flex md:items-center md:gap-6 lg:gap-8">
+            <nav aria-label="Navigasi utama">
+              <ul className="flex items-center gap-6 lg:gap-8">
+                {navLinks.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      onClick={(e) => handleNavClick(e, link.href)}
+                      className={[
+                        'text-sm font-medium text-foreground transition-colors hover:text-brand-blue rounded-sm',
+                        FOCUS_VISIBLE_CLASS,
+                      ].join(' ')}
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
 
-          <div className="hidden md:flex md:items-center md:gap-4">
-            <Link
-              href={switchHref}
-              className={[
-                'px-2 py-1 text-sm font-bold text-foreground transition-colors hover:text-brand-blue rounded-md',
-                FOCUS_VISIBLE_CLASS,
-              ].join(' ')}
-              aria-label="Switch language"
-            >
-              {lang === 'id' ? 'EN' : 'ID'}
-            </Link>
-            {mounted && (
-              <button
-                onClick={() =>
-                  setTheme(
-                    theme === 'dark' ||
-                      (theme === 'system' && systemTheme === 'dark')
-                      ? 'light'
-                      : 'dark',
-                  )
-                }
+            <div className="flex items-center gap-4">
+              <a
+                href={contactHref}
+                onClick={handleContactClick}
                 className={[
-                  'p-2 text-foreground transition-colors hover:text-brand-blue rounded-md',
+                  'inline-flex items-center justify-center rounded-xl bg-[#cbfd00] hover:bg-[#b8e600] text-[#0841b5] font-semibold px-6 py-2.5 text-sm transition-all duration-200 shadow-sm active:scale-95',
                   FOCUS_VISIBLE_CLASS,
                 ].join(' ')}
-                aria-label="Toggle dark mode"
               >
-                {theme === 'dark' ||
-                (theme === 'system' && systemTheme === 'dark') ? (
-                  <Sun size={20} />
-                ) : (
-                  <Moon size={20} />
-                )}
-              </button>
-            )}
-            <Link
-              href={contactHref}
-              className={[
-                BUTTON_BASE_CLASS,
-                BUTTON_VARIANT_CLASS.primary,
-                FOCUS_VISIBLE_CLASS,
-              ].join(' ')}
-            >
-              {lang === 'en' ? 'Contact Us' : 'Hubungi Kami'}
-            </Link>
+                {lang === 'en' ? 'Contact Us' : 'Hubungi Kami'}
+              </a>
+
+              <Link
+                href={switchHref}
+                className={[
+                  'px-2 py-1 text-sm font-bold text-foreground transition-colors hover:text-brand-blue rounded-md ml-1',
+                  FOCUS_VISIBLE_CLASS,
+                ].join(' ')}
+                aria-label="Switch language"
+              >
+                {lang === 'id' ? 'EN' : 'ID'}
+              </Link>
+            </div>
           </div>
 
           {/* Hamburger toggle — visible on viewport ≤ 768px (Requirement 8.6). */}
@@ -242,19 +304,19 @@ export function SiteHeader() {
         {isMenuOpen ? (
           <div
             id={MOBILE_DRAWER_ID}
-            className="md:hidden border-t border-border bg-background/95 backdrop-blur-sm pb-6"
+            className="md:hidden bg-transparent pb-6 pt-2"
           >
             <nav
               aria-label={
                 lang === 'en' ? 'Mobile navigation' : 'Navigasi mobile'
               }
             >
-              <ul className="flex flex-col gap-1 pt-4">
+              <ul className="flex flex-col gap-1 pt-2">
                 {navLinks.map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      onClick={closeMobileMenu}
+                      onClick={(e) => handleNavClick(e, link.href)}
                       className={[
                         'block rounded-sm px-1 py-3 text-base font-medium text-foreground transition-colors hover:text-brand-blue',
                         FOCUS_VISIBLE_CLASS,
@@ -264,43 +326,14 @@ export function SiteHeader() {
                     </Link>
                   </li>
                 ))}
-                {mounted && (
-                  <li className="mt-2 flex items-center justify-between border-t border-border pt-4">
-                    <span className="text-base font-medium text-foreground">
-                      {lang === 'en' ? 'Dark Mode' : 'Mode Gelap'}
-                    </span>
-                    <button
-                      onClick={() =>
-                        setTheme(
-                          theme === 'dark' ||
-                            (theme === 'system' && systemTheme === 'dark')
-                            ? 'light'
-                            : 'dark',
-                        )
-                      }
-                      className={[
-                        'p-2 text-foreground transition-colors hover:text-brand-blue rounded-md',
-                        FOCUS_VISIBLE_CLASS,
-                      ].join(' ')}
-                      aria-label="Toggle dark mode"
-                    >
-                      {theme === 'dark' ||
-                      (theme === 'system' && systemTheme === 'dark') ? (
-                        <Sun size={20} />
-                      ) : (
-                        <Moon size={20} />
-                      )}
-                    </button>
-                  </li>
-                )}
-                <li className="flex items-center justify-between border-t border-border pt-4 pb-2">
+                <li className="flex items-center justify-between border-t border-foreground/10 pt-4 pb-2 mt-2">
                   <span className="text-base font-medium text-foreground">
                     {lang === 'en' ? 'Language' : 'Bahasa'}
                   </span>
                   <Link
                     href={switchHref}
                     className={[
-                      'px-4 py-2 text-sm font-bold text-foreground transition-colors hover:text-brand-blue rounded-md border border-border',
+                      'px-4 py-2 text-sm font-bold text-foreground transition-colors hover:text-brand-blue rounded-md border border-foreground/20 bg-transparent',
                       FOCUS_VISIBLE_CLASS,
                     ].join(' ')}
                     aria-label="Switch language"
@@ -311,18 +344,16 @@ export function SiteHeader() {
               </ul>
             </nav>
 
-            <Link
+            <a
               href={contactHref}
-              onClick={closeMobileMenu}
+              onClick={handleContactClick}
               className={[
-                BUTTON_BASE_CLASS,
-                BUTTON_VARIANT_CLASS.primary,
-                'mt-4 w-full py-4',
+                'mt-4 flex w-full items-center justify-center rounded-xl bg-[#cbfd00] hover:bg-[#b8e600] text-[#0841b5] font-semibold py-3.5 text-base transition-all duration-200 shadow-sm',
                 FOCUS_VISIBLE_CLASS,
               ].join(' ')}
             >
               {lang === 'en' ? 'Contact Us' : 'Hubungi Kami'}
-            </Link>
+            </a>
           </div>
         ) : null}
       </Container>

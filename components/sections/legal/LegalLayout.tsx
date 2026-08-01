@@ -8,20 +8,22 @@ export interface LegalLayoutProps {
   title: string;
   /** ISO date string (e.g. "2025-01-15"), rendered human-readable. */
   lastUpdated: string;
+  /** Whether the current language is English. */
+  isEn?: boolean;
   /** Policy body — structured HTML (`<h2>`, `<h3>`, `<p>`, `<ul>`, etc). */
   children: ReactNode;
 }
 
 /**
  * Formats an ISO date string (e.g. "2025-01-15") into human-readable
- * Indonesian long-form (e.g. "15 Januari 2025").
+ * Indonesian long-form (e.g. "15 Januari 2025") or English long-form.
  */
-function formatLastUpdated(isoDate: string): string {
+function formatLastUpdated(isoDate: string, isEn: boolean = false): string {
   const date = new Date(isoDate);
   if (Number.isNaN(date.getTime())) {
     return isoDate;
   }
-  return new Intl.DateTimeFormat('id-ID', {
+  return new Intl.DateTimeFormat(isEn ? 'en-US' : 'id-ID', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
@@ -47,15 +49,22 @@ function formatLastUpdated(isoDate: string): string {
  * per-instance `className`, so page authors can't accidentally ship an
  * unstyled `<Link>`/`<a>` inside legal body copy.
  */
-export function LegalLayout({ title, lastUpdated, children }: LegalLayoutProps) {
+export function LegalLayout({ title, lastUpdated, isEn = false, children }: LegalLayoutProps) {
   return (
-    <Section id="legal" variant="default" compactTop={true}>
+    <Section
+      id="legal"
+      variant="default"
+      style={{
+        paddingTop: 'clamp(5rem, 8vw, 7rem)',
+        paddingBottom: 'clamp(5rem, 8vw, 7rem)',
+      }}
+    >
       <Container>
         <h1 className="font-serif text-[2.5rem] font-medium leading-[1.1] text-brand-black md:text-5xl">
           {title}
         </h1>
         <p className="mt-4 text-sm leading-[1.5] text-foreground-muted">
-          Terakhir diperbarui: {formatLastUpdated(lastUpdated)}
+          {isEn ? 'Last updated:' : 'Terakhir diperbarui:'} {formatLastUpdated(lastUpdated, isEn)}
         </p>
 
         <div

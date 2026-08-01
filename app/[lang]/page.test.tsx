@@ -18,7 +18,7 @@ describe('Home (App Landing Page composition)', () => {
       (section) => section.id
     );
 
-    expect(sectionIds).toEqual(['hero', 'features', 'screenshots', 'faq', 'download']);
+    expect(sectionIds).toEqual(['hero', 'features', 'faq', 'download']);
   });
 
   it('renders no owner/commission/partnership proposition content (Requirement 1.3)', () => {

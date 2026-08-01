@@ -2,8 +2,7 @@ import type { Metadata } from 'next';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 import AppHero from '@/components/sections/app/Hero';
 import AppFeatures from '@/components/sections/app/Features';
-import AppScreenshots from '@/components/sections/app/Screenshots';
-import Faq from '@/components/sections/Faq';
+import AppExperienceAndFaq from '@/components/sections/app/AppExperienceAndFaq';
 import AppDownloadCta from '@/components/sections/app/DownloadCta';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { JsonLd } from '@/components/seo/JsonLd';
@@ -30,7 +29,7 @@ export const dynamic = 'force-static';
  */
 export const metadata: Metadata = buildPageMetadata({
   path: '/',
-  title: 'Embun — Cari dan Pesan Campsite Favoritmu',
+  title: 'Embun Cari dan Pesan Campsite Favoritmu',
   description:
     'Temukan dan pesan spot camping terbaik lewat Embun App: pencarian campsite, pemesanan mudah, pembayaran aman, dan riwayat perjalananmu dalam satu aplikasi.',
 });
@@ -40,10 +39,10 @@ export const metadata: Metadata = buildPageMetadata({
  * (Server Component).
  *
  * Composes the App Landing Page sections in the required order (Requirements
- * 1.1, 1.2): `Hero` → `Features` → `Screenshots` → `Faq` → `DownloadCta`,
+ * 1.1, 1.2): `Hero` → `Features` → `Faq` → `DownloadCta`,
  * all sourced from `components/sections/app/*` and scoped entirely to Guest
  * audiences. Each section owns its own anchor `id` (`#hero`, `#features`,
- * `#screenshots`, `#faq`, `#download`) via the shared `Section` primitive.
+ * `#faq`, `#download`) via the shared `Section` primitive.
  * `SiteHeader` and `SiteFooter` sit outside `<main>` since they are global
  * layout chrome rather than page content.
  *
@@ -77,12 +76,13 @@ export default async function Home({
           comingSoonLabel={dict.featuresComingSoonLabel}
           items={dict.features as AppFeatureItem[]}
         />
-        <AppScreenshots
-          headline={dict.screenshots.headline}
-          subcopy={dict.screenshots.subcopy}
-          items={dict.screenshots.items}
+        <AppExperienceAndFaq
+          headline={dict.experienceAndFaq.headline}
+          subcopy={dict.experienceAndFaq.subcopy}
+          screenshots={dict.experienceAndFaq.screenshots}
+          faqHeading={dict.experienceAndFaq.faqHeading}
+          faqItems={dict.experienceAndFaq.faqItems}
         />
-        <Faq items={dict.faq.items || appFaq} heading={dict.faq.heading} />
         <AppDownloadCta
           heading={dict.downloadCta.headline}
           subcopy={dict.downloadCta.subcopy}

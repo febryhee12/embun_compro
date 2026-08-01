@@ -3,10 +3,9 @@ import { SiteHeader } from '@/components/layout/SiteHeader';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import Hero from '@/components/sections/partner/Hero';
 import Benefits from '@/components/sections/partner/Benefits';
-import DirectoryTeaser from '@/components/sections/partner/DirectoryTeaser';
+import HowToJoin from '@/components/sections/partner/HowToJoin';
 import SupportedTypes from '@/components/sections/partner/SupportedTypes';
-import Faq from '@/components/sections/Faq';
-import Contact from '@/components/sections/Contact';
+import PartnerFaqAndContact from '@/components/sections/partner/PartnerFaqAndContact';
 import CallToAction from '@/components/sections/partner/CallToAction';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { partnerFaq } from '@/lib/content/partnerFaq';
@@ -29,7 +28,7 @@ export const dynamic = 'force-static';
  */
 export const metadata: Metadata = buildPageMetadata({
   path: '/mitra',
-  title: 'Jadi Mitra Embun — Kelola Campsite Anda',
+  title: 'Jadi Mitra Embun Kelola Properti Campsite Anda',
   description:
     'Bermitra dengan Embun untuk mengelola reservasi, komisi otomatis, dan blok/spot campsite Anda dalam satu dashboard yang mudah digunakan.',
 });
@@ -80,23 +79,22 @@ export default async function MitraPage({
         <SupportedTypes
           heading={dict.supportedTypes.heading}
           subcopy={dict.supportedTypes.subcopy}
-          types={dict.supportedTypes.types}
         />
         <Benefits
           heading={dict.benefits.heading}
           subcopy={dict.benefits.subcopy}
           items={dict.benefits.items as PartnerBenefitItem[] | undefined}
         />
-        <DirectoryTeaser
-          heading={dict.directoryTeaser.heading}
-          subcopy={dict.directoryTeaser.subcopy}
-          ctaLabel={dict.directoryTeaser.ctaLabel}
-          directoryHref={`/${lang}/mitra/direktori`}
+        <HowToJoin
+          heading={dict.howToJoin.heading}
+          subcopy={dict.howToJoin.subcopy}
+          steps={dict.howToJoin.steps}
         />
-        <Faq heading={dict.faq.heading} items={dict.faq.items || partnerFaq} />
-        <Contact
-          heading={dict.contact.heading}
-          subcopy={dict.contact.subcopy}
+        <PartnerFaqAndContact
+          faqHeading={dict.faq.heading}
+          faqItems={dict.faq.items}
+          contactHeading={dict.contact.heading}
+          contactSubcopy={dict.contact.subcopy}
         />
         <CallToAction
           heading={dict.cta.heading}

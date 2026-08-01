@@ -14,5 +14,5 @@ Embun App membantu Guest mencari dan memesan spot camping favorit, membayar deng
 
 - [Kebijakan Privasi — Embun](https://embun.app/kebijakan-privasi): Pelajari data pribadi apa yang dikumpulkan Embun, tujuan penggunaannya, pihak yang dapat mengaksesnya, dan kepatuhan Embun terhadap UU PDP No. 27/2022.
 - [Syarat & Ketentuan — Embun](https://embun.app/syarat-ketentuan): Baca aturan penggunaan Embun App dan Website, batasan tanggung jawab Embun sebagai platform penghubung, serta mekanisme penyelesaian perselisihan.
-- [Kebijakan Refund & Pembatalan — Embun](https://embun.app/kebijakan-refund): Ketahui syarat dan tenggat waktu pembatalan pesanan, mekanisme refund melalui Midtrans, serta skenario dana yang tidak dapat dikembalikan.
+- [Kebijakan Refund & Pembatalan — Embun](https://embun.app/kebijakan-refund): Ketahui syarat dan tenggat waktu pembatalan pesanan, mekanisme refund melalui Xendit, serta skenario dana yang tidak dapat dikembalikan.
 - [Kebijakan Kemitraan — Embun](https://embun.app/kebijakan-mitra): Pelajari struktur komisi, kewajiban Campsite Owner, dan syarat pemutusan kemitraan dengan Embun.

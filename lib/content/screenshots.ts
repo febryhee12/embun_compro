@@ -17,18 +17,18 @@ export const screenshots: ScreenshotItem[] = [
     id: 'pencarian',
     src: '/images/screenshots/pencarian.png',
     alt: 'Tangkapan layar Embun App menampilkan hasil pencarian campsite berdasarkan lokasi dan fasilitas',
-    caption: '1. Cari campsite sesuai lokasi dan kebutuhanmu',
+    caption: 'Cari campsite sesuai lokasi dan kebutuhanmu',
   },
   {
     id: 'detail-campsite',
     src: '/images/screenshots/detail-campsite.png',
     alt: 'Tangkapan layar Embun App menampilkan halaman detail campsite dengan foto, fasilitas, dan pilihan spot',
-    caption: '2. Lihat detail campsite dan pilih spot yang kamu mau',
+    caption: 'Lihat detail campsite dan pilih spot yang kamu mau',
   },
   {
     id: 'checkout',
     src: '/images/screenshots/checkout.png',
     alt: 'Tangkapan layar Embun App menampilkan halaman checkout dan konfirmasi pemesanan campsite',
-    caption: '3. Selesaikan pemesanan dan bayar dengan aman',
+    caption: 'Selesaikan pemesanan dan bayar dengan aman',
   },
 ];

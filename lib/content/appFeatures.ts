@@ -25,17 +25,17 @@ export const appFeatures: AppFeatureItem[] = [
     description:
       'Temukan campsite ideal dari berbagai mitra Embun berdasarkan lokasi, fasilitas, dan ulasan pengunjung lain. Filter pencarian membantu menemukan spot yang sesuai kebutuhan dalam hitungan detik.',
     audience: 'guest',
-    mockupSrc: '/images/mockups/pencarian.png',
+    mockupSrc: '/images/embun_2.png',
     mockupAlt: 'Tampilan hasil pencarian campsite dengan filter lokasi, fasilitas, dan rating ulasan',
   },
   {
     id: 'pemesanan-mudah',
     title: 'Pemesanan Mudah',
     description:
-      'Pesan spot favorit dalam beberapa langkah singkat, tanpa ribet dan tanpa perlu telepon pemilik campsite. Konfirmasi booking diterima langsung di aplikasi.',
+      'Pesan spot favorit dalam beberapa langkah singkat, tanpa ribet dan tanpa perlu telepon pemilik campsite. Konfirmasi pesanan diterima langsung di aplikasi.',
     audience: 'guest',
-    mockupSrc: '/images/mockups/pemesanan.png',
-    mockupAlt: 'Tampilan alur pemesanan spot camping dari pilih tanggal hingga konfirmasi booking',
+    mockupSrc: '/images/embun_3.png',
+    mockupAlt: 'Tampilan alur pemesanan spot camping dari pilih tanggal hingga konfirmasi pesanan',
   },
   {
     id: 'pembayaran-aman',
@@ -44,16 +44,7 @@ export const appFeatures: AppFeatureItem[] = [
       'Bayar langsung di dalam aplikasi lewat berbagai metode pembayaran non-tunai yang aman. Setiap transaksi tercatat rapi tanpa perlu transfer manual ke pemilik campsite.',
     audience: 'guest',
     mockupSrc: '/images/mockups/pembayaran.png',
-    mockupAlt: 'Tampilan halaman pembayaran booking dengan pilihan metode pembayaran non-tunai yang aman',
-  },
-  {
-    id: 'riwayat-favorit',
-    title: 'Riwayat & Favorit',
-    description:
-      'Lihat seluruh riwayat pemesanan campsite dan simpan spot favorit untuk dipesan kembali dengan cepat. Semua tersimpan rapi dalam satu tempat di aplikasi.',
-    audience: 'guest',
-    mockupSrc: '/images/mockups/riwayat-favorit.png',
-    mockupAlt: 'Tampilan daftar riwayat booking dan koleksi campsite favorit pengguna',
+    mockupAlt: 'Tampilan halaman pembayaran reservasi dengan pilihan metode pembayaran non-tunai yang aman',
   },
   {
     id: 'asisten-pencarian-ai',

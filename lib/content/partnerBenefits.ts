@@ -15,18 +15,18 @@ export interface PartnerBenefitItem {
 export const partnerBenefits: PartnerBenefitItem[] = [
   {
     id: 'reservasi',
-    title: 'Booking Masuk Lebih Rapi',
+    title: 'Reservasi Masuk Lebih Rapi',
     description:
       'Setiap pesanan dari tamu tercatat otomatis dengan status yang mudah dipantau. Tim campsite tidak perlu lagi mengandalkan catatan manual atau percakapan yang tercecer.',
-    mockupSrc: '/images/mockups/reservasi.png',
-    mockupAlt: 'Ringkasan booking masuk dan status pemesanan untuk mitra Embun',
+    mockupSrc: '/images/mitra_need1.png',
+    mockupAlt: 'Ringkasan reservasi masuk dan status pemesanan untuk mitra Embun',
   },
   {
     id: 'bagi-hasil-otomatis',
     title: 'Pendapatan Mudah Dipantau',
     description:
       'Ringkasan pendapatan dari pemesanan tersaji jelas, termasuk status pembayaran dan pencairan. Pemilik campsite bisa membaca performa usaha tanpa membuka laporan teknis yang rumit.',
-    mockupSrc: '/images/mockups/komisi.png',
+    mockupSrc: '/images/mitra_need2.png',
     mockupAlt: 'Ringkasan pendapatan dan status pembayaran untuk mitra Embun',
   },
   {
@@ -34,7 +34,7 @@ export const partnerBenefits: PartnerBenefitItem[] = [
     title: 'Ketersediaan Selalu Terkontrol',
     description:
       'Tanggal, kapasitas, dan pilihan area camping bisa diatur dari satu tempat. Informasi yang dilihat tamu tetap selaras dengan kondisi operasional di lokasi.',
-    mockupSrc: '/images/mockups/manajemen-blok.png',
+    mockupSrc: '/images/mitra_need3.png',
     mockupAlt:
       'Tampilan pengaturan ketersediaan area camping untuk mitra Embun',
   },

@@ -41,13 +41,13 @@ export function DownloadCta(props: Partial<DownloadCtaProps> = {}) {
   };
 
   return (
-    <Section id="download" variant="dark">
+    <Section id="download" style={{ backgroundColor: '#FAFEE8' }} className="py-16 lg:py-24">
       <Container>
         <div className="max-w-2xl text-left">
-          <h2 className="font-serif text-[2.5rem] leading-[1.1] text-foreground-on-dark md:text-5xl">
+          <h2 className="font-sans text-3xl font-bold tracking-tight text-brand-black sm:text-4xl lg:text-5xl leading-[1.2]">
             {heading}
           </h2>
-          <p className="mt-6 text-lg leading-[1.7] text-foreground-muted-on-dark">{subcopy}</p>
+          <p className="mt-6 text-base sm:text-lg text-foreground-muted leading-relaxed">{subcopy}</p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <DownloadCtaButton href={appStoreHref} store="apple" lead={appStoreLead} />
             <DownloadCtaButton href={googlePlayHref} store="google" lead={googlePlayLead} />
