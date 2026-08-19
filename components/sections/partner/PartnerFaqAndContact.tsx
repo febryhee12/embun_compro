@@ -375,8 +375,9 @@ export function PartnerFaqAndContact({
                         >
                           {isSubmitting ? 'Mengirim...' : 'Kirim pesan'}
                         </button>
-                        <p className="text-[11px] text-foreground-muted font-sans">
-                          Kami akan menghubungi Anda segera.
+                        <p className="text-[11px] text-foreground-muted font-sans mt-1">
+                          Kami akan menghubungi Anda segera.<br />
+                          Atau hubungi kami di <a href="mailto:support@embun.app" className="text-brand-blue hover:underline font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-lime focus-visible:outline-offset-2 rounded-sm">support@embun.app</a>
                         </p>
                       </div>
                     </form>

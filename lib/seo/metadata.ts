@@ -25,14 +25,29 @@ export interface PageSeo {
  *
  * Validates: Requirements 13.1, 13.2
  */
-export function buildPageMetadata(seo: PageSeo): Metadata {
-  const canonicalUrl = new URL(seo.path, SITE_URL).toString();
+export function buildPageMetadata(seo: PageSeo, lang?: string): Metadata {
+  // Normalize the base path (e.g. '/' or '/mitra')
+  const basePath = seo.path.startsWith('/') ? seo.path : `/${seo.path}`;
+  
+  // Construct the localized path if a lang is provided
+  const localizedPath = lang ? `/${lang}${basePath === '/' ? '' : basePath}` : basePath;
+  const canonicalUrl = new URL(localizedPath, SITE_URL).toString();
+
+  // Construct hreflang alternates if lang is provided
+  let languages: Record<string, string> | undefined;
+  if (lang) {
+    languages = {
+      id: new URL(`/id${basePath === '/' ? '' : basePath}`, SITE_URL).toString(),
+      en: new URL(`/en${basePath === '/' ? '' : basePath}`, SITE_URL).toString(),
+    };
+  }
 
   return {
     title: seo.title,
     ...(seo.description ? { description: seo.description } : {}),
     alternates: {
       canonical: canonicalUrl,
+      ...(languages ? { languages } : {}),
     },
     openGraph: {
       title: seo.title,

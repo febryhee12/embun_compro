@@ -26,12 +26,23 @@ export const dynamic = 'force-static';
 /**
  * SEO metadata for the Partner Landing Page (Requirements 13.1, 13.2).
  */
-export const metadata: Metadata = buildPageMetadata({
-  path: '/mitra',
-  title: 'Jadi Mitra Embun Kelola Properti Campsite Anda',
-  description:
-    'Bermitra dengan Embun untuk mengelola reservasi, komisi otomatis, dan blok/spot campsite Anda dalam satu dashboard yang mudah digunakan.',
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  return buildPageMetadata(
+    {
+      path: '/mitra',
+      title: lang === 'en' ? 'Become an Embun Partner to Manage Your Campsite' : 'Jadi Mitra Embun Kelola Properti Campsite Anda',
+      description: lang === 'en'
+        ? 'Partner with Embun to manage reservations, automated commissions, and your campsite spots in one easy-to-use dashboard.'
+        : 'Bermitra dengan Embun untuk mengelola reservasi, komisi otomatis, dan blok/spot campsite Anda dalam satu dashboard yang mudah digunakan.',
+    },
+    lang
+  );
+}
 
 /**
  * Partner Landing Page (`/mitra`) — Requirement 5.1.

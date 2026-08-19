@@ -18,12 +18,23 @@ export const dynamic = 'force-static';
 /**
  * SEO metadata for the Terms of Service page (Requirements 13.1, 13.2).
  */
-export const metadata: Metadata = buildPageMetadata({
-  path: '/syarat-ketentuan',
-  title: 'Syarat & Ketentuan — Embun',
-  description:
-    'Baca aturan penggunaan Embun App dan Website, batasan tanggung jawab Embun sebagai platform penghubung, serta mekanisme penyelesaian perselisihan.',
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  return buildPageMetadata(
+    {
+      path: '/syarat-ketentuan',
+      title: lang === 'en' ? 'Terms & Conditions — Embun' : 'Syarat & Ketentuan — Embun',
+      description: lang === 'en'
+        ? 'Read the terms of use for Embun App and Website, limitations of liability as a connecting platform, and dispute resolution mechanisms.'
+        : 'Baca aturan penggunaan Embun App dan Website, batasan tanggung jawab Embun sebagai platform penghubung, serta mekanisme penyelesaian perselisihan.',
+    },
+    lang
+  );
+}
 
 /**
  * Terms of Service (`/syarat-ketentuan`) (Requirement 9.1-9.6).

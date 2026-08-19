@@ -16,12 +16,23 @@ export const dynamic = 'force-static';
 /**
  * SEO metadata for the Refund & Cancellation Policy page (Requirements 13.1, 13.2).
  */
-export const metadata: Metadata = buildPageMetadata({
-  path: '/kebijakan-refund',
-  title: 'Kebijakan Refund & Pembatalan — Embun',
-  description:
-    'Ketahui syarat dan tenggat waktu pembatalan pesanan, mekanisme pengembalian dana, serta skenario dana yang tidak dapat dikembalikan.',
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  return buildPageMetadata(
+    {
+      path: '/kebijakan-refund',
+      title: lang === 'en' ? 'Refund & Cancellation Policy — Embun' : 'Kebijakan Refund & Pembatalan — Embun',
+      description: lang === 'en'
+        ? 'Learn about our cancellation deadlines, refund mechanisms, and non-refundable scenarios.'
+        : 'Ketahui syarat dan tenggat waktu pembatalan pesanan, mekanisme pengembalian dana, serta skenario dana yang tidak dapat dikembalikan.',
+    },
+    lang
+  );
+}
 
 /**
  * Refund & Cancellation Policy (`/kebijakan-refund`) (Requirement 10).

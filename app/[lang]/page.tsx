@@ -27,12 +27,22 @@ export const dynamic = 'force-static';
 /**
  * SEO metadata for the App Landing Page (Requirements 13.1, 13.2).
  */
-export const metadata: Metadata = buildPageMetadata({
-  path: '/',
-  title: 'Embun Cari dan Pesan Campsite Favoritmu',
-  description:
-    'Temukan dan pesan spot camping terbaik lewat Embun App: pencarian campsite, pemesanan mudah, pembayaran aman, dan riwayat perjalananmu dalam satu aplikasi.',
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  return buildPageMetadata(
+    {
+      path: '/',
+      title: 'Embun Cari dan Pesan Campsite Favoritmu',
+      description:
+        'Temukan dan pesan spot camping terbaik lewat Embun App: pencarian campsite, pemesanan mudah, pembayaran aman, dan riwayat perjalananmu dalam satu aplikasi.',
+    },
+    lang
+  );
+}
 
 /**
  * Home — the App Landing Page, the single page / only route of the site

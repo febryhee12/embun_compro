@@ -27,8 +27,10 @@ const DEFAULT_PROPS: AppHeroProps = {
     'Embun App membantu kamu menemukan dan memesan campsite terbaik dalam hitungan menit. Bayar aman, pesanan langsung terkonfirmasi.',
   imageSrc: '/images/embun_1.png',
   imageAlt: 'Embun App - Jelajah tanpa batas, reservasi tanpa cemas',
-  appStoreHref: 'https://apps.apple.com/app/embun',
-  googlePlayHref: 'https://play.google.com/store/apps/details?id=app.embun',
+  appStoreHref: '',
+  googlePlayHref: '',
+  appStoreLead: 'Segera Hadir',
+  googlePlayLead: 'Segera Hadir',
 };
 
 /**
@@ -83,27 +85,38 @@ export function Hero(props: Partial<AppHeroProps> = {}) {
               </p>
             </Reveal>
             <Reveal delay={300}>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="mt-8 flex flex-wrap items-center gap-3">
                 <a
-                  href={appStoreHref}
+                  href="https://embun-demo.web.app"
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="Unduh Embun App di App Store"
+                  aria-label="Coba Demo Web Embun App"
                   className={FOCUS_VISIBLE_CLASS}
+                >
+                  <StoreBadge store="web" lead="Coba Sekarang" />
+                </a>
+                <a
+                  href={appStoreHref || undefined}
+                  target={appStoreHref ? '_blank' : undefined}
+                  rel={appStoreHref ? 'noopener noreferrer' : undefined}
+                  aria-label="Unduh Embun App di App Store"
+                  className={`${FOCUS_VISIBLE_CLASS} ${!appStoreHref ? 'cursor-not-allowed opacity-75' : ''}`}
                 >
                   <StoreBadge store="apple" lead={appStoreLead} />
                 </a>
                 <a
-                  href={googlePlayHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href={googlePlayHref || undefined}
+                  target={googlePlayHref ? '_blank' : undefined}
+                  rel={googlePlayHref ? 'noopener noreferrer' : undefined}
                   aria-label="Dapatkan Embun App di Google Play"
-                  className={FOCUS_VISIBLE_CLASS}
+                  className={`${FOCUS_VISIBLE_CLASS} ${!googlePlayHref ? 'cursor-not-allowed opacity-75' : ''}`}
                 >
                   <StoreBadge store="google" lead={googlePlayLead} />
                 </a>
               </div>
             </Reveal>
+
+
           </div>
 
           {/* Right Column: 7 of 12 columns on desktop */}

@@ -16,12 +16,23 @@ export const dynamic = 'force-static';
 /**
  * SEO metadata for the Privacy Policy page (Requirements 13.1, 13.2).
  */
-export const metadata: Metadata = buildPageMetadata({
-  path: '/kebijakan-privasi',
-  title: 'Kebijakan Privasi — Embun',
-  description:
-    'Pelajari data pribadi apa yang dikumpulkan Embun, tujuan penggunaannya, pihak yang dapat mengaksesnya, dan kepatuhan Embun terhadap UU PDP No. 27/2022.',
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  return buildPageMetadata(
+    {
+      path: '/kebijakan-privasi',
+      title: lang === 'en' ? 'Privacy Policy — Embun' : 'Kebijakan Privasi — Embun',
+      description: lang === 'en'
+        ? 'Learn what personal data Embun collects, how it is used, who can access it, and our compliance with Indonesian PDPA (UU PDP) No. 27/2022.'
+        : 'Pelajari data pribadi apa yang dikumpulkan Embun, tujuan penggunaannya, pihak yang dapat mengaksesnya, dan kepatuhan Embun terhadap UU PDP No. 27/2022.',
+    },
+    lang
+  );
+}
 
 /**
  * Privacy Policy (`/kebijakan-privasi`) — Requirement 8.

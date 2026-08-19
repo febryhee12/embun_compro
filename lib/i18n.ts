@@ -6,8 +6,8 @@ export const i18n = {
         headline: 'Jelajah Tanpa Batas, Reservasi Tanpa Cemas.',
         subcopy:
           'Embun App membantu kamu menemukan dan memesan campsite terbaik dalam hitungan menit. Bayar aman, pesanan langsung terkonfirmasi.',
-        appStoreLead: undefined,
-        googlePlayLead: undefined,
+        appStoreLead: 'Segera Hadir',
+        googlePlayLead: 'Segera Hadir',
       },
       featuresHeading: 'Camping seru anti ribet.',
       featuresSubcopy:
@@ -73,8 +73,8 @@ export const i18n = {
         headline: 'Siap untuk Petualangan Selanjutnya?',
         subcopy:
           'Download Embun App sekarang. Temukan dan pesan spot outdoor favoritmu langsung dari genggaman. Gratis di App Store dan Google Play.',
-        appStoreLead: undefined,
-        googlePlayLead: undefined,
+        appStoreLead: 'Segera Hadir',
+        googlePlayLead: 'Segera Hadir',
       },
     },
     partner: {
@@ -157,8 +157,8 @@ export const i18n = {
         headline: 'Explore Without Limits, Reserve Without Worry.',
         subcopy:
           'Embun App helps you find and reserve the best campsites in minutes. Secure payment, instant confirmation.',
-        appStoreLead: undefined,
-        googlePlayLead: undefined,
+        appStoreLead: 'Coming Soon',
+        googlePlayLead: 'Coming Soon',
       },
       featuresHeading: 'Camping seru anti ribet.',
       featuresSubcopy:
@@ -171,7 +171,7 @@ export const i18n = {
           description:
             'Find your ideal campsite from Embun partners based on location, amenities, and reviews. Our search filters help you find the right spot in seconds.',
           audience: 'guest',
-          mockupSrc: '/images/embun_2.png',
+          mockupSrc: '/images/image1.png',
           mockupAlt:
             'Campsite search result with location, amenity, and rating filters',
         },
@@ -181,17 +181,8 @@ export const i18n = {
           description:
             'Reserve your favorite spot in just a few taps, without the hassle of calling the campsite owner. Receive reservation confirmation directly in the app.',
           audience: 'guest',
-          mockupSrc: '/images/embun_3.png',
+          mockupSrc: '/images/image2.png',
           mockupAlt: 'Reservation flow from selecting dates to confirmation',
-        },
-        {
-          id: 'pembayaran-aman',
-          title: 'Secure Payments',
-          description:
-            'Pay directly in the app using various secure cashless payment methods. Every transaction is neatly recorded without the need for manual transfers.',
-          audience: 'guest',
-          mockupSrc: '/images/mockups/pembayaran.png',
-          mockupAlt: 'Payment page with secure cashless methods',
         },
         {
           id: 'asisten-pencarian-ai',
@@ -199,7 +190,7 @@ export const i18n = {
           description:
             'A conversational assistant in the Embun App that helps you find the perfect camping spot through a few simple questions. This feature is currently in preparation and will be available in future updates.',
           audience: 'guest',
-          mockupSrc: '/images/mockups/asisten-ai.png',
+          mockupSrc: '/images/image3.png',
           mockupAlt:
             'AI assistant conversation view asking for guest preferences',
           comingSoon: true,
@@ -304,8 +295,8 @@ export const i18n = {
         headline: 'Ready for Your Next Adventure?',
         subcopy:
           'Download Embun App now. Find and reserve your favorite outdoor spot right from your fingertips. Available for free on the App Store and Google Play.',
-        appStoreLead: 'Download on the',
-        googlePlayLead: 'Get it on',
+        appStoreLead: 'Coming Soon',
+        googlePlayLead: 'Coming Soon',
       },
     },
     partner: {

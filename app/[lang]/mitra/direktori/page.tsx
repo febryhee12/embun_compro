@@ -10,12 +10,23 @@ import { buildBreadcrumbJsonLd } from '@/lib/seo/structuredData';
 
 export const dynamic = 'force-static';
 
-export const metadata: Metadata = buildPageMetadata({
-  path: '/mitra/direktori',
-  title: 'Embun Mitra kami',
-  description:
-    'Direktori mitra akan segera hadir. Jadilah salah satu campsite pertama yang bergabung dengan Embun.',
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  return buildPageMetadata(
+    {
+      path: '/mitra/direktori',
+      title: lang === 'en' ? 'Our Embun Partners' : 'Embun Mitra kami',
+      description: lang === 'en'
+        ? 'Partner directory coming soon. Be one of the first campsites to join Embun.'
+        : 'Direktori mitra akan segera hadir. Jadilah salah satu campsite pertama yang bergabung dengan Embun.',
+    },
+    lang
+  );
+}
 
 export default async function DirektoriPage({
   params,

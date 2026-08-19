@@ -25,7 +25,7 @@ export const appFeatures: AppFeatureItem[] = [
     description:
       'Temukan campsite ideal dari berbagai mitra Embun berdasarkan lokasi, fasilitas, dan ulasan pengunjung lain. Filter pencarian membantu menemukan spot yang sesuai kebutuhan dalam hitungan detik.',
     audience: 'guest',
-    mockupSrc: '/images/embun_2.png',
+    mockupSrc: '/images/image1.png',
     mockupAlt: 'Tampilan hasil pencarian campsite dengan filter lokasi, fasilitas, dan rating ulasan',
   },
   {
@@ -34,17 +34,8 @@ export const appFeatures: AppFeatureItem[] = [
     description:
       'Pesan spot favorit dalam beberapa langkah singkat, tanpa ribet dan tanpa perlu telepon pemilik campsite. Konfirmasi pesanan diterima langsung di aplikasi.',
     audience: 'guest',
-    mockupSrc: '/images/embun_3.png',
+    mockupSrc: '/images/image2.png',
     mockupAlt: 'Tampilan alur pemesanan spot camping dari pilih tanggal hingga konfirmasi pesanan',
-  },
-  {
-    id: 'pembayaran-aman',
-    title: 'Pembayaran Aman',
-    description:
-      'Bayar langsung di dalam aplikasi lewat berbagai metode pembayaran non-tunai yang aman. Setiap transaksi tercatat rapi tanpa perlu transfer manual ke pemilik campsite.',
-    audience: 'guest',
-    mockupSrc: '/images/mockups/pembayaran.png',
-    mockupAlt: 'Tampilan halaman pembayaran reservasi dengan pilihan metode pembayaran non-tunai yang aman',
   },
   {
     id: 'asisten-pencarian-ai',
@@ -52,7 +43,7 @@ export const appFeatures: AppFeatureItem[] = [
     description:
       'Asisten percakapan dalam Embun App yang akan membantu Guest menemukan spot camping paling cocok hanya lewat beberapa pertanyaan sederhana. Fitur ini sedang disiapkan dan belum dapat digunakan pada versi aplikasi yang beredar saat ini.',
     audience: 'guest',
-    mockupSrc: '/images/mockups/asisten-ai.png',
+    mockupSrc: '/images/image3.png',
     mockupAlt: 'Tampilan percakapan asisten AI yang menanyakan preferensi Guest untuk merekomendasikan campsite',
     comingSoon: true,
   },

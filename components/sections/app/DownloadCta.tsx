@@ -15,8 +15,10 @@ const DEFAULT_PROPS: DownloadCtaProps = {
   heading: 'Unduh Embun App Sekarang',
   subcopy:
     'Temukan dan pesan campsite favoritmu langsung dari genggaman. Tersedia gratis di App Store dan Google Play.',
-  appStoreHref: 'https://apps.apple.com/app/embun',
-  googlePlayHref: 'https://play.google.com/store/apps/details?id=app.embun',
+  appStoreHref: '',
+  googlePlayHref: '',
+  appStoreLead: 'Segera Hadir',
+  googlePlayLead: 'Segera Hadir',
 };
 
 /**
@@ -48,10 +50,12 @@ export function DownloadCta(props: Partial<DownloadCtaProps> = {}) {
             {heading}
           </h2>
           <p className="mt-6 text-base sm:text-lg text-foreground-muted leading-relaxed">{subcopy}</p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-8 flex flex-wrap gap-3 items-center">
+            <DownloadCtaButton href="https://embun-demo.web.app" store="web" lead="Coba Sekarang" />
             <DownloadCtaButton href={appStoreHref} store="apple" lead={appStoreLead} />
             <DownloadCtaButton href={googlePlayHref} store="google" lead={googlePlayLead} />
           </div>
+
         </div>
       </Container>
     </Section>

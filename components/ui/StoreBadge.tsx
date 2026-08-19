@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 
-export type StoreKind = 'apple' | 'google';
+export type StoreKind = 'apple' | 'google' | 'web';
 
 export interface StoreBadgeProps {
   store: StoreKind;
@@ -64,12 +64,33 @@ function GooglePlayGlyph() {
 }
 
 /**
- * StoreBadge — presentational app-store download badge (App Store / Google
- * Play) in the official two-line lockup style: brand glyph on the left, a
- * small "Unduh di" / "Dapatkan di" lead-in above the large store name, on a
- * solid dark rounded button. Purely visual — the caller wraps it in the
- * appropriate `<a>`/interactive element so this stays reusable across the
- * Hero (plain anchor) and the DownloadCta (client anchor with error handling).
+ * Modern web/browser globe glyph for the live web demo badge.
+ */
+function WebGlyph() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={22}
+      height={22}
+      aria-hidden="true"
+      focusable="false"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <line x1="2" y1="12" x2="22" y2="12" />
+      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+    </svg>
+  );
+}
+
+/**
+ * StoreBadge — presentational app-store & web-demo download badge (App Store / Google
+ * Play / Web Demo) in the official two-line lockup style: brand glyph on the left, a
+ * small lead-in above the large action name, on a solid rounded button.
  */
 export function StoreBadge({
   store,
@@ -78,31 +99,40 @@ export function StoreBadge({
   className,
 }: StoreBadgeProps) {
   const isApple = store === 'apple';
-  const lead = customLead || (isApple ? 'Unduh di' : 'Dapatkan di');
-  const name = isApple ? 'App Store' : 'Google Play';
+  const isWeb = store === 'web';
+  const lead = customLead || (isWeb ? 'Coba Sekarang' : isApple ? 'Unduh di' : 'Dapatkan di');
+  const name = isWeb ? 'Demo Web' : isApple ? 'App Store' : 'Google Play';
 
   return (
     <span
       style={style}
       className={[
-        'inline-flex items-center gap-3 justify-start w-40 rounded-md bg-foreground px-4 py-2.5 text-background',
-        'transition-colors duration-200 hover:opacity-80',
+        'inline-flex items-center gap-3 justify-start w-40 rounded-md px-4 py-2.5 transition-all duration-200 select-none',
+        isWeb
+          ? 'bg-brand-blue text-white hover:bg-brand-blue-hover shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98]'
+          : 'bg-foreground text-background hover:opacity-80',
         className ?? '',
       ]
         .filter(Boolean)
         .join(' ')}
     >
-      <span className="shrink-0 text-background">
-        {isApple ? <AppleGlyph /> : <GooglePlayGlyph />}
+      <span className={['shrink-0', isWeb ? 'text-white' : 'text-background'].join(' ')}>
+        {isWeb ? <WebGlyph /> : isApple ? <AppleGlyph /> : <GooglePlayGlyph />}
       </span>
-      <span className="flex flex-col leading-none">
-        <span className="text-[0.625rem] font-normal tracking-wide">
+      <span className="flex flex-col leading-none text-left">
+        <span
+          className={[
+            'text-[0.625rem] font-normal tracking-wide',
+            isWeb ? 'text-white/80' : 'text-background/70',
+          ].join(' ')}
+        >
           {lead}
         </span>
-        <span className="mt-0.5 font-semibold leading-tight">{name}</span>
+        <span className="mt-0.5 font-semibold leading-tight whitespace-nowrap">{name}</span>
       </span>
     </span>
   );
 }
 
 export default StoreBadge;
+

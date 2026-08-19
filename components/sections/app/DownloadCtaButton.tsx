@@ -17,7 +17,9 @@ const FOCUS_VISIBLE_CLASS =
 const STORE_LABEL: Record<StoreKind, string> = {
   apple: 'Unduh Embun App di App Store',
   google: 'Dapatkan Embun App di Google Play',
+  web: 'Coba Demo Web Embun App',
 };
+
 
 /**
  * DownloadCtaButton — small Client Component wrapper around a single
@@ -48,24 +50,15 @@ export function DownloadCtaButton({ href, store, lead, className }: DownloadCtaB
   return (
     <div>
       <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
+        href={href || '#'}
+        target={href ? "_blank" : undefined}
+        rel={href ? "noopener noreferrer" : undefined}
         aria-label={STORE_LABEL[store]}
         onClick={handleClick}
-        className={[FOCUS_VISIBLE_CLASS, 'inline-block', className ?? ''].filter(Boolean).join(' ')}
+        className={[FOCUS_VISIBLE_CLASS, 'inline-block', !href ? 'cursor-not-allowed opacity-80' : '', className ?? ''].filter(Boolean).join(' ')}
       >
         <StoreBadge store={store} lead={lead} />
       </a>
-      {navigationError ? (
-        // Renders on the Embun Black (`--surface-dark`) section background
-        // (see DownloadCta), where the base `--error` red falls below the
-        // WCAG 2.1 AA 4.5:1 text contrast minimum — so this uses the
-        // lightened `--error-on-dark` token instead (Requirement 8.5).
-        <p role="alert" aria-live="polite" className="mt-3 text-sm text-error-on-dark">
-          Maaf, tautan unduhan tidak tersedia saat ini. Silakan coba lagi nanti.
-        </p>
-      ) : null}
     </div>
   );
 }
