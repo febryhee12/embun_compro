@@ -194,7 +194,7 @@ export function BookingDrawerModal({
         {/* Top Header */}
         <div className="px-6 py-4 border-b border-border flex items-center justify-between shrink-0">
           <div>
-            <h3 className="font-bold text-base text-foreground font-serif">
+            <h3 className="font-bold text-base text-foreground">
               {spot.name}
             </h3>
             <p className="text-xs text-foreground-muted">{spot.campsite.name}</p>

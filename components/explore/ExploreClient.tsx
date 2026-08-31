@@ -181,7 +181,7 @@ export function ExploreClient() {
             <div className="space-y-6">
               <div className="flex items-baseline justify-between border-b border-border pb-3">
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-bold font-serif text-foreground tracking-tight">
+                  <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
                     {selectedCategory === 'all'
                       ? 'Rekomendasi Spot & Glamping Pilihan'
                       : `Kategori: ${
@@ -226,7 +226,7 @@ export function ExploreClient() {
               <div className="space-y-6 pt-6 border-t border-border">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg sm:text-xl font-bold font-serif text-foreground flex items-center gap-2">
+                    <h3 className="text-lg sm:text-xl font-bold text-foreground flex items-center gap-2">
                       <Compass size={20} className="text-brand-blue" />
                       <span>Eksplorasi dengan Tur Virtual 360°</span>
                     </h3>
@@ -258,7 +258,7 @@ export function ExploreClient() {
       <footer className="border-t border-border bg-surface py-8 px-4 sm:px-8 text-xs text-foreground-muted mt-auto">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="font-serif font-black text-lg text-brand-blue">
+            <span className="font-black text-lg text-brand-blue tracking-tight">
               embun
             </span>
             <span>© 2026 PT Alam Kelana Digital. Hak Cipta Dilindungi.</span>

@@ -115,7 +115,7 @@ export function GuestAuthModal({
                   alt="Embun"
                   className="h-8 w-auto mx-auto object-contain mb-1"
                 />
-                <h3 className="text-lg font-bold text-foreground font-serif">
+                <h3 className="text-lg font-bold text-foreground">
                   Selamat Datang di Embun
                 </h3>
                 <p className="text-xs text-foreground-muted max-w-xs mx-auto leading-relaxed">
