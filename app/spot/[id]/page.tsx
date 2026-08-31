@@ -94,7 +94,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             };
           }
 
-          // Match by block ID or shareCode
+          // Match by block ID or shareCode (Spot Level Share)
           if (Array.isArray(c.blocks)) {
             for (const b of c.blocks) {
               const bId = String(b.id || "").trim().toLowerCase();
@@ -106,6 +106,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
                   !b.name.toLowerCase().includes(b.blockNumber.toLowerCase())
                     ? `${b.name} ${b.blockNumber}`
                     : b.name;
+
+                const spotPhotos = Array.isArray(b.photos) ? b.photos : [];
+                const spotImages = Array.isArray(b.images) ? b.images : [];
+                const spotPrimaryPhoto =
+                  spotPhotos.find((p: any) => p?.url)?.url ||
+                  spotImages.find((img: string) => img) ||
+                  campPrimaryPhoto;
+
                 const title = `${spotName} by ${c.name} | Embun`;
                 const description = `Pesan ${spotName} di ${c.name}, ${
                   c.city || c.address || "Indonesia"
@@ -121,7 +129,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
                     siteName: "Embun",
                     images: [
                       {
-                        url: campPrimaryPhoto,
+                        url: spotPrimaryPhoto,
                         width: 1200,
                         height: 630,
                         alt: `${spotName} - ${c.name}`,
@@ -134,7 +142,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
                     card: "summary_large_image",
                     title,
                     description,
-                    images: [campPrimaryPhoto],
+                    images: [spotPrimaryPhoto],
                   },
                 };
               }

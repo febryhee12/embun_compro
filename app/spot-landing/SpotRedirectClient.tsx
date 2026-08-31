@@ -45,6 +45,7 @@ import {
   resolveAssetUrl,
   rupiah,
 } from "@/lib/api-client";
+import { BookingCalendarModal } from "@/components/explore/BookingCalendarModal";
 import { GuestAuthModal } from "@/components/explore/GuestAuthModal";
 
 const APP_STORE_HREF = "https://apps.apple.com/app/embun";
@@ -224,6 +225,7 @@ export function SpotRedirectClient() {
 
   const [checkInDate, setCheckInDate] = useState(todayStr);
   const [checkOutDate, setCheckOutDate] = useState(tomorrowStr);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [guestCount, setGuestCount] = useState(2);
   const [paymentScheme, setPaymentScheme] = useState<"DP_50" | "FULL">("DP_50");
   const [selectedAddons, setSelectedAddons] = useState<Record<string, number>>({});
@@ -231,6 +233,21 @@ export function SpotRedirectClient() {
   const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [submittingOrder, setSubmittingOrder] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
+
+  const formatDateDisplay = (dateStr?: string) => {
+    if (!dateStr) return "-";
+    try {
+      const [y, m, d] = dateStr.split("-").map(Number);
+      const date = new Date(y, m - 1, d);
+      return date.toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+    } catch {
+      return dateStr;
+    }
+  };
 
   const panoramaContainerRef = useRef<HTMLDivElement | null>(null);
   const pannellumViewerRef = useRef<any>(null);
@@ -1016,39 +1033,34 @@ export function SpotRedirectClient() {
                   Pilih Tanggal Menginap
                 </h3>
                 <p className="text-xs text-foreground-muted">
-                  {nights} Malam di {campsite.name} ({checkInDate} s/d {checkOutDate})
+                  {nights} Malam di {campsite.name} ({formatDateDisplay(checkInDate)} s/d {formatDateDisplay(checkOutDate)})
                 </p>
               </div>
 
-              {/* Integrated Date Card Picker */}
-              <div className="p-5 rounded-3xl bg-surface border border-border space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted flex items-center gap-1.5">
+              {/* Interactive Calendar Trigger Card */}
+              <div
+                onClick={() => setIsCalendarOpen(true)}
+                className="p-5 rounded-3xl bg-surface hover:bg-surface-variant/70 border border-border hover:border-brand-blue/60 transition-all cursor-pointer group shadow-2xs hover:shadow-md space-y-4"
+              >
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted flex items-center gap-1.5">
                       <Calendar size={13} className="text-brand-blue" />
-                      <span>Check-In (Kedatangan)</span>
-                    </label>
-                    <input
-                      type="date"
-                      min={todayStr}
-                      value={checkInDate}
-                      onChange={(e) => handleCheckInChange(e.target.value)}
-                      className="w-full bg-white border border-border rounded-2xl px-3.5 py-2.5 text-xs font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue shadow-2xs cursor-pointer"
-                    />
+                      <span>Check-In</span>
+                    </span>
+                    <div className="font-bold text-sm sm:text-base text-foreground group-hover:text-brand-blue transition-colors">
+                      {formatDateDisplay(checkInDate)}
+                    </div>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted flex items-center gap-1.5">
+                  <div className="space-y-1 border-l border-border pl-4">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted flex items-center gap-1.5">
                       <Calendar size={13} className="text-brand-blue" />
-                      <span>Check-Out (Kepulangan)</span>
-                    </label>
-                    <input
-                      type="date"
-                      min={checkInDate}
-                      value={checkOutDate}
-                      onChange={(e) => setCheckOutDate(e.target.value)}
-                      className="w-full bg-white border border-border rounded-2xl px-3.5 py-2.5 text-xs font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue shadow-2xs cursor-pointer"
-                    />
+                      <span>Check-Out</span>
+                    </span>
+                    <div className="font-bold text-sm sm:text-base text-foreground group-hover:text-brand-blue transition-colors">
+                      {formatDateDisplay(checkOutDate)}
+                    </div>
                   </div>
                 </div>
 
@@ -1057,16 +1069,9 @@ export function SpotRedirectClient() {
                     <Clock size={13} className="text-brand-blue" />
                     Durasi: <strong className="text-brand-blue">{nights} Malam</strong>
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCheckInDate(todayStr);
-                      setCheckOutDate(tomorrowStr);
-                    }}
-                    className="text-xs font-semibold text-foreground-muted hover:text-brand-blue underline cursor-pointer"
-                  >
-                    Reset Tanggal
-                  </button>
+                  <span className="text-xs font-bold text-brand-blue group-hover:underline flex items-center gap-1">
+                    Pilih / Ubah Tanggal →
+                  </span>
                 </div>
               </div>
             </div>
@@ -1164,30 +1169,26 @@ export function SpotRedirectClient() {
 
               {/* Date & Guest Input Box */}
               <div className="border border-border rounded-2xl overflow-hidden shadow-2xs divide-y divide-border text-xs">
-                <div className="grid grid-cols-2 divide-x divide-border">
-                  <div className="p-3 bg-surface/50">
+                {/* Date Trigger Box in Sidebar */}
+                <div
+                  onClick={() => setIsCalendarOpen(true)}
+                  className="grid grid-cols-2 divide-x divide-border bg-surface/50 hover:bg-surface transition-colors cursor-pointer group"
+                >
+                  <div className="p-3">
                     <span className="block text-[9.5px] font-bold uppercase tracking-wider text-foreground-muted">
                       Check-In
                     </span>
-                    <input
-                      type="date"
-                      min={todayStr}
-                      value={checkInDate}
-                      onChange={(e) => handleCheckInChange(e.target.value)}
-                      className="w-full bg-transparent font-bold text-foreground focus:outline-none text-xs mt-0.5 cursor-pointer"
-                    />
+                    <span className="font-bold text-foreground group-hover:text-brand-blue text-xs block mt-0.5 transition-colors">
+                      {formatDateDisplay(checkInDate)}
+                    </span>
                   </div>
-                  <div className="p-3 bg-surface/50">
+                  <div className="p-3">
                     <span className="block text-[9.5px] font-bold uppercase tracking-wider text-foreground-muted">
                       Check-Out
                     </span>
-                    <input
-                      type="date"
-                      min={checkInDate}
-                      value={checkOutDate}
-                      onChange={(e) => setCheckOutDate(e.target.value)}
-                      className="w-full bg-transparent font-bold text-foreground focus:outline-none text-xs mt-0.5 cursor-pointer"
-                    />
+                    <span className="font-bold text-foreground group-hover:text-brand-blue text-xs block mt-0.5 transition-colors">
+                      {formatDateDisplay(checkOutDate)}
+                    </span>
                   </div>
                 </div>
 
@@ -1401,13 +1402,17 @@ export function SpotRedirectClient() {
       ════════════════════════════════════════════════════════════════════════ */}
       <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-border p-4 shadow-xl">
         <div className="flex items-center justify-between gap-4">
-          <div>
+          <div
+            onClick={() => setIsCalendarOpen(true)}
+            className="cursor-pointer group"
+          >
             <span className="text-base font-extrabold text-foreground">
               {rupiah(spotPricePerNight)}
             </span>
             <span className="text-xs text-foreground-muted"> / malam</span>
-            <p className="text-[10.5px] text-brand-blue font-bold">
-              {nights} Malam ({checkInDate})
+            <p className="text-[10.5px] text-brand-blue font-bold group-hover:underline flex items-center gap-1">
+              <span>{nights} Malam</span>
+              <span>({formatDateDisplay(checkInDate)} - {formatDateDisplay(checkOutDate)})</span>
             </p>
           </div>
 
@@ -1554,7 +1559,22 @@ export function SpotRedirectClient() {
       )}
 
       {/* ════════════════════════════════════════════════════════════════════════
-          7. GUEST AUTH MODAL
+          7. BOOKING CALENDAR RANGE PICKER MODAL
+      ════════════════════════════════════════════════════════════════════════ */}
+      <BookingCalendarModal
+        isOpen={isCalendarOpen}
+        onClose={() => setIsCalendarOpen(false)}
+        checkInDate={checkInDate}
+        checkOutDate={checkOutDate}
+        onSelectDates={(inD, outD) => {
+          setCheckInDate(inD);
+          setCheckOutDate(outD);
+        }}
+        spotName={activeSpot?.name}
+      />
+
+      {/* ════════════════════════════════════════════════════════════════════════
+          8. GUEST AUTH MODAL
       ════════════════════════════════════════════════════════════════════════ */}
       {isAuthOpen && (
         <GuestAuthModal
