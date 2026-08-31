@@ -153,9 +153,52 @@ export function ExploreClient() {
     new Set(),
   );
 
-  // Helper to find the best cover photo across all blocks of a campsite
+  // Helper to get the official primary property photo of a campsite
   const getCampsiteCoverPhoto = (camp: any): string => {
     if (camp.coverImageUrl) return camp.coverImageUrl;
+    if (camp.mainImage) return camp.mainImage;
+
+    // 1. Check official campsite.photos first (category: 'home' > 'view' > 'camping_ground')
+    if (Array.isArray(camp.photos) && camp.photos.length > 0) {
+      const scored: Array<{ url: string; score: number }> = [];
+      camp.photos.forEach((p: any) => {
+        if (p?.url) {
+          const cat = (p.category || '').toLowerCase();
+          let score = 50;
+          if (cat === 'home' || cat === 'cover' || cat === 'main') {
+            score = 1;
+          } else if (
+            cat.includes('view') ||
+            cat.includes('pemandangan') ||
+            cat.includes('alam')
+          ) {
+            score = 2;
+          } else if (
+            cat.includes('camping_ground') ||
+            cat.includes('ground') ||
+            cat.includes('outdoor')
+          ) {
+            score = 3;
+          } else if (
+            cat.includes('toilet') ||
+            cat.includes('wc') ||
+            cat.includes('mandi')
+          ) {
+            score = 99;
+          }
+          scored.push({ url: p.url, score });
+        }
+      });
+
+      if (scored.length > 0) {
+        scored.sort((a, b) => a.score - b.score);
+        if (scored[0].score < 99) {
+          return scored[0].url;
+        }
+      }
+    }
+
+    // 2. Fallback to block photos if campsite photos are empty
     if (Array.isArray(camp.blocks) && camp.blocks.length > 0) {
       const scored: Array<{ url: string; score: number }> = [];
       camp.blocks.forEach((b: any) => {
