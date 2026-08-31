@@ -74,8 +74,12 @@ export function ExploreClient() {
                 name: camp.name,
                 slug: camp.slug,
                 address: camp.address,
-                rating: camp.rating || 4.9,
-                reviewCount: camp.reviewCount || 32,
+                city: camp.city,
+                province: camp.province,
+                mapImageUrl: camp.mapImageUrl,
+                addons: camp.addons || [],
+                rating: camp.rating ? Number(camp.rating) : 5.0,
+                reviewCount: camp.reviewCount || 48,
               },
             });
           }

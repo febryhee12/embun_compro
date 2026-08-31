@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   X,
+  Star,
   Users,
   BedDouble,
   Check,
@@ -21,6 +22,12 @@ import {
   Building,
   Clock,
   Sparkles,
+  Map as MapIcon,
+  Plus,
+  Minus,
+  ExternalLink,
+  Package,
+  Info,
 } from 'lucide-react';
 import { resolveAssetUrl, rupiah } from '@/lib/api-client';
 import { SpotData } from './SpotCard';
@@ -30,6 +37,63 @@ interface BookingDrawerModalProps {
   onClose: () => void;
   onOpenAuth: () => void;
   currentUser: any | null;
+}
+
+interface AddonItem {
+  id: string;
+  name: string;
+  price: number;
+  description?: string;
+  icon?: string;
+}
+
+const DEFAULT_ADDONS: AddonItem[] = [
+  {
+    id: 'extra-tent',
+    name: 'Tenda Tambahan (Kapasitas 4 Orang)',
+    price: 80000,
+    description: 'Tenda dome double layer tahan air & angin',
+  },
+  {
+    id: 'sleeping-bag',
+    name: 'Sleeping Bag Hangat',
+    price: 20000,
+    description: 'Bahan fleece tebal nyaman untuk cuaca dingin',
+  },
+  {
+    id: 'matras-extra',
+    name: 'Matras Angin / Kasur Tambahan',
+    price: 25000,
+    description: 'Matras empuk lengkap dengan bantal',
+  },
+  {
+    id: 'bbq-set',
+    name: 'Paket Alat Grill BBQ & Arang',
+    price: 60000,
+    description: 'Panggangan, capitan, dan 1 pack arang batok',
+  },
+  {
+    id: 'kayu-bakar',
+    name: 'Kayu Bakar Api Unggun (1 Ikat)',
+    price: 30000,
+    description: 'Kayu kering mudah dinyalakan untuk api unggun',
+  },
+  {
+    id: 'breakfast',
+    name: 'Paket Sarapan Pagi (Nasi Goreng / Roti)',
+    price: 25000,
+    description: 'Termasuk teh hangat / kopi untuk 1 porsi',
+  },
+];
+
+function getPackageModelLabel(model?: string): string {
+  if (!model) return 'Paket Pilihan';
+  const clean = model.toUpperCase().trim();
+  if (clean.includes('SPOT_ONLY')) return 'Sewa Kavling Saja';
+  if (clean.includes('FIXED_CAPACITY')) return 'Paket Lengkap Unit';
+  if (clean.includes('PER_PERSON')) return 'Tarif Per Orang';
+  if (clean.includes('PER_TENT')) return 'Tarif Per Tenda';
+  return 'Paket Pilihan';
 }
 
 function loadPannellum(): Promise<any> {
@@ -69,24 +133,80 @@ export function BookingDrawerModal({
   onOpenAuth,
   currentUser,
 }: BookingDrawerModalProps) {
-  const [viewMode, setViewMode] = useState<'photo' | '360'>('photo');
+  const [viewMode, setViewMode] = useState<'photo' | '360' | 'map'>('photo');
   const [photoIdx, setPhotoIdx] = useState(0);
   const [copied, setCopied] = useState(false);
   const [isDownloadDialogOpen, setIsDownloadDialogOpen] = useState(false);
 
-  // Booking Form State
+  // Unified Date State with Validation
+  const todayStr = useMemo(() => {
+    const d = new Date();
+    return d.toISOString().split('T')[0];
+  }, []);
+
   const [checkInDate, setCheckInDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
     return d.toISOString().split('T')[0];
   });
+
   const [checkOutDate, setCheckOutDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 2);
     return d.toISOString().split('T')[0];
   });
+
+  const minCheckOutStr = useMemo(() => {
+    try {
+      const d = new Date(checkInDate);
+      d.setDate(d.getDate() + 1);
+      return d.toISOString().split('T')[0];
+    } catch {
+      return todayStr;
+    }
+  }, [checkInDate, todayStr]);
+
+  const handleCheckInChange = (newCheckIn: string) => {
+    setCheckInDate(newCheckIn);
+    const d1 = new Date(newCheckIn);
+    const d2 = new Date(checkOutDate);
+    if (isNaN(d2.getTime()) || d2 <= d1) {
+      const nextDay = new Date(d1);
+      nextDay.setDate(nextDay.getDate() + 1);
+      setCheckOutDate(nextDay.toISOString().split('T')[0]);
+    }
+  };
+
+  const handleCheckOutChange = (newCheckOut: string) => {
+    const d1 = new Date(checkInDate);
+    const d2 = new Date(newCheckOut);
+    if (d2 <= d1) {
+      const nextDay = new Date(d1);
+      nextDay.setDate(nextDay.getDate() + 1);
+      setCheckOutDate(nextDay.toISOString().split('T')[0]);
+    } else {
+      setCheckOutDate(newCheckOut);
+    }
+  };
+
   const [selectedPackageIdx, setSelectedPackageIdx] = useState(0);
   const [paymentOption, setPaymentOption] = useState<'dp50' | 'full'>('dp50');
+
+  // Addons State
+  const [addonQuantities, setAddonQuantities] = useState<Record<string, number>>({});
+
+  const handleAddonQtyChange = (addonId: string, delta: number) => {
+    setAddonQuantities((prev) => {
+      const current = prev[addonId] || 0;
+      const next = Math.max(0, current + delta);
+      if (next === 0) {
+        const copy = { ...prev };
+        delete copy[addonId];
+        return copy;
+      }
+      return { ...prev, [addonId]: next };
+    });
+  };
 
   // Guest Information
   const [guestName, setGuestName] = useState('');
@@ -108,6 +228,7 @@ export function BookingDrawerModal({
     setCopied(false);
     setIsDownloadDialogOpen(false);
     setSelectedPackageIdx(0);
+    setAddonQuantities({});
     setBookingSuccessData(null);
     if (currentUser) {
       setGuestName(currentUser.fullName || currentUser.name || '');
@@ -209,6 +330,20 @@ export function BookingDrawerModal({
       : [];
   }, [spot]);
 
+  // Available Addons List
+  const availableAddons: AddonItem[] = useMemo(() => {
+    if (!spot) return DEFAULT_ADDONS;
+    if (Array.isArray(spot.campsite?.addons) && spot.campsite.addons.length > 0) {
+      return spot.campsite.addons.map((a: any) => ({
+        id: a.id || a.name,
+        name: a.name,
+        price: Number(a.price || 0),
+        description: a.description || '',
+      }));
+    }
+    return DEFAULT_ADDONS;
+  }, [spot]);
+
   // Calculate nights
   const totalNights = useMemo(() => {
     try {
@@ -240,7 +375,21 @@ export function BookingDrawerModal({
     return 0;
   }, [spot, packages, selectedPackageIdx]);
 
-  const subtotalPrice = activeRatePerNight * totalNights;
+  // Addons total
+  const addonsTotal = useMemo(() => {
+    let sum = 0;
+    Object.entries(addonQuantities).forEach(([addonId, qty]) => {
+      if (qty > 0) {
+        const item = availableAddons.find((a) => a.id === addonId);
+        if (item) {
+          sum += item.price * qty;
+        }
+      }
+    });
+    return sum;
+  }, [addonQuantities, availableAddons]);
+
+  const subtotalPrice = activeRatePerNight * totalNights + addonsTotal;
   const payAmount = paymentOption === 'dp50' ? subtotalPrice * 0.5 : subtotalPrice;
 
   // Early return if no spot selected
@@ -259,6 +408,11 @@ export function BookingDrawerModal({
     } else {
       setIsDownloadDialogOpen(true);
     }
+  };
+
+  const handleOpenStandalonePage = () => {
+    const shareUrl = `https://link.embun.app/spot/${spot.shareCode || spot.id}`;
+    window.open(shareUrl, '_blank');
   };
 
   const handleShareWhatsApp = () => {
@@ -310,9 +464,13 @@ export function BookingDrawerModal({
         paymentOption,
         payAmount,
         subtotalPrice,
+        addonsTotal,
+        addonQuantities,
       });
     }, 600);
   };
+
+  const mapImage = spot.campsite?.mapImageUrl || (spot as any).mapImageUrl;
 
   return (
     <>
@@ -321,13 +479,27 @@ export function BookingDrawerModal({
           {/* Top Header */}
           <div className="px-6 py-4 border-b border-border flex items-center justify-between shrink-0">
             <div>
-              <h3 className="font-bold text-base text-foreground">
-                {spot.name}
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-base text-foreground">
+                  {spot.name}
+                </h3>
+                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-bold">
+                  <Star size={12} className="fill-amber-500 text-amber-500" />
+                  <span>5.0</span>
+                </div>
+              </div>
               <p className="text-xs text-foreground-muted">{spot.campsite.name}</p>
             </div>
 
             <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleOpenStandalonePage}
+                className="p-2 rounded-full hover:bg-surface text-foreground-muted hover:text-foreground transition-colors cursor-pointer hidden sm:flex"
+                title="Buka Halaman Mandiri"
+              >
+                <ExternalLink size={18} />
+              </button>
               <button
                 type="button"
                 onClick={handleShareWhatsApp}
@@ -360,7 +532,7 @@ export function BookingDrawerModal({
 
           {/* Scrollable Content */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
-            {/* 1. Media Carousel / 360 Viewer */}
+            {/* 1. Media Carousel / 360 Viewer / Peta Kavling */}
             <div className="space-y-3">
               {/* View Mode Toggle */}
               <div className="flex items-center gap-2">
@@ -391,6 +563,21 @@ export function BookingDrawerModal({
                     <span>Tur 360° Virtual</span>
                   </button>
                 )}
+
+                {mapImage && (
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('map')}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                      viewMode === 'map'
+                        ? 'bg-emerald-600 text-white shadow-xs'
+                        : 'bg-surface text-foreground hover:bg-surface-variant'
+                    }`}
+                  >
+                    <MapIcon size={13} />
+                    <span>Peta Kavling</span>
+                  </button>
+                )}
               </div>
 
               {/* Media Canvas Box */}
@@ -407,6 +594,18 @@ export function BookingDrawerModal({
                         className="text-brand-lime animate-spin"
                       />
                       <span>Geser untuk melihat 360°</span>
+                    </div>
+                  </div>
+                ) : viewMode === 'map' && mapImage ? (
+                  <div className="w-full h-full relative bg-[#1c2430] flex items-center justify-center p-2">
+                    <img
+                      src={resolveAssetUrl(mapImage)}
+                      alt={`Peta ${spot.campsite.name}`}
+                      className="max-w-full max-h-full object-contain rounded-xl"
+                    />
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/75 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 text-[11px] text-white flex items-center gap-2 pointer-events-none">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                      <span>Posisi: <strong>{spot.name}</strong></span>
                     </div>
                   </div>
                 ) : (
@@ -505,49 +704,54 @@ export function BookingDrawerModal({
             </div>
 
             {/* 3. FORM PEMESANAN RINGAN (WEB BOOKING) */}
-            <div className="p-5 rounded-3xl bg-surface/80 border border-border space-y-5">
-              <div className="flex items-center justify-between">
-                <h4 className="font-bold text-xs uppercase tracking-wider text-foreground flex items-center gap-1.5">
-                  <Calendar size={14} className="text-brand-blue" />
-                  1. Pilih Tanggal Menginap
-                </h4>
-                <span className="text-[11px] font-bold text-brand-blue bg-brand-blue/10 px-2.5 py-0.5 rounded-full">
-                  {totalNights} Malam
-                </span>
+            <div className="p-5 rounded-3xl bg-surface/80 border border-border space-y-6">
+              {/* Step 1: Unified Date Picker with Cross-Validation */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-xs uppercase tracking-wider text-foreground flex items-center gap-1.5">
+                    <Calendar size={14} className="text-brand-blue" />
+                    1. Tanggal Menginap
+                  </h4>
+                  <span className="text-[11px] font-bold text-brand-blue bg-brand-blue/10 px-2.5 py-0.5 rounded-full">
+                    {totalNights} Malam
+                  </span>
+                </div>
+
+                <div className="p-3 bg-white rounded-2xl border border-border grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] font-bold text-foreground-muted uppercase tracking-wider">
+                      Tanggal Check-In
+                    </span>
+                    <input
+                      type="date"
+                      min={todayStr}
+                      value={checkInDate}
+                      onChange={(e) => handleCheckInChange(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl border border-border/80 bg-surface/40 text-foreground font-semibold text-xs focus:outline-none focus:border-brand-blue"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] font-bold text-foreground-muted uppercase tracking-wider">
+                      Tanggal Check-Out
+                    </span>
+                    <input
+                      type="date"
+                      min={minCheckOutStr}
+                      value={checkOutDate}
+                      onChange={(e) => handleCheckOutChange(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl border border-border/80 bg-surface/40 text-foreground font-semibold text-xs focus:outline-none focus:border-brand-blue"
+                    />
+                  </div>
+                </div>
               </div>
 
-              {/* Date Inputs */}
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div>
-                  <label className="block text-[11px] font-bold text-foreground-muted mb-1">
-                    Check-in
-                  </label>
-                  <input
-                    type="date"
-                    value={checkInDate}
-                    onChange={(e) => setCheckInDate(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-border bg-white text-foreground focus:outline-none focus:border-brand-blue"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-foreground-muted mb-1">
-                    Check-out
-                  </label>
-                  <input
-                    type="date"
-                    value={checkOutDate}
-                    onChange={(e) => setCheckOutDate(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-border bg-white text-foreground focus:outline-none focus:border-brand-blue"
-                  />
-                </div>
-              </div>
-
-              {/* 4. Pilihan Paket Harga */}
+              {/* Step 2: Pilihan Paket Harga */}
               {packages.length > 0 && (
                 <div className="space-y-3 pt-2">
                   <h4 className="font-bold text-xs uppercase tracking-wider text-foreground flex items-center gap-1.5">
                     <Sparkles size={14} className="text-brand-blue" />
-                    2. Pilih Paket Sewa
+                    2. Pilihan Paket Sewa
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {packages.map((pkg: any, idx: number) => {
@@ -562,27 +766,27 @@ export function BookingDrawerModal({
                           onClick={() => setSelectedPackageIdx(idx)}
                           className={`p-4 rounded-2xl text-left border transition-all cursor-pointer flex flex-col justify-between space-y-2 ${
                             isSelected
-                              ? 'bg-brand-blue/10 border-brand-blue ring-1 ring-brand-blue'
+                              ? 'bg-brand-blue/10 border-brand-blue ring-1 ring-brand-blue shadow-xs'
                               : 'bg-white border-border hover:border-brand-blue/40'
                           }`}
                         >
-                          <div className="space-y-1 w-full">
+                          <div className="space-y-1.5 w-full">
                             <div className="flex items-center justify-between gap-2">
                               <h5 className="font-bold text-xs text-foreground">
                                 {pkg.name}
                               </h5>
                               <span
-                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                className={`text-[10.5px] font-bold px-2 py-0.5 rounded-full ${
                                   isSelected
                                     ? 'bg-brand-blue text-white'
                                     : 'bg-surface-variant text-foreground-muted'
                                 }`}
                               >
-                                {pkg.pricingModel || 'Paket Unit'}
+                                {getPackageModelLabel(pkg.pricingModel)}
                               </span>
                             </div>
                             {pkg.description && (
-                              <p className="text-[11px] text-foreground-muted line-clamp-2">
+                              <p className="text-[11px] text-foreground-muted line-clamp-2 leading-relaxed">
                                 {pkg.description}
                               </p>
                             )}
@@ -603,11 +807,77 @@ export function BookingDrawerModal({
                 </div>
               )}
 
-              {/* 5. Skema Pembayaran (DP 50% vs Lunas) */}
+              {/* Step 3: Tambahan Perlengkapan / Add-on */}
+              <div className="space-y-3 pt-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-xs uppercase tracking-wider text-foreground flex items-center gap-1.5">
+                    <Package size={14} className="text-brand-blue" />
+                    3. Tambahan Perlengkapan / Add-on (Opsional)
+                  </h4>
+                  {addonsTotal > 0 && (
+                    <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                      + {rupiah(addonsTotal)}
+                    </span>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  {availableAddons.map((addon) => {
+                    const qty = addonQuantities[addon.id] || 0;
+                    return (
+                      <div
+                        key={addon.id}
+                        className={`p-3 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
+                          qty > 0
+                            ? 'bg-emerald-50/60 border-emerald-300'
+                            : 'bg-white border-border/80'
+                        }`}
+                      >
+                        <div className="space-y-0.5">
+                          <p className="font-bold text-xs text-foreground">
+                            {addon.name}
+                          </p>
+                          {addon.description && (
+                            <p className="text-[10.5px] text-foreground-muted">
+                              {addon.description}
+                            </p>
+                          )}
+                          <p className="text-xs font-semibold text-brand-blue">
+                            {rupiah(addon.price)}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => handleAddonQtyChange(addon.id, -1)}
+                            disabled={qty === 0}
+                            className="w-7 h-7 rounded-xl border border-border bg-surface hover:bg-surface-variant disabled:opacity-30 flex items-center justify-center cursor-pointer disabled:cursor-not-allowed text-foreground"
+                          >
+                            <Minus size={13} />
+                          </button>
+                          <span className="w-5 text-center font-bold text-xs text-foreground">
+                            {qty}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleAddonQtyChange(addon.id, 1)}
+                            className="w-7 h-7 rounded-xl border border-brand-blue bg-brand-blue hover:bg-brand-blue-hover text-white flex items-center justify-center cursor-pointer shadow-2xs"
+                          >
+                            <Plus size={13} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Step 4: Skema Pembayaran (DP 50% vs Lunas) */}
               <div className="space-y-3 pt-2">
                 <h4 className="font-bold text-xs uppercase tracking-wider text-foreground flex items-center gap-1.5">
                   <CreditCard size={14} className="text-brand-blue" />
-                  3. Skema Pembayaran
+                  4. Skema Pembayaran
                 </h4>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -660,11 +930,11 @@ export function BookingDrawerModal({
                 </div>
               </div>
 
-              {/* 6. Form Identitas Tamu */}
+              {/* Step 5: Form Identitas Tamu */}
               <div className="space-y-3 pt-2">
                 <h4 className="font-bold text-xs uppercase tracking-wider text-foreground flex items-center gap-1.5">
                   <Users size={14} className="text-brand-blue" />
-                  4. Data Pemesan (Untuk Pengiriman E-Pass)
+                  5. Data Pemesan (Untuk Pengiriman E-Pass)
                 </h4>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -723,7 +993,7 @@ export function BookingDrawerModal({
           <div className="p-4 sm:p-5 border-t border-border bg-white flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
             <div>
               <p className="text-[11px] text-foreground-muted">
-                Total Pembayaran ({totalNights} Malam)
+                Total Pembayaran ({totalNights} Malam{addonsTotal > 0 ? ' + Add-on' : ''})
               </p>
               <p className="text-xl font-black text-brand-blue">
                 {rupiah(payAmount)}
@@ -929,3 +1199,4 @@ export function BookingDrawerModal({
     </>
   );
 }
+
