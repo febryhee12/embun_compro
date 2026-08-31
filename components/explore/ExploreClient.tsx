@@ -261,7 +261,7 @@ export function ExploreClient() {
             <span className="font-serif font-black text-lg text-brand-blue">
               embun
             </span>
-            <span>© 2026 PT Embun Berkah Alam. Hak Cipta Dilindungi.</span>
+            <span>© 2026 PT Alam Kelana Digital. Hak Cipta Dilindungi.</span>
           </div>
           <div className="flex items-center gap-4">
             <a href="/id/kebijakan-privasi" className="hover:underline">
