@@ -26,11 +26,13 @@ export function ExploreHeader({
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-border transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between gap-4">
-        {/* Left: Brand Logo */}
+        {/* Left: Official Brand Logo SVG */}
         <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
-          <span className="font-serif font-black text-2xl tracking-tight text-brand-blue">
-            embun
-          </span>
+          <img
+            src="/images/logo/primary_blue.svg"
+            alt="Embun"
+            className="h-7 w-auto object-contain transition-transform group-hover:scale-102"
+          />
           <span className="hidden sm:inline-block text-[10px] uppercase font-black tracking-wider px-2 py-0.5 rounded-full bg-brand-lime text-black border border-brand-lime/80 shadow-2xs">
             Explore
           </span>
@@ -72,15 +74,8 @@ export function ExploreHeader({
           </div>
         </div>
 
-        {/* Right: Partner Link & User Avatar Menu */}
+        {/* Right: User Avatar Menu */}
         <div className="flex items-center gap-3 shrink-0">
-          <Link
-            href="/id/mitra"
-            className="hidden lg:inline-block text-xs font-semibold text-foreground hover:bg-surface px-3.5 py-2 rounded-full transition-colors"
-          >
-            Gabung Mitra
-          </Link>
-
           {/* User Profile / Auth Pill Button */}
           <button
             type="button"

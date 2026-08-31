@@ -1,11 +1,17 @@
 import type { Metadata } from 'next';
-import { Lora, Inter } from 'next/font/google';
+import { Lora, Inter, Plus_Jakarta_Sans } from 'next/font/google';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { buildOrganizationJsonLd } from '@/lib/seo/structuredData';
 import { ThemeProvider } from '@/components/theme-provider';
 import { ScrollToTop } from '@/components/ui/ScrollToTop';
 import { CookieConsent } from '@/components/ui/CookieConsent';
 import '../globals.css';
+
+const plusJakarta = Plus_Jakarta_Sans({
+  variable: '--font-plus-jakarta',
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+});
 
 const lora = Lora({
   variable: '--font-lora',
@@ -56,7 +62,7 @@ export default async function RootLayout({
   return (
     <html
       lang={lang}
-      className={`${lora.variable} ${inter.variable} h-full antialiased`}
+      className={`${plusJakarta.variable} ${lora.variable} ${inter.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body
