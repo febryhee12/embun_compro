@@ -51,10 +51,10 @@ export function DownloadCta(props: Partial<DownloadCtaProps> = {}) {
           </h2>
           <p className="mt-6 text-base sm:text-lg text-foreground-muted leading-relaxed">{subcopy}</p>
           <div className="mt-8 flex flex-wrap gap-3 items-center">
-            <DownloadCtaButton href="https://embun-demo.web.app" store="web" lead="Coba Sekarang" />
             <DownloadCtaButton href={appStoreHref} store="apple" lead={appStoreLead} />
             <DownloadCtaButton href={googlePlayHref} store="google" lead={googlePlayLead} />
           </div>
+
 
         </div>
       </Container>

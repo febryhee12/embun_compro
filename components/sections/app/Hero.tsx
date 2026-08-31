@@ -87,15 +87,6 @@ export function Hero(props: Partial<AppHeroProps> = {}) {
             <Reveal delay={300}>
               <div className="mt-8 flex flex-wrap items-center gap-3">
                 <a
-                  href="https://embun-demo.web.app"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Coba Demo Web Embun App"
-                  className={FOCUS_VISIBLE_CLASS}
-                >
-                  <StoreBadge store="web" lead="Coba Sekarang" />
-                </a>
-                <a
                   href={appStoreHref || undefined}
                   target={appStoreHref ? '_blank' : undefined}
                   rel={appStoreHref ? 'noopener noreferrer' : undefined}
@@ -115,6 +106,8 @@ export function Hero(props: Partial<AppHeroProps> = {}) {
                 </a>
               </div>
             </Reveal>
+
+
 
 
           </div>
