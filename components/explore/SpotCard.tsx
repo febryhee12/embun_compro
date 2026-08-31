@@ -265,17 +265,21 @@ export function SpotCard({
 
       {/* 2. Property Information */}
       <div className="space-y-1 text-xs">
-        {/* Title & Rating */}
+        {/* Title & Rating / Category */}
         <div className="flex items-baseline justify-between gap-2">
           <h4 className="font-bold text-sm text-foreground truncate group-hover:text-brand-blue transition-colors">
             {spot.name}
           </h4>
-          <div className="flex items-center gap-1 shrink-0 font-semibold text-foreground">
-            <Star size={12} className="fill-amber-500 text-amber-500" />
-            <span>
-              {spot.campsite?.rating ? spot.campsite.rating.toFixed(1) : '4.9'}
+          {spot.campsite?.rating && spot.campsite.rating > 0 ? (
+            <div className="flex items-center gap-1 shrink-0 font-semibold text-foreground">
+              <Star size={12} className="fill-amber-500 text-amber-500" />
+              <span>{spot.campsite.rating.toFixed(1)}</span>
+            </div>
+          ) : (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-surface-variant text-foreground-muted shrink-0">
+              {spot.tentType || 'Unit'}
             </span>
-          </div>
+          )}
         </div>
 
         {/* Campsite & Location */}

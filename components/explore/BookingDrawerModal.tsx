@@ -13,7 +13,14 @@ import {
   RotateCw,
   Smartphone,
   Download,
-  Info,
+  Calendar,
+  CreditCard,
+  CheckCircle2,
+  ArrowRight,
+  ShieldCheck,
+  Building,
+  Clock,
+  Sparkles,
 } from 'lucide-react';
 import { resolveAssetUrl, rupiah } from '@/lib/api-client';
 import { SpotData } from './SpotCard';
@@ -67,19 +74,47 @@ export function BookingDrawerModal({
   const [copied, setCopied] = useState(false);
   const [isDownloadDialogOpen, setIsDownloadDialogOpen] = useState(false);
 
+  // Booking Form State
+  const [checkInDate, setCheckInDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split('T')[0];
+  });
+  const [checkOutDate, setCheckOutDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 2);
+    return d.toISOString().split('T')[0];
+  });
+  const [selectedPackageIdx, setSelectedPackageIdx] = useState(0);
+  const [paymentOption, setPaymentOption] = useState<'dp50' | 'full'>('dp50');
+
+  // Guest Information
+  const [guestName, setGuestName] = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
+  const [guestEmail, setGuestEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bookingSuccessData, setBookingSuccessData] = useState<any | null>(null);
+
   const [failedPhotoUrls, setFailedPhotoUrls] = useState<Set<string>>(
     new Set(),
   );
   const panoramaRef = useRef<HTMLDivElement | null>(null);
   const panoViewerRef = useRef<any>(null);
 
-  // Reset photo index and view mode on spot change
+  // Reset state on spot change
   useEffect(() => {
     setPhotoIdx(0);
     setViewMode('photo');
     setCopied(false);
     setIsDownloadDialogOpen(false);
-  }, [spot?.id]);
+    setSelectedPackageIdx(0);
+    setBookingSuccessData(null);
+    if (currentUser) {
+      setGuestName(currentUser.fullName || currentUser.name || '');
+      setGuestPhone(currentUser.phoneNumber || currentUser.phone || '');
+      setGuestEmail(currentUser.email || '');
+    }
+  }, [spot?.id, currentUser]);
 
   // Extract & sort photos with accurate priority (Kamar Utama > Tampak Luar > Toilet Terakhir)
   const photos: string[] = useMemo(() => {
@@ -167,28 +202,34 @@ export function BookingDrawerModal({
     };
   }, [spot, viewMode, panoramaList]);
 
-  // Calculate starting price from packages / rates
-  const startingPrice = useMemo(() => {
+  const packages: any[] = useMemo(() => {
+    if (!spot) return [];
+    return Array.isArray((spot as any).pricingPackages)
+      ? (spot as any).pricingPackages
+      : [];
+  }, [spot]);
+
+  // Calculate nights
+  const totalNights = useMemo(() => {
+    try {
+      const d1 = new Date(checkInDate);
+      const d2 = new Date(checkOutDate);
+      const diffTime = d2.getTime() - d1.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return diffDays > 0 ? diffDays : 1;
+    } catch {
+      return 1;
+    }
+  }, [checkInDate, checkOutDate]);
+
+  // Calculate active rate per night
+  const activeRatePerNight = useMemo(() => {
     if (!spot) return 0;
-    if (
-      Array.isArray((spot as any).pricingPackages) &&
-      (spot as any).pricingPackages.length > 0
-    ) {
-      const prices: number[] = [];
-      (spot as any).pricingPackages.forEach((pkg: any) => {
-        if (pkg.flatRateMode && pkg.flatRate && Number(pkg.flatRate) > 0) {
-          prices.push(Number(pkg.flatRate));
-        } else if (pkg.weekdayRate && Number(pkg.weekdayRate) > 0) {
-          prices.push(Number(pkg.weekdayRate));
-        } else if (pkg.weekendRate && Number(pkg.weekendRate) > 0) {
-          prices.push(Number(pkg.weekendRate));
-        } else if (pkg.flatRate && Number(pkg.flatRate) > 0) {
-          prices.push(Number(pkg.flatRate));
-        }
-      });
-      if (prices.length > 0) {
-        return Math.min(...prices);
-      }
+    if (packages.length > 0 && packages[selectedPackageIdx]) {
+      const pkg = packages[selectedPackageIdx];
+      if (pkg.flatRateMode && pkg.flatRate) return Number(pkg.flatRate);
+      if (pkg.weekdayRate && Number(pkg.weekdayRate) > 0) return Number(pkg.weekdayRate);
+      if (pkg.flatRate && Number(pkg.flatRate) > 0) return Number(pkg.flatRate);
     }
     if (spot.weekdayPrice && Number(spot.weekdayPrice) > 0) {
       return Number(spot.weekdayPrice);
@@ -197,7 +238,10 @@ export function BookingDrawerModal({
       return Number(spot.weekendPrice);
     }
     return 0;
-  }, [spot]);
+  }, [spot, packages, selectedPackageIdx]);
+
+  const subtotalPrice = activeRatePerNight * totalNights;
+  const payAmount = paymentOption === 'dp50' ? subtotalPrice * 0.5 : subtotalPrice;
 
   // Early return if no spot selected
   if (!spot) return null;
@@ -222,7 +266,7 @@ export function BookingDrawerModal({
     const text = `Halo! Lihat penginapan ${spot.name} di ${
       spot.campsite.name
     }. Tarif mulai dari ${rupiah(
-      startingPrice,
+      activeRatePerNight,
     )}/malam. Pesan di: ${shareUrl}`;
     window.open(
       `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`,
@@ -237,14 +281,43 @@ export function BookingDrawerModal({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const packages: any[] = Array.isArray((spot as any).pricingPackages)
-    ? (spot as any).pricingPackages
-    : [];
+  const handleSubmitWebBooking = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!guestName.trim()) {
+      alert('Mohon masukkan nama lengkap pemesan.');
+      return;
+    }
+    if (!guestPhone.trim() || guestPhone.length < 8) {
+      alert('Mohon masukkan nomor WhatsApp yang aktif.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    const bookingCode = `EMB-${Date.now().toString().slice(-6)}`;
+    const selectedPackage = packages[selectedPackageIdx]?.name || 'Paket Standar Unit';
+
+    setTimeout(() => {
+      setIsSubmitting(false);
+      setBookingSuccessData({
+        bookingCode,
+        guestName,
+        guestPhone,
+        guestEmail,
+        checkInDate,
+        checkOutDate,
+        totalNights,
+        selectedPackage,
+        paymentOption,
+        payAmount,
+        subtotalPrice,
+      });
+    }, 600);
+  };
 
   return (
     <>
       <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-        <div className="w-full max-w-4xl bg-white text-foreground rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200">
+        <div className="w-full max-w-4xl bg-white text-foreground rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[94vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200">
           {/* Top Header */}
           <div className="px-6 py-4 border-b border-border flex items-center justify-between shrink-0">
             <div>
@@ -431,57 +504,201 @@ export function BookingDrawerModal({
               </div>
             </div>
 
-            {/* 3. Pilihan Paket Harga */}
-            {packages.length > 0 && (
-              <div className="space-y-3">
-                <h4 className="font-bold text-xs uppercase tracking-wider text-foreground-muted">
-                  Pilihan Paket & Tarif Sewa
+            {/* 3. FORM PEMESANAN RINGAN (WEB BOOKING) */}
+            <div className="p-5 rounded-3xl bg-surface/80 border border-border space-y-5">
+              <div className="flex items-center justify-between">
+                <h4 className="font-bold text-xs uppercase tracking-wider text-foreground flex items-center gap-1.5">
+                  <Calendar size={14} className="text-brand-blue" />
+                  1. Pilih Tanggal Menginap
                 </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {packages.map((pkg: any, idx: number) => {
-                    const price = pkg.flatRateMode
-                      ? pkg.flatRate
-                      : pkg.weekdayRate || pkg.flatRate;
-                    return (
-                      <div
-                        key={idx}
-                        className="p-4 rounded-2xl bg-surface/70 border border-border flex flex-col justify-between space-y-3"
-                      >
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between gap-2">
-                            <h5 className="font-bold text-xs text-foreground">
-                              {pkg.name}
-                            </h5>
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-blue/10 text-brand-blue">
-                              {pkg.pricingModel || 'Paket Unit'}
-                            </span>
-                          </div>
-                          {pkg.description && (
-                            <p className="text-[11px] text-foreground-muted line-clamp-2">
-                              {pkg.description}
-                            </p>
-                          )}
-                        </div>
+                <span className="text-[11px] font-bold text-brand-blue bg-brand-blue/10 px-2.5 py-0.5 rounded-full">
+                  {totalNights} Malam
+                </span>
+              </div>
 
-                        <div className="pt-2 border-t border-border/60 flex items-baseline justify-between">
-                          <span className="text-[11px] text-foreground-muted">
-                            Tarif Paket
-                          </span>
-                          <p className="font-black text-sm text-brand-blue">
-                            {rupiah(price)}
-                            <span className="text-[10px] font-normal text-foreground-muted ml-1">
-                              / malam
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
+              {/* Date Inputs */}
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <label className="block text-[11px] font-bold text-foreground-muted mb-1">
+                    Check-in
+                  </label>
+                  <input
+                    type="date"
+                    value={checkInDate}
+                    onChange={(e) => setCheckInDate(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-border bg-white text-foreground focus:outline-none focus:border-brand-blue"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-foreground-muted mb-1">
+                    Check-out
+                  </label>
+                  <input
+                    type="date"
+                    value={checkOutDate}
+                    onChange={(e) => setCheckOutDate(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-border bg-white text-foreground focus:outline-none focus:border-brand-blue"
+                  />
                 </div>
               </div>
-            )}
 
-            {/* 4. Fasilitas Unit */}
+              {/* 4. Pilihan Paket Harga */}
+              {packages.length > 0 && (
+                <div className="space-y-3 pt-2">
+                  <h4 className="font-bold text-xs uppercase tracking-wider text-foreground flex items-center gap-1.5">
+                    <Sparkles size={14} className="text-brand-blue" />
+                    2. Pilih Paket Sewa
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {packages.map((pkg: any, idx: number) => {
+                      const isSelected = selectedPackageIdx === idx;
+                      const price = pkg.flatRateMode
+                        ? pkg.flatRate
+                        : pkg.weekdayRate || pkg.flatRate;
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setSelectedPackageIdx(idx)}
+                          className={`p-4 rounded-2xl text-left border transition-all cursor-pointer flex flex-col justify-between space-y-2 ${
+                            isSelected
+                              ? 'bg-brand-blue/10 border-brand-blue ring-1 ring-brand-blue'
+                              : 'bg-white border-border hover:border-brand-blue/40'
+                          }`}
+                        >
+                          <div className="space-y-1 w-full">
+                            <div className="flex items-center justify-between gap-2">
+                              <h5 className="font-bold text-xs text-foreground">
+                                {pkg.name}
+                              </h5>
+                              <span
+                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                  isSelected
+                                    ? 'bg-brand-blue text-white'
+                                    : 'bg-surface-variant text-foreground-muted'
+                                }`}
+                              >
+                                {pkg.pricingModel || 'Paket Unit'}
+                              </span>
+                            </div>
+                            {pkg.description && (
+                              <p className="text-[11px] text-foreground-muted line-clamp-2">
+                                {pkg.description}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="pt-2 border-t border-border/60 flex items-baseline justify-between w-full">
+                            <span className="text-[11px] text-foreground-muted">
+                              Tarif / malam
+                            </span>
+                            <p className="font-black text-sm text-brand-blue">
+                              {rupiah(price)}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* 5. Skema Pembayaran (DP 50% vs Lunas) */}
+              <div className="space-y-3 pt-2">
+                <h4 className="font-bold text-xs uppercase tracking-wider text-foreground flex items-center gap-1.5">
+                  <CreditCard size={14} className="text-brand-blue" />
+                  3. Skema Pembayaran
+                </h4>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentOption('dp50')}
+                    className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                      paymentOption === 'dp50'
+                        ? 'bg-brand-blue/10 border-brand-blue ring-1 ring-brand-blue'
+                        : 'bg-white border-border hover:border-brand-blue/30'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-bold text-xs text-foreground">
+                        Bayar DP 50%
+                      </span>
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700">
+                        Hemat Awal
+                      </span>
+                    </div>
+                    <p className="text-sm font-black text-brand-blue">
+                      {rupiah(subtotalPrice * 0.5)}
+                    </p>
+                    <p className="text-[10px] text-foreground-muted mt-0.5">
+                      Sisa pelunasan di lokasi camp
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPaymentOption('full')}
+                    className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                      paymentOption === 'full'
+                        ? 'bg-brand-blue/10 border-brand-blue ring-1 ring-brand-blue'
+                        : 'bg-white border-border hover:border-brand-blue/30'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-bold text-xs text-foreground">
+                        Bayar Lunas 100%
+                      </span>
+                    </div>
+                    <p className="text-sm font-black text-brand-blue">
+                      {rupiah(subtotalPrice)}
+                    </p>
+                    <p className="text-[10px] text-foreground-muted mt-0.5">
+                      Bebas urusan saat check-in
+                    </p>
+                  </button>
+                </div>
+              </div>
+
+              {/* 6. Form Identitas Tamu */}
+              <div className="space-y-3 pt-2">
+                <h4 className="font-bold text-xs uppercase tracking-wider text-foreground flex items-center gap-1.5">
+                  <Users size={14} className="text-brand-blue" />
+                  4. Data Pemesan (Untuk Pengiriman E-Pass)
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <label className="block text-[11px] font-bold text-foreground-muted mb-1">
+                      Nama Lengkap *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Contoh: Budi Santoso"
+                      value={guestName}
+                      onChange={(e) => setGuestName(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-xl border border-border bg-white text-foreground focus:outline-none focus:border-brand-blue"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-foreground-muted mb-1">
+                      Nomor WhatsApp (Aktif) *
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="Contoh: 081234567890"
+                      value={guestPhone}
+                      onChange={(e) => setGuestPhone(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-xl border border-border bg-white text-foreground focus:outline-none focus:border-brand-blue"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 7. Fasilitas Unit */}
             {Array.isArray(spot.facilities) && spot.facilities.length > 0 && (
               <div className="space-y-3">
                 <h4 className="font-bold text-xs uppercase tracking-wider text-foreground-muted">
@@ -500,56 +717,139 @@ export function BookingDrawerModal({
                 </div>
               </div>
             )}
-
-            {/* 5. Info Pemesanan Melalui Aplikasi */}
-            <div className="p-4 rounded-2xl bg-brand-blue/5 border border-brand-blue/20 flex items-start gap-3">
-              <Info size={18} className="text-brand-blue shrink-0 mt-0.5" />
-              <div className="text-xs space-y-1">
-                <p className="font-bold text-foreground">
-                  Pilih Kavling di Peta & Booking Instan
-                </p>
-                <p className="text-foreground-muted leading-relaxed">
-                  Gunakan aplikasi Embun untuk memilih posisi unit di peta
-                  interaktif, cek ketersediaan tanggal, dan dapatkan konfirmasi E-Pass instan.
-                </p>
-              </div>
-            </div>
           </div>
 
           {/* Sticky Bottom Action Bar */}
           <div className="p-4 sm:p-5 border-t border-border bg-white flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
             <div>
-              <p className="text-[11px] text-foreground-muted">Tarif Sewa Mulai</p>
+              <p className="text-[11px] text-foreground-muted">
+                Total Pembayaran ({totalNights} Malam)
+              </p>
               <p className="text-xl font-black text-brand-blue">
-                {rupiah(startingPrice)}
-                <span className="text-xs font-normal text-foreground-muted ml-1">
-                  / malam
-                </span>
+                {rupiah(payAmount)}
+                {paymentOption === 'dp50' && (
+                  <span className="text-xs font-semibold text-emerald-700 ml-1.5">
+                    (DP 50%)
+                  </span>
+                )}
               </p>
             </div>
 
             <div className="flex items-center gap-2.5 w-full sm:w-auto">
               <button
                 type="button"
-                onClick={handleShareWhatsApp}
-                className="p-3 rounded-2xl border border-border hover:bg-surface text-foreground font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-                title="Bagikan ke WhatsApp"
+                onClick={handleOpenAppDirect}
+                className="px-4 py-3 rounded-2xl border border-border hover:bg-surface text-foreground font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                title="Buka di Aplikasi untuk memilih di peta interaktif"
               >
-                <Share2 size={16} />
-                <span className="hidden sm:inline">WhatsApp</span>
+                <Smartphone size={15} />
+                <span className="hidden sm:inline">Peta App</span>
               </button>
+
               <button
                 type="button"
-                onClick={handleOpenAppDirect}
-                className="flex-1 sm:flex-none px-6 py-3.5 rounded-2xl bg-brand-blue hover:bg-brand-blue-hover text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                onClick={handleSubmitWebBooking}
+                disabled={isSubmitting}
+                className="flex-1 sm:flex-none px-6 py-3.5 rounded-2xl bg-brand-blue hover:bg-brand-blue-hover text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
-                <Smartphone size={16} />
-                <span>Buka & Pesan di App</span>
+                <span>
+                  {isSubmitting ? 'Memproses...' : `Pesan & Bayar via Web`}
+                </span>
+                <ArrowRight size={15} />
               </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* ── Dialog Sukses Pemesanan Web ── */}
+      {bookingSuccessData && (
+        <div className="fixed inset-0 z-60 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-lg bg-white text-foreground rounded-3xl shadow-2xl border border-border p-6 sm:p-7 space-y-5 animate-in zoom-in-95 duration-200">
+            <div className="text-center space-y-2">
+              <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-700 mx-auto flex items-center justify-center">
+                <CheckCircle2 size={32} />
+              </div>
+              <h3 className="text-lg font-bold text-foreground">
+                Pesanan Berhasil Disiapkan!
+              </h3>
+              <p className="text-xs text-foreground-muted">
+                Kode Referensi:{' '}
+                <strong className="text-brand-blue font-mono font-bold">
+                  {bookingSuccessData.bookingCode}
+                </strong>
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-surface border border-border space-y-2 text-xs">
+              <div className="flex justify-between">
+                <span className="text-foreground-muted">Unit & Campsite</span>
+                <span className="font-bold text-foreground text-right">
+                  {spot.name} · {spot.campsite.name}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-foreground-muted">Tanggal</span>
+                <span className="font-semibold text-foreground">
+                  {bookingSuccessData.checkInDate} s/d {bookingSuccessData.checkOutDate} ({bookingSuccessData.totalNights} Malam)
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-foreground-muted">Pemesan</span>
+                <span className="font-semibold text-foreground">
+                  {bookingSuccessData.guestName} ({bookingSuccessData.guestPhone})
+                </span>
+              </div>
+              <div className="flex justify-between pt-2 border-t border-border/80">
+                <span className="font-bold text-foreground">
+                  Total Tagihan {bookingSuccessData.paymentOption === 'dp50' ? '(DP 50%)' : '(Lunas)'}
+                </span>
+                <span className="font-black text-brand-blue text-sm">
+                  {rupiah(bookingSuccessData.payAmount)}
+                </span>
+              </div>
+            </div>
+
+            {/* WhatsApp Confirmation & App CTA */}
+            <div className="space-y-2.5">
+              <a
+                href={`https://api.whatsapp.com/send?phone=6282122650058&text=${encodeURIComponent(
+                  `Halo Embun! Saya ingin konfirmasi pemesanan via Web:\nKode: ${bookingSuccessData.bookingCode}\nNama: ${bookingSuccessData.guestName}\nSpot: ${spot.name} (${spot.campsite.name})\nTanggal: ${bookingSuccessData.checkInDate} s/d ${bookingSuccessData.checkOutDate}\nSkema: ${bookingSuccessData.paymentOption === 'dp50' ? 'DP 50%' : 'Lunas 100%'}\nNominal: ${rupiah(bookingSuccessData.payAmount)}`,
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-3.5 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 text-center cursor-pointer"
+              >
+                <Share2 size={16} />
+                <span>Konfirmasi Pembayaran via WhatsApp</span>
+              </a>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setBookingSuccessData(null);
+                  setIsDownloadDialogOpen(true);
+                }}
+                className="w-full py-3 px-4 rounded-2xl border border-border bg-surface hover:bg-surface-variant text-foreground font-bold text-xs transition-colors flex items-center justify-center gap-2 text-center cursor-pointer"
+              >
+                <Smartphone size={16} className="text-brand-blue" />
+                <span>Buka Tiket di Aplikasi Embun</span>
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setBookingSuccessData(null);
+                onClose();
+              }}
+              className="w-full text-center text-xs text-foreground-muted hover:text-foreground pt-1 cursor-pointer"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── Dialog Install / Buka Aplikasi Embun ── */}
       {isDownloadDialogOpen && (
@@ -583,7 +883,7 @@ export function BookingDrawerModal({
                 Lanjutkan di Aplikasi Embun
               </h3>
               <p className="text-xs text-foreground-muted max-w-xs mx-auto leading-relaxed">
-                Pilih unit <strong className="text-foreground">{spot.name}</strong> langsung di peta interaktif {spot.campsite.name}, pilih tanggal menginap, dan lakukan pembayaran aman.
+                Pilih unit <strong className="text-foreground">{spot.name}</strong> langsung di peta interaktif {spot.campsite.name}, pilih tanggal menginap, dan dapatkan E-Pass instan.
               </p>
             </div>
 
