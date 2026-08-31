@@ -923,7 +923,7 @@ export function SpotRedirectClient() {
                 )}
               </div>
 
-              <h2 className="text-xl font-bold font-serif text-white tracking-tight">
+              <h2 className="text-xl font-bold text-white tracking-tight">
                 {activeSpot.name}
               </h2>
               <p className="text-xs text-white/60">{campsite.name}</p>
@@ -941,9 +941,6 @@ export function SpotRedirectClient() {
                   </span>
                 </p>
               </div>
-              <span className="text-[10px] font-bold px-2 py-1 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                Bisa DP 50%
-              </span>
             </div>
 
             {/* Quick Specs */}

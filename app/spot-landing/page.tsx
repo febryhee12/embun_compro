@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { SpotRedirectClient } from './SpotRedirectClient';
+import '../globals.css';
 
 export const metadata: Metadata = {
   title: 'Embun — Booking Campsite & Glamping Pilihan',
