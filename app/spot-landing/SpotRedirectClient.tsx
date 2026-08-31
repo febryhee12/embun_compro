@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
-import Image from 'next/image';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import {
   Tent,
   Users,
@@ -30,6 +29,14 @@ import {
   ArrowRight,
   Info,
   Download,
+  RotateCw,
+  Compass,
+  LayoutGrid,
+  Search,
+  Eye,
+  Smartphone,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 
 const API_BASE_URL =
@@ -41,6 +48,13 @@ const WEBSITE_HREF = 'https://embun.app';
 
 interface PhotoItem {
   url: string;
+  category?: string;
+}
+
+interface PanoramaItem {
+  id: string;
+  label?: string;
+  imageUrl: string;
   category?: string;
 }
 
@@ -75,6 +89,7 @@ interface SpotItem {
   extraPersonFee: number;
   images?: string[];
   photos?: PhotoItem[];
+  panoramaPhotos?: PanoramaItem[] | any;
   facilities?: string[];
   viewOptions?: string[];
   pricingPackages?: PricingPackageItem[];
@@ -129,6 +144,38 @@ const rupiah = (val?: number | string | null) => {
   return `Rp ${n.toLocaleString('id-ID')}`;
 };
 
+// Pannellum loader helper
+function loadPannellum(): Promise<any> {
+  return new Promise((resolve) => {
+    if (typeof window !== 'undefined' && (window as any).pannellum) {
+      return resolve((window as any).pannellum);
+    }
+    if (!document.querySelector('link[data-pannellum]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href =
+        'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css';
+      link.setAttribute('data-pannellum', '1');
+      document.head.appendChild(link);
+    }
+    if (!document.querySelector('script[data-pannellum]')) {
+      const script = document.createElement('script');
+      script.src =
+        'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js';
+      script.setAttribute('data-pannellum', '1');
+      script.onload = () => resolve((window as any).pannellum);
+      document.head.appendChild(script);
+    } else {
+      const check = setInterval(() => {
+        if ((window as any).pannellum) {
+          clearInterval(check);
+          resolve((window as any).pannellum);
+        }
+      }, 100);
+    }
+  });
+}
+
 export function SpotRedirectClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -136,10 +183,18 @@ export function SpotRedirectClient() {
   const [campsite, setCampsite] = useState<CampsiteDetail | null>(null);
   const [activeSpot, setActiveSpot] = useState<SpotItem | null>(null);
 
-  // Gallery state
+  // Showcase state
+  const [viewMode, setViewMode] = useState<'photo' | '360'>('photo');
   const [activePhotoIdx, setActivePhotoIdx] = useState(0);
+  const [activePanoramaIdx, setActivePanoramaIdx] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [searchFilter, setSearchFilter] = useState('');
+  const [selectedTentFilter, setSelectedTentFilter] = useState('Semua');
+  const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
+
+  const panoramaContainerRef = useRef<HTMLDivElement | null>(null);
+  const pannellumViewerRef = useRef<any>(null);
 
   // 1. Resolve token & fetch live data from backend
   useEffect(() => {
@@ -159,7 +214,7 @@ export function SpotRedirectClient() {
 
         const res = await fetch(url);
         if (!res.ok) {
-          // Fallback: jika token spesifik tidak ditemukan/lama, ambil properti aktif agar preview tetap tampil
+          // Fallback to active campsites list
           const listRes = await fetch(`${API_BASE_URL}/public/campsites`);
           if (listRes.ok) {
             const list = await listRes.json();
@@ -182,7 +237,6 @@ export function SpotRedirectClient() {
         const camp: CampsiteDetail = data.campsite || data;
         setCampsite(camp);
 
-        // Find matched spot or first spot
         const matchedBlockId = data.blockId;
         const matched =
           camp.blocks?.find(
@@ -195,7 +249,15 @@ export function SpotRedirectClient() {
         setActiveSpot(matched || null);
         setActivePhotoIdx(0);
 
-        // Update document title for rich browser experience
+        // If spot has 360 panorama, default to 360 or keep photo
+        if (
+          matched?.panoramaPhotos &&
+          Array.isArray(matched.panoramaPhotos) &&
+          matched.panoramaPhotos.length > 0
+        ) {
+          // Keep photo as first view with 360 tab ready
+        }
+
         if (matched && camp) {
           document.title = `${matched.name} · ${camp.name} | Embun`;
         }
@@ -233,14 +295,12 @@ export function SpotRedirectClient() {
       });
     }
 
-    // Fallback to campsite photos if spot has no photos
     if (list.length === 0 && Array.isArray(campsite?.photos)) {
       campsite?.photos.forEach((p) => {
         if (p?.url) list.push(p);
       });
     }
 
-    // Sort: Kamar Utama first
     const priorities = [
       'Kamar Utama / Tenda',
       'Tampak Luar / Pemandangan',
@@ -257,6 +317,95 @@ export function SpotRedirectClient() {
       return scoreA - scoreB;
     });
   }, [activeSpot, campsite]);
+
+  // Extract 360 panorama photos
+  const panoramaList = useMemo(() => {
+    if (!activeSpot) return [];
+    const list: PanoramaItem[] = [];
+
+    if (Array.isArray(activeSpot.panoramaPhotos)) {
+      activeSpot.panoramaPhotos.forEach((p: any) => {
+        if (p?.imageUrl || p?.url) {
+          list.push({
+            id: p.id || String(Math.random()),
+            label: p.label || p.category || 'Tur 360° Unit',
+            imageUrl: p.imageUrl || p.url,
+            category: p.category,
+          });
+        }
+      });
+    }
+
+    // Also check campsite 360 photos
+    if (Array.isArray(campsite?.photos)) {
+      campsite?.photos.forEach((p) => {
+        if (
+          p.category?.toLowerCase().includes('360') ||
+          p.category?.toLowerCase().includes('panorama')
+        ) {
+          list.push({
+            id: p.id,
+            label: 'Panorama Area Camp',
+            imageUrl: p.url,
+            category: p.category,
+          });
+        }
+      });
+    }
+
+    return list;
+  }, [activeSpot, campsite]);
+
+  // Initialize / update 360 Pannellum viewer when 360 viewMode is active
+  useEffect(() => {
+    if (viewMode !== '360' || panoramaList.length === 0) return;
+
+    let destroyed = false;
+
+    const initViewer = async () => {
+      const pannellum = await loadPannellum();
+      if (destroyed || !pannellum || !panoramaContainerRef.current) return;
+
+      try {
+        if (pannellumViewerRef.current) {
+          pannellumViewerRef.current.destroy();
+          pannellumViewerRef.current = null;
+        }
+
+        const currentPano = panoramaList[activePanoramaIdx];
+        if (!currentPano) return;
+
+        pannellumViewerRef.current = pannellum.viewer(
+          panoramaContainerRef.current,
+          {
+            type: 'equirectangular',
+            panorama: resolveAssetUrl(currentPano.imageUrl),
+            autoLoad: true,
+            autoRotate: -2,
+            compass: true,
+            showZoomCtrl: true,
+            showFullscreenCtrl: true,
+            mouseZoom: true,
+            hfov: 100,
+          },
+        );
+      } catch (err) {
+        console.error('Error init pannellum:', err);
+      }
+    };
+
+    void initViewer();
+
+    return () => {
+      destroyed = true;
+      if (pannellumViewerRef.current) {
+        try {
+          pannellumViewerRef.current.destroy();
+        } catch {}
+        pannellumViewerRef.current = null;
+      }
+    };
+  }, [viewMode, activePanoramaIdx, panoramaList]);
 
   // Starting price calculation
   const startingPrice = useMemo(() => {
@@ -289,6 +438,45 @@ export function SpotRedirectClient() {
     return activeSpot.weekdayPrice || 0;
   }, [activeSpot]);
 
+  // Filtered spots list in sidebar / grid
+  const filteredSpots = useMemo(() => {
+    if (!campsite?.blocks) return [];
+    return campsite.blocks.filter((spot) => {
+      const matchQ =
+        !searchFilter ||
+        spot.name.toLowerCase().includes(searchFilter.toLowerCase()) ||
+        spot.blockNumber?.toLowerCase().includes(searchFilter.toLowerCase());
+      const matchType =
+        selectedTentFilter === 'Semua' || spot.tentType === selectedTentFilter;
+      return matchQ && matchType;
+    });
+  }, [campsite, searchFilter, selectedTentFilter]);
+
+  // Next / Prev Spot Navigation (TikTok feed style)
+  const currentSpotIndex = useMemo(() => {
+    if (!campsite?.blocks || !activeSpot) return -1;
+    return campsite.blocks.findIndex((b) => b.id === activeSpot.id);
+  }, [campsite, activeSpot]);
+
+  const handleNextSpot = () => {
+    if (!campsite?.blocks) return;
+    const nextIdx = (currentSpotIndex + 1) % campsite.blocks.length;
+    setActiveSpot(campsite.blocks[nextIdx]);
+    setActivePhotoIdx(0);
+    setActivePanoramaIdx(0);
+  };
+
+  const handlePrevSpot = () => {
+    if (!campsite?.blocks) return;
+    const prevIdx =
+      currentSpotIndex <= 0
+        ? campsite.blocks.length - 1
+        : currentSpotIndex - 1;
+    setActiveSpot(campsite.blocks[prevIdx]);
+    setActivePhotoIdx(0);
+    setActivePanoramaIdx(0);
+  };
+
   // Deep Link CTA Handlers
   const handleOpenApp = () => {
     if (!activeSpot) return;
@@ -297,10 +485,8 @@ export function SpotRedirectClient() {
       blockIdentifier,
     )}`;
 
-    // Try custom scheme
     window.location.href = appDeepLink;
 
-    // Fallback prompt after short delay
     setTimeout(() => {
       const isAndroid = /Android/i.test(navigator.userAgent);
       const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -320,7 +506,7 @@ export function SpotRedirectClient() {
       campsite.name
     }. Tarif mulai ${rupiah(
       startingPrice,
-    )}/malam. Pesan langsung di Embun App: ${shareUrl}`;
+    )}/malam. Cek preview & pesan di Embun App: ${shareUrl}`;
     window.open(
       `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`,
       '_blank',
@@ -338,24 +524,15 @@ export function SpotRedirectClient() {
   // ── Loading Skeleton ─────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FDFCFB] text-foreground flex flex-col">
-        {/* Top Navbar Skeleton */}
-        <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-border px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-24 h-7 bg-surface rounded-lg animate-pulse" />
+      <div className="min-h-screen bg-[#0E0E10] text-white flex items-center justify-center p-6">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-brand-blue/20 border border-brand-blue/40 flex items-center justify-center text-brand-blue animate-pulse">
+            <Tent size={24} />
           </div>
-          <div className="w-28 h-9 bg-surface rounded-full animate-pulse" />
-        </header>
-
-        <main className="max-w-4xl mx-auto w-full p-4 sm:p-6 space-y-6 flex-1">
-          {/* Hero Image Skeleton */}
-          <div className="w-full aspect-[16/10] sm:aspect-[2/1] rounded-3xl bg-surface animate-pulse" />
-          <div className="space-y-3">
-            <div className="w-1/3 h-6 bg-surface rounded-lg animate-pulse" />
-            <div className="w-2/3 h-8 bg-surface rounded-lg animate-pulse" />
-            <div className="w-1/2 h-4 bg-surface rounded-lg animate-pulse" />
-          </div>
-        </main>
+          <p className="text-xs font-semibold text-white/60">
+            Memuat preview penginapan Embun...
+          </p>
+        </div>
       </div>
     );
   }
@@ -363,354 +540,501 @@ export function SpotRedirectClient() {
   // ── Error State ─────────────────────────────────────────────────────────────
   if (error || !campsite || !activeSpot) {
     return (
-      <div className="min-h-screen bg-[#FDFCFB] flex flex-col items-center justify-center p-6 text-center text-foreground">
-        <div className="w-16 h-16 rounded-3xl bg-red-50 text-red-600 flex items-center justify-center mb-4 shadow-sm">
+      <div className="min-h-screen bg-[#0E0E10] flex flex-col items-center justify-center p-6 text-center text-white">
+        <div className="w-16 h-16 rounded-3xl bg-red-500/10 border border-red-500/20 text-red-500 flex items-center justify-center mb-4 shadow-sm">
           <Tent size={32} />
         </div>
         <h1 className="text-xl font-bold font-serif mb-2">
           Unit Penginapan Tidak Ditemukan
         </h1>
-        <p className="text-sm text-foreground-muted max-w-sm mb-6 leading-relaxed">
-          {error ||
-            'Tautan yang Anda tuju mungkin sudah kedaluwarsa atau unit telah dinonaktifkan oleh pengelola.'}
+        <p className="text-sm text-white/60 max-w-sm mb-6 leading-relaxed">
+          {error || 'Tautan yang Anda tuju tidak valid atau telah dinonaktifkan.'}
         </p>
-        <div className="flex flex-col sm:flex-row items-center gap-3">
-          <a
-            href={WEBSITE_HREF}
-            className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-brand-blue text-white text-xs font-bold hover:bg-brand-blue-hover transition-colors shadow-sm"
-          >
-            Kunjungi Website Embun
-          </a>
-          <a
-            href={GOOGLE_PLAY_HREF}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full sm:w-auto px-6 py-2.5 rounded-full border border-border bg-white text-foreground text-xs font-bold hover:bg-surface transition-colors"
-          >
-            Unduh Aplikasi
-          </a>
-        </div>
+        <a
+          href={WEBSITE_HREF}
+          className="px-6 py-2.5 rounded-full bg-brand-blue text-white text-xs font-bold hover:bg-brand-blue-hover transition-colors shadow-sm"
+        >
+          Kunjungi Website Embun
+        </a>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#FDFCFB] text-foreground flex flex-col selection:bg-brand-lime selection:text-black">
-      {/* ═══ TOP NAVBAR ═══ */}
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-border/80 px-4 sm:px-8 py-3">
-        <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
-          <a href={WEBSITE_HREF} className="flex items-center gap-2.5 group">
-            <span className="font-serif font-black text-xl tracking-tight text-brand-blue">
+    <div className="h-screen w-screen overflow-hidden bg-[#0D0D11] text-white flex flex-col selection:bg-brand-lime selection:text-black">
+      {/* ════════════════════════════════════════════════════════════════════════
+          TOP APPBAR (TikTok Web Style)
+      ════════════════════════════════════════════════════════════════════════ */}
+      <header className="h-14 shrink-0 bg-[#14141B] border-b border-white/10 px-4 sm:px-6 flex items-center justify-between gap-4 z-40">
+        {/* Brand Logo */}
+        <div className="flex items-center gap-3">
+          <a href={WEBSITE_HREF} className="flex items-center gap-2">
+            <span className="font-serif font-black text-2xl tracking-tight text-white">
               embun
             </span>
-            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-brand-lime text-black border border-brand-lime/80 shadow-2xs">
-              Web Preview
+            <span className="text-[10px] uppercase font-black tracking-wider px-2 py-0.5 rounded-full bg-brand-lime text-black shadow-sm">
+              Showcase
             </span>
           </a>
+        </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleShareWhatsApp}
-              className="p-2 rounded-full text-foreground-muted hover:text-foreground hover:bg-surface transition-colors"
-              title="Bagikan ke WhatsApp"
-            >
-              <Share2 size={18} />
-            </button>
-            <button
-              type="button"
-              onClick={handleOpenApp}
-              className="px-4 py-2 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
-            >
-              <span>Buka di App</span>
-              <ArrowRight size={13} />
-            </button>
-          </div>
+        {/* Center Campsite Location Info */}
+        <div className="hidden md:flex items-center gap-2 text-xs text-white/80 bg-white/5 border border-white/10 px-3.5 py-1.5 rounded-full">
+          <MapPin size={13} className="text-brand-lime shrink-0" />
+          <span className="font-bold text-white truncate max-w-xs">
+            {campsite.name}
+          </span>
+          {campsite.address && (
+            <span className="text-white/50 truncate max-w-xs">
+              · {campsite.address}
+            </span>
+          )}
+        </div>
+
+        {/* Top Right Action CTA */}
+        <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={handleShareWhatsApp}
+            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/80 hover:text-white border border-white/10 transition-colors"
+            title="Bagikan ke WhatsApp"
+          >
+            <Share2 size={16} />
+          </button>
+          <button
+            type="button"
+            onClick={handleOpenApp}
+            className="px-4 py-2 rounded-xl bg-brand-blue hover:bg-brand-blue-hover text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5"
+          >
+            <Smartphone size={14} />
+            <span>Pesan di App</span>
+          </button>
         </div>
       </header>
 
-      {/* ═══ MAIN CONTENT ═══ */}
-      <main className="max-w-5xl mx-auto w-full px-4 sm:px-8 py-6 pb-28 space-y-8 flex-1">
-        {/* 1. PHOTO HERO GALLERY */}
-        <section className="space-y-3">
-          <div className="relative w-full aspect-[16/10] sm:aspect-[21/9] rounded-3xl overflow-hidden bg-surface-dark border border-border shadow-soft group">
-            {spotPhotos.length > 0 ? (
-              <img
-                src={resolveAssetUrl(spotPhotos[activePhotoIdx]?.url)}
-                alt={activeSpot.name}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-102"
-              />
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center text-white/50 gap-2">
-                <Tent size={48} />
-                <span className="text-xs">Foto penginapan belum tersedia</span>
-              </div>
-            )}
-
-            {/* Photo Category Pill */}
-            {spotPhotos[activePhotoIdx]?.category && (
-              <div className="absolute top-4 left-4">
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-black/60 text-white backdrop-blur-md border border-white/20">
-                  {spotPhotos[activePhotoIdx].category}
+      {/* ════════════════════════════════════════════════════════════════════════
+          MAIN 3-PANEL SHOWCASE VIEW (TikTok Web Layout)
+      ════════════════════════════════════════════════════════════════════════ */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* ── 1. LEFT SIDEBAR: JELAJAH UNIT & FILTER (Desktop) ── */}
+        <aside className="hidden lg:flex w-72 shrink-0 bg-[#121218] border-r border-white/10 flex-col overflow-hidden">
+          {/* Campsite Header Card */}
+          <div className="p-4 border-b border-white/10 space-y-2">
+            <h3 className="font-bold text-sm text-white truncate">
+              {campsite.name}
+            </h3>
+            {campsite.rating && campsite.rating > 0 && (
+              <div className="flex items-center gap-1.5 text-xs text-amber-400 font-semibold">
+                <Star size={13} className="fill-amber-400" />
+                <span>
+                  {campsite.rating.toFixed(1)} ({campsite.reviewCount || 0} ulasan)
                 </span>
               </div>
             )}
+            <p className="text-[11px] text-white/50">
+              Pilih unit di bawah untuk beralih showcase:
+            </p>
+          </div>
 
-            {/* Fullscreen Button */}
-            {spotPhotos.length > 0 && (
+          {/* Search in Campsite */}
+          <div className="p-3 border-b border-white/10">
+            <div className="relative">
+              <Search
+                size={13}
+                className="absolute left-3 top-2.5 text-white/40"
+              />
+              <input
+                type="text"
+                placeholder="Cari spot (misal: B5)..."
+                value={searchFilter}
+                onChange={(e) => setSearchFilter(e.target.value)}
+                className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/40 focus:outline-none focus:border-brand-lime"
+              />
+            </div>
+          </div>
+
+          {/* Spot List (Vertical Scroll) */}
+          <div className="flex-1 overflow-y-auto p-3 space-y-2 no-scrollbar">
+            {filteredSpots.map((spot) => {
+              const isSelected = spot.id === activeSpot.id;
+              const has360 =
+                Array.isArray(spot.panoramaPhotos) &&
+                spot.panoramaPhotos.length > 0;
+              const coverPhoto =
+                spot.photos?.find(
+                  (p) =>
+                    p.category === 'Kamar Utama / Tenda' ||
+                    p.category?.toLowerCase().includes('utama'),
+                )?.url ||
+                spot.photos?.[0]?.url ||
+                spot.images?.[0];
+
+              return (
+                <button
+                  key={spot.id}
+                  type="button"
+                  onClick={() => {
+                    setActiveSpot(spot);
+                    setActivePhotoIdx(0);
+                    setActivePanoramaIdx(0);
+                  }}
+                  className={`w-full p-2.5 rounded-2xl border text-left transition-all flex items-center gap-3 group cursor-pointer ${
+                    isSelected
+                      ? 'bg-brand-blue/20 border-brand-blue ring-1 ring-brand-blue shadow-md'
+                      : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/15'
+                  }`}
+                >
+                  <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-black shrink-0 border border-white/10">
+                    {coverPhoto ? (
+                      <img
+                        src={resolveAssetUrl(coverPhoto)}
+                        alt={spot.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-white/40">
+                        <Tent size={18} />
+                      </div>
+                    )}
+                    {has360 && (
+                      <div className="absolute top-0.5 right-0.5 bg-brand-lime text-black rounded-full p-0.5">
+                        <Compass size={9} />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="min-w-0 flex-1 space-y-0.5">
+                    <div className="flex items-center gap-1.5">
+                      <p
+                        className={`font-bold text-xs truncate ${
+                          isSelected ? 'text-brand-lime' : 'text-white'
+                        }`}
+                      >
+                        {spot.name}
+                      </p>
+                      {spot.isEmbunPlus && (
+                        <Star
+                          size={10}
+                          className="fill-amber-400 text-amber-400 shrink-0"
+                        />
+                      )}
+                    </div>
+                    <p className="text-[10.5px] text-white/50 truncate">
+                      {spot.tentType || 'Glamping'} · {rupiah(spot.weekdayPrice)}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </aside>
+
+        {/* ── 2. CENTER: IMMERSIVE MEDIA CANVAS (Foto & 360 Showcase) ── */}
+        <main className="flex-1 flex flex-col bg-black relative overflow-hidden">
+          {/* Showcase Mode Switcher (Foto HD vs Tur 360°) */}
+          <div className="absolute top-4 left-4 z-30 flex items-center gap-1.5 bg-black/60 backdrop-blur-md p-1 rounded-2xl border border-white/20 shadow-lg">
+            <button
+              type="button"
+              onClick={() => setViewMode('photo')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                viewMode === 'photo'
+                  ? 'bg-brand-blue text-white shadow-sm'
+                  : 'text-white/70 hover:text-white'
+              }`}
+            >
+              <Camera size={13} />
+              <span>Foto HD ({spotPhotos.length})</span>
+            </button>
+
+            {panoramaList.length > 0 && (
               <button
                 type="button"
-                onClick={() => setIsLightboxOpen(true)}
-                className="absolute bottom-4 right-4 px-3 py-1.5 rounded-full bg-black/60 hover:bg-black/80 text-white text-xs font-semibold backdrop-blur-md border border-white/20 flex items-center gap-1.5 transition-colors"
+                onClick={() => setViewMode('360')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  viewMode === '360'
+                    ? 'bg-brand-lime text-black shadow-sm'
+                    : 'text-white/70 hover:text-white'
+                }`}
               >
-                <Maximize2 size={13} />
-                <span>Lihat Semua ({spotPhotos.length} Foto)</span>
+                <Compass size={13} className="animate-spin-slow" />
+                <span>Tur 360° ({panoramaList.length})</span>
               </button>
-            )}
-
-            {/* Prev / Next Arrows */}
-            {spotPhotos.length > 1 && (
-              <>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setActivePhotoIdx((prev) =>
-                      prev === 0 ? spotPhotos.length - 1 : prev - 1,
-                    )
-                  }
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-md transition-colors"
-                >
-                  <ChevronLeft size={18} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setActivePhotoIdx((prev) =>
-                      prev === spotPhotos.length - 1 ? 0 : prev + 1,
-                    )
-                  }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-md transition-colors"
-                >
-                  <ChevronRight size={18} />
-                </button>
-              </>
             )}
           </div>
 
-          {/* Thumbnail Strip */}
-          {spotPhotos.length > 1 && (
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-              {spotPhotos.map((photo, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => setActivePhotoIdx(idx)}
-                  className={`relative w-20 sm:w-24 aspect-[4/3] rounded-xl overflow-hidden shrink-0 border-2 transition-all ${
-                    activePhotoIdx === idx
-                      ? 'border-brand-blue shadow-xs scale-102 ring-2 ring-brand-blue/30'
-                      : 'border-transparent opacity-70 hover:opacity-100'
-                  }`}
-                >
-                  <img
-                    src={resolveAssetUrl(photo.url)}
-                    alt={`Thumbnail ${idx + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                  {photo.category?.toLowerCase().includes('kamar') && (
-                    <div className="absolute bottom-0 inset-x-0 bg-black/60 text-[9px] font-bold text-white text-center py-0.5 truncate px-1">
-                      Kamar
-                    </div>
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
-        </section>
+          {/* Center Showcase Content */}
+          <div className="flex-1 w-full h-full relative flex items-center justify-center">
+            {viewMode === '360' && panoramaList.length > 0 ? (
+              /* ── 360° INTERACTIVE PANORAMA VIEWER ── */
+              <div className="w-full h-full relative">
+                <div
+                  ref={panoramaContainerRef}
+                  className="w-full h-full cursor-grab active:cursor-grabbing"
+                />
 
-        {/* 2. SPOT INFO & BOOKING CARD GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-          {/* LEFT / MAIN COLUMN (Rincian Unit) */}
-          <div className="lg:col-span-2 space-y-6">
+                {/* 360 Control Overlay Hint */}
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/70 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-xs font-semibold text-white/90 flex items-center gap-2 pointer-events-none shadow-xl">
+                  <RotateCw size={14} className="text-brand-lime animate-spin" />
+                  <span>Geser layar / mouse untuk melihat 360°</span>
+                </div>
+
+                {/* 360 Scene Selector if multiple 360 scenes */}
+                {panoramaList.length > 1 && (
+                  <div className="absolute top-16 left-4 z-30 flex gap-2">
+                    {panoramaList.map((pano, idx) => (
+                      <button
+                        key={pano.id}
+                        type="button"
+                        onClick={() => setActivePanoramaIdx(idx)}
+                        className={`px-3 py-1 rounded-xl text-xs font-bold backdrop-blur-md border transition-all ${
+                          activePanoramaIdx === idx
+                            ? 'bg-brand-lime text-black border-brand-lime'
+                            : 'bg-black/60 text-white border-white/20 hover:bg-black/80'
+                        }`}
+                      >
+                        {pano.label || `Area ${idx + 1}`}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* ── HIGH DEFINITION PHOTO CAROUSEL ── */
+              <div className="w-full h-full relative flex items-center justify-center p-2 sm:p-6">
+                {spotPhotos.length > 0 ? (
+                  <img
+                    src={resolveAssetUrl(spotPhotos[activePhotoIdx]?.url)}
+                    alt={activeSpot.name}
+                    className="max-h-full max-w-full object-contain rounded-2xl shadow-2xl transition-all"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center gap-2 text-white/40">
+                    <Tent size={48} />
+                    <p className="text-xs">Foto belum tersedia</p>
+                  </div>
+                )}
+
+                {/* Photo Category Pill */}
+                {spotPhotos[activePhotoIdx]?.category && (
+                  <div className="absolute top-16 sm:top-6 right-4 sm:right-6">
+                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-black/70 text-white backdrop-blur-md border border-white/20">
+                      {spotPhotos[activePhotoIdx].category}
+                    </span>
+                  </div>
+                )}
+
+                {/* Left / Right Photo Arrows */}
+                {spotPhotos.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setActivePhotoIdx((prev) =>
+                          prev === 0 ? spotPhotos.length - 1 : prev - 1,
+                        )
+                      }
+                      className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-md border border-white/10 transition-colors shadow-lg"
+                    >
+                      <ChevronLeft size={22} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setActivePhotoIdx((prev) =>
+                          prev === spotPhotos.length - 1 ? 0 : prev + 1,
+                        )
+                      }
+                      className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-md border border-white/10 transition-colors shadow-lg"
+                    >
+                      <ChevronRight size={22} />
+                    </button>
+                  </>
+                )}
+
+                {/* Bottom Thumbnail Strip */}
+                {spotPhotos.length > 1 && (
+                  <div className="absolute bottom-4 inset-x-4 flex justify-center">
+                    <div className="flex items-center gap-2 bg-black/70 backdrop-blur-md p-1.5 rounded-2xl border border-white/20 max-w-md overflow-x-auto no-scrollbar">
+                      {spotPhotos.map((photo, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setActivePhotoIdx(idx)}
+                          className={`relative w-12 h-10 rounded-xl overflow-hidden shrink-0 border-2 transition-all ${
+                            activePhotoIdx === idx
+                              ? 'border-brand-lime scale-105'
+                              : 'border-transparent opacity-60 hover:opacity-100'
+                          }`}
+                        >
+                          <img
+                            src={resolveAssetUrl(photo.url)}
+                            alt={`Thumb ${idx}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Vertical Next/Prev Spot Floater (TikTok Up/Down Arrow Style) */}
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 z-30 hidden sm:flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={handlePrevSpot}
+              className="w-10 h-10 rounded-full bg-black/70 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-105"
+              title="Spot Sebelumnya"
+            >
+              <ChevronUp size={20} />
+            </button>
+            <button
+              type="button"
+              onClick={handleNextSpot}
+              className="w-10 h-10 rounded-full bg-black/70 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-105"
+              title="Spot Berikutnya"
+            >
+              <ChevronDown size={20} />
+            </button>
+          </div>
+        </main>
+
+        {/* ── 3. RIGHT PANEL: SPOT DETAILS & DIRECT BOOKING ACTION ── */}
+        <aside className="w-full sm:w-96 lg:w-96 shrink-0 bg-[#14141C] border-l border-white/10 flex flex-col overflow-hidden">
+          {/* Scrollable details */}
+          <div className="flex-1 overflow-y-auto p-5 space-y-5 no-scrollbar">
             {/* Header info */}
-            <div className="space-y-2 border-b border-border pb-6">
+            <div className="space-y-1.5 border-b border-white/10 pb-4">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-brand-blue/10 text-brand-blue border border-brand-blue/20">
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-brand-blue/20 text-brand-blue border border-brand-blue/40">
                   {activeSpot.tentType || 'Glamping'}
                 </span>
                 {activeSpot.blockNumber && (
-                  <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-surface text-foreground-muted border border-border">
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-white/10 text-white/80 border border-white/10">
                     Kavling {activeSpot.blockNumber}
                   </span>
                 )}
                 {activeSpot.isEmbunPlus && (
-                  <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500 text-white shadow-2xs flex items-center gap-1">
-                    <Star size={11} className="fill-white" /> Rekomendasi
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white flex items-center gap-1 shadow-xs">
+                    <Star size={10} className="fill-white" /> Favorit
                   </span>
                 )}
               </div>
 
-              <h1 className="text-2xl sm:text-3xl font-black font-serif text-foreground tracking-tight">
+              <h2 className="text-xl font-bold font-serif text-white tracking-tight">
                 {activeSpot.name}
-              </h1>
-
-              {/* Campsite & Location */}
-              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-sm text-foreground-muted">
-                <span className="font-semibold text-foreground">
-                  {campsite.name}
-                </span>
-                {campsite.rating && campsite.rating > 0 && (
-                  <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-700 dark:text-amber-400 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                    <Star size={12} className="fill-amber-500 text-amber-500" />
-                    {campsite.rating.toFixed(1)}{' '}
-                    {campsite.reviewCount ? `(${campsite.reviewCount} ulasan)` : ''}
-                  </span>
-                )}
-              </div>
-
-              {campsite.address && (
-                <p className="text-xs text-foreground-muted flex items-start gap-1 pt-1">
-                  <MapPin size={14} className="text-brand-blue shrink-0 mt-0.5" />
-                  <span>{campsite.address}</span>
-                </p>
-              )}
+              </h2>
+              <p className="text-xs text-white/60">{campsite.name}</p>
             </div>
 
-            {/* Key Unit Specs Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-surface p-4 rounded-2xl border border-border">
-              <div className="space-y-1">
-                <p className="text-[11px] font-bold text-foreground-muted uppercase">
-                  Kapasitas
+            {/* Price Box */}
+            <div className="p-4 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
+              <div>
+                <p className="text-[11px] text-white/50">Tarif Sewa Mulai</p>
+                <p className="text-xl font-black text-brand-lime">
+                  {rupiah(startingPrice)}
+                  <span className="text-[11px] font-normal text-white/60">
+                    {' '}
+                    / malam
+                  </span>
                 </p>
-                <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                  <Users size={14} className="text-brand-blue" />
+              </div>
+              <span className="text-[10px] font-bold px-2 py-1 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                Bisa DP 50%
+              </span>
+            </div>
+
+            {/* Quick Specs */}
+            <div className="grid grid-cols-2 gap-2.5 text-xs">
+              <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
+                <span className="text-[10px] font-bold text-white/50 uppercase">
+                  Kapasitas
+                </span>
+                <p className="font-semibold text-white flex items-center gap-1.5">
+                  <Users size={14} className="text-brand-lime" />
                   Maks. {activeSpot.maxCapacity || 1} Orang
                 </p>
               </div>
 
-              <div className="space-y-1">
-                <p className="text-[11px] font-bold text-foreground-muted uppercase">
-                  Tipe Kasur
-                </p>
-                <p className="text-xs font-bold text-foreground flex items-center gap-1.5 truncate">
-                  <BedDouble size={14} className="text-brand-blue shrink-0" />
+              <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
+                <span className="text-[10px] font-bold text-white/50 uppercase">
+                  Kasur
+                </span>
+                <p className="font-semibold text-white truncate flex items-center gap-1.5">
+                  <BedDouble size={14} className="text-brand-lime shrink-0" />
                   <span className="truncate">
                     {activeSpot.bedType || 'Bawa Sendiri'}
                   </span>
                 </p>
               </div>
 
-              <div className="space-y-1">
-                <p className="text-[11px] font-bold text-foreground-muted uppercase">
-                  Ukuran Spot
-                </p>
-                <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                  <Layers size={14} className="text-brand-blue" />
+              <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
+                <span className="text-[10px] font-bold text-white/50 uppercase">
+                  Ukuran
+                </span>
+                <p className="font-semibold text-white">
                   {activeSpot.roomSize || 'Standar'}
                 </p>
               </div>
 
-              <div className="space-y-1">
-                <p className="text-[11px] font-bold text-foreground-muted uppercase">
+              <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
+                <span className="text-[10px] font-bold text-white/50 uppercase">
                   Pemandangan
-                </p>
-                <p className="text-xs font-bold text-foreground truncate">
+                </span>
+                <p className="font-semibold text-white truncate">
                   {activeSpot.viewOptions?.[0] || 'Nuansa Alam'}
                 </p>
               </div>
             </div>
 
-            {/* Pilihan Paket Harga */}
-            <div className="space-y-3 pt-2">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-foreground-muted">
-                Pilihan Paket Menginap
-              </h3>
-
-              {Array.isArray(activeSpot.pricingPackages) &&
-              activeSpot.pricingPackages.length > 0 ? (
-                <div className="space-y-3">
-                  {activeSpot.pricingPackages.map((pkg, idx) => (
-                    <div
-                      key={pkg.id || idx}
-                      className="p-4 rounded-2xl bg-white border border-border shadow-2xs hover:border-brand-blue/40 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-                    >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-bold text-sm text-foreground">
-                            {pkg.name}
-                          </h4>
-                          {idx === 0 && (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-blue/10 text-brand-blue">
-                              Paling Populer
-                            </span>
+            {/* Paket Harga */}
+            {Array.isArray(activeSpot.pricingPackages) &&
+              activeSpot.pricingPackages.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs font-bold uppercase tracking-wider text-white/60">
+                    Pilihan Paket Harga:
+                  </p>
+                  <div className="space-y-2">
+                    {activeSpot.pricingPackages.map((pkg, idx) => (
+                      <div
+                        key={idx}
+                        className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between text-xs"
+                      >
+                        <div>
+                          <p className="font-bold text-white">{pkg.name}</p>
+                          {pkg.description && (
+                            <p className="text-[11px] text-white/50 truncate max-w-[180px]">
+                              {pkg.description}
+                            </p>
                           )}
                         </div>
-                        {pkg.description && (
-                          <p className="text-xs text-foreground-muted leading-relaxed">
-                            {pkg.description}
-                          </p>
-                        )}
-                        <div className="flex items-center gap-3 text-[11px] text-foreground-muted pt-0.5">
-                          <span>Maks. {pkg.maxOccupancy || activeSpot.maxCapacity} tamu</span>
-                          {pkg.minGuestCount ? (
-                            <span>· Min. {pkg.minGuestCount} malam</span>
-                          ) : null}
-                        </div>
-                      </div>
-
-                      <div className="text-left sm:text-right shrink-0">
-                        <p className="text-sm font-black text-brand-blue">
+                        <p className="font-black text-brand-lime">
                           {pkg.flatRateMode
                             ? rupiah(pkg.flatRate)
                             : rupiah(pkg.weekdayRate)}
-                          <span className="text-[10px] font-normal text-foreground-muted">
-                            /malam
-                          </span>
                         </p>
-                        {!pkg.flatRateMode && pkg.weekendRate && (
-                          <p className="text-[10px] text-foreground-muted">
-                            Weekend: {rupiah(pkg.weekendRate)}
-                          </p>
-                        )}
                       </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="p-4 rounded-2xl bg-white border border-border shadow-2xs flex items-center justify-between">
-                  <div>
-                    <h4 className="font-bold text-sm text-foreground">
-                      Paket Standar {activeSpot.name}
-                    </h4>
-                    <p className="text-xs text-foreground-muted">
-                      Menginap 1 malam (Kapasitas hingga {activeSpot.maxCapacity} orang)
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-black text-brand-blue">
-                      {rupiah(activeSpot.weekdayPrice)}
-                      <span className="text-[10px] font-normal text-foreground-muted">
-                        /malam
-                      </span>
-                    </p>
+                    ))}
                   </div>
                 </div>
               )}
-            </div>
 
             {/* Fasilitas Unit */}
             {Array.isArray(activeSpot.facilities) &&
               activeSpot.facilities.length > 0 && (
-                <div className="space-y-3 pt-2">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-foreground-muted">
-                    Fasilitas Unit
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
+                <div className="space-y-2">
+                  <p className="text-xs font-bold uppercase tracking-wider text-white/60">
+                    Fasilitas Unit:
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
                     {activeSpot.facilities.map((fac, idx) => (
                       <span
                         key={idx}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface border border-border text-xs font-semibold text-foreground"
+                        className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] text-white/80 flex items-center gap-1"
                       >
-                        <Check size={13} className="text-emerald-600" />
+                        <Check size={11} className="text-emerald-400" />
                         {fac}
                       </span>
                     ))}
@@ -718,373 +1042,68 @@ export function SpotRedirectClient() {
                 </div>
               )}
 
-            {/* Tentang Properti Campsite */}
-            <div className="space-y-3 pt-4 border-t border-border">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-foreground-muted">
-                Tentang {campsite.name}
-              </h3>
-              {campsite.description && (
-                <p className="text-xs sm:text-sm text-foreground-muted leading-relaxed whitespace-pre-line">
-                  {campsite.description}
-                </p>
-              )}
-
-              {/* Fasilitas Umum Campsite */}
-              {Array.isArray(campsite.facilities) &&
-                campsite.facilities.length > 0 && (
-                  <div className="pt-2">
-                    <p className="text-xs font-bold text-foreground mb-2">
-                      Fasilitas Umum Properti:
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {campsite.facilities.map((fac) => (
-                        <span
-                          key={fac.id}
-                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-border text-xs font-medium text-foreground-muted shadow-2xs"
-                        >
-                          <Sparkles size={12} className="text-brand-blue" />
-                          {fac.name}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-              {/* Jam Check-in / Out */}
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <div className="p-3 rounded-xl bg-surface border border-border text-xs space-y-0.5">
-                  <span className="text-foreground-muted flex items-center gap-1">
-                    <Clock size={13} /> Check-in Mulai
-                  </span>
-                  <p className="font-bold text-foreground">
-                    {campsite.checkInTime || '14:00 WIB'}
+            {/* Fasilitas Campsite */}
+            {Array.isArray(campsite.facilities) &&
+              campsite.facilities.length > 0 && (
+                <div className="space-y-2 pt-2 border-t border-white/10">
+                  <p className="text-xs font-bold uppercase tracking-wider text-white/60">
+                    Fasilitas Umum Campsite:
                   </p>
-                </div>
-                <div className="p-3 rounded-xl bg-surface border border-border text-xs space-y-0.5">
-                  <span className="text-foreground-muted flex items-center gap-1">
-                    <Clock size={13} /> Check-out Maksimal
-                  </span>
-                  <p className="font-bold text-foreground">
-                    {campsite.checkOutTime || '12:00 WIB'}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* RIGHT COLUMN (Desktop Sticky Booking Action Card) */}
-          <div className="hidden lg:block lg:sticky lg:top-24 space-y-4">
-            <div className="p-6 rounded-3xl bg-white border border-border shadow-soft space-y-5">
-              <div>
-                <p className="text-xs text-foreground-muted">Tarif Sewa Mulai</p>
-                <div className="flex items-baseline gap-1 mt-0.5">
-                  <span className="text-2xl font-black text-brand-blue">
-                    {rupiah(startingPrice)}
-                  </span>
-                  <span className="text-xs text-foreground-muted">/ malam</span>
-                </div>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-surface border border-border space-y-2 text-xs">
-                <div className="flex items-center justify-between text-foreground-muted">
-                  <span>Unit:</span>
-                  <span className="font-bold text-foreground">
-                    {activeSpot.name}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-foreground-muted">
-                  <span>Kapasitas:</span>
-                  <span className="font-semibold text-foreground">
-                    Hingga {activeSpot.maxCapacity} Orang
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-foreground-muted">
-                  <span>Metode DP:</span>
-                  <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                    Bisa DP 50%
-                  </span>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleOpenApp}
-                className="w-full py-3.5 rounded-2xl bg-brand-blue hover:bg-brand-blue-hover text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 group cursor-pointer"
-              >
-                <span>Pesan Sekarang di Embun App</span>
-                <ArrowRight
-                  size={16}
-                  className="transition-transform group-hover:translate-x-1"
-                />
-              </button>
-
-              <div className="grid grid-cols-2 gap-2 pt-1 border-t border-border">
-                <button
-                  type="button"
-                  onClick={handleShareWhatsApp}
-                  className="py-2.5 rounded-xl border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  <Share2 size={13} />
-                  <span>WhatsApp</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCopyLink}
-                  className="py-2.5 rounded-xl border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  {copied ? (
-                    <Check size={13} className="text-emerald-600" />
-                  ) : (
-                    <Copy size={13} />
-                  )}
-                  <span>{copied ? 'Tersalin!' : 'Salin Link'}</span>
-                </button>
-              </div>
-
-              {/* Trust Badge */}
-              <div className="flex items-center justify-center gap-1.5 text-[11px] text-foreground-muted text-center pt-1">
-                <ShieldCheck size={14} className="text-emerald-600" />
-                <span>Transaksi Resmi & Terproteksi Embun</span>
-              </div>
-            </div>
-
-            {/* App Store Links */}
-            <div className="p-4 rounded-2xl bg-surface border border-border text-center space-y-2">
-              <p className="text-xs font-semibold text-foreground">
-                Belum punya aplikasi Embun?
-              </p>
-              <div className="flex items-center justify-center gap-2">
-                <a
-                  href={GOOGLE_PLAY_HREF}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3 py-1.5 rounded-xl bg-white border border-border text-[11px] font-bold text-foreground hover:border-brand-blue transition-colors shadow-2xs"
-                >
-                  Google Play
-                </a>
-                <a
-                  href={APP_STORE_HREF}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3 py-1.5 rounded-xl bg-white border border-border text-[11px] font-bold text-foreground hover:border-brand-blue transition-colors shadow-2xs"
-                >
-                  App Store
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 3. SECTION: JELAJAHI UNIT LAIN DI CAMPSITE INI */}
-        {campsite.blocks && campsite.blocks.length > 1 && (
-          <section className="space-y-4 pt-6 border-t border-border">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-base sm:text-lg font-bold font-serif text-foreground">
-                  Pilihan Unit Lain di {campsite.name}
-                </h3>
-                <p className="text-xs text-foreground-muted">
-                  Klik unit di bawah untuk langsung melihat rincian foto & harga
-                </p>
-              </div>
-              <span className="text-xs font-bold text-foreground-muted">
-                {campsite.blocks.length} Unit
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {campsite.blocks.map((spot) => {
-                const isSelected = spot.id === activeSpot.id;
-                const spotCover =
-                  spot.photos?.find(
-                    (p) =>
-                      p.category === 'Kamar Utama / Tenda' ||
-                      p.category?.toLowerCase().includes('utama') ||
-                      p.category?.toLowerCase().includes('kamar'),
-                  )?.url ||
-                  spot.photos?.[0]?.url ||
-                  spot.images?.[0];
-
-                return (
-                  <button
-                    key={spot.id}
-                    type="button"
-                    onClick={() => {
-                      setActiveSpot(spot);
-                      setActivePhotoIdx(0);
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                    className={`p-3 rounded-2xl border text-left transition-all flex items-center gap-3 group cursor-pointer ${
-                      isSelected
-                        ? 'bg-brand-blue/5 border-brand-blue ring-2 ring-brand-blue/20 shadow-xs'
-                        : 'bg-white border-border hover:border-brand-blue/40 shadow-2xs'
-                    }`}
-                  >
-                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-surface shrink-0 border border-border">
-                      {spotCover ? (
-                        <img
-                          src={resolveAssetUrl(spotCover)}
-                          alt={spot.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-foreground-muted">
-                          <Tent size={20} />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="min-w-0 flex-1 space-y-0.5">
-                      <div className="flex items-center gap-1.5">
-                        <p className="font-bold text-xs text-foreground truncate">
-                          {spot.name}
-                        </p>
-                        {spot.isEmbunPlus && (
-                          <Star
-                            size={11}
-                            className="fill-amber-500 text-amber-500 shrink-0"
-                          />
-                        )}
-                      </div>
-                      <p className="text-[11px] text-foreground-muted truncate">
-                        {spot.tentType || 'Glamping'} · Maks. {spot.maxCapacity}{' '}
-                        org
-                      </p>
-                      <p className="text-xs font-black text-brand-blue pt-0.5">
-                        {rupiah(spot.weekdayPrice)}
-                      </p>
-                    </div>
-
-                    {isSelected ? (
-                      <span className="w-6 h-6 rounded-full bg-brand-blue text-white flex items-center justify-center shrink-0">
-                        <Check size={12} />
+                  <div className="flex flex-wrap gap-1.5">
+                    {campsite.facilities.map((fac) => (
+                      <span
+                        key={fac.id}
+                        className="px-2.5 py-1 rounded-lg bg-white/5 text-[11px] text-white/70 flex items-center gap-1"
+                      >
+                        <Sparkles size={11} className="text-brand-lime" />
+                        {fac.name}
                       </span>
-                    ) : (
-                      <ChevronRight
-                        size={16}
-                        className="text-foreground-muted group-hover:text-foreground shrink-0"
-                      />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-        )}
-      </main>
+                    ))}
+                  </div>
+                </div>
+              )}
+          </div>
 
-      {/* ═══ STICKY FLOATING BOTTOM BAR (MOBILE ONLY) ═══ */}
-      <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-border p-3.5 px-4 flex items-center justify-between gap-3 shadow-xl">
-        <div>
-          <p className="text-[10px] text-foreground-muted">Mulai dari</p>
-          <p className="text-base font-black text-brand-blue">
-            {rupiah(startingPrice)}
-            <span className="text-[10px] font-normal text-foreground-muted">
-              /mlm
-            </span>
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={handleShareWhatsApp}
-            className="p-2.5 rounded-xl border border-border bg-surface text-foreground hover:bg-surface-variant transition-colors"
-            title="Bagikan"
-          >
-            <Share2 size={16} />
-          </button>
-          <button
-            type="button"
-            onClick={handleOpenApp}
-            className="px-5 py-2.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5"
-          >
-            <span>Pesan di App</span>
-            <ArrowRight size={13} />
-          </button>
-        </div>
-      </div>
-
-      {/* ═══ LIGHTBOX MODAL (FULLSCREEN GALLERY) ═══ */}
-      {isLightboxOpen && (
-        <div className="fixed inset-0 z-50 bg-black/95 flex flex-col justify-between p-4 sm:p-6 animate-in fade-in duration-200">
-          <div className="flex items-center justify-between text-white pb-3 border-b border-white/10">
-            <div>
-              <h3 className="font-bold text-sm sm:text-base">
-                {activeSpot.name}
-              </h3>
-              <p className="text-xs text-white/60">
-                Foto {activePhotoIdx + 1} dari {spotPhotos.length} ·{' '}
-                {spotPhotos[activePhotoIdx]?.category || 'Galeri'}
-              </p>
-            </div>
+          {/* Sticky Bottom Action Box inside Right Panel */}
+          <div className="p-4 border-t border-white/10 bg-[#121218] space-y-2.5 shrink-0">
             <button
               type="button"
-              onClick={() => setIsLightboxOpen(false)}
-              className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+              onClick={handleOpenApp}
+              className="w-full py-3.5 rounded-2xl bg-brand-blue hover:bg-brand-blue-hover text-white font-bold text-xs shadow-lg transition-all flex items-center justify-center gap-2 group cursor-pointer"
             >
-              <X size={20} />
+              <Smartphone size={16} />
+              <span>Buka & Pesan di Aplikasi Embun</span>
+              <ArrowRight
+                size={14}
+                className="transition-transform group-hover:translate-x-1"
+              />
             </button>
-          </div>
 
-          <div className="relative flex-1 flex items-center justify-center my-4 overflow-hidden">
-            <img
-              src={resolveAssetUrl(spotPhotos[activePhotoIdx]?.url)}
-              alt="Fullscreen Preview"
-              className="max-h-full max-w-full object-contain rounded-xl"
-            />
-
-            {spotPhotos.length > 1 && (
-              <>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setActivePhotoIdx((prev) =>
-                      prev === 0 ? spotPhotos.length - 1 : prev - 1,
-                    )
-                  }
-                  className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center backdrop-blur-md transition-colors"
-                >
-                  <ChevronLeft size={22} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setActivePhotoIdx((prev) =>
-                      prev === spotPhotos.length - 1 ? 0 : prev + 1,
-                    )
-                  }
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center backdrop-blur-md transition-colors"
-                >
-                  <ChevronRight size={22} />
-                </button>
-              </>
-            )}
-          </div>
-
-          {/* Thumbnail preview strip in lightbox */}
-          <div className="flex items-center justify-center gap-2 overflow-x-auto no-scrollbar py-2 border-t border-white/10">
-            {spotPhotos.map((photo, idx) => (
+            <div className="grid grid-cols-2 gap-2">
               <button
-                key={idx}
                 type="button"
-                onClick={() => setActivePhotoIdx(idx)}
-                className={`relative w-14 sm:w-16 aspect-[4/3] rounded-lg overflow-hidden shrink-0 border-2 transition-all ${
-                  activePhotoIdx === idx
-                    ? 'border-brand-lime scale-105'
-                    : 'border-transparent opacity-50 hover:opacity-100'
-                }`}
+                onClick={handleShareWhatsApp}
+                className="py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
               >
-                <img
-                  src={resolveAssetUrl(photo.url)}
-                  alt={`Thumb ${idx}`}
-                  className="w-full h-full object-cover"
-                />
+                <Share2 size={13} />
+                <span>WhatsApp</span>
               </button>
-            ))}
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                className="py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              >
+                {copied ? (
+                  <Check size={13} className="text-emerald-400" />
+                ) : (
+                  <Copy size={13} />
+                )}
+                <span>{copied ? 'Tersalin!' : 'Salin Link'}</span>
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        </aside>
+      </div>
     </div>
   );
 }
