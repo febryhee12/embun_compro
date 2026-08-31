@@ -24,6 +24,9 @@ export function ExploreHeader({
   availableCities,
 }: ExploreHeaderProps) {
   const [isCityModalOpen, setIsCityModalOpen] = useState(false);
+  const [citySearchQuery, setCitySearchQuery] = useState('');
+  const [geoLoading, setGeoLoading] = useState(false);
+  const [geoError, setGeoError] = useState<string | null>(null);
 
   const cityOptions = React.useMemo(() => {
     if (Array.isArray(availableCities) && availableCities.length > 0) {
@@ -31,6 +34,45 @@ export function ExploreHeader({
     }
     return ['Semua Lokasi', 'Bandung', 'Pangandaran', 'Bogor'];
   }, [availableCities]);
+
+  const filteredCityOptions = React.useMemo(() => {
+    if (!citySearchQuery.trim()) return cityOptions;
+    const q = citySearchQuery.toLowerCase();
+    return cityOptions.filter(
+      (c) => c.toLowerCase().includes(q) || c === 'Semua Lokasi',
+    );
+  }, [cityOptions, citySearchQuery]);
+
+  const handleGetCurrentLocation = () => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setGeoError('Perangkat tidak mendukung deteksi lokasi.');
+      return;
+    }
+
+    setGeoLoading(true);
+    setGeoError(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setGeoLoading(false);
+        // Default to Bandung if coordinates are nearby West Java
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        // Check closest city or default
+        let matched = 'Bandung';
+        if (lat < -7.3 && lng > 108.3) {
+          matched = 'Pangandaran';
+        }
+        onSelectCity(matched);
+        setIsCityModalOpen(false);
+      },
+      (err) => {
+        setGeoLoading(false);
+        setGeoError('Izin akses lokasi ditolak atau tidak tersedia.');
+      },
+      { timeout: 8000 },
+    );
+  };
 
   return (
     <>
@@ -54,7 +96,11 @@ export function ExploreHeader({
               {/* City Filter Trigger */}
               <button
                 type="button"
-                onClick={() => setIsCityModalOpen(true)}
+                onClick={() => {
+                  setCitySearchQuery('');
+                  setGeoError(null);
+                  setIsCityModalOpen(true);
+                }}
                 className="px-3 py-1 text-left font-semibold text-foreground truncate hover:text-brand-blue transition-colors flex-1 flex items-center gap-1.5 cursor-pointer outline-none"
               >
                 <MapPin size={13} className="text-brand-blue shrink-0" />
@@ -116,12 +162,12 @@ export function ExploreHeader({
         </div>
 
         {/* Mobile Search Bar (under logo) */}
-        <div className="md:hidden px-4 pb-3">
-          <div className="flex items-center gap-2 border border-border rounded-full py-2.5 px-4 shadow-2xs bg-surface text-xs focus-within:ring-2 focus-within:ring-brand-blue/30 focus-within:border-brand-blue focus-within:bg-white transition-all">
+        <div className="md:hidden px-4 pb-3 flex items-center gap-2">
+          <div className="flex-1 flex items-center gap-2 border border-border rounded-full py-2.5 px-4 shadow-2xs bg-surface text-xs focus-within:ring-2 focus-within:ring-brand-blue/30 focus-within:border-brand-blue focus-within:bg-white transition-all">
             <Search size={15} className="text-brand-blue shrink-0" />
             <input
               type="text"
-              placeholder="Cari tempat camping, glamping, kabin..."
+              placeholder="Cari spot, glamping, area..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               style={{ outline: 'none', border: 'none', boxShadow: 'none' }}
@@ -138,13 +184,30 @@ export function ExploreHeader({
               </button>
             )}
           </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setCitySearchQuery('');
+              setGeoError(null);
+              setIsCityModalOpen(true);
+            }}
+            className={`px-3.5 py-2.5 rounded-full border text-xs font-semibold shrink-0 transition-all flex items-center gap-1 cursor-pointer ${
+              selectedCity
+                ? 'bg-brand-blue text-white border-brand-blue font-bold shadow-2xs'
+                : 'bg-surface hover:bg-surface-variant text-foreground border-border'
+            }`}
+          >
+            <MapPin size={13} className={selectedCity ? 'text-white' : 'text-brand-blue'} />
+            <span className="max-w-[70px] truncate">{selectedCity || 'Lokasi'}</span>
+          </button>
         </div>
       </header>
 
       {/* ── Modal Pilih Destinasi / Kota ── */}
       {isCityModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-sm bg-white text-foreground rounded-3xl shadow-2xl border border-border p-6 space-y-4 animate-in zoom-in-95 duration-200">
+          <div className="w-full max-w-sm bg-white text-foreground rounded-3xl shadow-2xl border border-border p-5 sm:p-6 space-y-4 animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between pb-2 border-b border-border">
               <h3 className="font-bold text-sm text-foreground flex items-center gap-1.5">
                 <MapPin size={15} className="text-brand-blue" />
@@ -159,8 +222,49 @@ export function ExploreHeader({
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 pt-1">
-              {cityOptions.map((city) => {
+            {/* GPS Location Button */}
+            <button
+              type="button"
+              disabled={geoLoading}
+              onClick={handleGetCurrentLocation}
+              className="w-full py-2.5 px-3.5 rounded-2xl bg-brand-blue/10 hover:bg-brand-blue/20 text-brand-blue text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer border border-brand-blue/20"
+            >
+              <MapPin size={14} className={geoLoading ? 'animate-bounce' : ''} />
+              <span>
+                {geoLoading ? 'Mendeteksi Lokasi Anda...' : 'Gunakan Lokasi Saat Ini (Cek GPS)'}
+              </span>
+            </button>
+
+            {geoError && (
+              <p className="text-[11px] text-red-500 font-semibold text-center">
+                {geoError}
+              </p>
+            )}
+
+            {/* Search City Input */}
+            <div className="flex items-center gap-2 border border-border rounded-2xl py-2 px-3 bg-surface text-xs focus-within:ring-2 focus-within:ring-brand-blue/30 focus-within:bg-white transition-all">
+              <Search size={14} className="text-foreground-muted shrink-0" />
+              <input
+                type="text"
+                placeholder="Cari nama kota atau wilayah..."
+                value={citySearchQuery}
+                onChange={(e) => setCitySearchQuery(e.target.value)}
+                className="w-full bg-transparent text-xs text-foreground placeholder:text-foreground-muted outline-none border-none ring-0 p-0"
+              />
+              {citySearchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setCitySearchQuery('')}
+                  className="p-0.5 text-foreground-muted hover:text-foreground"
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+
+            {/* City Options Grid */}
+            <div className="grid grid-cols-2 gap-2 pt-1 max-h-56 overflow-y-auto no-scrollbar">
+              {filteredCityOptions.map((city) => {
                 const isSelected =
                   (selectedCity || 'Semua Lokasi') === city ||
                   (!selectedCity && city === 'Semua Lokasi');
@@ -178,8 +282,8 @@ export function ExploreHeader({
                         : 'bg-surface hover:bg-surface-variant text-foreground border border-border/80'
                     }`}
                   >
-                    <span>{city}</span>
-                    {isSelected && <Check size={13} className="shrink-0" />}
+                    <span className="truncate">{city}</span>
+                    {isSelected && <Check size={13} className="shrink-0 ml-1" />}
                   </button>
                 );
               })}
