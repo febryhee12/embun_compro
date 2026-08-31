@@ -11,18 +11,8 @@ interface ExploreHeaderProps {
   onSearchChange: (q: string) => void;
   selectedCity: string;
   onSelectCity: (city: string) => void;
+  availableCities?: string[];
 }
-
-const POPULAR_CITIES = [
-  'Semua Lokasi',
-  'Bogor',
-  'Bandung',
-  'Lembang',
-  'Sukabumi',
-  'Subang',
-  'Yogyakarta',
-  'Bali',
-];
 
 export function ExploreHeader({
   onOpenAuth,
@@ -31,8 +21,16 @@ export function ExploreHeader({
   onSearchChange,
   selectedCity,
   onSelectCity,
+  availableCities,
 }: ExploreHeaderProps) {
   const [isCityModalOpen, setIsCityModalOpen] = useState(false);
+
+  const cityOptions = React.useMemo(() => {
+    if (Array.isArray(availableCities) && availableCities.length > 0) {
+      return availableCities.map((c) => (c === 'Semua' ? 'Semua Lokasi' : c));
+    }
+    return ['Semua Lokasi', 'Bandung', 'Pangandaran', 'Bogor'];
+  }, [availableCities]);
 
   return (
     <>
@@ -162,7 +160,7 @@ export function ExploreHeader({
             </div>
 
             <div className="grid grid-cols-2 gap-2 pt-1">
-              {POPULAR_CITIES.map((city) => {
+              {cityOptions.map((city) => {
                 const isSelected =
                   (selectedCity || 'Semua Lokasi') === city ||
                   (!selectedCity && city === 'Semua Lokasi');

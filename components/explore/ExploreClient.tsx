@@ -202,6 +202,34 @@ export function ExploreClient() {
     return '';
   };
 
+  // Format dynamic location string: e.g. "KABUPATEN BANDUNG" -> "Bandung"
+  const formatLocationName = (raw?: string): string => {
+    if (!raw) return '';
+    let clean = raw.trim();
+    clean = clean.replace(/^(KABUPATEN|KOTA|KAB\.|KEC\.)\s+/i, '');
+    return clean
+      .toLowerCase()
+      .split(' ')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+  };
+
+  // Dynamic Kabupatens list extracted directly from live API campsites
+  const availableKabupatens = useMemo(() => {
+    const list: string[] = ['Semua'];
+    const seen = new Set<string>();
+
+    campsites.forEach((c) => {
+      const loc = formatLocationName(c.city || c.address || '');
+      if (loc && !seen.has(loc.toLowerCase())) {
+        seen.add(loc.toLowerCase());
+        list.push(loc);
+      }
+    });
+
+    return list;
+  }, [campsites]);
+
   // Section 1: Embun Plus (Paling Atas) - True Embun Plus units only
   const embunPlusSpots = useMemo(() => {
     return allSpots.filter((s) => s.isEmbunPlus);
@@ -213,19 +241,22 @@ export function ExploreClient() {
     return nonPlus.length > 0 ? nonPlus.slice(0, 4) : allSpots.slice(0, 4);
   }, [allSpots]);
 
-  // Section 3: Populer di Kabupaten
+  // Section 3: Populer di Kabupaten (Dynamic from API)
   const kabupatenSpots = useMemo(() => {
     if (activeKabupaten === 'Semua') return allSpots;
     const target = activeKabupaten.toLowerCase();
-    return allSpots.filter(
-      (s) =>
-        (s.campsite.address &&
-          s.campsite.address.toLowerCase().includes(target)) ||
-        (s.campsite.city &&
-          s.campsite.city.toLowerCase().includes(target)) ||
-        (s.campsite.name &&
-          s.campsite.name.toLowerCase().includes(target)),
-    );
+    return allSpots.filter((s) => {
+      const formattedCity = formatLocationName(s.campsite.city || '').toLowerCase();
+      const rawCity = (s.campsite.city || '').toLowerCase();
+      const address = (s.campsite.address || '').toLowerCase();
+      const name = (s.campsite.name || '').toLowerCase();
+      return (
+        formattedCity.includes(target) ||
+        rawCity.includes(target) ||
+        address.includes(target) ||
+        name.includes(target)
+      );
+    });
   }, [allSpots, activeKabupaten]);
 
   // Section 5: Spot Lainnya
@@ -254,6 +285,7 @@ export function ExploreClient() {
         onSearchChange={setSearchQuery}
         selectedCity={selectedCity}
         onSelectCity={setSelectedCity}
+        availableCities={availableKabupatens}
       />
 
       {/* ═══ 2. CATEGORY ICON BAR ═══ */}
@@ -425,15 +457,9 @@ export function ExploreClient() {
                   </p>
                 </div>
 
-                {/* Kabupaten Filter Tabs */}
+                {/* Kabupaten Filter Tabs (Dynamic from API) */}
                 <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-                  {[
-                    'Semua',
-                    'Lembang',
-                    'Bogor',
-                    'Sukabumi',
-                    'Subang',
-                  ].map((kab) => {
+                  {availableKabupatens.map((kab) => {
                     const isKabSelected = activeKabupaten === kab;
                     return (
                       <button
