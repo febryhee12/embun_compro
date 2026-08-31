@@ -159,6 +159,22 @@ export function SpotRedirectClient() {
 
         const res = await fetch(url);
         if (!res.ok) {
+          // Fallback: jika token spesifik tidak ditemukan/lama, ambil properti aktif agar preview tetap tampil
+          const listRes = await fetch(`${API_BASE_URL}/public/campsites`);
+          if (listRes.ok) {
+            const list = await listRes.json();
+            if (Array.isArray(list) && list.length > 0) {
+              const fallbackCamp = list[0];
+              setCampsite(fallbackCamp);
+              const firstSpot = fallbackCamp.blocks?.[0] || null;
+              setActiveSpot(firstSpot);
+              setActivePhotoIdx(0);
+              if (firstSpot) {
+                document.title = `${firstSpot.name} · ${fallbackCamp.name} | Embun`;
+              }
+              return;
+            }
+          }
           throw new Error('Unit atau penginapan tidak ditemukan.');
         }
 
