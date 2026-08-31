@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     siteName: 'Embun',
     images: [
       {
-        url: 'https://embun.app/images/app-hero-mockup.jpg',
+        url: 'https://media-staging.embun.app/campsites/51f7987e-2632-4bfa-bfc6-302c782bb81d/1348dba5-1a61-4274-b0e8-d17ba2540a15.jpg',
         width: 1200,
         height: 630,
         alt: 'Embun Campsite Preview',
@@ -28,7 +28,9 @@ export const metadata: Metadata = {
     title: 'Embun — Booking Campsite & Glamping Pilihan',
     description:
       'Jelajahi dan pesan unit kamar, kabin, glamping, dan kavling tenda terbaik di Indonesia lewat aplikasi Embun.',
-    images: ['https://embun.app/images/app-hero-mockup.jpg'],
+    images: [
+      'https://media-staging.embun.app/campsites/51f7987e-2632-4bfa-bfc6-302c782bb81d/1348dba5-1a61-4274-b0e8-d17ba2540a15.jpg',
+    ],
   },
   robots: { index: true, follow: true },
 };
