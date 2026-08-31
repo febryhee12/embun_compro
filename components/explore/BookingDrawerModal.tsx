@@ -164,12 +164,43 @@ export function BookingDrawerModal({
     )}`;
   };
 
+  // Calculate starting price from packages / rates
+  const startingPrice = React.useMemo(() => {
+    if (
+      Array.isArray((spot as any).pricingPackages) &&
+      (spot as any).pricingPackages.length > 0
+    ) {
+      const prices: number[] = [];
+      (spot as any).pricingPackages.forEach((pkg: any) => {
+        if (pkg.flatRateMode && pkg.flatRate && Number(pkg.flatRate) > 0) {
+          prices.push(Number(pkg.flatRate));
+        } else if (pkg.weekdayRate && Number(pkg.weekdayRate) > 0) {
+          prices.push(Number(pkg.weekdayRate));
+        } else if (pkg.weekendRate && Number(pkg.weekendRate) > 0) {
+          prices.push(Number(pkg.weekendRate));
+        } else if (pkg.flatRate && Number(pkg.flatRate) > 0) {
+          prices.push(Number(pkg.flatRate));
+        }
+      });
+      if (prices.length > 0) {
+        return Math.min(...prices);
+      }
+    }
+    if (spot.weekdayPrice && Number(spot.weekdayPrice) > 0) {
+      return Number(spot.weekdayPrice);
+    }
+    if (spot.weekendPrice && Number(spot.weekendPrice) > 0) {
+      return Number(spot.weekendPrice);
+    }
+    return 0;
+  }, [spot]);
+
   const handleShareWhatsApp = () => {
     const shareUrl = `https://link.embun.app/spot/${spot.shareCode || spot.id}`;
     const text = `Halo! Lihat penginapan ${spot.name} di ${
       spot.campsite.name
-    }. Tarif mulai ${rupiah(
-      spot.weekdayPrice,
+    }. Tarif mulai dari ${rupiah(
+      startingPrice,
     )}/malam. Pesan di: ${shareUrl}`;
     window.open(
       `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`,
@@ -185,7 +216,7 @@ export function BookingDrawerModal({
   };
 
   const totalNights = 1;
-  const totalPrice = spot.weekdayPrice * totalNights;
+  const totalPrice = startingPrice * totalNights;
   const payAmount = paymentOption === 'dp50' ? totalPrice * 0.5 : totalPrice;
 
   return (

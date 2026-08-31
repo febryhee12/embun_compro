@@ -144,6 +144,37 @@ export function SpotCard({
     if (onToggleFavorite) onToggleFavorite(spot.id);
   };
 
+  // Calculate starting price from packages / rates
+  const startingPrice = React.useMemo(() => {
+    if (
+      Array.isArray((spot as any).pricingPackages) &&
+      (spot as any).pricingPackages.length > 0
+    ) {
+      const prices: number[] = [];
+      (spot as any).pricingPackages.forEach((pkg: any) => {
+        if (pkg.flatRateMode && pkg.flatRate && Number(pkg.flatRate) > 0) {
+          prices.push(Number(pkg.flatRate));
+        } else if (pkg.weekdayRate && Number(pkg.weekdayRate) > 0) {
+          prices.push(Number(pkg.weekdayRate));
+        } else if (pkg.weekendRate && Number(pkg.weekendRate) > 0) {
+          prices.push(Number(pkg.weekendRate));
+        } else if (pkg.flatRate && Number(pkg.flatRate) > 0) {
+          prices.push(Number(pkg.flatRate));
+        }
+      });
+      if (prices.length > 0) {
+        return Math.min(...prices);
+      }
+    }
+    if (spot.weekdayPrice && Number(spot.weekdayPrice) > 0) {
+      return Number(spot.weekdayPrice);
+    }
+    if (spot.weekendPrice && Number(spot.weekendPrice) > 0) {
+      return Number(spot.weekendPrice);
+    }
+    return 0;
+  }, [spot]);
+
   const currentPhotoUrl = validPhotos[photoIndex] || validPhotos[0];
 
   return (
@@ -256,19 +287,19 @@ export function SpotCard({
           Maks. {spot.maxCapacity} tamu · {spot.bedType || 'Kasur Nyaman'}
         </p>
 
-        {/* Price & DP Badge */}
+        {/* Price (Mulai Dari) */}
         <div className="pt-1 flex items-baseline justify-between gap-2">
-          <p className="font-bold text-sm text-foreground">
-            {rupiah(spot.weekdayPrice)}
-            <span className="text-[11px] font-normal text-foreground-muted">
-              {' '}
+          <p className="text-sm text-foreground">
+            <span className="text-xs font-normal text-foreground-muted mr-1">
+              mulai dari
+            </span>
+            <span className="font-bold text-foreground">
+              {rupiah(startingPrice)}
+            </span>
+            <span className="text-[11px] font-normal text-foreground-muted ml-1">
               / malam
             </span>
           </p>
-
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
-            Bisa DP 50%
-          </span>
         </div>
       </div>
     </div>
