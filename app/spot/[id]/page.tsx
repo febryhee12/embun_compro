@@ -7,7 +7,9 @@ interface Props {
 
 export async function generateStaticParams() {
   try {
-    const res = await fetch("https://api-staging.embun.app/api/public/campsites");
+    const res = await fetch("https://api-staging.embun.app/api/public/campsites", {
+      cache: "force-cache",
+    });
     if (!res.ok) return [];
     const campsites = await res.json();
     const params: { id: string }[] = [];
@@ -39,7 +41,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     "https://media-staging.embun.app/campsites/51f7987e-2632-4bfa-bfc6-302c782bb81d/1348dba5-1a61-4274-b0e8-d17ba2540a15.jpg";
 
   try {
-    const res = await fetch("https://api-staging.embun.app/api/public/campsites");
+    const res = await fetch("https://api-staging.embun.app/api/public/campsites", {
+      cache: "force-cache",
+    });
     if (res.ok) {
       const campsites = await res.json();
       if (Array.isArray(campsites)) {
@@ -60,7 +64,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           const cId = String(c.id || "").trim().toLowerCase();
           const cSlug = String(c.slug || "").trim().toLowerCase();
 
-          // Match by campsite ID or slug
+          // 1. MATCH BY CAMPSITE (PROPERTY LEVEL SHARE)
           if (cId === targetId || cSlug === targetId) {
             const title = `${c.name} — Booking Campsite & Glamping | Embun`;
             const description = `Jelajahi dan pesan penginapan di ${c.name}, ${
@@ -94,7 +98,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             };
           }
 
-          // Match by block ID or shareCode (Spot Level Share)
+          // 2. MATCH BY BLOCK / SPOT (SPOT DETAIL LEVEL SHARE)
           if (Array.isArray(c.blocks)) {
             for (const b of c.blocks) {
               const bId = String(b.id || "").trim().toLowerCase();
