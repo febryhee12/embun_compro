@@ -4,6 +4,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import {
   fetchActiveCampsites,
   getStoredGuestProfile,
+  resolveAssetUrl,
   rupiah,
 } from '@/lib/api-client';
 import { ExploreHeader } from '@/components/explore/ExploreHeader';
@@ -19,9 +20,10 @@ import {
   Sparkles,
   Compass,
   MapPin,
-  ChevronRight,
-  Loader2,
-  Heart,
+  Trees,
+  Navigation,
+  Star,
+  Layers,
 } from 'lucide-react';
 
 export function ExploreClient() {
@@ -33,6 +35,7 @@ export function ExploreClient() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedCity, setSelectedCity] = useState('');
+  const [activeKabupaten, setActiveKabupaten] = useState('Semua');
 
   // Modals & Selected Spot
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -89,7 +92,7 @@ export function ExploreClient() {
     return list;
   }, [campsites]);
 
-  // 3. Filtered Spots
+  // 3. Filtered Spots (for explicit search / category filter mode)
   const filteredSpots = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
     return allSpots.filter((spot) => {
@@ -143,12 +146,38 @@ export function ExploreClient() {
     });
   }, [allSpots, searchQuery, selectedCategory, selectedCity]);
 
-  // 4. Featured Collections
-  const virtual360Spots = useMemo(() => {
+  // 4. Section Data Computations
+  // Section 1: Embun Plus (Paling Atas)
+  const embunPlusSpots = useMemo(() => {
     return allSpots.filter(
       (s) =>
-        Array.isArray(s.panoramaPhotos) && s.panoramaPhotos.length > 0,
+        s.isEmbunPlus ||
+        s.tentType?.toLowerCase().includes('glamping') ||
+        s.tentType?.toLowerCase().includes('cabin') ||
+        s.tentType?.toLowerCase().includes('saung'),
     );
+  }, [allSpots]);
+
+  // Section 2: Spot Terdekat Sekitar Anda
+  const nearbySpots = useMemo(() => {
+    return allSpots.slice(0, 4);
+  }, [allSpots]);
+
+  // Section 3: Populer di Kabupaten
+  const kabupatenSpots = useMemo(() => {
+    if (activeKabupaten === 'Semua') return allSpots;
+    const target = activeKabupaten.toLowerCase();
+    return allSpots.filter(
+      (s) =>
+        (s.campsite.address && s.campsite.address.toLowerCase().includes(target)) ||
+        (s.campsite.city && s.campsite.city.toLowerCase().includes(target)) ||
+        (s.campsite.name && s.campsite.name.toLowerCase().includes(target)),
+    );
+  }, [allSpots, activeKabupaten]);
+
+  // Section 5: Spot Lainnya
+  const otherSpots = useMemo(() => {
+    return allSpots;
   }, [allSpots]);
 
   const toggleFavorite = (id: string) => {
@@ -156,6 +185,11 @@ export function ExploreClient() {
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
   };
+
+  const isFilteringActive =
+    searchQuery.trim().length > 0 ||
+    selectedCategory !== 'all' ||
+    (selectedCity && selectedCity !== 'Semua Lokasi');
 
   return (
     <div className="min-h-screen bg-white text-foreground flex flex-col selection:bg-brand-lime selection:text-black">
@@ -176,7 +210,7 @@ export function ExploreClient() {
       />
 
       {/* ═══ 3. MAIN CATALOG CONTENT ═══ */}
-      <main className="max-w-7xl mx-auto w-full px-4 sm:px-8 py-8 flex-1 space-y-12">
+      <main className="max-w-7xl mx-auto w-full px-4 sm:px-8 py-8 flex-1 space-y-16">
         {loading ? (
           /* Loading Skeletons */
           <div className="space-y-6">
@@ -202,72 +236,90 @@ export function ExploreClient() {
               Muat Ulang
             </button>
           </div>
-        ) : (
-          <>
-            {/* ── SECTION: SEMUA SPOT ATAU HASIL FILTER ── */}
-            <div className="space-y-6">
-              <div className="flex items-baseline justify-between border-b border-border pb-3">
-                <div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
-                    {selectedCategory === 'all'
-                      ? 'Rekomendasi Spot & Glamping Pilihan'
-                      : `Kategori: ${
-                          CATEGORIES.find((c) => c.id === selectedCategory)
-                            ?.label
-                        }`}
-                  </h2>
-                  <p className="text-xs text-foreground-muted">
-                    Menampilkan {filteredSpots.length} unit penginapan alam
-                    terbaik
-                  </p>
-                </div>
+        ) : isFilteringActive ? (
+          /* ── FOCUSED SEARCH / CATEGORY FILTER VIEW ── */
+          <div className="space-y-6">
+            <div className="flex items-baseline justify-between border-b border-border pb-3">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
+                  {searchQuery
+                    ? `Hasil Pencarian: "${searchQuery}"`
+                    : selectedCategory !== 'all'
+                    ? `Kategori: ${
+                        CATEGORIES.find((c) => c.id === selectedCategory)
+                          ?.label
+                      }`
+                    : `Destinasi: ${selectedCity}`}
+                </h2>
+                <p className="text-xs text-foreground-muted">
+                  Menampilkan {filteredSpots.length} unit penginapan alam
+                </p>
               </div>
 
-              {filteredSpots.length === 0 ? (
-                <div className="text-center py-16 bg-surface/50 rounded-3xl border border-border p-6">
-                  <Tent size={40} className="mx-auto text-foreground-muted mb-2" />
-                  <h3 className="font-bold text-sm text-foreground">
-                    Tidak ada spot yang cocok
-                  </h3>
-                  <p className="text-xs text-foreground-muted mt-1">
-                    Coba ganti kata kunci pencarian atau pilih kategori lain.
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-7">
-                  {filteredSpots.map((spot) => (
-                    <SpotCard
-                      key={spot.id}
-                      spot={spot}
-                      onSelectSpot={setSelectedSpot}
-                      isFavorite={favoriteIds.includes(spot.id)}
-                      onToggleFavorite={toggleFavorite}
-                    />
-                  ))}
-                </div>
-              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedCategory('all');
+                  setSelectedCity('');
+                }}
+                className="text-xs font-bold text-brand-blue hover:underline cursor-pointer"
+              >
+                Reset Filter
+              </button>
             </div>
 
-            {/* ── SECTION: KOLEKSI TUR 360° ── */}
-            {virtual360Spots.length > 0 && selectedCategory === 'all' && (
-              <div className="space-y-6 pt-6 border-t border-border">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-bold text-foreground flex items-center gap-2">
-                      <Compass size={20} className="text-brand-blue" />
-                      <span>Eksplorasi dengan Tur Virtual 360°</span>
-                    </h3>
+            {filteredSpots.length === 0 ? (
+              <div className="text-center py-16 bg-surface/50 rounded-3xl border border-border p-6">
+                <Tent size={40} className="mx-auto text-foreground-muted mb-2" />
+                <h3 className="font-bold text-sm text-foreground">
+                  Tidak ada spot yang cocok
+                </h3>
+                <p className="text-xs text-foreground-muted mt-1">
+                  Coba ubah kata kunci pencarian atau pilih kategori lain.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-7">
+                {filteredSpots.map((spot) => (
+                  <SpotCard
+                    key={spot.id}
+                    spot={spot}
+                    onSelectSpot={setSelectedSpot}
+                    isFavorite={favoriteIds.includes(spot.id)}
+                    onToggleFavorite={toggleFavorite}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          /* ── HOME DISCOVERY FEED (5 STRUCTURED SECTIONS) ── */
+          <div className="space-y-16">
+            {/* ── 1. EMBUN PLUS (PALING ATAS) ── */}
+            {embunPlusSpots.length > 0 && (
+              <section className="space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b border-border pb-3">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-black uppercase tracking-wider bg-brand-lime text-black border border-brand-lime/80 shadow-2xs flex items-center gap-1">
+                        <Sparkles size={12} className="fill-black" />
+                        Embun Plus
+                      </span>
+                      <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
+                        Pilihan Penginapan Premium
+                      </h2>
+                    </div>
                     <p className="text-xs text-foreground-muted">
-                      Lihat suasana tenda dan keindahan alam dari segala sudut
-                      sebelum memesan
+                      Akomodasi glamping & kabin pilihan dengan fasilitas terlengkap dan kenyamanan maksimal.
                     </p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                  {virtual360Spots.map((spot) => (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-7">
+                  {embunPlusSpots.map((spot) => (
                     <SpotCard
-                      key={`360-${spot.id}`}
+                      key={`plus-${spot.id}`}
                       spot={spot}
                       onSelectSpot={setSelectedSpot}
                       isFavorite={favoriteIds.includes(spot.id)}
@@ -275,9 +327,199 @@ export function ExploreClient() {
                     />
                   ))}
                 </div>
-              </div>
+              </section>
             )}
-          </>
+
+            {/* ── 2. SPOT TERDEKAT (SEKITAR ANDA) ── */}
+            {nearbySpots.length > 0 && (
+              <section className="space-y-6">
+                <div className="flex items-end justify-between border-b border-border pb-3">
+                  <div>
+                    <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
+                      <Navigation size={20} className="text-brand-blue" />
+                      <span>Spot Terdekat Sekitar Anda</span>
+                    </h2>
+                    <p className="text-xs text-foreground-muted">
+                      Pilihan spot camping dan glamping berjarak dekat untuk liburan akhir pekan singkat.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-7">
+                  {nearbySpots.map((spot) => (
+                    <SpotCard
+                      key={`near-${spot.id}`}
+                      spot={spot}
+                      onSelectSpot={setSelectedSpot}
+                      isFavorite={favoriteIds.includes(spot.id)}
+                      onToggleFavorite={toggleFavorite}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* ── 3. POPULER DI KABUPATEN ── */}
+            <section className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-border pb-3">
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
+                    <MapPin size={20} className="text-brand-blue" />
+                    <span>Populer di Kabupaten & Wilayah</span>
+                  </h2>
+                  <p className="text-xs text-foreground-muted">
+                    Jelajahi keindahan alam favorit berdasarkan kabupaten pilihan Anda.
+                  </p>
+                </div>
+
+                {/* Kabupaten Filter Tabs */}
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                  {[
+                    'Semua',
+                    'Lembang',
+                    'Bogor',
+                    'Sukabumi',
+                    'Subang',
+                  ].map((kab) => {
+                    const isKabSelected = activeKabupaten === kab;
+                    return (
+                      <button
+                        key={kab}
+                        type="button"
+                        onClick={() => setActiveKabupaten(kab)}
+                        className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                          isKabSelected
+                            ? 'bg-brand-blue text-white shadow-2xs font-bold'
+                            : 'bg-surface hover:bg-surface-variant text-foreground-muted hover:text-foreground'
+                        }`}
+                      >
+                        {kab}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-7">
+                {kabupatenSpots.slice(0, 8).map((spot) => (
+                  <SpotCard
+                    key={`kab-${spot.id}`}
+                    spot={spot}
+                    onSelectSpot={setSelectedSpot}
+                    isFavorite={favoriteIds.includes(spot.id)}
+                    onToggleFavorite={toggleFavorite}
+                  />
+                ))}
+              </div>
+            </section>
+
+            {/* ── 4. JELAJAHI CAMPSITE ── */}
+            {campsites.length > 0 && (
+              <section className="space-y-6">
+                <div className="flex items-end justify-between border-b border-border pb-3">
+                  <div>
+                    <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
+                      <Trees size={20} className="text-emerald-600" />
+                      <span>Jelajahi Lokasi Campsite</span>
+                    </h2>
+                    <p className="text-xs text-foreground-muted">
+                      Pilih bumi perkemahan lengkap dengan fasilitas umum, pemandangan, dan peta area.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                  {campsites.map((camp) => {
+                    const firstSpotPhoto =
+                      camp.blocks?.[0]?.photos?.[0]?.url ||
+                      camp.blocks?.[0]?.images?.[0] ||
+                      camp.mapImageUrl;
+                    const spotCount = Array.isArray(camp.blocks)
+                      ? camp.blocks.length
+                      : 0;
+                    return (
+                      <div
+                        key={camp.id}
+                        onClick={() => setSearchQuery(camp.name)}
+                        className="group p-4 rounded-3xl border border-border bg-white hover:shadow-lg transition-all cursor-pointer flex flex-col space-y-3"
+                      >
+                        <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-surface">
+                          {firstSpotPhoto ? (
+                            <img
+                              src={resolveAssetUrl(firstSpotPhoto)}
+                              alt={camp.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-xs text-foreground-muted">
+                              Foto Campsite
+                            </div>
+                          )}
+                          <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-full text-[11px] font-bold text-foreground shadow-xs flex items-center gap-1">
+                            <Star
+                              size={12}
+                              className="fill-amber-500 text-amber-500"
+                            />
+                            <span>5.0</span>
+                          </div>
+                          <div className="absolute bottom-3 left-3 bg-black/75 backdrop-blur-xs px-3 py-1 rounded-full text-[11px] font-semibold text-white shadow-xs">
+                            {spotCount} Pilihan Unit Spot
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <h4 className="font-bold text-base text-foreground group-hover:text-brand-blue transition-colors">
+                            {camp.name}
+                          </h4>
+                          <p className="text-xs text-foreground-muted line-clamp-1">
+                            {camp.address || 'Kawasan Wisata Alam'}
+                          </p>
+                        </div>
+
+                        <div className="pt-2 border-t border-border flex items-center justify-between text-xs">
+                          <span className="text-foreground-muted">
+                            Lihat semua kavling
+                          </span>
+                          <span className="font-bold text-brand-blue group-hover:translate-x-0.5 transition-transform">
+                            Eksplorasi Spot →
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {/* ── 5. JELAJAHI SPOT LAINNYA ── */}
+            {otherSpots.length > 0 && (
+              <section className="space-y-6">
+                <div className="flex items-end justify-between border-b border-border pb-3">
+                  <div>
+                    <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
+                      <Layers size={20} className="text-brand-blue" />
+                      <span>Jelajahi Spot Lainnya</span>
+                    </h2>
+                    <p className="text-xs text-foreground-muted">
+                      Koleksi lengkap beragam pilihan kavling, tenda, saung, dan glamping.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-7">
+                  {otherSpots.map((spot) => (
+                    <SpotCard
+                      key={`other-${spot.id}`}
+                      spot={spot}
+                      onSelectSpot={setSelectedSpot}
+                      isFavorite={favoriteIds.includes(spot.id)}
+                      onToggleFavorite={toggleFavorite}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
         )}
       </main>
 
