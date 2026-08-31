@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import {
   Star,
   Heart,
@@ -49,6 +48,46 @@ interface SpotCardProps {
   onToggleFavorite?: (spotId: string) => void;
 }
 
+export function getPhotoCategoryScore(category?: string): number {
+  if (!category) return 50;
+  const clean = category.toLowerCase().trim();
+  // Kamar Mandi / Toilet selalu paling akhir (skor 99)
+  if (
+    clean.includes('mandi') ||
+    clean.includes('toilet') ||
+    clean.includes('bathroom') ||
+    clean.includes('wc')
+  ) {
+    return 99;
+  }
+  // Kamar Utama / Tenda adalah prioritas utama (skor 1)
+  if (
+    clean.includes('utama') ||
+    clean.includes('tenda') ||
+    clean.includes('kamar')
+  ) {
+    return 1;
+  }
+  // Pemandangan / Tampak Luar (skor 2)
+  if (
+    clean.includes('luar') ||
+    clean.includes('pemandangan') ||
+    clean.includes('view') ||
+    clean.includes('alam')
+  ) {
+    return 2;
+  }
+  // Balkon / Ruang Santai (skor 3)
+  if (
+    clean.includes('balkon') ||
+    clean.includes('santai') ||
+    clean.includes('teras')
+  ) {
+    return 3;
+  }
+  return 50;
+}
+
 export function SpotCard({
   spot,
   onSelectSpot,
@@ -57,46 +96,55 @@ export function SpotCard({
 }: SpotCardProps) {
   const [photoIndex, setPhotoIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [failedUrls, setFailedUrls] = useState<Set<string>>(new Set());
 
-  // Extract photos
-  const photos = React.useMemo(() => {
-    const list: string[] = [];
+  // Extract & sort photos prioritizing Kamar Utama > Tampak Luar > Toilet (Terakhir)
+  const validPhotos = React.useMemo(() => {
+    const list: Array<{ url: string; score: number }> = [];
+
     if (Array.isArray(spot.photos) && spot.photos.length > 0) {
-      // Prioritize Kamar Utama
-      const sorted = [...spot.photos].sort((a, b) => {
-        const isA = a.category?.toLowerCase().includes('kamar') ? 0 : 1;
-        const isB = b.category?.toLowerCase().includes('kamar') ? 0 : 1;
-        return isA - isB;
-      });
-      sorted.forEach((p) => {
-        if (p.url) list.push(p.url);
+      spot.photos.forEach((p) => {
+        if (p?.url && !failedUrls.has(p.url)) {
+          list.push({ url: p.url, score: getPhotoCategoryScore(p.category) });
+        }
       });
     }
+
     if (list.length === 0 && Array.isArray(spot.images)) {
       spot.images.forEach((img) => {
-        if (img) list.push(img);
+        if (img && !failedUrls.has(img)) {
+          list.push({ url: img, score: 50 });
+        }
       });
     }
-    return list;
-  }, [spot]);
+
+    // Sort by category score ascending (1 = Kamar Utama, 2 = Luar, 99 = Toilet)
+    return list.sort((a, b) => a.score - b.score).map((item) => item.url);
+  }, [spot, failedUrls]);
 
   const has360 =
     Array.isArray(spot.panoramaPhotos) && spot.panoramaPhotos.length > 0;
 
   const handlePrev = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setPhotoIndex((prev) => (prev === 0 ? photos.length - 1 : prev - 1));
+    setPhotoIndex((prev) =>
+      prev === 0 ? validPhotos.length - 1 : prev - 1,
+    );
   };
 
   const handleNext = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setPhotoIndex((prev) => (prev === photos.length - 1 ? 0 : prev + 1));
+    setPhotoIndex((prev) =>
+      prev === validPhotos.length - 1 ? 0 : prev + 1,
+    );
   };
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (onToggleFavorite) onToggleFavorite(spot.id);
   };
+
+  const currentPhotoUrl = validPhotos[photoIndex] || validPhotos[0];
 
   return (
     <div
@@ -107,16 +155,24 @@ export function SpotCard({
     >
       {/* 1. Photo Carousel Box */}
       <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-surface border border-border shadow-2xs group-hover:shadow-md transition-shadow">
-        {photos.length > 0 ? (
+        {currentPhotoUrl ? (
           <img
-            src={resolveAssetUrl(photos[photoIndex])}
+            src={resolveAssetUrl(currentPhotoUrl)}
             alt={spot.name}
+            onError={() => {
+              setFailedUrls((prev) => new Set([...prev, currentPhotoUrl]));
+            }}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center text-foreground-muted bg-surface">
-            <Tent size={36} />
-            <span className="text-[11px] mt-1">Foto Belum Tersedia</span>
+          <div className="w-full h-full flex flex-col items-center justify-center text-foreground-muted bg-surface/80 p-4 text-center">
+            <Tent size={36} className="text-brand-blue/60 mb-1" />
+            <span className="text-[11px] font-semibold text-foreground">
+              {spot.name}
+            </span>
+            <span className="text-[10px] text-foreground-muted">
+              {spot.tentType || 'Spot Camp'}
+            </span>
           </div>
         )}
 
@@ -129,7 +185,7 @@ export function SpotCard({
             </span>
           ) : (
             <span className="px-2.5 py-1 rounded-full text-[10.5px] font-semibold bg-black/60 text-white shadow-md backdrop-blur-xs">
-              {spot.tentType || 'Glamping'}
+              {spot.tentType || 'Ground'}
             </span>
           )}
 
@@ -158,7 +214,7 @@ export function SpotCard({
         </button>
 
         {/* Prev / Next Arrows on Hover */}
-        {photos.length > 1 && isHovered && (
+        {validPhotos.length > 1 && isHovered && (
           <>
             <button
               type="button"
@@ -178,9 +234,9 @@ export function SpotCard({
         )}
 
         {/* Dot Indicators */}
-        {photos.length > 1 && (
+        {validPhotos.length > 1 && (
           <div className="absolute bottom-2.5 inset-x-0 flex justify-center items-center gap-1.5">
-            {photos.slice(0, 5).map((_, idx) => (
+            {validPhotos.slice(0, 5).map((_, idx) => (
               <div
                 key={idx}
                 className={`h-1.5 rounded-full transition-all ${

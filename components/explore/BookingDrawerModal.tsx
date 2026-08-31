@@ -86,12 +86,37 @@ export function BookingDrawerModal({
     return d.toISOString().split('T')[0];
   });
 
+  const [failedPhotoUrls, setFailedPhotoUrls] = useState<Set<string>>(new Set());
+
   const panoramaRef = useRef<HTMLDivElement | null>(null);
   const panoViewerRef = useRef<any>(null);
 
   if (!spot) return null;
 
-  const photos = spot.photos?.map((p) => p.url) || spot.images || [];
+  // Extract & sort photos with accurate priority (Kamar Utama > Tampak Luar > Toilet Terakhir)
+  const photos: string[] = (() => {
+    const list: Array<{ url: string; score: number }> = [];
+    if (Array.isArray(spot.photos) && spot.photos.length > 0) {
+      spot.photos.forEach((p) => {
+        if (p?.url && !failedPhotoUrls.has(p.url)) {
+          const clean = (p.category || '').toLowerCase().trim();
+          let score = 50;
+          if (clean.includes('mandi') || clean.includes('toilet') || clean.includes('wc')) score = 99;
+          else if (clean.includes('utama') || clean.includes('tenda') || clean.includes('kamar')) score = 1;
+          else if (clean.includes('luar') || clean.includes('pemandangan') || clean.includes('view')) score = 2;
+          else if (clean.includes('balkon') || clean.includes('santai')) score = 3;
+          list.push({ url: p.url, score });
+        }
+      });
+    }
+    if (list.length === 0 && Array.isArray(spot.images)) {
+      spot.images.forEach((img) => {
+        if (img && !failedPhotoUrls.has(img)) list.push({ url: img, score: 50 });
+      });
+    }
+    return list.sort((a, b) => a.score - b.score).map((item) => item.url);
+  })();
+
   const panoramaList = spot.panoramaPhotos || [];
 
   // Init 360 viewer
