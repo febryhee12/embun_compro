@@ -35,6 +35,14 @@
         {
           "source": "/spot/**",
           "destination": "/spot-landing/index.html"
+        },
+        {
+          "source": "/id/spot/**",
+          "destination": "/spot-landing/index.html"
+        },
+        {
+          "source": "/en/spot/**",
+          "destination": "/spot-landing/index.html"
         }
       ]
     },

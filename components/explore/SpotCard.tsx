@@ -182,11 +182,20 @@ export function SpotCard({
   const currentPhotoUrl = validPhotos[photoIndex] || validPhotos[0];
 
   return (
-    <div
-      onClick={() => onSelectSpot(spot)}
+    <a
+      href={`/id/spot/${spot.shareCode || spot.id}`}
+      onClick={(e) => {
+        if ((e.target as HTMLElement).closest('button')) {
+          e.preventDefault();
+          return;
+        }
+        if (onSelectSpot) {
+          onSelectSpot(spot);
+        }
+      }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group flex flex-col space-y-3 cursor-pointer"
+      className="group flex flex-col space-y-3 cursor-pointer no-underline text-foreground"
     >
       {/* 1. Photo Carousel Box */}
       <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-surface border border-border shadow-2xs group-hover:shadow-md transition-shadow">
@@ -311,6 +320,6 @@ export function SpotCard({
           </p>
         </div>
       </div>
-    </div>
+    </a>
   );
 }

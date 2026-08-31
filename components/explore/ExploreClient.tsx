@@ -14,7 +14,6 @@ import {
 } from '@/components/explore/CategoryFilterBar';
 import { SpotCard, SpotData } from '@/components/explore/SpotCard';
 import { GuestAuthModal } from '@/components/explore/GuestAuthModal';
-import { BookingDrawerModal } from '@/components/explore/BookingDrawerModal';
 import {
   Tent,
   Sparkles,
@@ -37,11 +36,14 @@ export function ExploreClient() {
   const [selectedCity, setSelectedCity] = useState('');
   const [activeKabupaten, setActiveKabupaten] = useState('Semua');
 
-  // Modals & Selected Spot
+  // Modals & User state
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<any | null>(null);
-  const [selectedSpot, setSelectedSpot] = useState<SpotData | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+
+  const handleSelectSpot = (spot: SpotData) => {
+    window.location.href = `/id/spot/${spot.shareCode || spot.id}`;
+  };
 
   // 1. Initial Data Fetch
   useEffect(() => {
@@ -336,7 +338,7 @@ export function ExploreClient() {
                   <SpotCard
                     key={spot.id}
                     spot={spot}
-                    onSelectSpot={setSelectedSpot}
+                    onSelectSpot={handleSelectSpot}
                     isFavorite={favoriteIds.includes(spot.id)}
                     onToggleFavorite={toggleFavorite}
                   />
@@ -372,7 +374,7 @@ export function ExploreClient() {
                     <SpotCard
                       key={`plus-${spot.id}`}
                       spot={spot}
-                      onSelectSpot={setSelectedSpot}
+                      onSelectSpot={handleSelectSpot}
                       isFavorite={favoriteIds.includes(spot.id)}
                       onToggleFavorite={toggleFavorite}
                     />
@@ -401,7 +403,7 @@ export function ExploreClient() {
                     <SpotCard
                       key={`near-${spot.id}`}
                       spot={spot}
-                      onSelectSpot={setSelectedSpot}
+                      onSelectSpot={handleSelectSpot}
                       isFavorite={favoriteIds.includes(spot.id)}
                       onToggleFavorite={toggleFavorite}
                     />
@@ -456,7 +458,7 @@ export function ExploreClient() {
                   <SpotCard
                     key={`kab-${spot.id}`}
                     spot={spot}
-                    onSelectSpot={setSelectedSpot}
+                    onSelectSpot={handleSelectSpot}
                     isFavorite={favoriteIds.includes(spot.id)}
                     onToggleFavorite={toggleFavorite}
                   />
@@ -569,7 +571,7 @@ export function ExploreClient() {
                     <SpotCard
                       key={`other-${spot.id}`}
                       spot={spot}
-                      onSelectSpot={setSelectedSpot}
+                      onSelectSpot={handleSelectSpot}
                       isFavorite={favoriteIds.includes(spot.id)}
                       onToggleFavorite={toggleFavorite}
                     />
@@ -605,7 +607,7 @@ export function ExploreClient() {
         </div>
       </footer>
 
-      {/* ═══ 5. MODAL LOGIN & BOOKING DRAWER ═══ */}
+      {/* ═══ 5. MODAL LOGIN ═══ */}
       {isAuthOpen && (
         <GuestAuthModal
           isOpen={isAuthOpen}
@@ -613,15 +615,6 @@ export function ExploreClient() {
           currentUser={currentUser}
           onSuccess={(user) => setCurrentUser(user)}
           onLogout={() => setCurrentUser(null)}
-        />
-      )}
-
-      {selectedSpot && (
-        <BookingDrawerModal
-          spot={selectedSpot}
-          onClose={() => setSelectedSpot(null)}
-          onOpenAuth={() => setIsAuthOpen(true)}
-          currentUser={currentUser}
         />
       )}
     </div>
