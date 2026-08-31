@@ -183,7 +183,7 @@ export function SpotCard({
 
   return (
     <a
-      href={`/id/spot/${spot.shareCode || spot.id}`}
+      href={`/spot/${spot.shareCode || spot.id}`}
       onClick={(e) => {
         if ((e.target as HTMLElement).closest('button')) {
           e.preventDefault();

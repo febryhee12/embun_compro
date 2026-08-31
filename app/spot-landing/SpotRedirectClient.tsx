@@ -660,7 +660,7 @@ export function SpotRedirectClient() {
           {error || "Tautan yang Anda tuju tidak valid atau telah dinonaktifkan."}
         </p>
         <Link
-          href="/id/explore"
+          href="/explore"
           className="px-6 py-2.5 rounded-full bg-brand-blue text-white text-xs font-bold shadow-md hover:bg-brand-blue/90 transition-all"
         >
           Kembali ke Jelajah Spot
@@ -679,7 +679,7 @@ export function SpotRedirectClient() {
           {/* Logo & Back to Explore */}
           <div className="flex items-center gap-4">
             <Link
-              href="/id/explore"
+              href="/explore"
               className="p-2 -ml-2 rounded-full hover:bg-surface text-foreground-muted hover:text-foreground transition-colors cursor-pointer"
               title="Kembali ke Katalog"
             >

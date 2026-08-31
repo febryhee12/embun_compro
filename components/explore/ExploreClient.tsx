@@ -42,7 +42,7 @@ export function ExploreClient() {
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
 
   const handleSelectSpot = (spot: SpotData) => {
-    window.location.href = `/id/spot/${spot.shareCode || spot.id}`;
+    window.location.href = `/spot/${spot.shareCode || spot.id}`;
   };
 
   // 1. Initial Data Fetch
@@ -594,13 +594,13 @@ export function ExploreClient() {
             <span>© 2026 PT Alam Kelana Digital. Hak Cipta Dilindungi.</span>
           </div>
           <div className="flex items-center gap-4">
-            <a href="/id/kebijakan-privasi" className="hover:underline">
+            <a href="/kebijakan-privasi" className="hover:underline">
               Privasi
             </a>
-            <a href="/id/syarat-ketentuan" className="hover:underline">
+            <a href="/syarat-ketentuan" className="hover:underline">
               Syarat & Ketentuan
             </a>
-            <a href="/id/mitra" className="hover:underline">
+            <a href="/mitra" className="hover:underline">
               Mitra Camp
             </a>
           </div>

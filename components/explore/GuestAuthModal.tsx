@@ -167,7 +167,7 @@ export function GuestAuthModal({
           <p className="text-[11px] sm:text-xs text-foreground-muted leading-relaxed max-w-xs mx-auto">
             Dengan masuk atau mendaftar, Anda menyetujui{' '}
             <a
-              href="/id/kebijakan-privasi"
+              href="/kebijakan-privasi"
               className="text-brand-blue font-semibold hover:underline"
               target="_blank"
               rel="noopener noreferrer"
@@ -176,7 +176,7 @@ export function GuestAuthModal({
             </a>
             ,{' '}
             <a
-              href="/id/syarat-ketentuan"
+              href="/syarat-ketentuan"
               className="text-brand-blue font-semibold hover:underline"
               target="_blank"
               rel="noopener noreferrer"
@@ -185,7 +185,7 @@ export function GuestAuthModal({
             </a>
             , dan{' '}
             <a
-              href="/id/kebijakan-refund"
+              href="/kebijakan-refund"
               className="text-brand-blue font-semibold hover:underline"
               target="_blank"
               rel="noopener noreferrer"
