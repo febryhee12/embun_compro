@@ -220,15 +220,15 @@ export function SpotCard({
 
         {/* Top Badge: Clean & minimal */}
         <div className="absolute top-3 left-3 flex items-center gap-1.5">
-          {has360 ? (
-            <span className="px-2.5 py-0.5 rounded-full text-[9.5px] font-bold bg-brand-lime text-black shadow-md flex items-center gap-1">
-              <Compass size={10} />
-              Tur 360°
-            </span>
-          ) : showBadge && spot.isEmbunPlus ? (
+          {spot.isEmbunPlus ? (
             <span className="px-2.5 py-0.5 rounded-full text-[9.5px] font-black uppercase tracking-wider bg-brand-lime text-black border border-brand-lime/80 shadow-md backdrop-blur-xs flex items-center gap-1">
               <Sparkles size={9} className="fill-black text-black" />
               Embun Plus
+            </span>
+          ) : has360 ? (
+            <span className="px-2.5 py-0.5 rounded-full text-[9.5px] font-bold bg-brand-lime text-black shadow-md flex items-center gap-1">
+              <Compass size={10} />
+              Tur 360°
             </span>
           ) : null}
         </div>

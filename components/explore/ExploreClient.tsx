@@ -386,15 +386,10 @@ export function ExploreClient() {
               <section className="space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b border-border pb-3">
                   <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-black uppercase tracking-wider bg-brand-lime text-black border border-brand-lime/80 shadow-2xs flex items-center gap-1">
-                        <Sparkles size={12} className="fill-black" />
-                        Embun Plus
-                      </span>
-                      <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
-                        Pilihan Penginapan Premium
-                      </h2>
-                    </div>
+                    <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
+                      <Sparkles size={20} className="text-brand-blue" />
+                      <span>Pilihan Penginapan Premium</span>
+                    </h2>
                     <p className="text-xs text-foreground-muted">
                       Akomodasi glamping & kabin pilihan dengan fasilitas terlengkap dan kenyamanan maksimal.
                     </p>

@@ -31,17 +31,31 @@
           ]
         }
       ],
+      "redirects": [
+        {
+          "source": "/id/explore",
+          "destination": "/explore",
+          "type": 301
+        },
+        {
+          "source": "/en/explore",
+          "destination": "/explore",
+          "type": 301
+        },
+        {
+          "source": "/id/spot/:id*",
+          "destination": "/spot/:id*",
+          "type": 301
+        },
+        {
+          "source": "/en/spot/:id*",
+          "destination": "/spot/:id*",
+          "type": 301
+        }
+      ],
       "rewrites": [
         {
           "source": "/spot/**",
-          "destination": "/spot-landing/index.html"
-        },
-        {
-          "source": "/id/spot/**",
-          "destination": "/spot-landing/index.html"
-        },
-        {
-          "source": "/en/spot/**",
           "destination": "/spot-landing/index.html"
         }
       ]
