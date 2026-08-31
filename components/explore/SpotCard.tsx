@@ -50,6 +50,7 @@ interface SpotCardProps {
   onSelectSpot: (spot: SpotData) => void;
   isFavorite?: boolean;
   onToggleFavorite?: (spotId: string) => void;
+  showBadge?: boolean;
 }
 
 export function getPhotoCategoryScore(category?: string): number {
@@ -76,17 +77,13 @@ export function getPhotoCategoryScore(category?: string): number {
   if (
     clean.includes('luar') ||
     clean.includes('pemandangan') ||
-    clean.includes('view') ||
-    clean.includes('alam')
+    clean.includes('outdoor') ||
+    clean.includes('depan')
   ) {
     return 2;
   }
-  // Balkon / Ruang Santai (skor 3)
-  if (
-    clean.includes('balkon') ||
-    clean.includes('santai') ||
-    clean.includes('teras')
-  ) {
+  // Fasilitas / Spot lainnya (skor 3)
+  if (clean.includes('fasilitas') || clean.includes('area')) {
     return 3;
   }
   return 50;
@@ -97,6 +94,7 @@ export function SpotCard({
   onSelectSpot,
   isFavorite = false,
   onToggleFavorite,
+  showBadge = false,
 }: SpotCardProps) {
   const [photoIndex, setPhotoIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
@@ -220,30 +218,19 @@ export function SpotCard({
           </div>
         )}
 
-        {/* Top Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1.5 items-start">
-          {spot.isEmbunPlus ? (
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-brand-lime text-black border border-brand-lime/80 shadow-md backdrop-blur-xs flex items-center gap-1">
-              <Sparkles size={10} className="fill-black text-black" />
-              Embun Plus
-            </span>
-          ) : (spot as any).isGuestFavorite ? (
-            <span className="px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-white/95 text-foreground shadow-md backdrop-blur-xs border border-black/10 flex items-center gap-1">
-              <Star size={11} className="text-amber-500 fill-amber-500" />
-              Favorit Tamu
-            </span>
-          ) : (
-            <span className="px-2.5 py-1 rounded-full text-[10.5px] font-semibold bg-black/60 text-white shadow-md backdrop-blur-xs">
-              {spot.tentType || 'Ground'}
-            </span>
-          )}
-
-          {has360 && (
-            <span className="px-2 py-0.5 rounded-full text-[9.5px] font-bold bg-brand-lime text-black shadow-md flex items-center gap-1">
+        {/* Top Badge: Clean & minimal */}
+        <div className="absolute top-3 left-3 flex items-center gap-1.5">
+          {has360 ? (
+            <span className="px-2.5 py-0.5 rounded-full text-[9.5px] font-bold bg-brand-lime text-black shadow-md flex items-center gap-1">
               <Compass size={10} />
               Tur 360°
             </span>
-          )}
+          ) : showBadge && spot.isEmbunPlus ? (
+            <span className="px-2.5 py-0.5 rounded-full text-[9.5px] font-black uppercase tracking-wider bg-brand-lime text-black border border-brand-lime/80 shadow-md backdrop-blur-xs flex items-center gap-1">
+              <Sparkles size={9} className="fill-black text-black" />
+              Embun Plus
+            </span>
+          ) : null}
         </div>
 
         {/* Prev / Next Arrows on Hover */}
@@ -282,7 +269,7 @@ export function SpotCard({
       </div>
 
       {/* 2. Property Information */}
-      <div className="space-y-1 text-xs">
+      <div className="space-y-0.5 text-xs">
         {/* Title & Rating */}
         <div className="flex items-baseline justify-between gap-2">
           <h4 className="font-bold text-sm text-foreground truncate group-hover:text-brand-blue transition-colors">
@@ -301,12 +288,8 @@ export function SpotCard({
           {spot.campsite?.name || 'Embun Campsite'}
         </p>
 
-        <p className="text-[11px] text-foreground-muted truncate">
-          Maks. {spot.maxCapacity} tamu · {spot.bedType || 'Kasur Nyaman'}
-        </p>
-
         {/* Price (Mulai Dari) */}
-        <div className="pt-1 flex items-baseline justify-between gap-2">
+        <div className="pt-0.5 flex items-baseline justify-between gap-2">
           <p className="text-sm text-foreground">
             <span className="text-xs font-normal text-foreground-muted mr-1">
               mulai dari
