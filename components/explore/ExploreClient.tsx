@@ -91,15 +91,38 @@ export function ExploreClient() {
 
   // 3. Filtered Spots
   const filteredSpots = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
     return allSpots.filter((spot) => {
       // Search text query
       const matchSearch =
-        !searchQuery ||
-        spot.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        spot.campsite.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        spot.campsite.address
-          ?.toLowerCase()
-          .includes(searchQuery.toLowerCase());
+        !q ||
+        spot.name.toLowerCase().includes(q) ||
+        spot.campsite.name.toLowerCase().includes(q) ||
+        (spot.campsite.address &&
+          spot.campsite.address.toLowerCase().includes(q)) ||
+        (spot.campsite.city &&
+          spot.campsite.city.toLowerCase().includes(q)) ||
+        (spot.campsite.province &&
+          spot.campsite.province.toLowerCase().includes(q)) ||
+        (spot.tentType && spot.tentType.toLowerCase().includes(q)) ||
+        (spot.bedType && spot.bedType.toLowerCase().includes(q)) ||
+        (spot.blockNumber && spot.blockNumber.toLowerCase().includes(q)) ||
+        (Array.isArray(spot.facilities) &&
+          spot.facilities.some((f: string) => f.toLowerCase().includes(q)));
+
+      // City filter
+      let matchCity = true;
+      if (selectedCity && selectedCity !== 'Semua Lokasi') {
+        const cityTarget = selectedCity.toLowerCase().trim();
+        matchCity =
+          (spot.campsite.city &&
+            spot.campsite.city.toLowerCase().includes(cityTarget)) ||
+          (spot.campsite.province &&
+            spot.campsite.province.toLowerCase().includes(cityTarget)) ||
+          (spot.campsite.address &&
+            spot.campsite.address.toLowerCase().includes(cityTarget)) ||
+          spot.campsite.name.toLowerCase().includes(cityTarget);
+      }
 
       // Category filter
       let matchCat = true;
@@ -116,9 +139,9 @@ export function ExploreClient() {
           spotName.includes(cleanTarget);
       }
 
-      return matchSearch && matchCat;
+      return matchSearch && matchCity && matchCat;
     });
-  }, [allSpots, searchQuery, selectedCategory]);
+  }, [allSpots, searchQuery, selectedCategory, selectedCity]);
 
   // 4. Featured Collections
   const virtual360Spots = useMemo(() => {
