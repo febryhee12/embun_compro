@@ -46,9 +46,9 @@ export function ScrollToTop() {
       onClick={scrollToTop}
       type="button"
       aria-label="Kembali ke atas"
-      className="fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-[#cbfd00] hover:bg-[#b8e600] text-[#0841b5] shadow-lg transition-all duration-300 hover:scale-110 active:scale-95 border border-black/10"
+      className="fixed bottom-24 right-4 sm:bottom-6 sm:right-6 z-30 flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-[#cbfd00] hover:bg-[#b8e600] text-[#0841b5] shadow-lg transition-all duration-300 hover:scale-110 active:scale-95 border border-black/10"
     >
-      <ArrowUp size={22} strokeWidth={2.5} />
+      <ArrowUp size={20} strokeWidth={2.5} />
     </button>
   );
 }

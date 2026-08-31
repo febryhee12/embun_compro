@@ -226,6 +226,7 @@ export function SpotRedirectClient() {
   const [checkInDate, setCheckInDate] = useState(todayStr);
   const [checkOutDate, setCheckOutDate] = useState(tomorrowStr);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [isMobileBookingOpen, setIsMobileBookingOpen] = useState(false);
   const [guestCount, setGuestCount] = useState(2);
   const [paymentScheme, setPaymentScheme] = useState<"DP_50" | "FULL">("DP_50");
   const [selectedAddons, setSelectedAddons] = useState<Record<string, number>>({});
@@ -1149,8 +1150,8 @@ export function SpotRedirectClient() {
             </div>
           </div>
 
-          {/* ── RIGHT COLUMN: STICKY BOOKING CARD (4 COLS) ── */}
-          <div className="lg:col-span-5 xl:col-span-4">
+          {/* ── RIGHT COLUMN: STICKY BOOKING CARD (DESKTOP ONLY) ── */}
+          <div className="hidden lg:block lg:col-span-5 xl:col-span-4">
             <div className="sticky top-28 bg-white rounded-3xl border border-border shadow-xl p-6 space-y-6">
               {/* Header Price & Rating */}
               <div className="flex items-baseline justify-between border-b border-border pb-4">
@@ -1418,10 +1419,10 @@ export function SpotRedirectClient() {
 
           <button
             type="button"
-            onClick={handleProceedBooking}
-            className="px-6 py-3 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-xs font-bold shadow-md cursor-pointer flex items-center gap-1.5"
+            onClick={() => setIsMobileBookingOpen(true)}
+            className="px-6 py-3 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-xs font-bold shadow-md cursor-pointer flex items-center gap-1.5 transition-all"
           >
-            <span>Pesan ({paymentScheme === "DP_50" ? "DP 50%" : "Lunas"})</span>
+            <span>Pesan</span>
             <ArrowRight size={14} />
           </button>
         </div>
@@ -1574,7 +1575,264 @@ export function SpotRedirectClient() {
       />
 
       {/* ════════════════════════════════════════════════════════════════════════
-          8. GUEST AUTH MODAL
+          8. MOBILE BOOKING DRAWER / SHEET
+      ════════════════════════════════════════════════════════════════════════ */}
+      {isMobileBookingOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end justify-center animate-in fade-in duration-200">
+          <div className="bg-white text-foreground rounded-t-3xl border-t border-border w-full max-w-lg max-h-[90vh] overflow-y-auto p-5 space-y-5 shadow-2xl animate-in slide-in-from-bottom duration-200">
+            {/* Top Header */}
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <div>
+                <h3 className="font-extrabold text-base text-foreground tracking-tight">
+                  {activeSpot.name}
+                </h3>
+                <p className="text-xs text-foreground-muted">
+                  {rupiah(spotPricePerNight)} <span className="text-[11px]">/ malam</span> · {campsite.name}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsMobileBookingOpen(false)}
+                className="p-2 rounded-full hover:bg-surface text-foreground-muted hover:text-foreground cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Date & Guest Selection */}
+            <div className="border border-border rounded-2xl overflow-hidden shadow-2xs divide-y divide-border text-xs">
+              <div
+                onClick={() => setIsCalendarOpen(true)}
+                className="grid grid-cols-2 divide-x divide-border bg-surface/50 hover:bg-surface transition-colors cursor-pointer"
+              >
+                <div className="p-3">
+                  <span className="block text-[9.5px] font-bold uppercase tracking-wider text-foreground-muted">
+                    Check-In
+                  </span>
+                  <span className="font-bold text-foreground text-xs block mt-0.5">
+                    {formatDateDisplay(checkInDate)}
+                  </span>
+                </div>
+                <div className="p-3">
+                  <span className="block text-[9.5px] font-bold uppercase tracking-wider text-foreground-muted">
+                    Check-Out
+                  </span>
+                  <span className="font-bold text-foreground text-xs block mt-0.5">
+                    {formatDateDisplay(checkOutDate)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Guest Counter */}
+              <div className="p-3 bg-white flex items-center justify-between">
+                <div>
+                  <span className="block text-[9.5px] font-bold uppercase tracking-wider text-foreground-muted">
+                    Jumlah Tamu
+                  </span>
+                  <span className="font-bold text-foreground text-xs">
+                    {guestCount} Orang (Maks. {activeSpot.maxCapacity})
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={guestCount <= 1}
+                    onClick={() => setGuestCount(Math.max(1, guestCount - 1))}
+                    className="w-7 h-7 rounded-full border border-border flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                  >
+                    <Minus size={12} />
+                  </button>
+                  <span className="font-bold text-xs w-4 text-center">
+                    {guestCount}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={guestCount >= activeSpot.maxCapacity}
+                    onClick={() =>
+                      setGuestCount(
+                        Math.min(activeSpot.maxCapacity, guestCount + 1),
+                      )
+                    }
+                    className="w-7 h-7 rounded-full border border-border flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                  >
+                    <Plus size={12} />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Add-ons */}
+            {availableAddons.length > 0 && (
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-foreground block">
+                  Perlengkapan Tambahan (Opsional)
+                </label>
+                <div className="space-y-2 max-h-40 overflow-y-auto pr-1 no-scrollbar text-xs">
+                  {availableAddons.map((addon) => {
+                    const qty = selectedAddons[addon.id] || 0;
+                    return (
+                      <div
+                        key={addon.id}
+                        className="p-2.5 rounded-2xl border border-border bg-surface/40 flex items-center justify-between gap-2"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-foreground text-[11.5px] truncate">
+                            {addon.name}
+                          </p>
+                          <p className="text-[10.5px] text-foreground-muted font-bold">
+                            +{rupiah(addon.price)}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            disabled={qty <= 0}
+                            onClick={() => handleAddonQty(addon.id, -1)}
+                            className="w-6 h-6 rounded-full border border-border bg-white flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                          >
+                            <Minus size={11} />
+                          </button>
+                          <span className="font-bold text-xs w-3 text-center">
+                            {qty}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleAddonQty(addon.id, 1)}
+                            className="w-6 h-6 rounded-full border border-border bg-white flex items-center justify-center text-foreground hover:bg-surface cursor-pointer"
+                          >
+                            <Plus size={11} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Price Calculation Breakdown */}
+            <div className="space-y-2 pt-2 border-t border-border text-xs">
+              <div className="flex justify-between text-foreground-muted">
+                <span>
+                  {rupiah(spotPricePerNight)} x {nights} malam
+                </span>
+                <span className="font-semibold text-foreground">
+                  {rupiah(spotPricePerNight * nights)}
+                </span>
+              </div>
+
+              {addonTotal > 0 && (
+                <div className="flex justify-between text-foreground-muted">
+                  <span>Perlengkapan Tambahan</span>
+                  <span className="font-semibold text-foreground">
+                    +{rupiah(addonTotal)}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex justify-between text-foreground-muted">
+                <span>Biaya Layanan & Pajak</span>
+                <span className="font-semibold text-emerald-600">Gratis</span>
+              </div>
+
+              <div className="flex justify-between items-baseline pt-2 border-t border-border font-bold text-sm text-foreground">
+                <span>Total Tagihan</span>
+                <span className="text-base text-brand-blue font-extrabold">
+                  {rupiah(grandTotal)}
+                </span>
+              </div>
+            </div>
+
+            {/* Payment Scheme Choice */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-foreground block">
+                Pilihan Pembayaran
+              </label>
+              <div className="grid grid-cols-2 gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setPaymentScheme("DP_50")}
+                  className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                    paymentScheme === "DP_50"
+                      ? "border-brand-blue bg-brand-blue/5 ring-2 ring-brand-blue/20"
+                      : "border-border bg-surface/50 hover:bg-surface"
+                  }`}
+                >
+                  <span className="block text-xs font-bold text-foreground">
+                    DP 50%
+                  </span>
+                  <span className="block text-xs font-extrabold text-brand-blue mt-0.5">
+                    {rupiah(dp50Total)}
+                  </span>
+                  <span className="block text-[10px] text-foreground-muted mt-0.5">
+                    Sisa bayar di lokasi
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPaymentScheme("FULL")}
+                  className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                    paymentScheme === "FULL"
+                      ? "border-brand-blue bg-brand-blue/5 ring-2 ring-brand-blue/20"
+                      : "border-border bg-surface/50 hover:bg-surface"
+                  }`}
+                >
+                  <span className="block text-xs font-bold text-foreground">
+                    Bayar Lunas
+                  </span>
+                  <span className="block text-xs font-extrabold text-foreground mt-0.5">
+                    {rupiah(grandTotal)}
+                  </span>
+                  <span className="block text-[10px] text-emerald-600 font-semibold mt-0.5">
+                    Bebas ribet
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {orderError && (
+              <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-red-600 text-xs font-semibold">
+                {orderError}
+              </div>
+            )}
+
+            {/* CTA Buttons */}
+            <div className="space-y-2.5 pt-2">
+              <button
+                type="button"
+                disabled={submittingOrder}
+                onClick={handleProceedBooking}
+                className="w-full py-3.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                <Lock size={15} />
+                <span>
+                  {submittingOrder
+                    ? "Memproses Pesanan..."
+                    : `Pesan Sekarang · ${rupiah(paymentAmountToPay)}`}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleOpenApp}
+                className="w-full py-2.5 rounded-full bg-[#cefb0a] hover:bg-[#c2ed08] text-[#0841b5] text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+              >
+                <Smartphone size={14} />
+                <span>Buka di Aplikasi Embun</span>
+              </button>
+            </div>
+
+            <div className="flex items-center justify-center gap-1.5 text-[11px] text-foreground-muted pb-2">
+              <ShieldCheck size={13} className="text-emerald-600" />
+              <span>Pembayaran aman & bergaransi via Midtrans</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════════════
+          9. GUEST AUTH MODAL
       ════════════════════════════════════════════════════════════════════════ */}
       {isAuthOpen && (
         <GuestAuthModal
