@@ -87,14 +87,19 @@ export function BookingDrawerModal({
   });
 
   const [failedPhotoUrls, setFailedPhotoUrls] = useState<Set<string>>(new Set());
-
   const panoramaRef = useRef<HTMLDivElement | null>(null);
   const panoViewerRef = useRef<any>(null);
 
-  if (!spot) return null;
+  // Reset photo index and view mode on spot change
+  useEffect(() => {
+    setPhotoIdx(0);
+    setViewMode('photo');
+    setCopied(false);
+  }, [spot?.id]);
 
   // Extract & sort photos with accurate priority (Kamar Utama > Tampak Luar > Toilet Terakhir)
-  const photos: string[] = (() => {
+  const photos: string[] = React.useMemo(() => {
+    if (!spot) return [];
     const list: Array<{ url: string; score: number }> = [];
     if (Array.isArray(spot.photos) && spot.photos.length > 0) {
       spot.photos.forEach((p) => {
@@ -115,13 +120,13 @@ export function BookingDrawerModal({
       });
     }
     return list.sort((a, b) => a.score - b.score).map((item) => item.url);
-  })();
+  }, [spot, failedPhotoUrls]);
 
-  const panoramaList = spot.panoramaPhotos || [];
+  const panoramaList = React.useMemo(() => spot?.panoramaPhotos || [], [spot]);
 
   // Init 360 viewer
   useEffect(() => {
-    if (viewMode !== '360' || panoramaList.length === 0) return;
+    if (!spot || viewMode !== '360' || panoramaList.length === 0) return;
     let cancelled = false;
 
     const init = async () => {
@@ -133,9 +138,11 @@ export function BookingDrawerModal({
         } catch {}
       }
       const firstPano = panoramaList[0];
+      const panoUrl = typeof firstPano === 'string' ? firstPano : (firstPano?.imageUrl || firstPano?.url || '');
+      if (!panoUrl) return;
       panoViewerRef.current = p.viewer(panoramaRef.current, {
         type: 'equirectangular',
-        panorama: resolveAssetUrl(firstPano.imageUrl || firstPano.url),
+        panorama: resolveAssetUrl(panoUrl),
         autoLoad: true,
         autoRotate: -2,
         compass: true,
@@ -154,18 +161,11 @@ export function BookingDrawerModal({
         panoViewerRef.current = null;
       }
     };
-  }, [viewMode, panoramaList]);
-
-  // Deep Link CTA Handlers
-  const handleOpenApp = () => {
-    const blockIdentifier = spot.shareCode || spot.id;
-    window.location.href = `embun://spot?blockId=${encodeURIComponent(
-      blockIdentifier,
-    )}`;
-  };
+  }, [spot, viewMode, panoramaList]);
 
   // Calculate starting price from packages / rates
   const startingPrice = React.useMemo(() => {
+    if (!spot) return 0;
     if (
       Array.isArray((spot as any).pricingPackages) &&
       (spot as any).pricingPackages.length > 0
@@ -194,6 +194,31 @@ export function BookingDrawerModal({
     }
     return 0;
   }, [spot]);
+
+  // Early return if no spot selected
+  if (!spot) return null;
+
+  // Deep Link CTA Handlers
+  const handleOpenApp = () => {
+    const blockIdentifier = spot.shareCode || spot.id;
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isMobile) {
+      window.location.href = `embun://spot?blockId=${encodeURIComponent(
+        blockIdentifier,
+      )}`;
+      setTimeout(() => {
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        if (isAndroid) {
+          window.location.href =
+            'https://play.google.com/store/apps/details?id=app.embun';
+        } else {
+          window.location.href = 'https://apps.apple.com/app/embun';
+        }
+      }, 1500);
+    } else {
+      window.open(`https://link.embun.app/spot/${blockIdentifier}`, '_blank');
+    }
+  };
 
   const handleShareWhatsApp = () => {
     const shareUrl = `https://link.embun.app/spot/${spot.shareCode || spot.id}`;

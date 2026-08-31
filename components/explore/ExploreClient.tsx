@@ -278,20 +278,24 @@ export function ExploreClient() {
       </footer>
 
       {/* ═══ 5. MODAL LOGIN & BOOKING DRAWER ═══ */}
-      <GuestAuthModal
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-        currentUser={currentUser}
-        onSuccess={(user) => setCurrentUser(user)}
-        onLogout={() => setCurrentUser(null)}
-      />
+      {isAuthOpen && (
+        <GuestAuthModal
+          isOpen={isAuthOpen}
+          onClose={() => setIsAuthOpen(false)}
+          currentUser={currentUser}
+          onSuccess={(user) => setCurrentUser(user)}
+          onLogout={() => setCurrentUser(null)}
+        />
+      )}
 
-      <BookingDrawerModal
-        spot={selectedSpot}
-        onClose={() => setSelectedSpot(null)}
-        onOpenAuth={() => setIsAuthOpen(true)}
-        currentUser={currentUser}
-      />
+      {selectedSpot && (
+        <BookingDrawerModal
+          spot={selectedSpot}
+          onClose={() => setSelectedSpot(null)}
+          onOpenAuth={() => setIsAuthOpen(true)}
+          currentUser={currentUser}
+        />
+      )}
     </div>
   );
 }
