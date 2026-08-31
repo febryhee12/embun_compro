@@ -214,8 +214,13 @@ export function SpotCard({
         {/* Top Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5 items-start">
           {spot.isEmbunPlus ? (
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-brand-lime text-black border border-brand-lime/80 shadow-md backdrop-blur-xs flex items-center gap-1">
+              <Sparkles size={10} className="fill-black text-black" />
+              Embun Plus
+            </span>
+          ) : (spot as any).isGuestFavorite ? (
             <span className="px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-white/95 text-foreground shadow-md backdrop-blur-xs border border-black/10 flex items-center gap-1">
-              <Sparkles size={11} className="text-amber-500 fill-amber-500" />
+              <Star size={11} className="text-amber-500 fill-amber-500" />
               Favorit Tamu
             </span>
           ) : (

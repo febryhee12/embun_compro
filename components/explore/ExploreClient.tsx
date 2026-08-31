@@ -147,20 +147,68 @@ export function ExploreClient() {
   }, [allSpots, searchQuery, selectedCategory, selectedCity]);
 
   // 4. Section Data Computations
-  // Section 1: Embun Plus (Paling Atas)
+  const [failedCampsiteImages, setFailedCampsiteImages] = useState<Set<string>>(
+    new Set(),
+  );
+
+  // Helper to find the best cover photo across all blocks of a campsite
+  const getCampsiteCoverPhoto = (camp: any): string => {
+    if (camp.coverImageUrl) return camp.coverImageUrl;
+    if (Array.isArray(camp.blocks) && camp.blocks.length > 0) {
+      const scored: Array<{ url: string; score: number }> = [];
+      camp.blocks.forEach((b: any) => {
+        if (Array.isArray(b.photos)) {
+          b.photos.forEach((p: any) => {
+            if (p?.url) {
+              const cat = (p.category || '').toLowerCase();
+              let score = 50;
+              if (
+                cat.includes('mandi') ||
+                cat.includes('toilet') ||
+                cat.includes('wc')
+              )
+                score = 99;
+              else if (
+                cat.includes('luar') ||
+                cat.includes('pemandangan') ||
+                cat.includes('view') ||
+                cat.includes('alam')
+              )
+                score = 1;
+              else if (
+                cat.includes('utama') ||
+                cat.includes('tenda') ||
+                cat.includes('kamar')
+              )
+                score = 2;
+              scored.push({ url: p.url, score });
+            }
+          });
+        }
+        if (Array.isArray(b.images)) {
+          b.images.forEach((img: string) => {
+            if (img) scored.push({ url: img, score: 50 });
+          });
+        }
+      });
+      if (scored.length > 0) {
+        scored.sort((a, b) => a.score - b.score);
+        return scored[0].url;
+      }
+    }
+    if (camp.mapImageUrl) return camp.mapImageUrl;
+    return '';
+  };
+
+  // Section 1: Embun Plus (Paling Atas) - True Embun Plus units only
   const embunPlusSpots = useMemo(() => {
-    return allSpots.filter(
-      (s) =>
-        s.isEmbunPlus ||
-        s.tentType?.toLowerCase().includes('glamping') ||
-        s.tentType?.toLowerCase().includes('cabin') ||
-        s.tentType?.toLowerCase().includes('saung'),
-    );
+    return allSpots.filter((s) => s.isEmbunPlus);
   }, [allSpots]);
 
   // Section 2: Spot Terdekat Sekitar Anda
   const nearbySpots = useMemo(() => {
-    return allSpots.slice(0, 4);
+    const nonPlus = allSpots.filter((s) => !s.isEmbunPlus);
+    return nonPlus.length > 0 ? nonPlus.slice(0, 4) : allSpots.slice(0, 4);
   }, [allSpots]);
 
   // Section 3: Populer di Kabupaten
@@ -169,9 +217,12 @@ export function ExploreClient() {
     const target = activeKabupaten.toLowerCase();
     return allSpots.filter(
       (s) =>
-        (s.campsite.address && s.campsite.address.toLowerCase().includes(target)) ||
-        (s.campsite.city && s.campsite.city.toLowerCase().includes(target)) ||
-        (s.campsite.name && s.campsite.name.toLowerCase().includes(target)),
+        (s.campsite.address &&
+          s.campsite.address.toLowerCase().includes(target)) ||
+        (s.campsite.city &&
+          s.campsite.city.toLowerCase().includes(target)) ||
+        (s.campsite.name &&
+          s.campsite.name.toLowerCase().includes(target)),
     );
   }, [allSpots, activeKabupaten]);
 
@@ -430,13 +481,11 @@ export function ExploreClient() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                   {campsites.map((camp) => {
-                    const firstSpotPhoto =
-                      camp.blocks?.[0]?.photos?.[0]?.url ||
-                      camp.blocks?.[0]?.images?.[0] ||
-                      camp.mapImageUrl;
+                    const coverPhoto = getCampsiteCoverPhoto(camp);
                     const spotCount = Array.isArray(camp.blocks)
                       ? camp.blocks.length
                       : 0;
+                    const hasFailed = failedCampsiteImages.has(camp.id);
                     return (
                       <div
                         key={camp.id}
@@ -444,15 +493,24 @@ export function ExploreClient() {
                         className="group p-4 rounded-3xl border border-border bg-white hover:shadow-lg transition-all cursor-pointer flex flex-col space-y-3"
                       >
                         <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-surface">
-                          {firstSpotPhoto ? (
+                          {coverPhoto && !hasFailed ? (
                             <img
-                              src={resolveAssetUrl(firstSpotPhoto)}
+                              src={resolveAssetUrl(coverPhoto)}
                               alt={camp.name}
+                              onError={() => {
+                                setFailedCampsiteImages(
+                                  (prev) => new Set([...prev, camp.id]),
+                                );
+                              }}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-xs text-foreground-muted">
-                              Foto Campsite
+                            <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-emerald-950 via-[#0841b5] to-slate-900 text-white p-4 text-center">
+                              <Trees size={32} className="text-brand-lime mb-1" />
+                              <span className="font-bold text-xs">{camp.name}</span>
+                              <span className="text-[10px] text-white/70">
+                                {camp.address || 'Kawasan Wisata Alam'}
+                              </span>
                             </div>
                           )}
                           <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-full text-[11px] font-bold text-foreground shadow-xs flex items-center gap-1">
@@ -522,6 +580,7 @@ export function ExploreClient() {
           </div>
         )}
       </main>
+
 
       {/* ═══ 4. FOOTER ═══ */}
       <footer className="border-t border-border bg-surface py-8 px-4 sm:px-8 text-xs text-foreground-muted mt-auto">
