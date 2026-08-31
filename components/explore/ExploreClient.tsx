@@ -102,13 +102,14 @@ export function ExploreClient() {
       if (selectedCategory === '360') {
         matchCat =
           Array.isArray(spot.panoramaPhotos) && spot.panoramaPhotos.length > 0;
-      } else if (selectedCategory === 'Riverside') {
-        matchCat =
-          spot.name.toLowerCase().includes('river') ||
-          spot.viewOptions?.some((v) => v.toLowerCase().includes('sungai')) ||
-          spot.campsite.name.toLowerCase().includes('river');
       } else if (selectedCategory !== 'all') {
-        matchCat = spot.tentType === selectedCategory;
+        const cleanTarget = selectedCategory.toLowerCase().trim();
+        const spotType = (spot.tentType || '').toLowerCase().trim();
+        const spotName = (spot.name || '').toLowerCase().trim();
+        matchCat =
+          spotType === cleanTarget ||
+          spotType.includes(cleanTarget) ||
+          spotName.includes(cleanTarget);
       }
 
       return matchSearch && matchCat;

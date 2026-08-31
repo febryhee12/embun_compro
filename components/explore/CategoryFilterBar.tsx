@@ -2,15 +2,14 @@
 
 import React from 'react';
 import {
-  Tent,
   Sparkles,
   Building2,
-  Waves,
   Car,
   Compass,
   Trees,
   Home,
-  Flame,
+  Bike,
+  Layers,
 } from 'lucide-react';
 
 export interface CategoryItem {
@@ -20,13 +19,14 @@ export interface CategoryItem {
 }
 
 export const CATEGORIES: CategoryItem[] = [
-  { id: 'all', label: 'Semua Spot', icon: <Tent size={18} /> },
-  { id: 'Glamping', label: 'Glamping VIP', icon: <Sparkles size={18} /> },
-  { id: 'Cabin', label: 'Kabin & Villa', icon: <Building2 size={18} /> },
-  { id: 'Riverside', label: 'Pinggir Sungai', icon: <Waves size={18} /> },
+  { id: 'all', label: 'Semua Tipe', icon: <Layers size={18} /> },
+  { id: 'Glamping', label: 'Glamping', icon: <Sparkles size={18} /> },
+  { id: 'Cabin', label: 'Cabin', icon: <Building2 size={18} /> },
+  { id: 'Saung', label: 'Saung', icon: <Home size={18} /> },
   { id: 'Campervan', label: 'Campervan', icon: <Car size={18} /> },
-  { id: 'Saung', label: 'Saung Alam', icon: <Home size={18} /> },
-  { id: 'Ground', label: 'Campground', icon: <Trees size={18} /> },
+  { id: 'Motocamp', label: 'Motocamp', icon: <Bike size={18} /> },
+  { id: 'Bikecamp', label: 'Bikecamp', icon: <Bike size={18} /> },
+  { id: 'Ground', label: 'Ground', icon: <Trees size={18} /> },
   { id: '360', label: 'Tur 360°', icon: <Compass size={18} /> },
 ];
 
