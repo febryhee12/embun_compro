@@ -197,22 +197,6 @@ export function SpotCard({
           )}
         </div>
 
-        {/* Wishlist Heart Button */}
-        <button
-          type="button"
-          onClick={handleFavoriteClick}
-          className="absolute top-3 right-3 p-2 rounded-full text-white/90 hover:text-white hover:scale-110 active:scale-95 transition-all drop-shadow-md cursor-pointer"
-        >
-          <Heart
-            size={22}
-            className={
-              isFavorite
-                ? 'fill-rose-500 text-rose-500 stroke-rose-500'
-                : 'fill-black/30 stroke-white stroke-[2]'
-            }
-          />
-        </button>
-
         {/* Prev / Next Arrows on Hover */}
         {validPhotos.length > 1 && isHovered && (
           <>
