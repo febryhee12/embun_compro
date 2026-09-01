@@ -1369,6 +1369,94 @@ export function SpotRedirectClient() {
               </div>
             )}
 
+            {/* ── SECTION: PERLENGKAPAN TAMBAHAN (OPSIONAL) ── */}
+            {availableAddons.length > 0 && (
+              <div className="space-y-4 pb-8 border-b border-border">
+                <div>
+                  <h3 className="font-bold text-lg text-foreground">
+                    Perlengkapan Tambahan (Opsional)
+                  </h3>
+                  <p className="text-xs text-foreground-muted mt-0.5">
+                    Sewa perlengkapan camping ekstra untuk kenyamanan menginap Anda di {campsite.name}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {availableAddons.map((addon) => {
+                    const qty = selectedAddons[addon.id] || 0;
+                    const isTent =
+                      addon.name.toLowerCase().includes("tenda") ||
+                      addon.name.toLowerCase().includes("tent") ||
+                      addon.id.includes("tent");
+                    const isTentDisabled = isTent && isTentPackage;
+                    const isMaxTentReached = isTent && !isTentPackage && qty >= kavlingCount;
+
+                    return (
+                      <div
+                        key={addon.id}
+                        className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
+                          isTentDisabled
+                            ? "border-border/60 bg-surface/30 opacity-75"
+                            : qty > 0
+                            ? "border-brand-blue/60 bg-brand-blue/5 ring-1 ring-brand-blue/20"
+                            : "border-border bg-surface hover:bg-surface-variant/40"
+                        }`}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="font-bold text-foreground text-xs sm:text-[13px] truncate">
+                              {addon.name}
+                            </p>
+                            {isTentDisabled && (
+                              <span className="text-[9px] font-bold text-brand-blue bg-brand-blue/10 px-1.5 py-0.5 rounded-full">
+                                Termasuk di Paket
+                              </span>
+                            )}
+                            {isTent && !isTentPackage && kavlingCount > 1 && (
+                              <span className="text-[9px] font-semibold text-foreground-muted bg-white px-1.5 py-0.5 rounded-full border border-border">
+                                Maks. {kavlingCount} tenda ({kavlingCount} kavling)
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs font-extrabold text-brand-blue mt-1">
+                            +{rupiah(addon.price)} <span className="text-[10px] font-normal text-foreground-muted">/ unit</span>
+                          </p>
+                        </div>
+
+                        {!isTentDisabled ? (
+                          <div className="flex items-center gap-2 shrink-0 bg-white border border-border p-1 rounded-full shadow-2xs">
+                            <button
+                              type="button"
+                              disabled={qty <= 0}
+                              onClick={() => handleAddonQty(addon.id, -1)}
+                              className="w-7 h-7 rounded-full flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                            >
+                              <Minus size={12} />
+                            </button>
+                            <span className="font-bold text-xs w-4 text-center text-foreground">
+                              {qty}
+                            </span>
+                            <button
+                              type="button"
+                              disabled={isMaxTentReached}
+                              onClick={() => handleAddonQty(addon.id, 1)}
+                              className="w-7 h-7 rounded-full flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                            >
+                              <Plus size={12} />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="text-[10px] font-bold text-brand-blue shrink-0 px-2.5 py-1 bg-brand-blue/5 rounded-xl">
+                            Included
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* ── AIRBNB INTEGRATED CALENDAR SECTION ── */}
             <div className="space-y-4 pb-8 border-b border-border">
               <div>
@@ -1838,86 +1926,6 @@ export function SpotRedirectClient() {
                   </div>
                 </div>
               </div>
-
-              {/* Add-on Selection (Directly displayed) */}
-              {availableAddons.length > 0 && (
-                <div className="space-y-2 pt-1">
-                  <label className="text-xs font-bold text-foreground block">
-                    Perlengkapan Tambahan (Opsional)
-                  </label>
-                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1 no-scrollbar text-xs">
-                    {availableAddons.map((addon) => {
-                      const qty = selectedAddons[addon.id] || 0;
-                      const isTent =
-                        addon.name.toLowerCase().includes("tenda") ||
-                        addon.name.toLowerCase().includes("tent") ||
-                        addon.id.includes("tent");
-                      const isTentDisabled = isTent && isTentPackage;
-                      const isMaxTentReached = isTent && !isTentPackage && qty >= kavlingCount;
-
-                      return (
-                        <div
-                          key={addon.id}
-                          className={`p-2.5 rounded-2xl border transition-all flex items-center justify-between gap-2 ${
-                            isTentDisabled
-                              ? "border-border/60 bg-surface/20 opacity-70"
-                              : "border-border bg-surface/40"
-                          }`}
-                        >
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <p className="font-semibold text-foreground text-[11.5px] truncate">
-                                {addon.name}
-                              </p>
-                              {isTentDisabled && (
-                                <span className="text-[9px] font-bold text-brand-blue bg-brand-blue/10 px-1.5 py-0.5 rounded-full">
-                                  Termasuk di Paket
-                                </span>
-                              )}
-                              {isTent && !isTentPackage && kavlingCount > 1 && (
-                                <span className="text-[9px] font-semibold text-foreground-muted bg-surface px-1.5 py-0.5 rounded-full border border-border">
-                                  Maks. {kavlingCount} tenda ({kavlingCount} kavling)
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-[10.5px] text-foreground-muted font-bold mt-0.5">
-                              +{rupiah(addon.price)}
-                            </p>
-                          </div>
-
-                          {!isTentDisabled ? (
-                            <div className="flex items-center gap-2 shrink-0">
-                              <button
-                                type="button"
-                                disabled={qty <= 0}
-                                onClick={() => handleAddonQty(addon.id, -1)}
-                                className="w-6 h-6 rounded-full border border-border bg-white flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
-                              >
-                                <Minus size={11} />
-                              </button>
-                              <span className="font-bold text-xs w-3 text-center">
-                                {qty}
-                              </span>
-                              <button
-                                type="button"
-                                disabled={isMaxTentReached}
-                                onClick={() => handleAddonQty(addon.id, 1)}
-                                className="w-6 h-6 rounded-full border border-border bg-white flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
-                              >
-                                <Plus size={11} />
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="text-[10px] font-bold text-brand-blue shrink-0 px-2 py-1 bg-brand-blue/5 rounded-xl">
-                              Included
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
 
               {/* Price Calculation Breakdown */}
               <div className="space-y-2 pt-2 border-t border-border text-xs">

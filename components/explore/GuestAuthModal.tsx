@@ -47,101 +47,115 @@ export function GuestAuthModal({
     setLoadingProvider('google');
 
     try {
-      if ((window as any).google?.accounts?.id) {
-        (window as any).google.accounts.id.initialize({
+      if ((window as any).google?.accounts?.oauth2) {
+        const client = (window as any).google.accounts.oauth2.initTokenClient({
           client_id: GOOGLE_CLIENT_ID,
-          callback: async (response: any) => {
-            if (response.credential) {
+          scope: 'email profile openid',
+          callback: async (tokenResponse: any) => {
+            try {
+              if (tokenResponse.error) {
+                setError('Login Google dibatalkan.');
+                setLoadingProvider(null);
+                return;
+              }
+
+              // 1. Fetch real Google profile info using access token
+              const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+              });
+
+              if (!userInfoRes.ok) {
+                throw new Error('Gagal mengambil data profil Google');
+              }
+
+              const googleUser = await userInfoRes.json();
+
+              // 2. Call backend /guest/auth/social (Flutter compatibility)
+              let finalToken = tokenResponse.access_token;
+              let finalProfile = {
+                id: googleUser.sub,
+                email: googleUser.email,
+                fullName: googleUser.name,
+                avatarUrl: googleUser.picture || '',
+                phone: '',
+              };
+
               try {
-                // 1. Call real backend API /guest/auth/social (identical to Flutter app)
                 const authRes = await fetch(`${API_BASE_URL}/guest/auth/social`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
                     provider: 'google',
-                    idToken: response.credential,
+                    idToken: tokenResponse.access_token,
                   }),
                 });
 
                 if (authRes.ok) {
                   const tokenData = await authRes.json();
-                  const accessToken = tokenData.accessToken;
-
-                  // 2. Fetch authenticated profile from /guest/me
+                  finalToken = tokenData.accessToken || finalToken;
                   const meRes = await fetch(`${API_BASE_URL}/guest/me`, {
-                    headers: { Authorization: `Bearer ${accessToken}` },
+                    headers: { Authorization: `Bearer ${finalToken}` },
                   });
-                  const profileData = meRes.ok ? await meRes.json() : { fullName: 'Tamu Google' };
-
-                  setGuestSession(accessToken, profileData);
-                  if (onSuccess) onSuccess(profileData);
-                  onClose();
-                  return;
+                  if (meRes.ok) {
+                    finalProfile = await meRes.json();
+                  }
                 }
-              } catch (err: any) {
-                console.warn('Backend social exchange error:', err);
+              } catch (backendErr) {
+                console.warn('Backend sync warning (using real Google profile):', backendErr);
               }
-            }
 
-            // Fallback decode if direct GSI payload
-            try {
-              const base64Url = response.credential.split('.')[1];
-              const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-              const jsonPayload = decodeURIComponent(
-                atob(base64)
-                  .split('')
-                  .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-                  .join('')
-              );
-              const decoded = JSON.parse(jsonPayload);
-              const userObj = {
-                id: decoded.sub,
-                email: decoded.email,
-                fullName: decoded.name || 'Tamu Google',
-                avatarUrl: decoded.picture || '',
-                phone: '',
-              };
-              setGuestSession(response.credential, userObj);
-              if (onSuccess) onSuccess(userObj);
+              setGuestSession(finalToken, finalProfile);
+              if (onSuccess) onSuccess(finalProfile);
               onClose();
-            } catch (e) {
-              setError('Gagal memproses login Google.');
+            } catch (err: any) {
+              setError(err.message || 'Gagal masuk dengan Google.');
+            } finally {
+              setLoadingProvider(null);
             }
           },
         });
 
-        // Prompt Google Account Chooser
-        (window as any).google.accounts.id.prompt((notification: any) => {
-          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            // If one-tap popup is suppressed, fallback to instant verified session
-            const userObj = {
-              id: `g_${Date.now()}`,
-              email: 'tamu.google@gmail.com',
-              fullName: 'Tamu Google',
-              avatarUrl: '',
-              phone: '',
-            };
-            setGuestSession(`jwt_${Date.now()}`, userObj);
-            if (onSuccess) onSuccess(userObj);
-            onClose();
-          }
+        // Request access token with real Google popup window
+        client.requestAccessToken();
+      } else if ((window as any).google?.accounts?.id) {
+        (window as any).google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: async (response: any) => {
+            if (response.credential) {
+              try {
+                const base64Url = response.credential.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(
+                  atob(base64)
+                    .split('')
+                    .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                    .join('')
+                );
+                const decoded = JSON.parse(jsonPayload);
+                const realUser = {
+                  id: decoded.sub,
+                  email: decoded.email,
+                  fullName: decoded.name,
+                  avatarUrl: decoded.picture || '',
+                  phone: '',
+                };
+                setGuestSession(response.credential, realUser);
+                if (onSuccess) onSuccess(realUser);
+                onClose();
+                return;
+              } catch (e) {
+                console.warn('GSI decode error:', e);
+              }
+            }
+          },
         });
+        (window as any).google.accounts.id.prompt();
       } else {
-        // Instant verified session if GSI script still loading
-        const userObj = {
-          id: `g_${Date.now()}`,
-          email: 'tamu.google@gmail.com',
-          fullName: 'Tamu Google',
-          avatarUrl: '',
-          phone: '',
-        };
-        setGuestSession(`jwt_${Date.now()}`, userObj);
-        if (onSuccess) onSuccess(userObj);
-        onClose();
+        setError('Sedang memuat layanan Google Sign-In, silakan klik kembali.');
+        setLoadingProvider(null);
       }
     } catch (err: any) {
       setError(err.message || 'Gagal menghubungkan ke Google.');
-    } finally {
       setLoadingProvider(null);
     }
   };
