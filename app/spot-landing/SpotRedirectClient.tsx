@@ -1220,7 +1220,7 @@ export function SpotRedirectClient() {
                     Kavling & Unit di {campsite.name}
                   </h2>
                   <p className="text-xs text-foreground-muted mt-1">
-                    Maks. {effectiveMaxCapacity} Tamu · {activeSpot.bedType || "Bawa Sendiri"} {activeSpot.roomSize ? `· Luas ${activeSpot.roomSize} m` : ""}
+                    Maks. {effectiveMaxCapacity} Tamu {activeSpot.tentType ? `· Ground ${activeSpot.tentType}` : ""}
                   </p>
                 </div>
                 <div className="w-12 h-12 rounded-2xl bg-brand-blue/10 border border-brand-blue/30 text-brand-blue flex items-center justify-center font-bold text-sm shrink-0">
@@ -1235,24 +1235,12 @@ export function SpotRedirectClient() {
                 Spesifikasi & Fasilitas Spot
               </h3>
 
-              {/* View, Ground, Size Badges */}
+              {/* View & Ground Badges */}
               <div className="flex flex-wrap gap-2">
                 {activeSpot.tentType && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-surface border border-border text-xs font-semibold text-foreground">
                     <Tent size={14} className="text-brand-blue" />
                     <span>Tipe Ground: {activeSpot.tentType}</span>
-                  </span>
-                )}
-                {activeSpot.roomSize && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-surface border border-border text-xs font-semibold text-foreground">
-                    <Maximize2 size={14} className="text-brand-blue" />
-                    <span>Ukuran: {activeSpot.roomSize} m</span>
-                  </span>
-                )}
-                {activeSpot.bedType && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-surface border border-border text-xs font-semibold text-foreground">
-                    <BedDouble size={14} className="text-brand-blue" />
-                    <span>Alas Tidur: {activeSpot.bedType}</span>
                   </span>
                 )}
                 {Array.isArray(activeSpot.viewOptions) &&
