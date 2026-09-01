@@ -2041,46 +2041,44 @@ export function SpotRedirectClient() {
                   </span>
                 </button>
 
-                <button
-                  type="button"
-                  onClick={handleOpenApp}
-                  className="w-full py-2.5 rounded-full bg-[#cefb0a] hover:bg-[#c2ed08] text-[#0841b5] text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
-                >
-                  <Smartphone size={14} />
-                  <span>Buka di Aplikasi Embun</span>
-                </button>
-
-                {/* Direct App Store & Google Play Pills */}
-                <div className="pt-2 border-t border-border space-y-1.5">
-                  <div className="flex items-center justify-between text-[11px] text-foreground-muted">
-                    <span className="font-semibold text-foreground">Unduh Aplikasi:</span>
-                    <span className="text-[10px] text-brand-blue font-bold">Gratis</span>
+                {/* Direct App Store & Google Play Features Box */}
+                <div className="pt-3 border-t border-border space-y-2">
+                  <div className="space-y-1">
+                    <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                      <Sparkles size={13} className="text-brand-blue" />
+                      <span>Pengalaman Terbaik di Aplikasi</span>
+                    </p>
+                    <p className="text-[11px] text-foreground-muted leading-relaxed">
+                      Tur 360° interaktif mulus, navigasi peta offline, live chat dengan pengelola, dan e-tiket QR otomatis di aplikasi Embun.
+                    </p>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+
+                  <div className="grid grid-cols-2 gap-2 pt-0.5">
                     <a
                       href={APP_STORE_HREF}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-2 rounded-2xl border border-border bg-surface/60 hover:bg-surface flex items-center justify-center gap-1.5 text-foreground transition-all cursor-pointer shadow-2xs hover:shadow-xs"
+                      className="p-2.5 rounded-2xl border border-border bg-surface/60 hover:bg-surface flex items-center justify-center gap-1.5 text-foreground transition-all cursor-pointer shadow-2xs hover:shadow-xs group"
                     >
-                      <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
                         <path d="M17.05 12.53c-.02-2.02 1.65-2.99 1.72-3.04-.94-1.37-2.4-1.56-2.92-1.58-1.24-.13-2.42.73-3.05.73-.63 0-1.6-.71-2.63-.69-1.35.02-2.6.79-3.29 2-1.4 2.43-.36 6.02 1.01 7.99.67.96 1.47 2.04 2.51 2 1.01-.04 1.39-.65 2.61-.65 1.22 0 1.56.65 2.63.63 1.09-.02 1.78-.98 2.44-1.95.77-1.12 1.09-2.2 1.11-2.26-.02-.01-2.13-.82-2.15-3.24zM15.04 6.34c.56-.68.94-1.62.83-2.56-.81.03-1.79.54-2.37 1.21-.52.6-.97 1.56-.85 2.48.9.07 1.83-.46 2.39-1.13z" />
                       </svg>
-                      <span className="text-[10.5px] font-bold">App Store</span>
+                      <span className="text-[11px] font-bold">App Store</span>
                     </a>
+
                     <a
                       href={GOOGLE_PLAY_HREF}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-2 rounded-2xl border border-border bg-surface/60 hover:bg-surface flex items-center justify-center gap-1.5 text-foreground transition-all cursor-pointer shadow-2xs hover:shadow-xs"
+                      className="p-2.5 rounded-2xl border border-border bg-surface/60 hover:bg-surface flex items-center justify-center gap-1.5 text-foreground transition-all cursor-pointer shadow-2xs hover:shadow-xs group"
                     >
-                      <svg viewBox="0 0 24 24" width="12" height="12">
+                      <svg viewBox="0 0 24 24" width="13" height="13">
                         <path d="M3.6 2.3c-.24.25-.38.63-.38 1.13v17.14c0 .5.14.88.38 1.13l.06.05L13 12.06v-.12L3.66 2.25l-.06.05z" fill="#00D0FF" />
                         <path d="M16.5 15.56 13 12.06v-.12l3.5-3.5.08.05 4.15 2.36c1.18.67 1.18 1.77 0 2.45l-4.15 2.36-.08.05z" fill="#FFCE00" />
                         <path d="M16.58 15.51 13 12l-9.4 9.4c.39.41 1.03.46 1.76.05l11.22-6.44" fill="#FF3D44" />
                         <path d="M16.58 8.49 5.36 2.05C4.63 1.64 3.99 1.69 3.6 2.1L13 11.5l3.58-3.01z" fill="#00F076" />
                       </svg>
-                      <span className="text-[10.5px] font-bold">Google Play</span>
+                      <span className="text-[11px] font-bold">Google Play</span>
                     </a>
                   </div>
                 </div>
@@ -2617,14 +2615,47 @@ export function SpotRedirectClient() {
                 </span>
               </button>
 
-              <button
-                type="button"
-                onClick={handleOpenApp}
-                className="w-full py-2.5 rounded-full bg-[#cefb0a] hover:bg-[#c2ed08] text-[#0841b5] text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
-              >
-                <Smartphone size={14} />
-                <span>Buka di Aplikasi Embun</span>
-              </button>
+              {/* Direct App Store & Google Play Features Box */}
+              <div className="pt-3 border-t border-border space-y-2">
+                <div className="space-y-1">
+                  <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <Sparkles size={13} className="text-brand-blue" />
+                    <span>Pengalaman Terbaik di Aplikasi</span>
+                  </p>
+                  <p className="text-[11px] text-foreground-muted leading-relaxed">
+                    Tur 360° interaktif mulus, navigasi peta offline, live chat dengan pengelola, dan e-tiket QR otomatis di aplikasi Embun.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 pt-0.5">
+                  <a
+                    href={APP_STORE_HREF}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2.5 rounded-2xl border border-border bg-surface/60 hover:bg-surface flex items-center justify-center gap-1.5 text-foreground transition-all cursor-pointer shadow-2xs hover:shadow-xs group"
+                  >
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                      <path d="M17.05 12.53c-.02-2.02 1.65-2.99 1.72-3.04-.94-1.37-2.4-1.56-2.92-1.58-1.24-.13-2.42.73-3.05.73-.63 0-1.6-.71-2.63-.69-1.35.02-2.6.79-3.29 2-1.4 2.43-.36 6.02 1.01 7.99.67.96 1.47 2.04 2.51 2 1.01-.04 1.39-.65 2.61-.65 1.22 0 1.56.65 2.63.63 1.09-.02 1.78-.98 2.44-1.95.77-1.12 1.09-2.2 1.11-2.26-.02-.01-2.13-.82-2.15-3.24zM15.04 6.34c.56-.68.94-1.62.83-2.56-.81.03-1.79.54-2.37 1.21-.52.6-.97 1.56-.85 2.48.9.07 1.83-.46 2.39-1.13z" />
+                    </svg>
+                    <span className="text-[11px] font-bold">App Store</span>
+                  </a>
+
+                  <a
+                    href={GOOGLE_PLAY_HREF}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2.5 rounded-2xl border border-border bg-surface/60 hover:bg-surface flex items-center justify-center gap-1.5 text-foreground transition-all cursor-pointer shadow-2xs hover:shadow-xs group"
+                  >
+                    <svg viewBox="0 0 24 24" width="13" height="13">
+                      <path d="M3.6 2.3c-.24.25-.38.63-.38 1.13v17.14c0 .5.14.88.38 1.13l.06.05L13 12.06v-.12L3.66 2.25l-.06.05z" fill="#00D0FF" />
+                      <path d="M16.5 15.56 13 12.06v-.12l3.5-3.5.08.05 4.15 2.36c1.18.67 1.18 1.77 0 2.45l-4.15 2.36-.08.05z" fill="#FFCE00" />
+                      <path d="M16.58 15.51 13 12l-9.4 9.4c.39.41 1.03.46 1.76.05l11.22-6.44" fill="#FF3D44" />
+                      <path d="M16.58 8.49 5.36 2.05C4.63 1.64 3.99 1.69 3.6 2.1L13 11.5l3.58-3.01z" fill="#00F076" />
+                    </svg>
+                    <span className="text-[11px] font-bold">Google Play</span>
+                  </a>
+                </div>
+              </div>
             </div>
 
             
