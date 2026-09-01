@@ -821,12 +821,12 @@ export function SpotRedirectClient() {
           {error ||
             "Unit atau tenda ini mungkin sedang tidak aktif atau tautan tidak valid."}
         </p>
-        <Link
-          href="/explore"
+        <a
+          href="https://embun.app/explore"
           className="px-6 py-2.5 rounded-full bg-brand-blue text-white text-xs font-bold shadow-md hover:bg-brand-blue/90 transition-all"
         >
           Jelajahi Spot Lainnya
-        </Link>
+        </a>
       </div>
     );
   }
@@ -840,8 +840,8 @@ export function SpotRedirectClient() {
         <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between gap-4">
           {/* Logo & Explore Badge */}
           <div className="flex items-center gap-3">
-            <Link
-              href="/explore"
+            <a
+              href="https://embun.app/explore"
               className="flex items-center gap-2.5 group cursor-pointer"
               title="Katalog Explore"
             >
@@ -853,7 +853,7 @@ export function SpotRedirectClient() {
               <span className="text-[10px] uppercase font-black tracking-wider px-2 py-0.5 rounded-full bg-brand-lime text-black border border-brand-lime/80 shadow-2xs">
                 Explore
               </span>
-            </Link>
+            </a>
           </div>
 
           {/* Center: Campsite Location pill (desktop) */}
