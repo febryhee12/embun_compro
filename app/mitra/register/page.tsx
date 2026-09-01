@@ -289,28 +289,25 @@ export default function MitraRegisterPage() {
             </div>
 
             {/* Value Highlights */}
-            <div className="mt-10 space-y-6 border-t border-neutral-800/80 pt-8">
+            <div className="mt-10 space-y-5 border-t border-neutral-800/80 pt-8">
               <div className="space-y-1">
-                <div className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">01. Akses Pengunjung</div>
-                <h2 className="text-sm font-semibold text-white">Terhubung Langsung dengan Komunitas Outdoor</h2>
+                <div className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">01. Reservasi Online</div>
                 <p className="text-xs text-neutral-400 leading-relaxed">
-                  Campsite Anda dapat ditemukan dan dipesan langsung oleh komunitas pencinta alam dan camper di aplikasi Embun.
+                  Terima dan kelola pemesanan langsung dari calon pengunjung melalui aplikasi.
                 </p>
               </div>
 
               <div className="space-y-1">
-                <div className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">02. Manajemen Operasional</div>
-                <h2 className="text-sm font-semibold text-white">Atur Kavling, Spot & Reservasi Grup</h2>
+                <div className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">02. Manajemen Ketersediaan</div>
                 <p className="text-xs text-neutral-400 leading-relaxed">
-                  Kelola kalender ketersediaan tenda, blok jadwal gathering, dan pantau data pemesanan secara rapi.
+                  Atur kalender booking, ketersediaan kavling, dan jadwal operasional spot.
                 </p>
               </div>
 
               <div className="space-y-1">
-                <div className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">03. Pembayaran Transparan</div>
-                <h2 className="text-sm font-semibold text-white">Pencairan Dana Langsung ke Rekening</h2>
+                <div className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">03. Pembayaran & Payout</div>
                 <p className="text-xs text-neutral-400 leading-relaxed">
-                  Semua transaksi tercatat otomatis dan dana hasil reservasi dicairkan berkala ke rekening bank Anda.
+                  Laporan transaksi tercatat otomatis dan dana dapat dicairkan langsung ke rekening bank.
                 </p>
               </div>
             </div>
