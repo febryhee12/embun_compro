@@ -45,7 +45,7 @@ import {
   Waves,
   BriefcaseMedical,
   Store,
-  Package,
+  Mountain,
 } from "lucide-react";
 import {
   getStoredGuestProfile,
@@ -112,6 +112,7 @@ interface SpotItem {
   panoramaPhotos?: PanoramaItem[] | any;
   facilities?: string[];
   viewOptions?: string[];
+  specificNotes?: string;
   pricingPackages?: PricingPackageItem[];
   isEmbunPlus?: boolean;
   shareCode?: string;
@@ -173,65 +174,51 @@ function resolveTokenFromPath(pathname: string): string | null {
   return null;
 }
 
-function getPackageModelLabel(model?: string): string {
-  switch (model) {
-    case "SPOT_ONLY":
-      return "Sewa Kavling Saja";
-    case "FIXED_CAPACITY_PACKAGE":
-      return "Paket Tenda & Fasilitas";
-    case "PER_PERSON":
-      return "Harga Per Tamu / Orang";
-    case "HYBRID":
-      return "Sewa Kavling + Ekstra Tamu";
-    default:
-      return "Paket Penginapan Standar";
-  }
-}
-
 function getFacilityIcon(name?: string, id?: string) {
   const lower = (name || id || "").toLowerCase();
-  if (lower.includes("wifi"))
-    return <Wifi size={18} className="text-brand-blue shrink-0" />;
+  if (lower.includes("wifi") || lower.includes("sinyal"))
+    return <Wifi size={16} className="text-brand-blue shrink-0" />;
   if (
     lower.includes("toilet") ||
     lower.includes("kamar mandi") ||
-    lower.includes("bath")
+    lower.includes("bath") ||
+    lower.includes("cuci")
   )
-    return <Bath size={18} className="text-blue-500 shrink-0" />;
+    return <Bath size={16} className="text-blue-500 shrink-0" />;
   if (lower.includes("water heater") || lower.includes("pemanas"))
-    return <Droplets size={18} className="text-amber-500 shrink-0" />;
+    return <Droplets size={16} className="text-amber-500 shrink-0" />;
   if (
     lower.includes("listrik") ||
     lower.includes("colokan") ||
     lower.includes("power") ||
     lower.includes("zap")
   )
-    return <Zap size={18} className="text-amber-500 shrink-0" />;
+    return <Zap size={16} className="text-amber-500 shrink-0" />;
   if (
     lower.includes("api") ||
     lower.includes("bonfire") ||
     lower.includes("bbq") ||
     lower.includes("flame")
   )
-    return <Flame size={18} className="text-orange-500 shrink-0" />;
+    return <Flame size={16} className="text-orange-500 shrink-0" />;
   if (
     lower.includes("parkir") ||
     lower.includes("car") ||
     lower.includes("parking")
   )
-    return <Car size={18} className="text-emerald-600 shrink-0" />;
+    return <Car size={16} className="text-emerald-600 shrink-0" />;
   if (
     lower.includes("mushola") ||
     lower.includes("prayer") ||
     lower.includes("moon")
   )
-    return <MoonStar size={18} className="text-purple-500 shrink-0" />;
+    return <MoonStar size={16} className="text-purple-500 shrink-0" />;
   if (
     lower.includes("cafe") ||
     lower.includes("resto") ||
     lower.includes("coffee")
   )
-    return <Coffee size={18} className="text-amber-700 shrink-0" />;
+    return <Coffee size={16} className="text-amber-700 shrink-0" />;
   if (
     lower.includes("kolam") ||
     lower.includes("pool") ||
@@ -239,28 +226,32 @@ function getFacilityIcon(name?: string, id?: string) {
     lower.includes("sungai") ||
     lower.includes("waves")
   )
-    return <Waves size={18} className="text-cyan-500 shrink-0" />;
+    return <Waves size={16} className="text-cyan-500 shrink-0" />;
   if (
     lower.includes("keamanan") ||
     lower.includes("security") ||
     lower.includes("pos")
   )
-    return <ShieldCheck size={18} className="text-emerald-500 shrink-0" />;
+    return <ShieldCheck size={16} className="text-emerald-500 shrink-0" />;
   if (
     lower.includes("p3k") ||
     lower.includes("first aid") ||
     lower.includes("medis")
   )
-    return <BriefcaseMedical size={18} className="text-red-500 shrink-0" />;
+    return <BriefcaseMedical size={16} className="text-red-500 shrink-0" />;
   if (
     lower.includes("warung") ||
     lower.includes("toko") ||
     lower.includes("store")
   )
-    return <Store size={18} className="text-amber-600 shrink-0" />;
-  if (lower.includes("tenda") || lower.includes("tent"))
-    return <Tent size={18} className="text-brand-blue shrink-0" />;
-  return <CheckCircle2 size={18} className="text-brand-blue shrink-0" />;
+    return <Store size={16} className="text-amber-600 shrink-0" />;
+  if (lower.includes("gunung") || lower.includes("bukit"))
+    return <Mountain size={16} className="text-emerald-600 shrink-0" />;
+  if (lower.includes("hutan") || lower.includes("pohon") || lower.includes("rumput"))
+    return <Trees size={16} className="text-emerald-600 shrink-0" />;
+  if (lower.includes("tenda") || lower.includes("tent") || lower.includes("ground"))
+    return <Tent size={16} className="text-brand-blue shrink-0" />;
+  return <CheckCircle2 size={16} className="text-brand-blue shrink-0" />;
 }
 
 function parseHtmlRules(htmlString?: string) {
@@ -1088,14 +1079,14 @@ export function SpotRedirectClient() {
           {/* ── LEFT COLUMN: DETAILS, PACKAGES, CALENDAR, MAP, & CAMPSITE INFO (8 COLS) ── */}
           <div className="lg:col-span-7 xl:col-span-8 space-y-10">
             {/* Spot Overview Card */}
-            <div className="pb-8 border-b border-border space-y-3">
+            <div className="pb-6 border-b border-border space-y-3">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h2 className="text-xl font-bold text-foreground">
                     Kavling & Unit di {campsite.name}
                   </h2>
                   <p className="text-xs text-foreground-muted mt-1">
-                    Maks. {effectiveMaxCapacity} Tamu · {activeSpot.bedType || "Bawa Kasur Sendiri"} · Luas {activeSpot.roomSize || "4x6 meter"} · {getPackageModelLabel(selectedPackage?.pricingModel)}
+                    Maks. {effectiveMaxCapacity} Tamu · {activeSpot.bedType || "Bawa Sendiri"} {activeSpot.roomSize ? `· Luas ${activeSpot.roomSize} m` : ""}
                   </p>
                 </div>
                 <div className="w-12 h-12 rounded-2xl bg-brand-blue/10 border border-brand-blue/30 text-brand-blue flex items-center justify-center font-bold text-sm shrink-0">
@@ -1104,59 +1095,84 @@ export function SpotRedirectClient() {
               </div>
             </div>
 
-            {/* Key Spot Highlights */}
-            <div className="space-y-4 pb-8 border-b border-border">
-              <div className="flex items-start gap-3.5">
-                <Sparkles size={20} className="text-brand-lime fill-brand-lime shrink-0 mt-0.5" />
-                <div>
-                  <h3 className="font-bold text-sm text-foreground">
-                    Standar Kenyamanan Embun
-                  </h3>
-                  <p className="text-xs text-foreground-muted">
-                    Properti telah diverifikasi langsung oleh tim Embun untuk kebersihan toilet, akses listrik, dan keamanan 24 jam.
-                  </p>
-                </div>
+            {/* ── REAL SPOT SPECIFICATIONS (Tipe Ground, View, & Fasilitas Spot) ── */}
+            <div className="space-y-4 pb-6 border-b border-border">
+              <h3 className="font-bold text-base text-foreground">
+                Spesifikasi & Fasilitas Spot
+              </h3>
+
+              {/* View, Ground, Size Badges */}
+              <div className="flex flex-wrap gap-2">
+                {activeSpot.tentType && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-surface border border-border text-xs font-semibold text-foreground">
+                    <Tent size={14} className="text-brand-blue" />
+                    <span>Tipe Ground: {activeSpot.tentType}</span>
+                  </span>
+                )}
+                {activeSpot.roomSize && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-surface border border-border text-xs font-semibold text-foreground">
+                    <Maximize2 size={14} className="text-brand-blue" />
+                    <span>Ukuran: {activeSpot.roomSize} m</span>
+                  </span>
+                )}
+                {activeSpot.bedType && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-surface border border-border text-xs font-semibold text-foreground">
+                    <BedDouble size={14} className="text-brand-blue" />
+                    <span>Alas Tidur: {activeSpot.bedType}</span>
+                  </span>
+                )}
+                {Array.isArray(activeSpot.viewOptions) &&
+                  activeSpot.viewOptions.map((v, vIdx) => (
+                    <span
+                      key={vIdx}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-brand-blue/5 border border-brand-blue/20 text-xs font-semibold text-brand-blue"
+                    >
+                      <Trees size={14} />
+                      <span>{v}</span>
+                    </span>
+                  ))}
               </div>
 
-              <div className="flex items-start gap-3.5">
-                <ShieldCheck size={20} className="text-brand-blue shrink-0 mt-0.5" />
-                <div>
-                  <h3 className="font-bold text-sm text-foreground">
-                    Skema Fleksibel DP 50%
-                  </h3>
-                  <p className="text-xs text-foreground-muted">
-                    Cukup bayar uang muka 50% untuk mengunci jadwal, sisa dilunasi saat tiba di lokasi.
-                  </p>
+              {/* Real Spot Facilities */}
+              {Array.isArray(activeSpot.facilities) && activeSpot.facilities.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-2">
+                  {activeSpot.facilities.map((fac, fIdx) => (
+                    <div
+                      key={fIdx}
+                      className="flex items-center gap-2 p-2.5 rounded-2xl bg-surface border border-border/80 text-xs text-foreground"
+                    >
+                      {getFacilityIcon(fac)}
+                      <span className="font-medium truncate">{fac}</span>
+                    </div>
+                  ))}
                 </div>
-              </div>
+              )}
 
-              {panoramaList.length > 0 && (
-                <div className="flex items-start gap-3.5">
-                  <Compass size={20} className="text-brand-blue shrink-0 mt-0.5" />
-                  <div>
-                    <h3 className="font-bold text-sm text-foreground">
-                      Tur Virtual 360° Tersedia
-                    </h3>
-                    <p className="text-xs text-foreground-muted">
-                      Jelajahi sudut pandang panorama dan interior tenda secara interaktif.
-                    </p>
-                  </div>
+              {/* Catatan Khusus Spot (from activeSpot.specificNotes) */}
+              {activeSpot.specificNotes && (
+                <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-xs space-y-1.5 mt-2">
+                  <h4 className="font-bold text-foreground flex items-center gap-1.5">
+                    <Info size={13} className="text-amber-600 shrink-0" />
+                    <span>Catatan Khusus Unit:</span>
+                  </h4>
+                  <ul className="space-y-1 text-foreground/80 list-disc list-inside">
+                    {parseHtmlRules(activeSpot.specificNotes).map((note, nIdx) => (
+                      <li key={nIdx} className="leading-relaxed">
+                        {note}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
             </div>
 
-            {/* ── SECTION: PILIHAN PAKET MENGINAP (PACKAGE SELECTION) ── */}
+            {/* ── SECTION: PILIHAN PAKET PENGINAPAN ── */}
             {Array.isArray(activeSpot.pricingPackages) && activeSpot.pricingPackages.length > 0 && (
               <div className="space-y-4 pb-8 border-b border-border">
                 <div>
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-brand-lime text-black border border-brand-lime/80 shadow-2xs">
-                      Pilihan Paket
-                    </span>
-                    <h3 className="font-bold text-lg text-foreground">
-                      Pilihan Paket Penginapan
-                    </h3>
-                  </div>
+                  <h3 className="font-bold text-lg text-foreground">
+                    Pilihan Paket Penginapan
+                  </h3>
                   <p className="text-xs text-foreground-muted mt-0.5">
                     Pilih paket yang sesuai dengan kebutuhan Anda untuk unit {activeSpot.name}
                   </p>
@@ -1164,7 +1180,8 @@ export function SpotRedirectClient() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {activeSpot.pricingPackages.map((pkg) => {
-                    const isSelected = (selectedPackage?.id || activeSpot.pricingPackages?.[0]?.id) === pkg.id;
+                    const isSelected =
+                      (selectedPackage?.id || activeSpot.pricingPackages?.[0]?.id) === pkg.id;
                     const pkgPrice =
                       pkg.flatRateMode && pkg.flatRate
                         ? Number(pkg.flatRate)
@@ -1191,9 +1208,6 @@ export function SpotRedirectClient() {
                             <h4 className="font-bold text-sm text-foreground group-hover:text-brand-blue transition-colors">
                               {pkg.name}
                             </h4>
-                            <span className="text-[10px] font-medium text-foreground-muted block mt-0.5">
-                              {getPackageModelLabel(pkg.pricingModel)}
-                            </span>
                           </div>
                           <div
                             className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
@@ -1210,13 +1224,7 @@ export function SpotRedirectClient() {
                           <p className="text-xs text-foreground/80 leading-relaxed">
                             {cleanDesc}
                           </p>
-                        ) : (
-                          <p className="text-xs text-foreground-muted italic leading-relaxed">
-                            {pkg.pricingModel === "FIXED_CAPACITY_PACKAGE"
-                              ? "Paket lengkap dengan unit tenda dan perlengkapan siap pakai."
-                              : "Sewa kavling area camping dengan akses ke fasilitas campsite."}
-                          </p>
-                        )}
+                        ) : null}
 
                         <div className="flex items-baseline justify-between pt-2 border-t border-border/80 text-xs">
                           <div>
@@ -1238,21 +1246,6 @@ export function SpotRedirectClient() {
                 </div>
               </div>
             )}
-
-            {/* Deskripsi Spot */}
-            <div className="space-y-3 pb-8 border-b border-border">
-              <h3 className="font-bold text-lg text-foreground">
-                Tentang Spot Ini
-              </h3>
-              <div className="text-xs sm:text-sm text-foreground/80 leading-relaxed space-y-2">
-                <p>
-                  Unit {activeSpot.name} di {campsite.name} menawarkan pengalaman bermalam di alam terbuka yang tenang dengan udara sejuk dan pemandangan asri.
-                </p>
-                <p>
-                  Cocok untuk kumpul keluarga, pasangan, maupun teman-teman. Dilengkapi akses cepat ke fasilitas air bersih, toilet, colokan listrik, serta titik api unggun bersama.
-                </p>
-              </div>
-            </div>
 
             {/* ── AIRBNB INTEGRATED CALENDAR SECTION ── */}
             <div className="space-y-4 pb-8 border-b border-border">
@@ -1585,7 +1578,8 @@ export function SpotRedirectClient() {
                   </label>
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     {activeSpot.pricingPackages.map((pkg) => {
-                      const isSelected = (selectedPackage?.id || activeSpot.pricingPackages?.[0]?.id) === pkg.id;
+                      const isSelected =
+                        (selectedPackage?.id || activeSpot.pricingPackages?.[0]?.id) === pkg.id;
                       const pkgPrice =
                         pkg.flatRateMode && pkg.flatRate
                           ? Number(pkg.flatRate)
@@ -2096,7 +2090,8 @@ export function SpotRedirectClient() {
                 </label>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   {activeSpot.pricingPackages.map((pkg) => {
-                    const isSelected = (selectedPackage?.id || activeSpot.pricingPackages?.[0]?.id) === pkg.id;
+                    const isSelected =
+                      (selectedPackage?.id || activeSpot.pricingPackages?.[0]?.id) === pkg.id;
                     const pkgPrice =
                       pkg.flatRateMode && pkg.flatRate
                         ? Number(pkg.flatRate)
