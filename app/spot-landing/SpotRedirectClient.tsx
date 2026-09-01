@@ -750,16 +750,28 @@ export function SpotRedirectClient() {
     return activeSpot.weekdayPrice || 0;
   }, [selectedPackage, activeSpot]);
 
+  // Helper to check if an addon is charged per night
+  const isAddonPerNight = (addon: any) => {
+    if (!addon) return false;
+    if (addon.perNight === true || addon.perNight === "true" || addon.perNight === 1) return true;
+    if (addon.unit && addon.unit.toLowerCase().includes("malam")) return true;
+    if (isTentAddon(addon)) return true;
+    const cat = (addon.category || "").toUpperCase();
+    if (cat === "TENT" || cat === "TENT_UNIT" || cat === "RENTAL") return true;
+    return false;
+  };
+
   const addonTotal = useMemo(() => {
     let sum = 0;
     Object.entries(selectedAddons).forEach(([addonId, qty]) => {
       const item = availableAddons.find((a) => a.id === addonId);
       if (item && qty > 0) {
-        sum += item.price * qty;
+        const itemNights = isAddonPerNight(item) ? Math.max(1, nights) : 1;
+        sum += item.price * qty * itemNights;
       }
     });
     return sum;
-  }, [selectedAddons, availableAddons]);
+  }, [selectedAddons, availableAddons, nights]);
 
   // Biaya Layanan & Pajak (Admin + Layanan + PPN 12%)
   const totalServiceAndTaxFee = useMemo(() => {
@@ -1418,6 +1430,13 @@ export function SpotRedirectClient() {
                     const isTentDisabled = isTent && isTentPackage;
                     const isMaxTentReached = isTent && !isTentPackage && totalTentsSelected >= kavlingCount;
 
+                    const perNight = isAddonPerNight(addon);
+                    const rawUnit = (addon.unit || "").trim();
+                    const unitDisplay = rawUnit ? rawUnit : "unit";
+                    const priceSuffix = perNight
+                      ? (unitDisplay.toLowerCase() === "malam" ? "/ malam" : `/ ${unitDisplay} / malam`)
+                      : `/ ${unitDisplay}`;
+
                     return (
                       <div
                         key={addon.id}
@@ -1446,7 +1465,7 @@ export function SpotRedirectClient() {
                             )}
                           </div>
                           <p className="text-xs font-extrabold text-brand-blue mt-1">
-                            +{rupiah(addon.price)} <span className="text-[10px] font-normal text-foreground-muted">/ unit</span>
+                            +{rupiah(addon.price)} <span className="text-[10px] font-medium text-foreground-muted">{priceSuffix}</span>
                           </p>
                         </div>
 
@@ -2450,6 +2469,13 @@ export function SpotRedirectClient() {
                     const isTentDisabled = isTent && isTentPackage;
                     const isMaxTentReached = isTent && !isTentPackage && totalTentsSelected >= kavlingCount;
 
+                    const perNight = isAddonPerNight(addon);
+                    const rawUnit = (addon.unit || "").trim();
+                    const unitDisplay = rawUnit ? rawUnit : "unit";
+                    const priceSuffix = perNight
+                      ? (unitDisplay.toLowerCase() === "malam" ? "/ malam" : `/ ${unitDisplay} / malam`)
+                      : `/ ${unitDisplay}`;
+
                     return (
                       <div
                         key={addon.id}
@@ -2475,8 +2501,8 @@ export function SpotRedirectClient() {
                               </span>
                             )}
                           </div>
-                          <p className="text-[10.5px] text-foreground-muted font-bold mt-0.5">
-                            +{rupiah(addon.price)}
+                          <p className="text-[10.5px] text-brand-blue font-bold mt-0.5">
+                            +{rupiah(addon.price)} <span className="text-[9.5px] font-normal text-foreground-muted">{priceSuffix}</span>
                           </p>
                         </div>
 
