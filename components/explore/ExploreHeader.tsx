@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Search, User, Menu, MapPin, Calendar, X, Check } from 'lucide-react';
+import { resolveAssetUrl } from '@/lib/api-client';
 
 interface ExploreHeaderProps {
   onOpenAuth: () => void;
@@ -104,7 +105,9 @@ export function ExploreHeader({
                 className="px-3 py-1 text-left font-semibold text-foreground truncate hover:text-brand-blue transition-colors flex-1 flex items-center gap-1.5 cursor-pointer outline-none"
               >
                 <MapPin size={13} className="text-brand-blue shrink-0" />
-                <span className="truncate">{selectedCity || 'Semua Lokasi'}</span>
+                <span className="truncate">
+                  {selectedCity || 'Semua Lokasi'}
+                </span>
               </button>
 
               {/* Keyword Search Input */}
@@ -145,9 +148,11 @@ export function ExploreHeader({
             >
               <Menu size={15} className="text-foreground-muted" />
               <div className="w-8 h-8 rounded-full bg-surface text-brand-blue flex items-center justify-center border border-border font-bold text-xs overflow-hidden">
-                {currentUser?.avatarUrl ? (
+                {currentUser?.avatarUrl || currentUser?.photoUrl ? (
                   <img
-                    src={currentUser.avatarUrl}
+                    src={resolveAssetUrl(
+                      currentUser.avatarUrl || currentUser.photoUrl,
+                    )}
                     alt="Avatar"
                     className="w-full h-full object-cover"
                   />
@@ -198,8 +203,13 @@ export function ExploreHeader({
                 : 'bg-surface hover:bg-surface-variant text-foreground border-border'
             }`}
           >
-            <MapPin size={13} className={selectedCity ? 'text-white' : 'text-brand-blue'} />
-            <span className="max-w-[70px] truncate">{selectedCity || 'Lokasi'}</span>
+            <MapPin
+              size={13}
+              className={selectedCity ? 'text-white' : 'text-brand-blue'}
+            />
+            <span className="max-w-[70px] truncate">
+              {selectedCity || 'Lokasi'}
+            </span>
           </button>
         </div>
       </header>
@@ -229,9 +239,14 @@ export function ExploreHeader({
               onClick={handleGetCurrentLocation}
               className="w-full py-2.5 px-3.5 rounded-2xl bg-brand-blue/10 hover:bg-brand-blue/20 text-brand-blue text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer border border-brand-blue/20"
             >
-              <MapPin size={14} className={geoLoading ? 'animate-bounce' : ''} />
+              <MapPin
+                size={14}
+                className={geoLoading ? 'animate-bounce' : ''}
+              />
               <span>
-                {geoLoading ? 'Mendeteksi Lokasi Anda...' : 'Gunakan Lokasi Saat Ini (Cek GPS)'}
+                {geoLoading
+                  ? 'Mendeteksi Lokasi Anda...'
+                  : 'Gunakan Lokasi Saat Ini (Cek GPS)'}
               </span>
             </button>
 
@@ -283,7 +298,9 @@ export function ExploreHeader({
                     }`}
                   >
                     <span className="truncate">{city}</span>
-                    {isSelected && <Check size={13} className="shrink-0 ml-1" />}
+                    {isSelected && (
+                      <Check size={13} className="shrink-0 ml-1" />
+                    )}
                   </button>
                 );
               })}

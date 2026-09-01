@@ -25,6 +25,15 @@ export const rupiah = (val?: number | string | null) => {
   return `Rp ${n.toLocaleString('id-ID')}`;
 };
 
+/** Error carrying the HTTP status so callers can special-case 401 (needs re-auth). */
+export class ApiError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
+  }
+}
+
 // ── Auth Token Storage ────────────────────────────────────────────────────────
 const GUEST_TOKEN_KEY = 'embun_guest_access_token';
 const GUEST_USER_KEY = 'embun_guest_profile';
@@ -116,10 +125,12 @@ export async function guestSocialLogin(provider: string, idToken: string) {
   const res = await fetch(`${API_BASE_URL}/guest/auth/social`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ provider, idToken }),
+    // Backend's SocialLoginDto only accepts the uppercase literals
+    // 'GOOGLE' | 'APPLE' (@IsIn) - a lowercase value 400s silently.
+    body: JSON.stringify({ provider: provider.toUpperCase(), idToken }),
   });
   if (!res.ok) {
-    const err = await res.json();
+    const err = await res.json().catch(() => ({}));
     throw new Error(err.message || 'Login sosial gagal.');
   }
   const data = await res.json();
@@ -127,27 +138,132 @@ export async function guestSocialLogin(provider: string, idToken: string) {
   return data;
 }
 
-export async function createPublicBookingOrder(payload: any) {
+function guestAuthHeaders(): Record<string, string> {
   const token = getGuestToken();
-  try {
-    const res = await fetch(`${API_BASE_URL}/public/bookings/create`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify(payload),
-    });
-    if (res.ok) return res.json();
-  } catch {}
-
-  // Fallback simulated order success response
+  if (!token) throw new Error('Anda harus masuk terlebih dahulu.');
   return {
-    orderId: 'EMB-' + Date.now(),
-    status: 'pending',
-    totalAmount: payload.totalAmount,
-    paymentScheme: payload.paymentScheme,
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
   };
+}
+
+/**
+ * Checkout the cart as one real Order via `POST /api/orders` (guest-JWT
+ * protected). `payload.items[]` must match the backend's `OrderItemDto`
+ * shape: `{ blockId, pricingPackageId, checkIn, checkOut, adultCount, addons?:
+ * [{addonId, quantity}] }`. Throws on any failure - callers must not silently
+ * fall back to a fake order, since that previously masked a 404 (a
+ * non-existent `/public/bookings/create` endpoint) as a fake successful
+ * booking with no real payment ever created.
+ */
+export async function createRealOrder(payload: {
+  campsiteId: string;
+  paymentMethod: 'TRANSFER';
+  isDownPayment?: boolean;
+  bookingNote?: string;
+  promoCode?: string;
+  items: Array<{
+    blockId: string;
+    pricingPackageId: string;
+    checkIn: string;
+    checkOut: string;
+    adultCount: number;
+    addons?: Array<{ addonId: string; quantity: number }>;
+  }>;
+}) {
+  const res = await fetch(`${API_BASE_URL}/orders`, {
+    method: 'POST',
+    headers: guestAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new ApiError(err.message || 'Gagal membuat pesanan.', res.status);
+  }
+  return res.json();
+}
+
+/** `POST /api/orders/:id/pay` — returns `{ snapToken, snapRedirectUrl, paymentExpiresAt, ... }`. */
+export async function initiateOrderPayment(orderId: string) {
+  const res = await fetch(`${API_BASE_URL}/orders/${orderId}/pay`, {
+    method: 'POST',
+    headers: guestAuthHeaders(),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Gagal memulai pembayaran.');
+  }
+  return res.json();
+}
+
+/** `POST /api/orders/:id/sync-status` — re-checks the Xendit/Midtrans status manually. */
+export async function syncOrderStatus(orderId: string) {
+  const res = await fetch(`${API_BASE_URL}/orders/${orderId}/sync-status`, {
+    method: 'POST',
+    headers: guestAuthHeaders(),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Gagal menyinkronkan status pesanan.');
+  }
+  return res.json();
+}
+
+/** `GET /api/orders` — the guest's own order history. */
+export async function fetchGuestOrders() {
+  const res = await fetch(`${API_BASE_URL}/orders`, {
+    headers: guestAuthHeaders(),
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error('Gagal memuat riwayat pesanan.');
+  return res.json();
+}
+
+/** `GET /api/orders/:id` — single order detail/status (for the payment/detail page). */
+export async function fetchGuestOrder(orderId: string) {
+  const res = await fetch(`${API_BASE_URL}/orders/${orderId}`, {
+    headers: guestAuthHeaders(),
+    cache: 'no-store',
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Gagal memuat detail pesanan.');
+  }
+  return res.json();
+}
+
+/** `GET /api/guest/me` — refetch the authoritative profile (e.g. after a PATCH elsewhere). */
+export async function fetchGuestProfile() {
+  const res = await fetch(`${API_BASE_URL}/guest/me`, {
+    headers: guestAuthHeaders(),
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error('Gagal memuat profil.');
+  const guest = await res.json();
+  const token = getGuestToken();
+  if (token) setGuestSession(token, guest);
+  return guest;
+}
+
+/** `PATCH /api/guest/me` — edit profile (fullName/phone/address/etc, all optional). */
+export async function updateGuestProfile(payload: {
+  fullName?: string;
+  phone?: string;
+  address?: string;
+}) {
+  const res = await fetch(`${API_BASE_URL}/guest/me`, {
+    method: 'PATCH',
+    headers: guestAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Gagal menyimpan profil.');
+  }
+  const guest = await res.json();
+  const token = getGuestToken();
+  if (token) setGuestSession(token, guest);
+  return guest;
 }
 
 export function initiateMidtransSnapPayment(snapToken: string): Promise<any> {
