@@ -14,6 +14,7 @@ import {
   ExternalLink,
   ChevronRight,
   ChevronLeft,
+  ChevronDown,
   Calendar,
   Sparkles,
   Clock,
@@ -356,6 +357,7 @@ export function SpotRedirectClient() {
   const [checkInDate, setCheckInDate] = useState(todayStr);
   const [checkOutDate, setCheckOutDate] = useState(tomorrowStr);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [isAddonsExpanded, setIsAddonsExpanded] = useState(false);
   const [isMobileBookingOpen, setIsMobileBookingOpen] = useState(false);
   const [guestCount, setGuestCount] = useState(2);
   const [paymentScheme, setPaymentScheme] = useState<"DP_50" | "FULL">("DP_50");
@@ -1724,14 +1726,13 @@ export function SpotRedirectClient() {
                 </div>
               </div>
             </div>
-
           </div>
 
           {/* ── RIGHT COLUMN: STICKY BOOKING CARD (DESKTOP ONLY) ── */}
           <div className="hidden lg:block lg:col-span-5 xl:col-span-4">
-            <div className="sticky top-28 bg-white rounded-3xl border border-border shadow-xl p-6 space-y-5">
+            <div className="sticky top-24 bg-white rounded-3xl border border-border shadow-xl p-5 space-y-3.5">
               {/* Header Price & Rating */}
-              <div className="flex items-baseline justify-between border-b border-border pb-4">
+              <div className="flex items-baseline justify-between border-b border-border pb-3">
                 <div>
                   <span className="text-2xl font-extrabold text-foreground tracking-tight">
                     {rupiah(spotPricePerNight)}
@@ -1756,14 +1757,14 @@ export function SpotRedirectClient() {
 
               {/* Package Selector (Sidebar) */}
               {Array.isArray(activeSpot.pricingPackages) && activeSpot.pricingPackages.length > 1 && (
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-foreground flex items-center justify-between">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-foreground flex items-center justify-between">
                     <span>Pilihan Paket</span>
                     <span className="text-[10px] font-semibold text-brand-blue truncate max-w-[140px]">
                       {selectedPackage?.name}
                     </span>
                   </label>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="grid grid-cols-2 gap-1.5 text-xs">
                     {activeSpot.pricingPackages.map((pkg) => {
                       const isSelected =
                         (selectedPackage?.id || activeSpot.pricingPackages?.[0]?.id) === pkg.id;
@@ -1776,16 +1777,16 @@ export function SpotRedirectClient() {
                           key={pkg.id}
                           type="button"
                           onClick={() => setSelectedPackageId(pkg.id || null)}
-                          className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                          className={`p-2 rounded-2xl border text-left transition-all cursor-pointer ${
                             isSelected
                               ? "border-brand-blue bg-brand-blue/5 ring-1 ring-brand-blue"
                               : "border-border bg-surface/50 hover:bg-surface"
                           }`}
                         >
-                          <span className="font-bold text-foreground block truncate text-xs">
+                          <span className="font-bold text-foreground block truncate text-[11px]">
                             {pkg.name}
                           </span>
-                          <span className="font-extrabold text-brand-blue block text-[11px] mt-0.5">
+                          <span className="font-extrabold text-brand-blue block text-[10.5px] mt-0.5">
                             {rupiah(pkgPrice)}
                           </span>
                         </button>
@@ -1802,16 +1803,16 @@ export function SpotRedirectClient() {
                   onClick={() => setIsCalendarOpen(true)}
                   className="grid grid-cols-2 divide-x divide-border bg-surface/50 hover:bg-surface transition-colors cursor-pointer group"
                 >
-                  <div className="p-3">
-                    <span className="block text-[9.5px] font-bold uppercase tracking-wider text-foreground-muted">
+                  <div className="p-2.5">
+                    <span className="block text-[9px] font-bold uppercase tracking-wider text-foreground-muted">
                       Check-In
                     </span>
                     <span className="font-bold text-foreground group-hover:text-brand-blue text-xs block mt-0.5 transition-colors">
                       {formatDateDisplay(checkInDate)}
                     </span>
                   </div>
-                  <div className="p-3">
-                    <span className="block text-[9.5px] font-bold uppercase tracking-wider text-foreground-muted">
+                  <div className="p-2.5">
+                    <span className="block text-[9px] font-bold uppercase tracking-wider text-foreground-muted">
                       Check-Out
                     </span>
                     <span className="font-bold text-foreground group-hover:text-brand-blue text-xs block mt-0.5 transition-colors">
@@ -1820,26 +1821,26 @@ export function SpotRedirectClient() {
                   </div>
                 </div>
 
-                {/* Guest Counter */}
-                <div className="p-3 bg-white flex items-center justify-between">
+                {/* Guest Counter in Sidebar */}
+                <div className="p-2.5 bg-white flex items-center justify-between">
                   <div>
-                    <span className="block text-[9.5px] font-bold uppercase tracking-wider text-foreground-muted">
+                    <span className="block text-[9px] font-bold uppercase tracking-wider text-foreground-muted">
                       Jumlah Tamu
                     </span>
                     <span className="font-bold text-foreground text-xs">
                       {guestCount} Orang (Maks. {effectiveMaxCapacity})
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     <button
                       type="button"
                       disabled={guestCount <= 1}
                       onClick={() => setGuestCount(Math.max(1, guestCount - 1))}
-                      className="w-7 h-7 rounded-full border border-border flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                      className="w-6 h-6 rounded-full border border-border flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
                     >
-                      <Minus size={12} />
+                      <Minus size={11} />
                     </button>
-                    <span className="font-bold text-xs w-4 text-center">
+                    <span className="font-bold text-xs w-3 text-center">
                       {guestCount}
                     </span>
                     <button
@@ -1850,97 +1851,112 @@ export function SpotRedirectClient() {
                           Math.min(effectiveMaxCapacity, guestCount + 1),
                         )
                       }
-                      className="w-7 h-7 rounded-full border border-border flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                      className="w-6 h-6 rounded-full border border-border flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
                     >
-                      <Plus size={12} />
+                      <Plus size={11} />
                     </button>
                   </div>
                 </div>
               </div>
 
-              {/* Add-on Selection */}
-              <div className="space-y-2 pt-1">
-                <label className="text-xs font-bold text-foreground block">
-                  Perlengkapan Tambahan (Opsional)
-                </label>
-                <div className="space-y-2 max-h-48 overflow-y-auto pr-1 no-scrollbar text-xs">
-                  {availableAddons.map((addon) => {
-                    const qty = selectedAddons[addon.id] || 0;
-                    const isTent =
-                      addon.name.toLowerCase().includes("tenda") ||
-                      addon.name.toLowerCase().includes("tent") ||
-                      addon.id.includes("tent");
-                    const isTentDisabled = isTent && isTentPackage;
-                    const isMaxTentReached = isTent && !isTentPackage && qty >= kavlingCount;
+              {/* Add-on Selection (Collapsible Accordion for clean, compact view) */}
+              <div className="space-y-1.5">
+                <button
+                  type="button"
+                  onClick={() => setIsAddonsExpanded(!isAddonsExpanded)}
+                  className="w-full flex items-center justify-between text-left text-xs font-bold text-foreground hover:text-brand-blue transition-colors cursor-pointer py-1"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span>Perlengkapan Tambahan (Opsional)</span>
+                    {addonTotal > 0 && (
+                      <span className="text-[10px] bg-brand-blue/10 text-brand-blue px-1.5 py-0.2 rounded-full font-bold">
+                        +{rupiah(addonTotal)}
+                      </span>
+                    )}
+                  </span>
+                  <ChevronDown
+                    size={14}
+                    className={`transition-transform duration-200 ${
+                      isAddonsExpanded ? "rotate-180 text-brand-blue" : "text-foreground-muted"
+                    }`}
+                  />
+                </button>
 
-                    return (
-                      <div
-                        key={addon.id}
-                        className={`p-2.5 rounded-2xl border transition-all flex items-center justify-between gap-2 ${
-                          isTentDisabled
-                            ? "border-border/60 bg-surface/20 opacity-70"
-                            : "border-border bg-surface/40"
-                        }`}
-                      >
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <p className="font-semibold text-foreground text-[11.5px] truncate">
-                              {addon.name}
+                {isAddonsExpanded && (
+                  <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1 text-xs animate-in fade-in duration-150">
+                    {availableAddons.map((addon) => {
+                      const qty = selectedAddons[addon.id] || 0;
+                      const isTent =
+                        addon.name.toLowerCase().includes("tenda") ||
+                        addon.name.toLowerCase().includes("tent") ||
+                        addon.id.includes("tent");
+                      const isTentDisabled = isTent && isTentPackage;
+                      const isMaxTentReached = isTent && !isTentPackage && qty >= kavlingCount;
+
+                      return (
+                        <div
+                          key={addon.id}
+                          className={`p-2 rounded-2xl border transition-all flex items-center justify-between gap-2 ${
+                            isTentDisabled
+                              ? "border-border/60 bg-surface/20 opacity-70"
+                              : "border-border bg-surface/40"
+                          }`}
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1 flex-wrap">
+                              <p className="font-semibold text-foreground text-[11px] truncate">
+                                {addon.name}
+                              </p>
+                              {isTentDisabled && (
+                                <span className="text-[8.5px] font-bold text-brand-blue bg-brand-blue/10 px-1 py-0.2 rounded-full">
+                                  Termasuk
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[10px] text-foreground-muted font-bold">
+                              +{rupiah(addon.price)}
                             </p>
-                            {isTentDisabled && (
-                              <span className="text-[9px] font-bold text-brand-blue bg-brand-blue/10 px-1.5 py-0.5 rounded-full">
-                                Termasuk di Paket
-                              </span>
-                            )}
-                            {isTent && !isTentPackage && kavlingCount > 1 && (
-                              <span className="text-[9px] font-semibold text-foreground-muted bg-surface px-1.5 py-0.5 rounded-full border border-border">
-                                Maks. {kavlingCount} tenda ({kavlingCount} kavling)
-                              </span>
-                            )}
                           </div>
-                          <p className="text-[10.5px] text-foreground-muted font-bold mt-0.5">
-                            +{rupiah(addon.price)}
-                          </p>
-                        </div>
 
-                        {!isTentDisabled ? (
-                          <div className="flex items-center gap-2 shrink-0">
-                            <button
-                              type="button"
-                              disabled={qty <= 0}
-                              onClick={() => handleAddonQty(addon.id, -1)}
-                              className="w-6 h-6 rounded-full border border-border bg-white flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
-                            >
-                              <Minus size={11} />
-                            </button>
-                            <span className="font-bold text-xs w-3 text-center">
-                              {qty}
-                            </span>
-                            <button
-                              type="button"
-                              disabled={isMaxTentReached}
-                              onClick={() => handleAddonQty(addon.id, 1)}
-                              className="w-6 h-6 rounded-full border border-border bg-white flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
-                            >
-                              <Plus size={11} />
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="text-[10px] font-bold text-brand-blue shrink-0 px-2 py-1 bg-brand-blue/5 rounded-xl">
-                            Included
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                          {!isTentDisabled ? (
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button
+                                type="button"
+                                disabled={qty <= 0}
+                                onClick={() => handleAddonQty(addon.id, -1)}
+                                className="w-5 h-5 rounded-full border border-border bg-white flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                              >
+                                <Minus size={10} />
+                              </button>
+                              <span className="font-bold text-xs w-3 text-center">
+                                {qty}
+                              </span>
+                              <button
+                                type="button"
+                                disabled={isMaxTentReached}
+                                onClick={() => handleAddonQty(addon.id, 1)}
+                                className="w-5 h-5 rounded-full border border-border bg-white flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                              >
+                                <Plus size={10} />
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="text-[9.5px] font-bold text-brand-blue shrink-0 px-1.5 py-0.5 bg-brand-blue/5 rounded-lg">
+                              Included
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Price Calculation Breakdown */}
-              <div className="space-y-2 pt-2 border-t border-border text-xs">
-                <div className="flex justify-between text-foreground-muted">
+              <div className="space-y-1.5 pt-2 border-t border-border text-xs">
+                <div className="flex justify-between text-foreground-muted text-[11.5px]">
                   <span>
-                    {selectedPackage?.name || "Sewa"} ({rupiah(spotPricePerNight)} x {nights} malam)
+                    {selectedPackage?.name || "Sewa"} ({rupiah(spotPricePerNight)} x {nights} mlm)
                   </span>
                   <span className="font-semibold text-foreground">
                     {rupiah(spotPricePerNight * nights)}
@@ -1948,7 +1964,7 @@ export function SpotRedirectClient() {
                 </div>
 
                 {addonTotal > 0 && (
-                  <div className="flex justify-between text-foreground-muted">
+                  <div className="flex justify-between text-foreground-muted text-[11.5px]">
                     <span>Perlengkapan Tambahan</span>
                     <span className="font-semibold text-foreground">
                       +{rupiah(addonTotal)}
@@ -1956,14 +1972,14 @@ export function SpotRedirectClient() {
                   </div>
                 )}
 
-                <div className="flex justify-between text-foreground-muted">
+                <div className="flex justify-between text-foreground-muted text-[11.5px]">
                   <span>Biaya Layanan & Pajak</span>
                   <span className="font-semibold text-foreground">
                     +{rupiah(totalServiceAndTaxFee)}
                   </span>
                 </div>
 
-                <div className="flex justify-between items-baseline pt-2 border-t border-border font-bold text-sm text-foreground">
+                <div className="flex justify-between items-baseline pt-1.5 border-t border-border font-bold text-sm text-foreground">
                   <span>Total Tagihan</span>
                   <span className="text-base text-brand-blue font-extrabold">
                     {rupiah(grandTotal)}
@@ -1972,66 +1988,57 @@ export function SpotRedirectClient() {
               </div>
 
               {/* Payment Scheme Choice */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-foreground block">
-                  Pilihan Pembayaran
-                </label>
-                <div className="grid grid-cols-2 gap-2.5">
+              <div className="space-y-1.5">
+                <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setPaymentScheme("DP_50")}
-                    className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                    className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
                       paymentScheme === "DP_50"
                         ? "border-brand-blue bg-brand-blue/5 ring-2 ring-brand-blue/20"
                         : "border-border bg-surface/50 hover:bg-surface"
                     }`}
                   >
-                    <span className="block text-xs font-bold text-foreground">
+                    <span className="block text-[11px] font-bold text-foreground">
                       DP 50%
                     </span>
                     <span className="block text-xs font-extrabold text-brand-blue mt-0.5">
                       {rupiah(dp50Total)}
-                    </span>
-                    <span className="block text-[10px] text-foreground-muted mt-0.5">
-                      Sisa bayar di lokasi
                     </span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setPaymentScheme("FULL")}
-                    className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                    className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
                       paymentScheme === "FULL"
                         ? "border-brand-blue bg-brand-blue/5 ring-2 ring-brand-blue/20"
                         : "border-border bg-surface/50 hover:bg-surface"
                     }`}
                   >
-                    <span className="block text-xs font-bold text-foreground">
+                    <span className="block text-[11px] font-bold text-foreground">
                       Bayar Lunas
                     </span>
                     <span className="block text-xs font-extrabold text-foreground mt-0.5">
                       {rupiah(grandTotal)}
-                    </span>
-                    <span className="block text-[10px] text-emerald-600 font-semibold mt-0.5">
-                      Bebas ribet
                     </span>
                   </button>
                 </div>
               </div>
 
               {orderError && (
-                <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-red-600 text-xs font-semibold">
+                <div className="p-2.5 rounded-2xl bg-red-50 border border-red-200 text-red-600 text-xs font-semibold">
                   {orderError}
                 </div>
               )}
 
-              {/* CTA Booking Button */}
-              <div className="space-y-2.5 pt-2">
+              {/* CTA Booking Button - ALWAYS VISIBLE ABOVE THE FOLD */}
+              <div className="pt-1">
                 <button
                   type="button"
                   disabled={submittingOrder}
                   onClick={handleProceedBooking}
-                  className="w-full py-3.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="w-full py-3.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-[0.99]"
                 >
                   <span>
                     {submittingOrder
@@ -2039,51 +2046,7 @@ export function SpotRedirectClient() {
                       : `Pesan Sekarang · ${rupiah(paymentAmountToPay)}`}
                   </span>
                 </button>
-
-                {/* Direct App Store & Google Play Features Box */}
-                <div className="pt-3 border-t border-border space-y-2">
-                  <div className="space-y-1">
-                    <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                      <Sparkles size={13} className="text-brand-blue" />
-                      <span>Pengalaman Terbaik di Aplikasi</span>
-                    </p>
-                    <p className="text-[11px] text-foreground-muted leading-relaxed">
-                      Tur 360° interaktif mulus, navigasi peta offline, live chat dengan pengelola, dan e-tiket QR otomatis di aplikasi Embun.
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 pt-0.5">
-                    <a
-                      href={APP_STORE_HREF}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2.5 rounded-2xl border border-border bg-surface/60 hover:bg-surface flex items-center justify-center gap-1.5 text-foreground transition-all cursor-pointer shadow-2xs hover:shadow-xs group"
-                    >
-                      <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
-                        <path d="M17.05 12.53c-.02-2.02 1.65-2.99 1.72-3.04-.94-1.37-2.4-1.56-2.92-1.58-1.24-.13-2.42.73-3.05.73-.63 0-1.6-.71-2.63-.69-1.35.02-2.6.79-3.29 2-1.4 2.43-.36 6.02 1.01 7.99.67.96 1.47 2.04 2.51 2 1.01-.04 1.39-.65 2.61-.65 1.22 0 1.56.65 2.63.63 1.09-.02 1.78-.98 2.44-1.95.77-1.12 1.09-2.2 1.11-2.26-.02-.01-2.13-.82-2.15-3.24zM15.04 6.34c.56-.68.94-1.62.83-2.56-.81.03-1.79.54-2.37 1.21-.52.6-.97 1.56-.85 2.48.9.07 1.83-.46 2.39-1.13z" />
-                      </svg>
-                      <span className="text-[11px] font-bold">App Store</span>
-                    </a>
-
-                    <a
-                      href={GOOGLE_PLAY_HREF}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2.5 rounded-2xl border border-border bg-surface/60 hover:bg-surface flex items-center justify-center gap-1.5 text-foreground transition-all cursor-pointer shadow-2xs hover:shadow-xs group"
-                    >
-                      <svg viewBox="0 0 24 24" width="13" height="13">
-                        <path d="M3.6 2.3c-.24.25-.38.63-.38 1.13v17.14c0 .5.14.88.38 1.13l.06.05L13 12.06v-.12L3.66 2.25l-.06.05z" fill="#00D0FF" />
-                        <path d="M16.5 15.56 13 12.06v-.12l3.5-3.5.08.05 4.15 2.36c1.18.67 1.18 1.77 0 2.45l-4.15 2.36-.08.05z" fill="#FFCE00" />
-                        <path d="M16.58 15.51 13 12l-9.4 9.4c.39.41 1.03.46 1.76.05l11.22-6.44" fill="#FF3D44" />
-                        <path d="M16.58 8.49 5.36 2.05C4.63 1.64 3.99 1.69 3.6 2.1L13 11.5l3.58-3.01z" fill="#00F076" />
-                      </svg>
-                      <span className="text-[11px] font-bold">Google Play</span>
-                    </a>
-                  </div>
-                </div>
               </div>
-
-              
             </div>
           </div>
         </div>
