@@ -45,6 +45,7 @@ import {
   Waves,
   BriefcaseMedical,
   Store,
+  Package,
 } from "lucide-react";
 import {
   getStoredGuestProfile,
@@ -84,8 +85,11 @@ interface PricingPackageItem {
   weekdayRate?: number | string;
   weekendRate?: number | string;
   holidayRate?: number | string;
+  perGuestRate?: number | string;
   minGuestCount?: number;
   maxOccupancy?: number;
+  baseCapacity?: number;
+  extraPersonFee?: number;
   isFree?: boolean;
 }
 
@@ -171,14 +175,16 @@ function resolveTokenFromPath(pathname: string): string | null {
 
 function getPackageModelLabel(model?: string): string {
   switch (model) {
-    case "PER_SPOT":
-      return "Sewa Per Unit Kavling";
+    case "SPOT_ONLY":
+      return "Sewa Kavling Saja";
+    case "FIXED_CAPACITY_PACKAGE":
+      return "Paket Tenda & Fasilitas";
     case "PER_PERSON":
-      return "Harga Per Orang / Tamu";
+      return "Harga Per Tamu / Orang";
     case "HYBRID":
       return "Sewa Kavling + Ekstra Tamu";
     default:
-      return "Sewa Kavling Standar";
+      return "Paket Penginapan Standar";
   }
 }
 
@@ -303,6 +309,7 @@ function loadPannellum(): Promise<any> {
 export function SpotRedirectClient() {
   const [campsite, setCampsite] = useState<CampsiteDetail | null>(null);
   const [activeSpot, setActiveSpot] = useState<SpotItem | null>(null);
+  const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -388,6 +395,7 @@ export function SpotRedirectClient() {
               setActiveSpot(firstSpot);
               if (firstSpot) {
                 document.title = `${firstSpot.name} · ${fallbackCamp.name} | Embun`;
+                setSelectedPackageId(firstSpot.pricingPackages?.[0]?.id || null);
               }
               // Fetch reviews for fallback camp
               fetchReviews(fallbackCamp.id);
@@ -411,6 +419,9 @@ export function SpotRedirectClient() {
           ) || camp.blocks?.[0];
 
         setActiveSpot(matched || null);
+        if (matched) {
+          setSelectedPackageId(matched.pricingPackages?.[0]?.id || null);
+        }
         if (matched && camp) {
           document.title = `${matched.name} · ${camp.name} | Embun`;
         }
@@ -446,6 +457,26 @@ export function SpotRedirectClient() {
 
     void fetchData();
   }, []);
+
+  // Selected Pricing Package
+  const selectedPackage = useMemo(() => {
+    if (!activeSpot?.pricingPackages || activeSpot.pricingPackages.length === 0)
+      return null;
+    return (
+      activeSpot.pricingPackages.find((p) => p.id === selectedPackageId) ||
+      activeSpot.pricingPackages[0]
+    );
+  }, [activeSpot, selectedPackageId]);
+
+  // Max capacity based on selected package
+  const effectiveMaxCapacity = useMemo(() => {
+    return (
+      selectedPackage?.maxOccupancy ||
+      selectedPackage?.baseCapacity ||
+      activeSpot?.maxCapacity ||
+      10
+    );
+  }, [selectedPackage, activeSpot]);
 
   // Sync check-in & check-out cross-validation
   const nights = useMemo(() => {
@@ -588,18 +619,26 @@ export function SpotRedirectClient() {
     };
   }, [isGalleryOpen, galleryTab, activePanoramaIdx, panoramaList]);
 
-  // Pricing calculations
+  // Pricing calculations driven by selectedPackage
   const spotPricePerNight = useMemo(() => {
+    if (selectedPackage) {
+      if (
+        selectedPackage.flatRateMode &&
+        selectedPackage.flatRate != null &&
+        selectedPackage.flatRate !== ""
+      ) {
+        return Number(selectedPackage.flatRate);
+      }
+      if (
+        selectedPackage.weekdayRate != null &&
+        selectedPackage.weekdayRate !== ""
+      ) {
+        return Number(selectedPackage.weekdayRate);
+      }
+    }
     if (!activeSpot) return 0;
-    const pkg = activeSpot.pricingPackages?.[0];
-    if (pkg?.flatRateMode && pkg.flatRate != null && pkg.flatRate !== "") {
-      return Number(pkg.flatRate);
-    }
-    if (pkg?.weekdayRate != null && pkg.weekdayRate !== "") {
-      return Number(pkg.weekdayRate);
-    }
     return activeSpot.weekdayPrice || 0;
-  }, [activeSpot]);
+  }, [selectedPackage, activeSpot]);
 
   // Available addons
   const availableAddons = useMemo(() => {
@@ -671,7 +710,7 @@ export function SpotRedirectClient() {
       const items = [
         {
           blockId: activeSpot.id,
-          name: `${activeSpot.name} (${campsite.name})`,
+          name: `${activeSpot.name} - ${selectedPackage?.name || "Paket Standar"} (${campsite.name})`,
           price: spotPricePerNight,
           quantity: nights,
         },
@@ -694,6 +733,7 @@ export function SpotRedirectClient() {
       const orderPayload = {
         campsiteId: campsite.id,
         blockId: activeSpot.id,
+        pricingPackageId: selectedPackage?.id,
         checkInDate,
         checkOutDate,
         guestCount,
@@ -713,7 +753,10 @@ export function SpotRedirectClient() {
 
       const snapToken = createdOrder.snapToken || createdOrder.id;
       const payResult = await initiateMidtransSnapPayment(snapToken);
-      if (payResult?.transaction_status === "settlement" || payResult?.transaction_status === "capture") {
+      if (
+        payResult?.transaction_status === "settlement" ||
+        payResult?.transaction_status === "capture"
+      ) {
         alert("Pembayaran berhasil! E-tiket telah dikirimkan.");
         window.location.reload();
       }
@@ -805,7 +848,11 @@ export function SpotRedirectClient() {
         <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between gap-4">
           {/* Logo & Explore Badge */}
           <div className="flex items-center gap-3">
-            <Link href="/explore" className="flex items-center gap-2.5 group cursor-pointer" title="Katalog Explore">
+            <Link
+              href="/explore"
+              className="flex items-center gap-2.5 group cursor-pointer"
+              title="Katalog Explore"
+            >
               <img
                 src="/images/logo/primary_blue.svg"
                 alt="Embun"
@@ -821,7 +868,9 @@ export function SpotRedirectClient() {
           <div className="hidden md:flex items-center gap-2 border border-border rounded-full py-1.5 px-4 shadow-2xs bg-surface text-xs text-foreground font-medium">
             <MapPin size={13} className="text-brand-blue shrink-0" />
             <span className="font-bold">{campsite.name}</span>
-            <span className="text-foreground-muted">· {campsite.address || campsite.city}</span>
+            <span className="text-foreground-muted">
+              · {campsite.address || campsite.city}
+            </span>
           </div>
 
           {/* Top Right Action buttons */}
@@ -908,7 +957,9 @@ export function SpotRedirectClient() {
                 <div className="flex items-center gap-1 font-bold text-foreground">
                   <Sparkles size={14} className="text-brand-lime fill-brand-lime" />
                   <span className="text-brand-blue">Baru</span>
-                  <span className="text-foreground-muted font-normal">· Belum ada ulasan</span>
+                  <span className="text-foreground-muted font-normal">
+                    · Belum ada ulasan
+                  </span>
                 </div>
               )}
               <span>·</span>
@@ -931,7 +982,11 @@ export function SpotRedirectClient() {
                 onClick={handleCopyLink}
                 className="flex items-center gap-1.5 hover:text-foreground font-semibold cursor-pointer underline text-xs"
               >
-                {copied ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
+                {copied ? (
+                  <Check size={13} className="text-emerald-600" />
+                ) : (
+                  <Copy size={13} />
+                )}
                 <span>{copied ? "Tersalin!" : "Salin Link"}</span>
               </button>
             </div>
@@ -1030,7 +1085,7 @@ export function SpotRedirectClient() {
             4. MAIN 2-COLUMN LAYOUT (Desktop 8 cols / 4 cols)
         ════════════════════════════════════════════════════════════════════════ */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          {/* ── LEFT COLUMN: DETAILS, CALENDAR, MAP, & CAMPSITE INFO (8 COLS) ── */}
+          {/* ── LEFT COLUMN: DETAILS, PACKAGES, CALENDAR, MAP, & CAMPSITE INFO (8 COLS) ── */}
           <div className="lg:col-span-7 xl:col-span-8 space-y-10">
             {/* Spot Overview Card */}
             <div className="pb-8 border-b border-border space-y-3">
@@ -1040,7 +1095,7 @@ export function SpotRedirectClient() {
                     Kavling & Unit di {campsite.name}
                   </h2>
                   <p className="text-xs text-foreground-muted mt-1">
-                    Maks. {activeSpot.maxCapacity} Tamu · {activeSpot.bedType || "Bawa Kasur Sendiri"} · Luas {activeSpot.roomSize || "4x6 meter"} · {getPackageModelLabel(activeSpot.pricingPackages?.[0]?.pricingModel)}
+                    Maks. {effectiveMaxCapacity} Tamu · {activeSpot.bedType || "Bawa Kasur Sendiri"} · Luas {activeSpot.roomSize || "4x6 meter"} · {getPackageModelLabel(selectedPackage?.pricingModel)}
                   </p>
                 </div>
                 <div className="w-12 h-12 rounded-2xl bg-brand-blue/10 border border-brand-blue/30 text-brand-blue flex items-center justify-center font-bold text-sm shrink-0">
@@ -1089,6 +1144,100 @@ export function SpotRedirectClient() {
                 </div>
               )}
             </div>
+
+            {/* ── SECTION: PILIHAN PAKET MENGINAP (PACKAGE SELECTION) ── */}
+            {Array.isArray(activeSpot.pricingPackages) && activeSpot.pricingPackages.length > 0 && (
+              <div className="space-y-4 pb-8 border-b border-border">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-brand-lime text-black border border-brand-lime/80 shadow-2xs">
+                      Pilihan Paket
+                    </span>
+                    <h3 className="font-bold text-lg text-foreground">
+                      Pilihan Paket Penginapan
+                    </h3>
+                  </div>
+                  <p className="text-xs text-foreground-muted mt-0.5">
+                    Pilih paket yang sesuai dengan kebutuhan Anda untuk unit {activeSpot.name}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {activeSpot.pricingPackages.map((pkg) => {
+                    const isSelected = (selectedPackage?.id || activeSpot.pricingPackages?.[0]?.id) === pkg.id;
+                    const pkgPrice =
+                      pkg.flatRateMode && pkg.flatRate
+                        ? Number(pkg.flatRate)
+                        : (Number(pkg.weekdayRate) || spotPricePerNight);
+                    const cleanDesc = pkg.description
+                      ? pkg.description
+                          .replace(/<[^>]+>/g, "")
+                          .replace(/&nbsp;/g, " ")
+                          .trim()
+                      : null;
+
+                    return (
+                      <div
+                        key={pkg.id}
+                        onClick={() => setSelectedPackageId(pkg.id || null)}
+                        className={`p-4 rounded-3xl border-2 transition-all cursor-pointer space-y-3 relative group ${
+                          isSelected
+                            ? "border-brand-blue bg-brand-blue/5 shadow-md ring-2 ring-brand-blue/20"
+                            : "border-border bg-surface hover:border-brand-blue/40 hover:bg-surface-variant/40"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <h4 className="font-bold text-sm text-foreground group-hover:text-brand-blue transition-colors">
+                              {pkg.name}
+                            </h4>
+                            <span className="text-[10px] font-medium text-foreground-muted block mt-0.5">
+                              {getPackageModelLabel(pkg.pricingModel)}
+                            </span>
+                          </div>
+                          <div
+                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                              isSelected
+                                ? "border-brand-blue bg-brand-blue text-white"
+                                : "border-border bg-white"
+                            }`}
+                          >
+                            {isSelected && <Check size={12} strokeWidth={3} />}
+                          </div>
+                        </div>
+
+                        {cleanDesc ? (
+                          <p className="text-xs text-foreground/80 leading-relaxed">
+                            {cleanDesc}
+                          </p>
+                        ) : (
+                          <p className="text-xs text-foreground-muted italic leading-relaxed">
+                            {pkg.pricingModel === "FIXED_CAPACITY_PACKAGE"
+                              ? "Paket lengkap dengan unit tenda dan perlengkapan siap pakai."
+                              : "Sewa kavling area camping dengan akses ke fasilitas campsite."}
+                          </p>
+                        )}
+
+                        <div className="flex items-baseline justify-between pt-2 border-t border-border/80 text-xs">
+                          <div>
+                            <span className="text-base font-extrabold text-brand-blue">
+                              {rupiah(pkgPrice)}
+                            </span>
+                            <span className="text-[10.5px] text-foreground-muted">
+                              {" "}
+                              / malam
+                            </span>
+                          </div>
+                          <span className="text-[10.5px] font-bold text-foreground-muted bg-white px-2 py-0.5 rounded-full border border-border">
+                            Maks. {pkg.maxOccupancy || pkg.baseCapacity || activeSpot.maxCapacity} Tamu
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Deskripsi Spot */}
             <div className="space-y-3 pb-8 border-b border-border">
@@ -1155,7 +1304,7 @@ export function SpotRedirectClient() {
               </div>
             </div>
 
-            {/* ── SECTION: LOKASI & PETA AREA ── */}
+            {/* ── SECTION: LOKASI & PETA AREA (GOOGLE MAPS) ── */}
             <div className="space-y-4 pb-8 border-b border-border">
               <div className="space-y-1">
                 <h3 className="font-bold text-lg text-foreground">
@@ -1166,7 +1315,7 @@ export function SpotRedirectClient() {
                 </p>
               </div>
 
-              {/* Interactive OpenStreetMap Embed */}
+              {/* Google Maps Iframe Embed */}
               {campsite.latitude && campsite.longitude && Number(campsite.latitude) !== 0 ? (
                 <div className="relative aspect-[16/9] w-full rounded-3xl overflow-hidden border border-border bg-surface shadow-2xs">
                   <iframe
@@ -1174,8 +1323,8 @@ export function SpotRedirectClient() {
                     height="100%"
                     className="w-full h-full border-0"
                     loading="lazy"
-                    title={`Peta Lokasi ${campsite.name}`}
-                    src={`https://www.openstreetmap.org/export/embed.html?bbox=${Number(campsite.longitude) - 0.015}%2C${Number(campsite.latitude) - 0.012}%2C${Number(campsite.longitude) + 0.015}%2C${Number(campsite.latitude) + 0.012}&layer=mapnik&marker=${campsite.latitude}%2C${campsite.longitude}`}
+                    title={`Peta Google Maps ${campsite.name}`}
+                    src={`https://maps.google.com/maps?q=${campsite.latitude},${campsite.longitude}&hl=id&z=15&output=embed`}
                   />
                   <div className="absolute top-4 left-4 bg-black/80 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-bold text-white shadow-md flex items-center gap-1.5 pointer-events-none">
                     <MapPin size={13} className="text-brand-lime" />
@@ -1226,7 +1375,7 @@ export function SpotRedirectClient() {
                   className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-border bg-white hover:bg-surface text-xs font-bold text-brand-blue shadow-2xs hover:shadow-sm transition-all cursor-pointer"
                 >
                   <MapPin size={14} />
-                  <span>Buka Petunjuk Arah di Google Maps</span>
+                  <span>Buka di Google Maps</span>
                   <ExternalLink size={12} />
                 </a>
               </div>
@@ -1400,7 +1549,7 @@ export function SpotRedirectClient() {
 
           {/* ── RIGHT COLUMN: STICKY BOOKING CARD (DESKTOP ONLY) ── */}
           <div className="hidden lg:block lg:col-span-5 xl:col-span-4">
-            <div className="sticky top-28 bg-white rounded-3xl border border-border shadow-xl p-6 space-y-6">
+            <div className="sticky top-28 bg-white rounded-3xl border border-border shadow-xl p-6 space-y-5">
               {/* Header Price & Rating */}
               <div className="flex items-baseline justify-between border-b border-border pb-4">
                 <div>
@@ -1413,7 +1562,9 @@ export function SpotRedirectClient() {
                   <div className="flex items-center gap-1 text-xs font-bold text-foreground">
                     <Star size={13} className="fill-amber-500 text-amber-500" />
                     <span>{reviewAggregate.ratingAvg.toFixed(1)}</span>
-                    <span className="text-foreground-muted">· {reviewAggregate.ratingCount} ulasan</span>
+                    <span className="text-foreground-muted">
+                      · {reviewAggregate.ratingCount} ulasan
+                    </span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-1 text-xs font-bold text-foreground">
@@ -1422,6 +1573,46 @@ export function SpotRedirectClient() {
                   </div>
                 )}
               </div>
+
+              {/* Package Selector (Sidebar) */}
+              {Array.isArray(activeSpot.pricingPackages) && activeSpot.pricingPackages.length > 1 && (
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-foreground flex items-center justify-between">
+                    <span>Pilihan Paket</span>
+                    <span className="text-[10px] font-semibold text-brand-blue truncate max-w-[140px]">
+                      {selectedPackage?.name}
+                    </span>
+                  </label>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    {activeSpot.pricingPackages.map((pkg) => {
+                      const isSelected = (selectedPackage?.id || activeSpot.pricingPackages?.[0]?.id) === pkg.id;
+                      const pkgPrice =
+                        pkg.flatRateMode && pkg.flatRate
+                          ? Number(pkg.flatRate)
+                          : (Number(pkg.weekdayRate) || 0);
+                      return (
+                        <button
+                          key={pkg.id}
+                          type="button"
+                          onClick={() => setSelectedPackageId(pkg.id || null)}
+                          className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                            isSelected
+                              ? "border-brand-blue bg-brand-blue/5 ring-1 ring-brand-blue"
+                              : "border-border bg-surface/50 hover:bg-surface"
+                          }`}
+                        >
+                          <span className="font-bold text-foreground block truncate text-xs">
+                            {pkg.name}
+                          </span>
+                          <span className="font-extrabold text-brand-blue block text-[11px] mt-0.5">
+                            {rupiah(pkgPrice)}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Date & Guest Input Box */}
               <div className="border border-border rounded-2xl overflow-hidden shadow-2xs divide-y divide-border text-xs">
@@ -1455,7 +1646,7 @@ export function SpotRedirectClient() {
                       Jumlah Tamu
                     </span>
                     <span className="font-bold text-foreground text-xs">
-                      {guestCount} Orang (Maks. {activeSpot.maxCapacity})
+                      {guestCount} Orang (Maks. {effectiveMaxCapacity})
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -1472,10 +1663,10 @@ export function SpotRedirectClient() {
                     </span>
                     <button
                       type="button"
-                      disabled={guestCount >= activeSpot.maxCapacity}
+                      disabled={guestCount >= effectiveMaxCapacity}
                       onClick={() =>
                         setGuestCount(
-                          Math.min(activeSpot.maxCapacity, guestCount + 1),
+                          Math.min(effectiveMaxCapacity, guestCount + 1),
                         )
                       }
                       className="w-7 h-7 rounded-full border border-border flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
@@ -1537,7 +1728,7 @@ export function SpotRedirectClient() {
               <div className="space-y-2 pt-2 border-t border-border text-xs">
                 <div className="flex justify-between text-foreground-muted">
                   <span>
-                    {rupiah(spotPricePerNight)} x {nights} malam
+                    {selectedPackage?.name || "Sewa"} ({rupiah(spotPricePerNight)} x {nights} malam)
                   </span>
                   <span className="font-semibold text-foreground">
                     {rupiah(spotPricePerNight * nights)}
@@ -1897,6 +2088,43 @@ export function SpotRedirectClient() {
               </button>
             </div>
 
+            {/* Package Selector (Mobile Drawer) */}
+            {Array.isArray(activeSpot.pricingPackages) && activeSpot.pricingPackages.length > 1 && (
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-foreground block">
+                  Pilihan Paket
+                </label>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  {activeSpot.pricingPackages.map((pkg) => {
+                    const isSelected = (selectedPackage?.id || activeSpot.pricingPackages?.[0]?.id) === pkg.id;
+                    const pkgPrice =
+                      pkg.flatRateMode && pkg.flatRate
+                        ? Number(pkg.flatRate)
+                        : (Number(pkg.weekdayRate) || 0);
+                    return (
+                      <button
+                        key={pkg.id}
+                        type="button"
+                        onClick={() => setSelectedPackageId(pkg.id || null)}
+                        className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                          isSelected
+                            ? "border-brand-blue bg-brand-blue/5 ring-1 ring-brand-blue"
+                            : "border-border bg-surface/50 hover:bg-surface"
+                        }`}
+                      >
+                        <span className="font-bold text-foreground block truncate text-xs">
+                          {pkg.name}
+                        </span>
+                        <span className="font-extrabold text-brand-blue block text-[11px] mt-0.5">
+                          {rupiah(pkgPrice)}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Date & Guest Selection */}
             <div className="border border-border rounded-2xl overflow-hidden shadow-2xs divide-y divide-border text-xs">
               <div
@@ -1928,7 +2156,7 @@ export function SpotRedirectClient() {
                     Jumlah Tamu
                   </span>
                   <span className="font-bold text-foreground text-xs">
-                    {guestCount} Orang (Maks. {activeSpot.maxCapacity})
+                    {guestCount} Orang (Maks. {effectiveMaxCapacity})
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1945,10 +2173,10 @@ export function SpotRedirectClient() {
                   </span>
                   <button
                     type="button"
-                    disabled={guestCount >= activeSpot.maxCapacity}
+                    disabled={guestCount >= effectiveMaxCapacity}
                     onClick={() =>
                       setGuestCount(
-                        Math.min(activeSpot.maxCapacity, guestCount + 1),
+                        Math.min(effectiveMaxCapacity, guestCount + 1),
                       )
                     }
                     className="w-7 h-7 rounded-full border border-border flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
@@ -2012,7 +2240,7 @@ export function SpotRedirectClient() {
             <div className="space-y-2 pt-2 border-t border-border text-xs">
               <div className="flex justify-between text-foreground-muted">
                 <span>
-                  {rupiah(spotPricePerNight)} x {nights} malam
+                  {selectedPackage?.name || "Sewa"} ({rupiah(spotPricePerNight)} x {nights} malam)
                 </span>
                 <span className="font-semibold text-foreground">
                   {rupiah(spotPricePerNight * nights)}
