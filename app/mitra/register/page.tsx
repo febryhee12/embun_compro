@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
   Building2,
   CheckCircle2,
+  ChevronDown,
   CreditCard,
   Eye,
   EyeOff,
@@ -133,6 +134,90 @@ export default function MitraRegisterPage() {
   const [error, setError] = useState('');
   const [login, setLogin] = useState({ email: '', password: '' });
   const [showLoginPassword, setShowLoginPassword] = useState(false);
+
+  // Cascading Region Dropdown State
+  const [provinces, setProvinces] = useState<{ id: string; name: string }[]>([]);
+  const [cities, setCities] = useState<{ id: string; name: string }[]>([]);
+  const [districts, setDistricts] = useState<{ id: string; name: string }[]>([]);
+  const [selectedProvinceId, setSelectedProvinceId] = useState<string>('');
+  const [selectedCityId, setSelectedCityId] = useState<string>('');
+  const [loadingProvinces, setLoadingProvinces] = useState(false);
+  const [loadingCities, setLoadingCities] = useState(false);
+  const [loadingDistricts, setLoadingDistricts] = useState(false);
+
+  const toTitleCase = (str: string) => {
+    return str
+      .toLowerCase()
+      .split(' ')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
+  useEffect(() => {
+    setLoadingProvinces(true);
+    fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json')
+      .then((res) => res.json())
+      .then((data: { id: string; name: string }[]) => {
+        if (Array.isArray(data)) {
+          const sorted = data.sort((a, b) => a.name.localeCompare(b.name));
+          setProvinces(sorted);
+        }
+      })
+      .catch((err) => console.error('Failed to load provinces', err))
+      .finally(() => setLoadingProvinces(false));
+  }, []);
+
+  const handleProvinceChange = (provinceId: string) => {
+    setSelectedProvinceId(provinceId);
+    const prov = provinces.find((p) => p.id === provinceId);
+    const provName = prov ? toTitleCase(prov.name) : '';
+    setForm((prev) => ({ ...prev, province: provName, city: '', district: '' }));
+    setSelectedCityId('');
+    setCities([]);
+    setDistricts([]);
+
+    if (provinceId) {
+      setLoadingCities(true);
+      fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${provinceId}.json`)
+        .then((res) => res.json())
+        .then((data: { id: string; name: string }[]) => {
+          if (Array.isArray(data)) {
+            const sorted = data.sort((a, b) => a.name.localeCompare(b.name));
+            setCities(sorted);
+          }
+        })
+        .catch((err) => console.error('Failed to load cities', err))
+        .finally(() => setLoadingCities(false));
+    }
+  };
+
+  const handleCityChange = (cityId: string) => {
+    setSelectedCityId(cityId);
+    const c = cities.find((item) => item.id === cityId);
+    const cityName = c ? toTitleCase(c.name) : '';
+    setForm((prev) => ({ ...prev, city: cityName, district: '' }));
+    setDistricts([]);
+
+    if (cityId) {
+      setLoadingDistricts(true);
+      fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/districts/${cityId}.json`)
+        .then((res) => res.json())
+        .then((data: { id: string; name: string }[]) => {
+          if (Array.isArray(data)) {
+            const sorted = data.sort((a, b) => a.name.localeCompare(b.name));
+            setDistricts(sorted);
+          }
+        })
+        .catch((err) => console.error('Failed to load districts', err))
+        .finally(() => setLoadingDistricts(false));
+    }
+  };
+
+  const handleDistrictChange = (districtId: string) => {
+    const d = districts.find((item) => item.id === districtId);
+    const districtName = d ? toTitleCase(d.name) : '';
+    setForm((prev) => ({ ...prev, district: districtName }));
+  };
 
   const update = (key: keyof FormState, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -869,46 +954,95 @@ export default function MitraRegisterPage() {
 
                     <div className="space-y-4 pt-2">
                       <div className="grid gap-4 sm:grid-cols-2">
+                        {/* Provinsi Dropdown */}
                         <div>
                           <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
                             Provinsi <span className="text-red-500">*</span>
                           </label>
-                          <input
-                            type="text"
-                            required
-                            value={form.province}
-                            onChange={(e) => update('province', e.target.value)}
-                            placeholder="Contoh: Jawa Barat"
-                            className="w-full px-4 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all"
-                          />
+                          <div className="relative">
+                            <select
+                              required
+                              value={selectedProvinceId}
+                              onChange={(e) => handleProvinceChange(e.target.value)}
+                              className="w-full px-4 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all appearance-none cursor-pointer text-neutral-800"
+                            >
+                              <option value="">
+                                {loadingProvinces ? 'Memuat daftar provinsi...' : 'Pilih Provinsi'}
+                              </option>
+                              {provinces.map((prov) => (
+                                <option key={prov.id} value={prov.id}>
+                                  {toTitleCase(prov.name)}
+                                </option>
+                              ))}
+                            </select>
+                            <div className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400">
+                              <ChevronDown className="h-4 w-4" />
+                            </div>
+                          </div>
                         </div>
 
+                        {/* Kota / Kabupaten Dropdown */}
                         <div>
                           <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
                             Kota / Kabupaten <span className="text-red-500">*</span>
                           </label>
-                          <input
-                            type="text"
-                            required
-                            value={form.city}
-                            onChange={(e) => update('city', e.target.value)}
-                            placeholder="Contoh: Bogor / Megamendung"
-                            className="w-full px-4 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all"
-                          />
+                          <div className="relative">
+                            <select
+                              required
+                              disabled={!selectedProvinceId || loadingCities}
+                              value={selectedCityId}
+                              onChange={(e) => handleCityChange(e.target.value)}
+                              className="w-full px-4 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all appearance-none disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-neutral-800"
+                            >
+                              <option value="">
+                                {!selectedProvinceId
+                                  ? 'Pilih provinsi terlebih dahulu'
+                                  : loadingCities
+                                  ? 'Memuat kota/kabupaten...'
+                                  : 'Pilih Kota / Kabupaten'}
+                              </option>
+                              {cities.map((city) => (
+                                <option key={city.id} value={city.id}>
+                                  {toTitleCase(city.name)}
+                                </option>
+                              ))}
+                            </select>
+                            <div className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400">
+                              <ChevronDown className="h-4 w-4" />
+                            </div>
+                          </div>
                         </div>
                       </div>
 
+                      {/* Kecamatan / Area Dropdown */}
                       <div>
                         <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
                           Kecamatan / Area (Opsional)
                         </label>
-                        <input
-                          type="text"
-                          value={form.district}
-                          onChange={(e) => update('district', e.target.value)}
-                          placeholder="Contoh: Babakan Madang"
-                          className="w-full px-4 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all"
-                        />
+                        <div className="relative">
+                          <select
+                            disabled={!selectedCityId || loadingDistricts}
+                            value={districts.find((d) => toTitleCase(d.name) === form.district)?.id || ''}
+                            onChange={(e) => handleDistrictChange(e.target.value)}
+                            className="w-full px-4 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all appearance-none disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-neutral-800"
+                          >
+                            <option value="">
+                              {!selectedCityId
+                                ? 'Pilih kota/kabupaten terlebih dahulu'
+                                : loadingDistricts
+                                ? 'Memuat kecamatan...'
+                                : 'Pilih Kecamatan / Area'}
+                            </option>
+                            {districts.map((dist) => (
+                              <option key={dist.id} value={dist.id}>
+                                {toTitleCase(dist.name)}
+                              </option>
+                            ))}
+                          </select>
+                          <div className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400">
+                            <ChevronDown className="h-4 w-4" />
+                          </div>
+                        </div>
                       </div>
 
                       <div>
