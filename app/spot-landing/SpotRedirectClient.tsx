@@ -176,49 +176,50 @@ function resolveTokenFromPath(pathname: string): string | null {
 
 function getFacilityIcon(name?: string, id?: string) {
   const lower = (name || id || "").toLowerCase();
+  const iconClass = "text-foreground shrink-0";
   if (lower.includes("wifi") || lower.includes("sinyal"))
-    return <Wifi size={16} className="text-brand-blue shrink-0" />;
+    return <Wifi size={16} className={iconClass} />;
   if (
     lower.includes("toilet") ||
     lower.includes("kamar mandi") ||
     lower.includes("bath") ||
     lower.includes("cuci")
   )
-    return <Bath size={16} className="text-blue-500 shrink-0" />;
-  if (lower.includes("water heater") || lower.includes("pemanas"))
-    return <Droplets size={16} className="text-amber-500 shrink-0" />;
+    return <Bath size={16} className={iconClass} />;
+  if (lower.includes("water heater") || lower.includes("pemanas") || lower.includes("air"))
+    return <Droplets size={16} className={iconClass} />;
   if (
     lower.includes("listrik") ||
     lower.includes("colokan") ||
     lower.includes("power") ||
     lower.includes("zap")
   )
-    return <Zap size={16} className="text-amber-500 shrink-0" />;
+    return <Zap size={16} className={iconClass} />;
   if (
     lower.includes("api") ||
     lower.includes("bonfire") ||
     lower.includes("bbq") ||
     lower.includes("flame")
   )
-    return <Flame size={16} className="text-orange-500 shrink-0" />;
+    return <Flame size={16} className={iconClass} />;
   if (
     lower.includes("parkir") ||
     lower.includes("car") ||
     lower.includes("parking")
   )
-    return <Car size={16} className="text-emerald-600 shrink-0" />;
+    return <Car size={16} className={iconClass} />;
   if (
     lower.includes("mushola") ||
     lower.includes("prayer") ||
     lower.includes("moon")
   )
-    return <MoonStar size={16} className="text-purple-500 shrink-0" />;
+    return <MoonStar size={16} className={iconClass} />;
   if (
     lower.includes("cafe") ||
     lower.includes("resto") ||
     lower.includes("coffee")
   )
-    return <Coffee size={16} className="text-amber-700 shrink-0" />;
+    return <Coffee size={16} className={iconClass} />;
   if (
     lower.includes("kolam") ||
     lower.includes("pool") ||
@@ -226,32 +227,32 @@ function getFacilityIcon(name?: string, id?: string) {
     lower.includes("sungai") ||
     lower.includes("waves")
   )
-    return <Waves size={16} className="text-cyan-500 shrink-0" />;
+    return <Waves size={16} className={iconClass} />;
   if (
     lower.includes("keamanan") ||
     lower.includes("security") ||
     lower.includes("pos")
   )
-    return <ShieldCheck size={16} className="text-emerald-500 shrink-0" />;
+    return <ShieldCheck size={16} className={iconClass} />;
   if (
     lower.includes("p3k") ||
     lower.includes("first aid") ||
     lower.includes("medis")
   )
-    return <BriefcaseMedical size={16} className="text-red-500 shrink-0" />;
+    return <BriefcaseMedical size={16} className={iconClass} />;
   if (
     lower.includes("warung") ||
     lower.includes("toko") ||
     lower.includes("store")
   )
-    return <Store size={16} className="text-amber-600 shrink-0" />;
+    return <Store size={16} className={iconClass} />;
   if (lower.includes("gunung") || lower.includes("bukit"))
-    return <Mountain size={16} className="text-emerald-600 shrink-0" />;
+    return <Mountain size={16} className={iconClass} />;
   if (lower.includes("hutan") || lower.includes("pohon") || lower.includes("rumput"))
-    return <Trees size={16} className="text-emerald-600 shrink-0" />;
+    return <Trees size={16} className={iconClass} />;
   if (lower.includes("tenda") || lower.includes("tent") || lower.includes("ground"))
-    return <Tent size={16} className="text-brand-blue shrink-0" />;
-  return <CheckCircle2 size={16} className="text-brand-blue shrink-0" />;
+    return <Tent size={16} className={iconClass} />;
+  return <CheckCircle2 size={16} className={iconClass} />;
 }
 
 function parseHtmlRules(htmlString?: string) {
@@ -1377,14 +1378,9 @@ export function SpotRedirectClient() {
             {/* ── SECTION: TENTANG PROPERTI CAMPSITE (PROPERTY DETAILS) ── */}
             <div className="space-y-6 pb-8 border-b border-border">
               <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-brand-blue/10 text-brand-blue border border-brand-blue/20">
-                    Info Properti
-                  </span>
-                  <h3 className="font-bold text-xl text-foreground">
-                    Tentang Properti {campsite.name}
-                  </h3>
-                </div>
+                <h3 className="font-bold text-xl text-foreground">
+                  Tentang Properti {campsite.name}
+                </h3>
                 <p className="text-xs sm:text-sm text-foreground/80 leading-relaxed">
                   {campsite.description ||
                     `${campsite.name} merupakan destinasi camping dan glamping pilihan di ${campsite.city || "Jawa Barat"} dengan suasana asri, udara sejuk, dan fasilitas lengkap untuk liburan Anda.`}
