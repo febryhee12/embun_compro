@@ -2,28 +2,23 @@
 
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   ArrowLeft,
   ArrowRight,
   Building2,
-  CalendarCheck2,
   CheckCircle2,
-  ChevronRight,
   CreditCard,
   Eye,
   EyeOff,
   Globe,
-  HelpCircle,
   IdCard,
-  Image as ImageIcon,
   Loader2,
   Lock,
   Mail,
   MapPin,
   Phone,
   ShieldCheck,
-  Sparkles,
-  TrendingUp,
   UploadCloud,
   User,
   X,
@@ -79,11 +74,11 @@ const initialForm: FormState = {
 };
 
 const steps = [
-  { id: 0, title: 'Akun Pemilik', short: 'Akun', icon: User },
-  { id: 1, title: 'Identitas & KTP', short: 'Identitas', icon: IdCard },
-  { id: 2, title: 'Tempat Camp', short: 'Campsite', icon: Building2 },
-  { id: 3, title: 'Lokasi & Peta', short: 'Lokasi', icon: MapPin },
-  { id: 4, title: 'Rekening Payout', short: 'Rekening', icon: CreditCard },
+  { id: 0, title: 'Akun Pemilik', short: 'Akun' },
+  { id: 1, title: 'Identitas & KTP', short: 'Identitas' },
+  { id: 2, title: 'Tempat Camp', short: 'Campsite' },
+  { id: 3, title: 'Lokasi & Peta', short: 'Lokasi' },
+  { id: 4, title: 'Rekening Payout', short: 'Rekening' },
 ] as const;
 
 const statusBadgeConfig: Record<string, { label: string; bg: string; text: string; border: string; desc: string }> = {
@@ -268,87 +263,74 @@ export default function MitraRegisterPage() {
       <div className="min-h-screen grid grid-cols-1 lg:grid-cols-[460px_1fr] xl:grid-cols-[500px_1fr]">
         
         {/* ── LEFT HERO BRANDING PANEL ──────────────────────────────────────── */}
-        <aside className="relative flex flex-col justify-between bg-[#191919] text-white p-8 sm:p-12 lg:p-14 overflow-hidden border-r border-neutral-800">
-          {/* Subtle Ambient Background Gradients */}
-          <div className="pointer-events-none absolute -top-40 -left-40 h-96 w-96 rounded-full bg-[#0841B5]/30 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-40 -right-40 h-96 w-96 rounded-full bg-[#CEFB0A]/10 blur-3xl" />
-
+        <aside className="relative flex flex-col justify-between bg-[#18181B] text-white p-8 sm:p-12 lg:p-14 overflow-hidden border-r border-neutral-800">
           {/* Top Logo & Back Nav */}
           <div className="relative z-10">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4">
+              <Link href="/" className="inline-flex items-center">
+                <Image
+                  src="/images/logo/model1_white.svg"
+                  alt="Embun"
+                  width={128}
+                  height={29}
+                  unoptimized
+                  priority
+                />
+              </Link>
               <Link
                 href="/login"
-                className="inline-flex items-center gap-2.5 text-xs font-semibold text-neutral-400 hover:text-white transition-colors group"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-400 hover:text-white transition-colors"
               >
-                <div className="h-7 w-7 rounded-lg bg-neutral-800/80 border border-neutral-700 flex items-center justify-center group-hover:bg-[#0841B5] group-hover:border-[#0841B5] transition-all">
-                  <ArrowLeft className="h-3.5 w-3.5 text-neutral-300 group-hover:text-white" />
-                </div>
+                <ArrowLeft className="h-4 w-4 text-neutral-400" />
                 <span>Kembali ke Login</span>
               </Link>
             </div>
 
             {/* Main Hero Header */}
-            <div className="mt-14 space-y-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-neutral-800/80 border border-neutral-700/80">
-                <Sparkles className="h-3.5 w-3.5 text-[#CEFB0A]" />
-                <span className="text-[11px] font-black uppercase tracking-widest text-[#CEFB0A]">
-                  Kemitraan Resmi Embun
-                </span>
-              </div>
-
-              <h1 className="text-3xl sm:text-4xl xl:text-[42px] font-black leading-[1.15] tracking-tight text-white">
-                Kembangkan bisnis campsite Anda bersama Embun.
+            <div className="mt-12 space-y-3">
+              <h1 className="text-2xl sm:text-3xl xl:text-[34px] font-bold leading-snug tracking-tight text-white">
+                Kelola dan pasarkan campsite Anda bersama Embun.
               </h1>
 
-              <p className="text-sm sm:text-base leading-relaxed text-neutral-400 pt-1">
-                Jangkau ribuan camper aktif, otomatisasi reservasi & pembayaran, dan kelola operasional properti dengan satu sistem cerdas.
+              <p className="text-sm leading-relaxed text-neutral-400">
+                Daftarkan properti camping atau glamping Anda untuk menjangkau wisatawan, mengatur jadwal ketersediaan spot, dan memantau transaksi dalam satu tempat.
               </p>
             </div>
 
             {/* Value Highlights */}
-            <div className="mt-12 space-y-4 border-t border-neutral-800/80 pt-8">
-              <div className="flex items-start gap-3.5">
-                <div className="mt-0.5 h-8 w-8 rounded-xl bg-neutral-800 flex items-center justify-center text-[#CEFB0A] shrink-0 border border-neutral-700/60 shadow-sm">
-                  <TrendingUp className="h-4 w-4" />
-                </div>
-                <div>
-                  <h4 className="text-xs sm:text-sm font-bold text-white">Tingkatkan Reservasi & Okupansi</h4>
-                  <p className="text-xs text-neutral-400 leading-normal mt-0.5">
-                    Properti Anda tampil di aplikasi Embun yang diakses oleh camper dari berbagai kota.
-                  </p>
-                </div>
+            <div className="mt-10 space-y-6 border-t border-neutral-800/80 pt-8">
+              <div className="space-y-1">
+                <div className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">01. Akses Pengunjung</div>
+                <h2 className="text-sm font-semibold text-white">Terhubung Langsung dengan Komunitas Outdoor</h2>
+                <p className="text-xs text-neutral-400 leading-relaxed">
+                  Campsite Anda dapat ditemukan dan dipesan langsung oleh komunitas pencinta alam dan camper di aplikasi Embun.
+                </p>
               </div>
 
-              <div className="flex items-start gap-3.5">
-                <div className="mt-0.5 h-8 w-8 rounded-xl bg-neutral-800 flex items-center justify-center text-[#CEFB0A] shrink-0 border border-neutral-700/60 shadow-sm">
-                  <CalendarCheck2 className="h-4 w-4" />
-                </div>
-                <div>
-                  <h4 className="text-xs sm:text-sm font-bold text-white">Sistem Backoffice Terintegrasi</h4>
-                  <p className="text-xs text-neutral-400 leading-normal mt-0.5">
-                    Kalender blok spot, booking gathering, kasir POS venue, dan laporan kas otomatis.
-                  </p>
-                </div>
+              <div className="space-y-1">
+                <div className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">02. Manajemen Operasional</div>
+                <h2 className="text-sm font-semibold text-white">Atur Kavling, Spot & Reservasi Grup</h2>
+                <p className="text-xs text-neutral-400 leading-relaxed">
+                  Kelola kalender ketersediaan tenda, blok jadwal gathering, dan pantau data pemesanan secara rapi.
+                </p>
               </div>
 
-              <div className="flex items-start gap-3.5">
-                <div className="mt-0.5 h-8 w-8 rounded-xl bg-neutral-800 flex items-center justify-center text-[#CEFB0A] shrink-0 border border-neutral-700/60 shadow-sm">
-                  <ShieldCheck className="h-4 w-4" />
-                </div>
-                <div>
-                  <h4 className="text-xs sm:text-sm font-bold text-white">Pencairan Dana Aman & Bebas Ribet</h4>
-                  <p className="text-xs text-neutral-400 leading-normal mt-0.5">
-                    Pembayaran masuk otomatis lewat gateway resmi dan dapat dicairkan langsung ke rekening bank Anda.
-                  </p>
-                </div>
+              <div className="space-y-1">
+                <div className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">03. Pembayaran Transparan</div>
+                <h2 className="text-sm font-semibold text-white">Pencairan Dana Langsung ke Rekening</h2>
+                <p className="text-xs text-neutral-400 leading-relaxed">
+                  Semua transaksi tercatat otomatis dan dana hasil reservasi dicairkan berkala ke rekening bank Anda.
+                </p>
               </div>
             </div>
           </div>
 
-          {/* Bottom Trust Badge */}
-          <div className="relative z-10 mt-12 pt-6 border-t border-neutral-800/80 flex items-center gap-3 text-xs text-neutral-400">
-            <div className="h-2 w-2 rounded-full bg-[#CEFB0A] animate-pulse" />
-            <span>Pendaftaran 100% Gratis • Tim Embun memverifikasi data dalam 1x24 jam.</span>
+          {/* Bottom Trust Badge & Legal Entity */}
+          <div className="relative z-10 mt-10 pt-6 border-t border-neutral-800/80 text-xs text-neutral-400 space-y-2">
+            <p>Pendaftaran tidak dipungut biaya. Tim Embun akan meninjau kelengkapan data dalam 1–2 hari kerja.</p>
+            <p className="text-[11px] text-neutral-400">
+              © {new Date().getFullYear()} Embun | PT Alam Kelana Digital. Seluruh hak cipta dilindungi.
+            </p>
           </div>
         </aside>
 
@@ -519,8 +501,6 @@ export default function MitraRegisterPage() {
                     const isCurrent = index === step;
                     const isDone = completedSteps.includes(index);
                     const canNavigate = index <= step || completedSteps.includes(index - 1);
-                    const Icon = item.icon;
-
                     return (
                       <button
                         key={item.title}
@@ -535,17 +515,17 @@ export default function MitraRegisterPage() {
                             : 'text-neutral-400 opacity-60 cursor-not-allowed'
                         }`}
                       >
-                        {/* Circle Indicator */}
+                        {/* Step Number / Status Indicator */}
                         <div
-                          className={`h-9 w-9 rounded-xl flex items-center justify-center text-xs font-black transition-all mb-1.5 ${
+                          className={`h-8 w-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all mb-1.5 ${
                             isCurrent
-                              ? 'bg-[#0841B5] text-white shadow-sm shadow-[#0841B5]/30'
+                              ? 'bg-[#0841B5] text-white shadow-xs'
                               : isDone
-                              ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
-                              : 'bg-[#F4F7F6] text-neutral-400 border border-[#E5E7EB]'
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : 'bg-[#F4F7F6] text-neutral-500 border border-[#E5E7EB]'
                           }`}
                         >
-                          {isDone ? <CheckCircle2 className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+                          {isDone ? <CheckCircle2 className="h-4 w-4" /> : <span>{index + 1}</span>}
                         </div>
 
                         {/* Step Title Label */}
@@ -1096,6 +1076,26 @@ export default function MitraRegisterPage() {
               </div>
             </div>
           )}
+
+          {/* Footer with Logo & PT Alam Kelana Digital */}
+          <footer className="mt-14 pt-6 border-t border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-neutral-500">
+            <div className="flex items-center gap-2.5">
+              <Link href="/" className="inline-flex items-center">
+                <Image
+                  src="/images/logo/model1_blue.svg"
+                  alt="Embun"
+                  width={96}
+                  height={22}
+                  unoptimized
+                />
+              </Link>
+              <span className="text-neutral-300">|</span>
+              <span className="font-medium text-neutral-600">PT Alam Kelana Digital</span>
+            </div>
+            <p className="text-neutral-400">
+              © {new Date().getFullYear()} Embun. Seluruh hak cipta dilindungi.
+            </p>
+          </footer>
         </main>
       </div>
     </div>
