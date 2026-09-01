@@ -396,12 +396,9 @@ export default function MitraRegisterPage() {
             </div>
           </div>
 
-          {/* Bottom Trust Badge & Legal Entity */}
-          <div className="relative z-10 mt-10 pt-6 border-t border-neutral-800/80 text-xs text-neutral-400 space-y-2">
+          {/* Bottom Note */}
+          <div className="relative z-10 mt-14 pt-8 border-t border-neutral-800/80 text-xs leading-relaxed text-neutral-400">
             <p>Pendaftaran tidak dipungut biaya. Tim Embun akan meninjau kelengkapan data dalam 1–2 hari kerja.</p>
-            <p className="text-[11px] text-neutral-400">
-              © {new Date().getFullYear()} Embun | PT Alam Kelana Digital. Seluruh hak cipta dilindungi.
-            </p>
           </div>
         </aside>
 
@@ -1211,7 +1208,7 @@ export default function MitraRegisterPage() {
               <span className="font-medium text-neutral-600">PT Alam Kelana Digital</span>
             </div>
             <p className="text-neutral-400">
-              © {new Date().getFullYear()} Embun. Seluruh hak cipta dilindungi.
+              © {new Date().getFullYear()} embun-app. Seluruh hak cipta dilindungi.
             </p>
           </footer>
         </main>
