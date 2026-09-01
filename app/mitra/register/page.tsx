@@ -4,8 +4,6 @@ import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  ArrowLeft,
-  ArrowRight,
   Building2,
   CheckCircle2,
   CreditCard,
@@ -657,7 +655,7 @@ export default function MitraRegisterPage() {
                             value={form.ktpNumber}
                             onChange={(e) => update('ktpNumber', e.target.value.replace(/\D/g, ''))}
                             placeholder="16 digit nomor KTP"
-                            className="w-full pl-10 pr-4 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm font-mono tracking-wider focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all"
+                            className="w-full pl-10 pr-4 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all"
                           />
                         </div>
                       </div>
@@ -696,7 +694,7 @@ export default function MitraRegisterPage() {
                                 <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-700">
                                   <CheckCircle2 className="h-3.5 w-3.5" /> Foto KTP Terlampir
                                 </div>
-                                <p className="text-xs text-neutral-500 truncate max-w-xs mt-0.5 font-mono">
+                                <p className="text-xs text-neutral-500 truncate max-w-xs mt-0.5">
                                   {ktpPhoto?.name || 'ktp_file.jpg'}
                                 </p>
                               </div>
@@ -987,7 +985,7 @@ export default function MitraRegisterPage() {
                               value={form.bankAccountNumber}
                               onChange={(e) => update('bankAccountNumber', e.target.value.replace(/\D/g, ''))}
                               placeholder="Contoh: 1234567890"
-                              className="w-full pl-10 pr-4 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm font-mono tracking-wider focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all"
+                              className="w-full pl-10 pr-4 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all"
                             />
                           </div>
                         </div>
@@ -1030,10 +1028,9 @@ export default function MitraRegisterPage() {
                     <button
                       type="button"
                       onClick={handlePrevStep}
-                      className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-[#E5E7EB] text-xs sm:text-sm font-bold text-neutral-600 hover:bg-[#F4F7F6] hover:text-neutral-900 transition-all cursor-pointer"
+                      className="px-6 py-3 rounded-xl border border-[#E5E7EB] text-xs sm:text-sm font-bold text-neutral-600 hover:bg-[#F4F7F6] hover:text-neutral-900 transition-all cursor-pointer"
                     >
-                      <ArrowLeft className="h-4 w-4" />
-                      <span>Kembali</span>
+                      Kembali
                     </button>
                   ) : (
                     <div />
@@ -1044,10 +1041,9 @@ export default function MitraRegisterPage() {
                       type="button"
                       disabled={!isStepValid}
                       onClick={handleNextStep}
-                      className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-[#0841B5] hover:bg-[#0841B5]/90 text-white text-xs sm:text-sm font-bold shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                      className="px-7 py-3.5 rounded-xl bg-[#0841B5] hover:bg-[#0841B5]/90 text-white text-xs sm:text-sm font-bold shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                     >
-                      <span>Lanjut ke {steps[step + 1].title}</span>
-                      <ArrowRight className="h-4 w-4" />
+                      Lanjut ke {steps[step + 1].title}
                     </button>
                   ) : (
                     <button
@@ -1056,7 +1052,7 @@ export default function MitraRegisterPage() {
                       onClick={submit}
                       className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-[#0841B5] hover:bg-[#0841B5]/90 text-white text-xs sm:text-sm font-bold shadow-md transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                     >
-                      {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                      {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
                       <span>Kirim Pendaftaran Mitra</span>
                     </button>
                   )}
