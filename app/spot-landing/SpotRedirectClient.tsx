@@ -1534,6 +1534,66 @@ export function SpotRedirectClient() {
                 </div>
               )}
             </div>
+
+
+            {/* ── SECTION: PROMOSI APLIKASI EMBUN (EXPERIENCE TERBAIK DI APP) ── */}
+            <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-brand-black via-[#0841b5] to-[#041c52] text-white space-y-5 shadow-xl relative overflow-hidden">
+              <div className="absolute -top-12 -right-12 w-48 h-48 bg-brand-lime/20 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-blue-400/20 rounded-full blur-3xl pointer-events-none" />
+
+              <div className="relative z-10 max-w-xl space-y-3">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-lime text-black font-black text-[10.5px] uppercase tracking-wider shadow-xs">
+                  <Sparkles size={12} className="fill-black text-black" />
+                  <span>Pengalaman Terbaik di Aplikasi</span>
+                </div>
+
+                <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-snug">
+                  Pesan Lebih Cepat & Lengkap di Aplikasi Embun
+                </h3>
+
+                <p className="text-xs sm:text-sm text-white/80 leading-relaxed">
+                  Nikmati pengalaman maksimal dengan tur 360° interaktif yang mulus, panduan peta offline, live chat dengan pengelola campsite, dan e-tiket QR code instan.
+                </p>
+
+                <div className="flex flex-wrap items-center gap-3 pt-2">
+                  {/* App Store Button */}
+                  <a
+                    href={APP_STORE_HREF}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white transition-all shadow-sm active:scale-95 group cursor-pointer"
+                  >
+                    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="currentColor">
+                      <path d="M17.05 12.53c-.02-2.02 1.65-2.99 1.72-3.04-.94-1.37-2.4-1.56-2.92-1.58-1.24-.13-2.42.73-3.05.73-.63 0-1.6-.71-2.63-.69-1.35.02-2.6.79-3.29 2-1.4 2.43-.36 6.02 1.01 7.99.67.96 1.47 2.04 2.51 2 1.01-.04 1.39-.65 2.61-.65 1.22 0 1.56.65 2.63.63 1.09-.02 1.78-.98 2.44-1.95.77-1.12 1.09-2.2 1.11-2.26-.02-.01-2.13-.82-2.15-3.24zM15.04 6.34c.56-.68.94-1.62.83-2.56-.81.03-1.79.54-2.37 1.21-.52.6-.97 1.56-.85 2.48.9.07 1.83-.46 2.39-1.13z" />
+                    </svg>
+                    <div className="text-left">
+                      <span className="block text-[9px] text-white/70 uppercase font-medium leading-none">Download on</span>
+                      <span className="font-bold text-xs leading-tight">App Store</span>
+                    </div>
+                  </a>
+
+                  {/* Google Play Button */}
+                  <a
+                    href={GOOGLE_PLAY_HREF}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white transition-all shadow-sm active:scale-95 group cursor-pointer"
+                  >
+                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                      <path d="M3.6 2.3c-.24.25-.38.63-.38 1.13v17.14c0 .5.14.88.38 1.13l.06.05L13 12.06v-.12L3.66 2.25l-.06.05z" fill="#00D0FF" />
+                      <path d="M16.5 15.56 13 12.06v-.12l3.5-3.5.08.05 4.15 2.36c1.18.67 1.18 1.77 0 2.45l-4.15 2.36-.08.05z" fill="#FFCE00" />
+                      <path d="M16.58 15.51 13 12l-9.4 9.4c.39.41 1.03.46 1.76.05l11.22-6.44" fill="#FF3D44" />
+                      <path d="M16.58 8.49 5.36 2.05C4.63 1.64 3.99 1.69 3.6 2.1L13 11.5l3.58-3.01z" fill="#00F076" />
+                    </svg>
+                    <div className="text-left">
+                      <span className="block text-[9px] text-white/70 uppercase font-medium leading-none">Get it on</span>
+                      <span className="font-bold text-xs leading-tight">Google Play</span>
+                    </div>
+                  </a>
+                </div>
+              </div>
+            </div>
+
           </div>
 
           {/* ── RIGHT COLUMN: STICKY BOOKING CARD (DESKTOP ONLY) ── */}
@@ -1825,6 +1885,41 @@ export function SpotRedirectClient() {
                   <Smartphone size={14} />
                   <span>Buka di Aplikasi Embun</span>
                 </button>
+
+                {/* Direct App Store & Google Play Pills */}
+                <div className="pt-2 border-t border-border space-y-1.5">
+                  <div className="flex items-center justify-between text-[11px] text-foreground-muted">
+                    <span className="font-semibold text-foreground">Unduh Aplikasi:</span>
+                    <span className="text-[10px] text-brand-blue font-bold">Gratis</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <a
+                      href={APP_STORE_HREF}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2 rounded-2xl border border-border bg-surface/60 hover:bg-surface flex items-center justify-center gap-1.5 text-foreground transition-all cursor-pointer shadow-2xs hover:shadow-xs"
+                    >
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
+                        <path d="M17.05 12.53c-.02-2.02 1.65-2.99 1.72-3.04-.94-1.37-2.4-1.56-2.92-1.58-1.24-.13-2.42.73-3.05.73-.63 0-1.6-.71-2.63-.69-1.35.02-2.6.79-3.29 2-1.4 2.43-.36 6.02 1.01 7.99.67.96 1.47 2.04 2.51 2 1.01-.04 1.39-.65 2.61-.65 1.22 0 1.56.65 2.63.63 1.09-.02 1.78-.98 2.44-1.95.77-1.12 1.09-2.2 1.11-2.26-.02-.01-2.13-.82-2.15-3.24zM15.04 6.34c.56-.68.94-1.62.83-2.56-.81.03-1.79.54-2.37 1.21-.52.6-.97 1.56-.85 2.48.9.07 1.83-.46 2.39-1.13z" />
+                      </svg>
+                      <span className="text-[10.5px] font-bold">App Store</span>
+                    </a>
+                    <a
+                      href={GOOGLE_PLAY_HREF}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2 rounded-2xl border border-border bg-surface/60 hover:bg-surface flex items-center justify-center gap-1.5 text-foreground transition-all cursor-pointer shadow-2xs hover:shadow-xs"
+                    >
+                      <svg viewBox="0 0 24 24" width="12" height="12">
+                        <path d="M3.6 2.3c-.24.25-.38.63-.38 1.13v17.14c0 .5.14.88.38 1.13l.06.05L13 12.06v-.12L3.66 2.25l-.06.05z" fill="#00D0FF" />
+                        <path d="M16.5 15.56 13 12.06v-.12l3.5-3.5.08.05 4.15 2.36c1.18.67 1.18 1.77 0 2.45l-4.15 2.36-.08.05z" fill="#FFCE00" />
+                        <path d="M16.58 15.51 13 12l-9.4 9.4c.39.41 1.03.46 1.76.05l11.22-6.44" fill="#FF3D44" />
+                        <path d="M16.58 8.49 5.36 2.05C4.63 1.64 3.99 1.69 3.6 2.1L13 11.5l3.58-3.01z" fill="#00F076" />
+                      </svg>
+                      <span className="text-[10.5px] font-bold">Google Play</span>
+                    </a>
+                  </div>
+                </div>
               </div>
 
               <div className="flex items-center justify-center gap-1.5 text-[11px] text-foreground-muted">

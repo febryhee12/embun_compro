@@ -182,13 +182,12 @@ export function SpotCard({
   return (
     <a
       href={`/spot/${spot.shareCode || spot.id}`}
+      target="_blank"
+      rel="noopener noreferrer"
       onClick={(e) => {
         if ((e.target as HTMLElement).closest('button')) {
           e.preventDefault();
           return;
-        }
-        if (onSelectSpot) {
-          onSelectSpot(spot);
         }
       }}
       onMouseEnter={() => setIsHovered(true)}
