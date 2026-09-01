@@ -264,27 +264,18 @@ export default function MitraRegisterPage() {
         
         {/* ── LEFT HERO BRANDING PANEL ──────────────────────────────────────── */}
         <aside className="relative flex flex-col justify-between bg-[#18181B] text-white p-8 sm:p-12 lg:p-14 overflow-hidden border-r border-neutral-800">
-          {/* Top Logo & Back Nav */}
+          {/* Top Logo */}
           <div className="relative z-10">
-            <div className="flex items-center justify-between gap-4">
-              <Link href="/" className="inline-flex items-center">
-                <Image
-                  src="/images/logo/model1_white.svg"
-                  alt="Embun"
-                  width={128}
-                  height={29}
-                  unoptimized
-                  priority
-                />
-              </Link>
-              <Link
-                href="/login"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-400 hover:text-white transition-colors"
-              >
-                <ArrowLeft className="h-4 w-4 text-neutral-400" />
-                <span>Kembali ke Login</span>
-              </Link>
-            </div>
+            <Link href="/" className="inline-flex items-center">
+              <Image
+                src="/images/logo/model1_white.svg"
+                alt="Embun"
+                width={138}
+                height={31}
+                unoptimized
+                priority
+              />
+            </Link>
 
             {/* Main Hero Header */}
             <div className="mt-12 space-y-3">
