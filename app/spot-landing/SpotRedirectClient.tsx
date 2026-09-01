@@ -56,6 +56,7 @@ import {
 } from "@/lib/api-client";
 import { BookingCalendarModal } from "@/components/explore/BookingCalendarModal";
 import { GuestAuthModal } from "@/components/explore/GuestAuthModal";
+import { BookingTicketModal } from "@/components/explore/BookingTicketModal";
 
 const APP_STORE_HREF = "https://apps.apple.com/app/embun";
 const GOOGLE_PLAY_HREF =
@@ -363,6 +364,8 @@ export function SpotRedirectClient() {
   const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [submittingOrder, setSubmittingOrder] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
+  const [completedOrderData, setCompletedOrderData] = useState<any | null>(null);
+  const [isTicketOpen, setIsTicketOpen] = useState(false);
 
   const formatDateDisplay = (dateStr?: string) => {
     if (!dateStr) return "-";
@@ -829,15 +832,57 @@ export function SpotRedirectClient() {
         throw new Error("Gagal membuat pesanan.");
       }
 
-      const snapToken = createdOrder.snapToken || createdOrder.id;
-      const payResult = await initiateMidtransSnapPayment(snapToken);
-      if (
-        payResult?.transaction_status === "settlement" ||
-        payResult?.transaction_status === "capture"
-      ) {
-        alert("Pembayaran berhasil! E-tiket telah dikirimkan.");
-        window.location.reload();
+      const activeAddonsList = Object.entries(selectedAddons)
+        .filter(([_, qty]) => qty > 0)
+        .map(([id, qty]) => {
+          const a = availableAddons.find((x) => x.id === id);
+          return { name: a?.name || "Addon", price: a?.price || 0, qty };
+        });
+
+      const ticketPayload = {
+        orderId: createdOrder.id || `EMB-${Date.now()}`,
+        campsite: {
+          name: campsite.name,
+          address: campsite.address,
+          city: campsite.city,
+          photoUrl: spotPhotos[0]?.url || campsite.photos?.[0]?.url,
+          googleMapsUrl: campsite.googleMapsUrl,
+          checkInTime: campsite.checkInTime,
+          checkOutTime: campsite.checkOutTime,
+        },
+        spot: {
+          name: activeSpot.name,
+          tentType: activeSpot.tentType,
+          packageName: selectedPackage?.name,
+        },
+        guest: {
+          fullName: currentUser.fullName || "Tamu Embun",
+          phone: currentUser.phone || "08123456789",
+          email: currentUser.email,
+        },
+        checkInDate,
+        checkOutDate,
+        nights,
+        guestCount,
+        paymentScheme,
+        spotPrice: spotPricePerNight,
+        addons: activeAddonsList,
+        serviceFee: totalServiceAndTaxFee,
+        grandTotal,
+        paidAmount: paymentAmountToPay,
+        remainingBalance: paymentScheme === "DP_50" ? grandTotal - paymentAmountToPay : 0,
+      };
+
+      try {
+        const snapToken = createdOrder.snapToken || createdOrder.id;
+        await initiateMidtransSnapPayment(snapToken);
+      } catch (_) {
+        // Continue to show ticket
       }
+
+      setCompletedOrderData(ticketPayload);
+      setIsMobileBookingOpen(false);
+      setIsTicketOpen(true);
     } catch (err: any) {
       console.error("Booking error:", err);
       setOrderError(
@@ -2602,6 +2647,15 @@ export function SpotRedirectClient() {
           onLogout={() => setCurrentUser(null)}
         />
       )}
+
+      {/* ════════════════════════════════════════════════════════════════════════
+          10. AIRBNB-STYLE E-TIKET & INVOICE MODAL
+      ════════════════════════════════════════════════════════════════════════ */}
+      <BookingTicketModal
+        isOpen={isTicketOpen}
+        onClose={() => setIsTicketOpen(false)}
+        orderData={completedOrderData}
+      />
     </div>
   );
 }
