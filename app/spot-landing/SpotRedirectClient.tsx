@@ -1997,6 +1997,9 @@ export function SpotRedirectClient() {
                     <span className="block text-xs font-extrabold text-brand-blue mt-0.5">
                       {rupiah(dp50Total)}
                     </span>
+                    <span className="block text-[9.5px] text-foreground-muted mt-0.5">
+                      Sisa di lokasi / aplikasi
+                    </span>
                   </button>
 
                   <button
@@ -2013,6 +2016,9 @@ export function SpotRedirectClient() {
                     </span>
                     <span className="block text-xs font-extrabold text-foreground mt-0.5">
                       {rupiah(grandTotal)}
+                    </span>
+                    <span className="block text-[9.5px] text-emerald-600 font-semibold mt-0.5">
+                      Lunas langsung
                     </span>
                   </button>
                 </div>
@@ -2521,7 +2527,7 @@ export function SpotRedirectClient() {
                     {rupiah(dp50Total)}
                   </span>
                   <span className="block text-[10px] text-foreground-muted mt-0.5">
-                    Sisa bayar di lokasi
+                    Sisa di lokasi / aplikasi
                   </span>
                 </button>
 
@@ -2541,7 +2547,7 @@ export function SpotRedirectClient() {
                     {rupiah(grandTotal)}
                   </span>
                   <span className="block text-[10px] text-emerald-600 font-semibold mt-0.5">
-                    Bebas ribet
+                    Lunas langsung
                   </span>
                 </button>
               </div>
