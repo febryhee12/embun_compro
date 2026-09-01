@@ -1851,31 +1851,13 @@ export function SpotRedirectClient() {
                 </div>
               </div>
 
-              {/* Add-on Selection (Collapsible Accordion for clean, compact view) */}
-              <div className="space-y-1.5">
-                <button
-                  type="button"
-                  onClick={() => setIsAddonsExpanded(!isAddonsExpanded)}
-                  className="w-full flex items-center justify-between text-left text-xs font-bold text-foreground hover:text-brand-blue transition-colors cursor-pointer py-1"
-                >
-                  <span className="flex items-center gap-1.5">
-                    <span>Perlengkapan Tambahan (Opsional)</span>
-                    {addonTotal > 0 && (
-                      <span className="text-[10px] bg-brand-blue/10 text-brand-blue px-1.5 py-0.2 rounded-full font-bold">
-                        +{rupiah(addonTotal)}
-                      </span>
-                    )}
-                  </span>
-                  <ChevronDown
-                    size={14}
-                    className={`transition-transform duration-200 ${
-                      isAddonsExpanded ? "rotate-180 text-brand-blue" : "text-foreground-muted"
-                    }`}
-                  />
-                </button>
-
-                {isAddonsExpanded && (
-                  <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1 text-xs animate-in fade-in duration-150">
+              {/* Add-on Selection (Directly displayed) */}
+              {availableAddons.length > 0 && (
+                <div className="space-y-2 pt-1">
+                  <label className="text-xs font-bold text-foreground block">
+                    Perlengkapan Tambahan (Opsional)
+                  </label>
+                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1 no-scrollbar text-xs">
                     {availableAddons.map((addon) => {
                       const qty = selectedAddons[addon.id] || 0;
                       const isTent =
@@ -1888,37 +1870,42 @@ export function SpotRedirectClient() {
                       return (
                         <div
                           key={addon.id}
-                          className={`p-2 rounded-2xl border transition-all flex items-center justify-between gap-2 ${
+                          className={`p-2.5 rounded-2xl border transition-all flex items-center justify-between gap-2 ${
                             isTentDisabled
                               ? "border-border/60 bg-surface/20 opacity-70"
                               : "border-border bg-surface/40"
                           }`}
                         >
                           <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-1 flex-wrap">
-                              <p className="font-semibold text-foreground text-[11px] truncate">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <p className="font-semibold text-foreground text-[11.5px] truncate">
                                 {addon.name}
                               </p>
                               {isTentDisabled && (
-                                <span className="text-[8.5px] font-bold text-brand-blue bg-brand-blue/10 px-1 py-0.2 rounded-full">
-                                  Termasuk
+                                <span className="text-[9px] font-bold text-brand-blue bg-brand-blue/10 px-1.5 py-0.5 rounded-full">
+                                  Termasuk di Paket
+                                </span>
+                              )}
+                              {isTent && !isTentPackage && kavlingCount > 1 && (
+                                <span className="text-[9px] font-semibold text-foreground-muted bg-surface px-1.5 py-0.5 rounded-full border border-border">
+                                  Maks. {kavlingCount} tenda ({kavlingCount} kavling)
                                 </span>
                               )}
                             </div>
-                            <p className="text-[10px] text-foreground-muted font-bold">
+                            <p className="text-[10.5px] text-foreground-muted font-bold mt-0.5">
                               +{rupiah(addon.price)}
                             </p>
                           </div>
 
                           {!isTentDisabled ? (
-                            <div className="flex items-center gap-1.5 shrink-0">
+                            <div className="flex items-center gap-2 shrink-0">
                               <button
                                 type="button"
                                 disabled={qty <= 0}
                                 onClick={() => handleAddonQty(addon.id, -1)}
-                                className="w-5 h-5 rounded-full border border-border bg-white flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                                className="w-6 h-6 rounded-full border border-border bg-white flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
                               >
-                                <Minus size={10} />
+                                <Minus size={11} />
                               </button>
                               <span className="font-bold text-xs w-3 text-center">
                                 {qty}
@@ -1927,13 +1914,13 @@ export function SpotRedirectClient() {
                                 type="button"
                                 disabled={isMaxTentReached}
                                 onClick={() => handleAddonQty(addon.id, 1)}
-                                className="w-5 h-5 rounded-full border border-border bg-white flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                                className="w-6 h-6 rounded-full border border-border bg-white flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
                               >
-                                <Plus size={10} />
+                                <Plus size={11} />
                               </button>
                             </div>
                           ) : (
-                            <div className="text-[9.5px] font-bold text-brand-blue shrink-0 px-1.5 py-0.5 bg-brand-blue/5 rounded-lg">
+                            <div className="text-[10px] font-bold text-brand-blue shrink-0 px-2 py-1 bg-brand-blue/5 rounded-xl">
                               Included
                             </div>
                           )}
@@ -1941,14 +1928,14 @@ export function SpotRedirectClient() {
                       );
                     })}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* Price Calculation Breakdown */}
-              <div className="space-y-1.5 pt-2 border-t border-border text-xs">
-                <div className="flex justify-between text-foreground-muted text-[11.5px]">
+              <div className="space-y-2 pt-2 border-t border-border text-xs">
+                <div className="flex justify-between text-foreground-muted">
                   <span>
-                    {selectedPackage?.name || "Sewa"} ({rupiah(spotPricePerNight)} x {nights} mlm)
+                    {selectedPackage?.name || "Sewa"} ({rupiah(spotPricePerNight)} x {nights} malam)
                   </span>
                   <span className="font-semibold text-foreground">
                     {rupiah(spotPricePerNight * nights)}
@@ -1956,7 +1943,7 @@ export function SpotRedirectClient() {
                 </div>
 
                 {addonTotal > 0 && (
-                  <div className="flex justify-between text-foreground-muted text-[11.5px]">
+                  <div className="flex justify-between text-foreground-muted">
                     <span>Perlengkapan Tambahan</span>
                     <span className="font-semibold text-foreground">
                       +{rupiah(addonTotal)}
@@ -1964,14 +1951,14 @@ export function SpotRedirectClient() {
                   </div>
                 )}
 
-                <div className="flex justify-between text-foreground-muted text-[11.5px]">
+                <div className="flex justify-between text-foreground-muted">
                   <span>Biaya Layanan & Pajak</span>
                   <span className="font-semibold text-foreground">
                     +{rupiah(totalServiceAndTaxFee)}
                   </span>
                 </div>
 
-                <div className="flex justify-between items-baseline pt-1.5 border-t border-border font-bold text-sm text-foreground">
+                <div className="flex justify-between items-baseline pt-2 border-t border-border font-bold text-sm text-foreground">
                   <span>Total Tagihan</span>
                   <span className="text-base text-brand-blue font-extrabold">
                     {rupiah(grandTotal)}
@@ -2030,8 +2017,8 @@ export function SpotRedirectClient() {
                 </div>
               )}
 
-              {/* CTA Booking Button - ALWAYS VISIBLE ABOVE THE FOLD */}
-              <div className="pt-1">
+              {/* CTA Booking Button */}
+              <div className="space-y-2.5 pt-1">
                 <button
                   type="button"
                   disabled={submittingOrder}
@@ -2044,6 +2031,41 @@ export function SpotRedirectClient() {
                       : `Pesan Sekarang · ${rupiah(paymentAmountToPay)}`}
                   </span>
                 </button>
+
+                {/* Direct App Store & Google Play Badges Under Booking Button */}
+                <div className="pt-2 border-t border-border space-y-1.5">
+                  <p className="text-[11px] font-bold text-foreground">
+                    Tersedia di iOS & Android
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <a
+                      href={APP_STORE_HREF}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2 rounded-2xl border border-border bg-surface/60 hover:bg-surface flex items-center justify-center gap-1.5 text-foreground transition-all cursor-pointer shadow-2xs hover:shadow-xs group"
+                    >
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                        <path d="M17.05 12.53c-.02-2.02 1.65-2.99 1.72-3.04-.94-1.37-2.4-1.56-2.92-1.58-1.24-.13-2.42.73-3.05.73-.63 0-1.6-.71-2.63-.69-1.35.02-2.6.79-3.29 2-1.4 2.43-.36 6.02 1.01 7.99.67.96 1.47 2.04 2.51 2 1.01-.04 1.39-.65 2.61-.65 1.22 0 1.56.65 2.63.63 1.09-.02 1.78-.98 2.44-1.95.77-1.12 1.09-2.2 1.11-2.26-.02-.01-2.13-.82-2.15-3.24zM15.04 6.34c.56-.68.94-1.62.83-2.56-.81.03-1.79.54-2.37 1.21-.52.6-.97 1.56-.85 2.48.9.07 1.83-.46 2.39-1.13z" />
+                      </svg>
+                      <span className="text-[11px] font-bold">App Store</span>
+                    </a>
+
+                    <a
+                      href={GOOGLE_PLAY_HREF}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2 rounded-2xl border border-border bg-surface/60 hover:bg-surface flex items-center justify-center gap-1.5 text-foreground transition-all cursor-pointer shadow-2xs hover:shadow-xs group"
+                    >
+                      <svg viewBox="0 0 24 24" width="13" height="13">
+                        <path d="M3.6 2.3c-.24.25-.38.63-.38 1.13v17.14c0 .5.14.88.38 1.13l.06.05L13 12.06v-.12L3.66 2.25l-.06.05z" fill="#00D0FF" />
+                        <path d="M16.5 15.56 13 12.06v-.12l3.5-3.5.08.05 4.15 2.36c1.18.67 1.18 1.77 0 2.45l-4.15 2.36-.08.05z" fill="#FFCE00" />
+                        <path d="M16.58 15.51 13 12l-9.4 9.4c.39.41 1.03.46 1.76.05l11.22-6.44" fill="#FF3D44" />
+                        <path d="M16.58 8.49 5.36 2.05C4.63 1.64 3.99 1.69 3.6 2.1L13 11.5l3.58-3.01z" fill="#00F076" />
+                      </svg>
+                      <span className="text-[11px] font-bold">Google Play</span>
+                    </a>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
