@@ -1669,18 +1669,10 @@ export function SpotRedirectClient() {
             </div>
 
 
-            {/* ── SECTION: PROMOSI APLIKASI EMBUN (EXPERIENCE TERBAIK DI APP) ── */}
-            <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-brand-black via-[#0841b5] to-[#041c52] text-white space-y-5 shadow-xl relative overflow-hidden">
-              <div className="absolute -top-12 -right-12 w-48 h-48 bg-brand-lime/20 rounded-full blur-3xl pointer-events-none" />
-              <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-blue-400/20 rounded-full blur-3xl pointer-events-none" />
-
-              <div className="relative z-10 max-w-xl space-y-3">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-lime text-black font-black text-[10.5px] uppercase tracking-wider shadow-xs">
-                  <Sparkles size={12} className="fill-black text-black" />
-                  <span>Pengalaman Terbaik di Aplikasi</span>
-                </div>
-
-                <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-snug">
+            {/* ── SECTION: PROMOSI APLIKASI EMBUN ── */}
+            <div className="p-6 sm:p-8 rounded-3xl bg-[#0841b5] text-white space-y-4 shadow-md">
+              <div className="max-w-xl space-y-2.5">
+                <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-snug">
                   Pesan Lebih Cepat & Lengkap di Aplikasi Embun
                 </h3>
 
@@ -1694,7 +1686,7 @@ export function SpotRedirectClient() {
                     href={APP_STORE_HREF}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white transition-all shadow-sm active:scale-95 group cursor-pointer"
+                    className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white transition-all shadow-xs active:scale-95 group cursor-pointer"
                   >
                     <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="currentColor">
                       <path d="M17.05 12.53c-.02-2.02 1.65-2.99 1.72-3.04-.94-1.37-2.4-1.56-2.92-1.58-1.24-.13-2.42.73-3.05.73-.63 0-1.6-.71-2.63-.69-1.35.02-2.6.79-3.29 2-1.4 2.43-.36 6.02 1.01 7.99.67.96 1.47 2.04 2.51 2 1.01-.04 1.39-.65 2.61-.65 1.22 0 1.56.65 2.63.63 1.09-.02 1.78-.98 2.44-1.95.77-1.12 1.09-2.2 1.11-2.26-.02-.01-2.13-.82-2.15-3.24zM15.04 6.34c.56-.68.94-1.62.83-2.56-.81.03-1.79.54-2.37 1.21-.52.6-.97 1.56-.85 2.48.9.07 1.83-.46 2.39-1.13z" />
@@ -1710,7 +1702,7 @@ export function SpotRedirectClient() {
                     href={GOOGLE_PLAY_HREF}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white transition-all shadow-sm active:scale-95 group cursor-pointer"
+                    className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white transition-all shadow-xs active:scale-95 group cursor-pointer"
                   >
                     <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
                       <path d="M3.6 2.3c-.24.25-.38.63-.38 1.13v17.14c0 .5.14.88.38 1.13l.06.05L13 12.06v-.12L3.66 2.25l-.06.05z" fill="#00D0FF" />
@@ -2579,9 +2571,8 @@ export function SpotRedirectClient() {
               {/* Direct App Store & Google Play Features Box */}
               <div className="pt-3 border-t border-border space-y-2">
                 <div className="space-y-1">
-                  <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                    <Sparkles size={13} className="text-brand-blue" />
-                    <span>Pengalaman Terbaik di Aplikasi</span>
+                  <p className="text-xs font-bold text-foreground">
+                    Pengalaman Terbaik di Aplikasi
                   </p>
                   <p className="text-[11px] text-foreground-muted leading-relaxed">
                     Tur 360° interaktif mulus, navigasi peta offline, live chat dengan pengelola, dan e-tiket QR otomatis di aplikasi Embun.
