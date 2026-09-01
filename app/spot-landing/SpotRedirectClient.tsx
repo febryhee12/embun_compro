@@ -673,7 +673,10 @@ export function SpotRedirectClient() {
       model === "FIXED_CAPACITY_PACKAGE" ||
       Boolean((selectedPackage as any).tentPackageAddonId) ||
       name.includes("tenda") ||
-      name.includes("tent")
+      name.includes("tent") ||
+      name.includes("elcipta") ||
+      name.includes("villager") ||
+      name.includes("paket tenda")
     );
   }, [selectedPackage]);
 
@@ -684,6 +687,31 @@ export function SpotRedirectClient() {
       : 1;
   }, [activeSpot]);
 
+  // Helper to check if an addon is a Tent
+  const isTentAddon = (addon: any) => {
+    if (!addon) return false;
+    const cat = (addon.category || "").toUpperCase();
+    if (cat === "TENT" || cat === "TENT_UNIT" || cat === "TENDA") return true;
+    if (activeSpot?.pricingPackages?.some((p: any) => p.tentPackageAddonId === addon.id)) return true;
+    const name = (addon.name || "").toLowerCase();
+    const id = (addon.id || "").toLowerCase();
+    const tentKeywords = [
+      "tenda", "tent", "elcipta", "villager", "dome", "safari", 
+      "glamping", "arpenaz", "quechua", "naturehike", "charlie", "borneo", "kavling"
+    ];
+    return tentKeywords.some((kw) => name.includes(kw) || id.includes(kw));
+  };
+
+  // Total Tents currently selected across all tent addons combined
+  const totalTentsSelected = useMemo(() => {
+    return availableAddons.reduce((sum, a) => {
+      if (isTentAddon(a)) {
+        return sum + (selectedAddons[a.id] || 0);
+      }
+      return sum;
+    }, 0);
+  }, [availableAddons, selectedAddons, activeSpot]);
+
   // Clear tent addons if tent package is selected
   useEffect(() => {
     if (isTentPackage) {
@@ -691,11 +719,7 @@ export function SpotRedirectClient() {
         const next = { ...prev };
         let changed = false;
         availableAddons.forEach((a) => {
-          const isTent =
-            a.name.toLowerCase().includes("tenda") ||
-            a.name.toLowerCase().includes("tent") ||
-            a.id.includes("tent");
-          if (isTent && next[a.id]) {
+          if (isTentAddon(a) && next[a.id]) {
             delete next[a.id];
             changed = true;
           }
@@ -703,7 +727,7 @@ export function SpotRedirectClient() {
         return changed ? next : prev;
       });
     }
-  }, [isTentPackage, availableAddons]);
+  }, [isTentPackage, availableAddons, activeSpot]);
 
   // Pricing calculations driven by selectedPackage
   const spotPricePerNight = useMemo(() => {
@@ -756,24 +780,30 @@ export function SpotRedirectClient() {
   const paymentAmountToPay =
     paymentScheme === "DP_50" ? dp50Total : grandTotal;
 
-  // Add-on counter helper with tent limitations
+  // Add-on counter helper with strict spot pitch / kavling count limitations
   const handleAddonQty = (addonId: string, delta: number) => {
     const addon = availableAddons.find((a) => a.id === addonId);
-    const isTent =
-      addon &&
-      (addon.name.toLowerCase().includes("tenda") ||
-        addon.name.toLowerCase().includes("tent") ||
-        addon.id.includes("tent"));
+    const isTent = isTentAddon(addon);
 
     if (isTent && isTentPackage) return; // Cannot add tent if package already includes tent
 
     setSelectedAddons((prev) => {
       const current = prev[addonId] || 0;
-      let next = Math.max(0, current + delta);
-      if (isTent && next > kavlingCount) {
-        next = kavlingCount;
+      if (delta > 0) {
+        if (isTent && totalTentsSelected >= kavlingCount) {
+          return prev; // Total tent count across all tent models reached kavling limit
+        }
+        return { ...prev, [addonId]: current + delta };
+      } else if (delta < 0) {
+        const next = Math.max(0, current + delta);
+        if (next === 0) {
+          const updated = { ...prev };
+          delete updated[addonId];
+          return updated;
+        }
+        return { ...prev, [addonId]: next };
       }
-      return { ...prev, [addonId]: next };
+      return prev;
     });
   };
 
@@ -1384,12 +1414,9 @@ export function SpotRedirectClient() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {availableAddons.map((addon) => {
                     const qty = selectedAddons[addon.id] || 0;
-                    const isTent =
-                      addon.name.toLowerCase().includes("tenda") ||
-                      addon.name.toLowerCase().includes("tent") ||
-                      addon.id.includes("tent");
+                    const isTent = isTentAddon(addon);
                     const isTentDisabled = isTent && isTentPackage;
-                    const isMaxTentReached = isTent && !isTentPackage && qty >= kavlingCount;
+                    const isMaxTentReached = isTent && !isTentPackage && totalTentsSelected >= kavlingCount;
 
                     return (
                       <div
@@ -1412,7 +1439,7 @@ export function SpotRedirectClient() {
                                 Termasuk di Paket
                               </span>
                             )}
-                            {isTent && !isTentPackage && kavlingCount > 1 && (
+                            {isTent && !isTentPackage && (
                               <span className="text-[9px] font-semibold text-foreground-muted bg-white px-1.5 py-0.5 rounded-full border border-border">
                                 Maks. {kavlingCount} tenda ({kavlingCount} kavling)
                               </span>
@@ -2419,12 +2446,9 @@ export function SpotRedirectClient() {
                 <div className="space-y-2 max-h-40 overflow-y-auto pr-1 no-scrollbar text-xs">
                   {availableAddons.map((addon) => {
                     const qty = selectedAddons[addon.id] || 0;
-                    const isTent =
-                      addon.name.toLowerCase().includes("tenda") ||
-                      addon.name.toLowerCase().includes("tent") ||
-                      addon.id.includes("tent");
+                    const isTent = isTentAddon(addon);
                     const isTentDisabled = isTent && isTentPackage;
-                    const isMaxTentReached = isTent && !isTentPackage && qty >= kavlingCount;
+                    const isMaxTentReached = isTent && !isTentPackage && totalTentsSelected >= kavlingCount;
 
                     return (
                       <div
@@ -2445,7 +2469,7 @@ export function SpotRedirectClient() {
                                 Termasuk di Paket
                               </span>
                             )}
-                            {isTent && !isTentPackage && kavlingCount > 1 && (
+                            {isTent && !isTentPackage && (
                               <span className="text-[9px] font-semibold text-foreground-muted bg-surface px-1.5 py-0.5 rounded-full border border-border">
                                 Maks. {kavlingCount} tenda ({kavlingCount} kavling)
                               </span>
