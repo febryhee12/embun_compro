@@ -1799,7 +1799,7 @@ export function SpotRedirectClient() {
                 </h3>
 
                 <p className="text-xs sm:text-sm text-white/80 leading-relaxed">
-                  Nikmati pengalaman maksimal dengan tur 360° interaktif yang mulus, panduan peta offline, live chat dengan pengelola campsite, dan e-tiket QR code instan.
+                  Nikmati pengalaman maksimal dengan tur 360° interaktif yang mulus, peta interaktif spot & campsite, fitur gathering rombongan, dan e-tiket QR code instan.
                 </p>
 
                 <div className="flex flex-wrap items-center gap-3 pt-2">
@@ -2649,7 +2649,7 @@ export function SpotRedirectClient() {
                     Pengalaman Terbaik di Aplikasi
                   </p>
                   <p className="text-[11px] text-foreground-muted leading-relaxed">
-                    Tur 360° interaktif mulus, navigasi peta offline, live chat dengan pengelola, dan e-tiket QR otomatis di aplikasi Embun.
+                    Tur 360° interaktif mulus, peta interaktif spot, fitur gathering rombongan, dan e-tiket QR code otomatis di aplikasi Embun.
                   </p>
                 </div>
 
