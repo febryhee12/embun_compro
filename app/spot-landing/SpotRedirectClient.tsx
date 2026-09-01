@@ -2033,7 +2033,6 @@ export function SpotRedirectClient() {
                   onClick={handleProceedBooking}
                   className="w-full py-3.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
-                  <Lock size={15} />
                   <span>
                     {submittingOrder
                       ? "Memproses Pesanan..."
@@ -2607,7 +2606,6 @@ export function SpotRedirectClient() {
                 onClick={handleProceedBooking}
                 className="w-full py-3.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
-                <Lock size={15} />
                 <span>
                   {submittingOrder
                     ? "Memproses Pesanan..."

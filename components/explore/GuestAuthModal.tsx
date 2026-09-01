@@ -30,11 +30,16 @@ export function GuestAuthModal({
     setError(null);
     setLoadingProvider('google');
     try {
-      const dummyPhone = `+62812${Math.floor(10000000 + Math.random() * 90000000)}`;
-      const res = await guestDevLogin(dummyPhone, 'Tamu Google');
-      res.guest.email = 'tamu.google@gmail.com';
-      setGuestSession(res.accessToken, res.guest);
-      if (onSuccess) onSuccess(res.guest);
+      const guestUser = {
+        id: `guest_google_${Date.now()}`,
+        fullName: 'Tamu Google',
+        email: 'tamu.google@gmail.com',
+        phone: '+6281234567890',
+        avatarUrl: '',
+      };
+      const token = `guest_jwt_${Date.now()}`;
+      setGuestSession(token, guestUser);
+      if (onSuccess) onSuccess(guestUser);
       onClose();
     } catch (err: any) {
       setError(err.message || 'Gagal masuk dengan Google.');
@@ -47,11 +52,16 @@ export function GuestAuthModal({
     setError(null);
     setLoadingProvider('apple');
     try {
-      const dummyPhone = `+62813${Math.floor(10000000 + Math.random() * 90000000)}`;
-      const res = await guestDevLogin(dummyPhone, 'Tamu Apple');
-      res.guest.email = 'tamu.apple@icloud.com';
-      setGuestSession(res.accessToken, res.guest);
-      if (onSuccess) onSuccess(res.guest);
+      const guestUser = {
+        id: `guest_apple_${Date.now()}`,
+        fullName: 'Tamu Apple',
+        email: 'tamu.apple@icloud.com',
+        phone: '+6281345678901',
+        avatarUrl: '',
+      };
+      const token = `guest_jwt_${Date.now()}`;
+      setGuestSession(token, guestUser);
+      if (onSuccess) onSuccess(guestUser);
       onClose();
     } catch (err: any) {
       setError(err.message || 'Gagal masuk dengan Apple.');
