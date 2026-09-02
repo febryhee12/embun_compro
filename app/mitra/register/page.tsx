@@ -572,8 +572,9 @@ export default function MitraRegisterPage() {
       setResult(body);
       setIsRevising(false);
       setMode('status');
+      setStatusTab('details');
       setResubmitSuccessMsg(
-        'Revisi pengajuan berhasil dikirimkan ulang! Tim kurasi Embun akan meninjau perubahan data Anda.',
+        'Perbaikan data pengajuan berhasil dikirimkan ulang! Tim kurasi Embun akan meninjau perubahan data Anda.',
       );
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err: any) {
@@ -1367,6 +1368,14 @@ export default function MitraRegisterPage() {
                           </div>
                         )}
                       </div>
+
+                      {/* Error message in revision tab */}
+                      {error && (
+                        <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2">
+                          <AlertCircle className="h-4 w-4 text-red-600 shrink-0" />
+                          <span>{error}</span>
+                        </div>
+                      )}
 
                       {/* Resubmit CTA Button */}
                       <div className="p-5 sm:p-6 rounded-2xl bg-neutral-50 border border-neutral-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
