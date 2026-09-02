@@ -18,7 +18,7 @@ import {
   fetchGuestOrder,
   initiateOrderPayment,
   syncOrderStatus,
-  initiateMidtransSnapPayment,
+  initiateXenditPayment,
   resolveAssetUrl,
   rupiah,
   ApiError,
@@ -120,14 +120,12 @@ export function OrderDetailClient() {
     setPaying(true);
     try {
       const paymentInit = await initiateOrderPayment(orderId);
-      if (!paymentInit?.snapToken) {
-        throw new Error('Gagal memulai sesi pembayaran.');
+      if (!paymentInit?.snapRedirectUrl) {
+        throw new Error('Gagal mendapatkan URL pembayaran Xendit.');
       }
-      try {
-        await initiateMidtransSnapPayment(paymentInit.snapToken);
-      } catch {
-        // Snap closed/error - order stays PENDING, guest can retry.
-      }
+      // Buka Xendit invoice di tab baru
+      initiateXenditPayment(paymentInit.snapRedirectUrl);
+      // Best-effort sync; webhook Xendit yang bersifat autoritatif
       await syncOrderStatus(orderId).catch(() => {});
       await load();
     } catch (err: any) {

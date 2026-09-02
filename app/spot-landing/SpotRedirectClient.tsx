@@ -55,7 +55,7 @@ import {
   createRealOrder,
   initiateOrderPayment,
   syncOrderStatus,
-  initiateMidtransSnapPayment,
+  initiateXenditPayment,
   resolveAssetUrl,
   rupiah,
   ApiError,
@@ -1033,10 +1033,10 @@ export function SpotRedirectClient() {
         throw new Error('Gagal membuat pesanan.');
       }
 
-      // 2. Initiate a real Midtrans Snap payment session for that Order.
+      // 2. Initiate Xendit payment — backend returns the Xendit Invoice URL.
       const paymentInit = await initiateOrderPayment(createdOrder.id);
-      if (!paymentInit?.snapToken) {
-        throw new Error('Gagal memulai sesi pembayaran.');
+      if (!paymentInit?.snapRedirectUrl) {
+        throw new Error('Gagal mendapatkan URL pembayaran Xendit.');
       }
 
       const activeAddonsList = Object.entries(selectedAddons)
@@ -1084,24 +1084,17 @@ export function SpotRedirectClient() {
             : 0,
       };
 
-      // 3. Open the real Midtrans Snap overlay. The Order itself already
-      // exists regardless of what happens here (pending payment can always
-      // be resumed), so a Snap-side error/close should not be treated as a
-      // failed booking.
-      try {
-        await initiateMidtransSnapPayment(paymentInit.snapToken);
-        // Best-effort immediate reconciliation; the webhook is authoritative
-        // and will settle the Order even if this call fails/races it.
-        await syncOrderStatus(createdOrder.id).catch(() => {});
-      } catch (_) {
-        // onClose()/onError() from Snap - order stays PENDING, guest can
-        // retry payment; still show the ticket with the real orderId so
-        // they have a reference number.
-      }
-
+      // 3. Tampilkan e-tiket terlebih dahulu, lalu buka halaman Xendit.
+      // Order sudah ada (PENDING), pembayaran bisa dilanjutkan kapan saja
+      // dari halaman "Pesanan Saya" jika tab Xendit ditutup.
       setCompletedOrderData(ticketPayload);
       setIsMobileBookingOpen(false);
       setIsTicketOpen(true);
+
+      // Buka Xendit invoice di tab baru agar tamu bisa bayar.
+      initiateXenditPayment(paymentInit.snapRedirectUrl);
+      // Best-effort sync status; webhook Xendit yang bersifat autoritatif.
+      await syncOrderStatus(createdOrder.id).catch(() => {});
     } catch (err: any) {
       console.error('Booking error:', err);
       if (err instanceof ApiError && err.status === 401) {

@@ -271,37 +271,12 @@ export async function updateGuestProfile(payload: {
   return guest;
 }
 
-export function initiateMidtransSnapPayment(snapToken: string): Promise<any> {
-  return new Promise((resolve, reject) => {
-    if (typeof window === 'undefined')
-      return reject(new Error('Window not available'));
-    if ((window as any).snap) {
-      (window as any).snap.pay(snapToken, {
-        onSuccess: (result: any) => resolve(result),
-        onPending: (result: any) => resolve(result),
-        onError: (err: any) => reject(err),
-        onClose: () => resolve({ status: 'closed' }),
-      });
-      return;
-    }
-    const script = document.createElement('script');
-    script.src = 'https://app.sandbox.midtrans.com/snap/snap.js';
-    script.setAttribute(
-      'data-client-key',
-      process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || 'SB-Mid-client-demo',
-    );
-    script.onload = () => {
-      if ((window as any).snap) {
-        (window as any).snap.pay(snapToken, {
-          onSuccess: (result: any) => resolve(result),
-          onPending: (result: any) => resolve(result),
-          onError: (err: any) => reject(err),
-          onClose: () => resolve({ status: 'closed' }),
-        });
-      }
-    };
-    script.onerror = () =>
-      reject(new Error('Gagal memuat sistem pembayaran Midtrans.'));
-    document.head.appendChild(script);
-  });
+/**
+ * Buka halaman pembayaran Xendit di tab/window baru.
+ * Backend mengembalikan `snapRedirectUrl` = Xendit Invoice URL.
+ * `snapToken` = Xendit Invoice ID (dipakai untuk sync-status).
+ */
+export function initiateXenditPayment(xenditInvoiceUrl: string): void {
+  if (typeof window === 'undefined') return;
+  window.open(xenditInvoiceUrl, '_blank', 'noopener,noreferrer');
 }
