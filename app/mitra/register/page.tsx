@@ -250,6 +250,11 @@ export default function MitraRegisterPage() {
   const [login, setLogin] = useState({ email: '', password: '' });
   const [authPassword, setAuthPassword] = useState('');
   const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSuccess, setForgotSuccess] = useState('');
+  const [forgotError, setForgotError] = useState('');
   const [isRevising, setIsRevising] = useState(false);
   const [resubmitSuccessMsg, setResubmitSuccessMsg] = useState('');
   const [statusTab, setStatusTab] = useState<'revision' | 'details'>('revision');
@@ -727,6 +732,33 @@ export default function MitraRegisterPage() {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotEmail.trim()) return;
+    setForgotLoading(true);
+    setForgotError('');
+    setForgotSuccess('');
+    try {
+      const res = await fetch(`${API_BASE_URL}/partner-applications/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail.trim() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.message || 'Gagal mengirimkan permintaan reset kata sandi.');
+      }
+      setForgotSuccess(
+        data.message ||
+          'Tautan pengaturan ulang kata sandi telah dikirim ke email Anda. Silakan periksa kotak masuk atau spam Anda.',
+      );
+    } catch (err: any) {
+      setForgotError(err?.message || 'Terjadi kesalahan saat memproses permintaan.');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#F4F7F6] text-[#191919] font-sans antialiased selection:bg-[#CEFB0A] selection:text-[#191919]">
       <div className="min-h-screen grid grid-cols-1 lg:grid-cols-[460px_1fr] xl:grid-cols-[500px_1fr]">
@@ -851,71 +883,165 @@ export default function MitraRegisterPage() {
           {(mode === 'status' || result) && !isRevising ? (
             <div className="mt-8 space-y-6 animate-in fade-in duration-200">
               {!result ? (
-                <div className="bg-white rounded-3xl p-7 sm:p-9 border border-[#E5E7EB] shadow-xs space-y-6">
-                  <div className="space-y-1">
-                    <h3 className="text-lg font-black text-[#191919]">Masuk untuk Cek Status</h3>
-                    <p className="text-xs text-neutral-500">
-                      Gunakan email dan password yang Anda buat saat pertama kali mengisi form pendaftaran.
-                    </p>
-                  </div>
-
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
-                        Alamat Email
-                      </label>
-                      <div className="relative">
-                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                        <input
-                          type="email"
-                          value={login.email}
-                          onChange={(e) => setLogin((p) => ({ ...p, email: e.target.value }))}
-                          placeholder="owner@domain.com"
-                          className="w-full pl-10 pr-4 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all"
-                        />
-                      </div>
+                isForgotPassword ? (
+                  <div className="bg-white rounded-3xl p-7 sm:p-9 border border-[#E5E7EB] shadow-xs space-y-6 animate-in fade-in duration-200">
+                    <div className="space-y-1">
+                      <h3 className="text-lg font-black text-[#191919]">Lupa Kata Sandi Pendaftaran</h3>
+                      <p className="text-xs text-neutral-500">
+                        Masukkan alamat email yang Anda daftarkan saat pendaftaran mitra. Kami akan mengirimkan tautan untuk mengatur ulang kata sandi Anda.
+                      </p>
                     </div>
 
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
-                        Password
-                      </label>
-                      <div className="relative">
-                        <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                        <input
-                          type={showLoginPassword ? 'text' : 'password'}
-                          value={login.password}
-                          onChange={(e) => setLogin((p) => ({ ...p, password: e.target.value }))}
-                          placeholder="••••••••"
-                          className="w-full pl-10 pr-11 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all"
-                        />
+                    {forgotSuccess ? (
+                      <div className="space-y-4">
+                        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold leading-relaxed flex items-start gap-2.5">
+                          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                          <div>{forgotSuccess}</div>
+                        </div>
                         <button
                           type="button"
-                          onClick={() => setShowLoginPassword(!showLoginPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 p-1 cursor-pointer"
+                          onClick={() => {
+                            setIsForgotPassword(false);
+                            setForgotSuccess('');
+                            setForgotError('');
+                          }}
+                          className="inline-flex items-center text-xs font-bold text-[#0841B5] hover:underline cursor-pointer"
                         >
-                          {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          ← Kembali ke Form Masuk
                         </button>
                       </div>
-                    </div>
+                    ) : (
+                      <form onSubmit={handleForgotPassword} className="space-y-4">
+                        <div>
+                          <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
+                            Alamat Email Terdaftar
+                          </label>
+                          <div className="relative">
+                            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                            <input
+                              type="email"
+                              required
+                              value={forgotEmail}
+                              onChange={(e) => setForgotEmail(e.target.value)}
+                              placeholder="owner@domain.com"
+                              className="w-full pl-10 pr-4 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all"
+                            />
+                          </div>
+                        </div>
+
+                        {forgotError && (
+                          <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold">
+                            {forgotError}
+                          </div>
+                        )}
+
+                        <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
+                          <button
+                            type="submit"
+                            disabled={forgotLoading || !forgotEmail.trim()}
+                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#0841B5] hover:bg-[#0841B5]/90 text-white font-bold text-sm shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+                          >
+                            {forgotLoading ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Mail className="h-4 w-4" />
+                            )}
+                            <span>Kirim Tautan Reset Kata Sandi</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsForgotPassword(false);
+                              setForgotError('');
+                            }}
+                            className="w-full sm:w-auto px-5 py-3.5 rounded-xl text-xs font-bold text-neutral-600 hover:text-neutral-900 transition-colors cursor-pointer text-center"
+                          >
+                            Batal
+                          </button>
+                        </div>
+                      </form>
+                    )}
                   </div>
-
-                  {error && (
-                    <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold">
-                      {error}
+                ) : (
+                  <div className="bg-white rounded-3xl p-7 sm:p-9 border border-[#E5E7EB] shadow-xs space-y-6">
+                    <div className="space-y-1">
+                      <h3 className="text-lg font-black text-[#191919]">Masuk untuk Cek Status</h3>
+                      <p className="text-xs text-neutral-500">
+                        Gunakan email dan password yang Anda buat saat pertama kali mengisi form pendaftaran.
+                      </p>
                     </div>
-                  )}
 
-                  <button
-                    type="button"
-                    onClick={checkStatus}
-                    disabled={submitting}
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl bg-[#0841B5] hover:bg-[#0841B5]/90 text-white font-bold text-sm shadow-sm transition-all disabled:opacity-50 cursor-pointer"
-                  >
-                    {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                    <span>Periksa Status Pengajuan</span>
-                  </button>
-                </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
+                          Alamat Email
+                        </label>
+                        <div className="relative">
+                          <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                          <input
+                            type="email"
+                            value={login.email}
+                            onChange={(e) => setLogin((p) => ({ ...p, email: e.target.value }))}
+                            placeholder="owner@domain.com"
+                            className="w-full pl-10 pr-4 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700">
+                            Password
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setForgotEmail(login.email);
+                              setIsForgotPassword(true);
+                              setError('');
+                            }}
+                            className="text-[11.5px] font-semibold text-[#0841B5] hover:underline cursor-pointer"
+                          >
+                            Lupa kata sandi?
+                          </button>
+                        </div>
+                        <div className="relative">
+                          <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                          <input
+                            type={showLoginPassword ? 'text' : 'password'}
+                            value={login.password}
+                            onChange={(e) => setLogin((p) => ({ ...p, password: e.target.value }))}
+                            placeholder="••••••••"
+                            className="w-full pl-10 pr-11 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowLoginPassword(!showLoginPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 p-1 cursor-pointer"
+                          >
+                            {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {error && (
+                      <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold">
+                        {error}
+                      </div>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={checkStatus}
+                      disabled={submitting}
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl bg-[#0841B5] hover:bg-[#0841B5]/90 text-white font-bold text-sm shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+                    >
+                      {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                      <span>Periksa Status Pengajuan</span>
+                    </button>
+                  </div>
+                )
               ) : (
                 /* Status Display Card */
                 <div className="bg-white rounded-3xl p-7 sm:p-9 border border-[#E5E7EB] shadow-xs space-y-6 animate-in slide-in-from-bottom-2 duration-300">
