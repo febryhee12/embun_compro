@@ -1165,6 +1165,30 @@ export default function MitraRegisterPage() {
                             className="w-full pl-10 pr-4 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all"
                           />
                         </div>
+
+                        {/* Petunjuk Cara Ambil Link Google Maps */}
+                        <div className="mt-2.5 p-3 rounded-xl bg-neutral-50 border border-neutral-200/80 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                          <div className="w-20 sm:w-24 shrink-0 rounded-lg overflow-hidden border border-neutral-200 bg-white shadow-xs">
+                            <Image
+                              src="/images/gmaps-share-guide.png"
+                              alt="Panduan Share Google Maps"
+                              width={160}
+                              height={120}
+                              className="w-full h-auto object-cover"
+                              unoptimized
+                            />
+                          </div>
+                          <div className="space-y-1 text-[11px] sm:text-xs text-neutral-600">
+                            <span className="font-bold text-neutral-800 block">
+                              Panduan Salin Link Google Maps:
+                            </span>
+                            <ol className="list-decimal pl-4 space-y-0.5 text-neutral-500">
+                              <li>Buka lokasi titik campsite di aplikasi Google Maps.</li>
+                              <li>Tekan tombol <strong>Bagikan (Share)</strong> lalu pilih <strong>Salin Link (Copy Link)</strong>.</li>
+                              <li>Tempelkan (*paste*) tautan ke dalam kolom di atas.</li>
+                            </ol>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
