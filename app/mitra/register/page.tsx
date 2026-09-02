@@ -271,7 +271,10 @@ export default function MitraRegisterPage() {
           ktpPhoto !== null
         );
       case 2:
-        return form.campsiteName.trim().length >= 3;
+        return (
+          form.campsiteName.trim().length >= 3 &&
+          form.campsitePhone.trim().length >= 9
+        );
       case 3:
         return (
           form.province.trim().length >= 2 &&
@@ -908,18 +911,22 @@ export default function MitraRegisterPage() {
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div>
                           <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
-                            Telepon Operasional Camp (Opsional)
+                            No. WhatsApp / Kontak Darurat Camp <span className="text-red-500">*</span>
                           </label>
                           <div className="relative">
                             <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
                             <input
                               type="tel"
+                              required
                               value={form.campsitePhone}
                               onChange={(e) => update('campsitePhone', e.target.value)}
-                              placeholder="Nomor kontak resepsionis"
+                              placeholder="081234567890"
                               className="w-full pl-10 pr-4 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all"
                             />
                           </div>
+                          <p className="text-[11px] text-neutral-400 mt-1">
+                            Nomor operasional di venue untuk kontak darurat & koordinasi tamu.
+                          </p>
                         </div>
 
                         <div>
