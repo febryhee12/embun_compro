@@ -430,44 +430,48 @@ export default function MitraRegisterPage() {
     }
   };
 
+  const populateFormFromResult = (app: PartnerApplicationResult) => {
+    setForm({
+      ownerName: app.ownerName || '',
+      email: app.email || '',
+      phone: app.phone ? normalizePhone(app.phone) : '',
+      password: login.password || '',
+      ktpNumber: app.ktpNumber || '',
+      ownerAddress: app.ownerAddress || '',
+      campsiteName: app.campsiteName || '',
+      campsiteType: app.campsiteType || '',
+      campsitePhone: app.campsitePhone ? normalizePhone(app.campsitePhone) : '',
+      campsiteEmail: app.campsiteEmail || '',
+      instagramUrl: app.instagramUrl || '',
+      tiktokUrl: app.tiktokUrl || '',
+      websiteUrl: app.websiteUrl || '',
+      province: app.province || '',
+      city: app.city || '',
+      district: app.district || '',
+      campsiteAddress: app.campsiteAddress || '',
+      googleMapsUrl: app.googleMapsUrl || '',
+      bankName: app.bankName || '',
+      bankAccountNumber: app.bankAccountNumber || '',
+      bankAccountHolder: app.bankAccountHolder || '',
+    });
+    if (app.campsiteType) {
+      setSelectedTypes(
+        app.campsiteType.split(',').map((s) => s.trim()).filter(Boolean),
+      );
+    }
+    if (app.ktpPhotoUrl) {
+      const fullUrl = app.ktpPhotoUrl.startsWith('http')
+        ? app.ktpPhotoUrl
+        : `${API_BASE_URL}${app.ktpPhotoUrl}`;
+      setKtpPreviewUrl(fullUrl);
+    }
+  };
+
   const startRevision = () => {
     if (!result) return;
     setIsRevising(true);
     setMode('register');
-    setForm({
-      ownerName: result.ownerName || '',
-      email: result.email || '',
-      phone: result.phone ? normalizePhone(result.phone) : '',
-      password: login.password || '',
-      ktpNumber: result.ktpNumber || '',
-      ownerAddress: result.ownerAddress || '',
-      campsiteName: result.campsiteName || '',
-      campsiteType: result.campsiteType || '',
-      campsitePhone: result.campsitePhone ? normalizePhone(result.campsitePhone) : '',
-      campsiteEmail: result.campsiteEmail || '',
-      instagramUrl: result.instagramUrl || '',
-      tiktokUrl: result.tiktokUrl || '',
-      websiteUrl: result.websiteUrl || '',
-      province: result.province || '',
-      city: result.city || '',
-      district: result.district || '',
-      campsiteAddress: result.campsiteAddress || '',
-      googleMapsUrl: result.googleMapsUrl || '',
-      bankName: result.bankName || '',
-      bankAccountNumber: result.bankAccountNumber || '',
-      bankAccountHolder: result.bankAccountHolder || '',
-    });
-    if (result.campsiteType) {
-      setSelectedTypes(
-        result.campsiteType.split(',').map((s) => s.trim()).filter(Boolean),
-      );
-    }
-    if (result.ktpPhotoUrl) {
-      const fullUrl = result.ktpPhotoUrl.startsWith('http')
-        ? result.ktpPhotoUrl
-        : `${API_BASE_URL}${result.ktpPhotoUrl}`;
-      setKtpPreviewUrl(fullUrl);
-    }
+    populateFormFromResult(result);
     const revisionArr = result.revisionSections
       ? result.revisionSections.split(',').map((s) => s.trim()).filter(Boolean)
       : [];
@@ -587,6 +591,7 @@ export default function MitraRegisterPage() {
         throw new Error(body.message || 'Email atau password tidak terdaftar.');
       }
       setResult(body);
+      populateFormFromResult(body);
     } catch (err: any) {
       setError(err?.message || 'Email atau password tidak sesuai.');
     } finally {
@@ -825,7 +830,7 @@ export default function MitraRegisterPage() {
                     </div>
                   )}
 
-                  {/* ── CALLOUT PERBAIKAN / REVISI ──────────────────────────── */}
+                  {/* ── NOTIFIKASI CATATAN KURASI JIKA PERLU REVISI ─────────────────── */}
                   {result.status === 'NEEDS_REVISION' && (
                     <div className="p-6 sm:p-7 rounded-3xl bg-amber-50/90 border-2 border-amber-300 shadow-xs space-y-4">
                       <div className="flex items-start gap-3.5">
@@ -837,60 +842,40 @@ export default function MitraRegisterPage() {
                             Pengajuan Anda Memerlukan Perbaikan Data
                           </h5>
                           <p className="text-xs sm:text-sm text-amber-900 leading-relaxed font-medium">
-                            Silakan periksa catatan tim kurasi dan perbaiki kolom data yang diminta di bawah ini, kemudian kirimkan ulang untuk melanjutkan proses verifikasi kemitraan.
+                            Hanya bagian formulir yang ditandai <strong>"Perlu Revisi"</strong> di bawah ini yang harus Anda ubah. Bagian lain yang bertanda <strong>"✓ Sesuai"</strong> tidak perlu diubah lagi.
                           </p>
                         </div>
                       </div>
 
-                      {/* Revision Sections Badges */}
-                      {(() => {
-                        const revs = result.revisionSections
-                          ? result.revisionSections.split(',').map((s) => s.trim()).filter(Boolean)
-                          : [];
-                        if (revs.length > 0) {
-                          return (
-                            <div className="space-y-2 pt-1 border-t border-amber-200/80">
-                              <span className="text-[11px] font-bold uppercase tracking-wider text-amber-800 block">
-                                Bagian yang Ditandai Perlu Direvisi:
-                              </span>
-                              <div className="flex flex-wrap gap-2">
-                                {revs.map((key) => (
-                                  <span
-                                    key={key}
-                                    className="px-3 py-1.5 rounded-xl bg-amber-100 border border-amber-300/80 text-amber-950 font-bold text-xs flex items-center gap-1.5 shadow-2xs"
-                                  >
-                                    <span className="h-2 w-2 rounded-full bg-amber-600" />
-                                    {SECTION_TITLE_MAP[key] || key}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          );
-                        }
-                        return null;
-                      })()}
-
-                      <div className="pt-2 flex flex-col sm:flex-row sm:items-center gap-3">
-                        <button
-                          type="button"
-                          onClick={startRevision}
-                          className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#0841B5] hover:bg-[#0841B5]/90 text-white font-bold text-xs sm:text-sm shadow-md transition-all cursor-pointer"
-                        >
-                          <Edit3 className="h-4 w-4" />
-                          <span>Perbaiki & Kirim Ulang Data Pengajuan</span>
-                        </button>
-                        <span className="text-xs text-amber-800 font-medium">
-                          Data yang sudah Anda input sebelumnya akan otomatis terisi.
-                        </span>
-                      </div>
+                      {result.reviewNote && (
+                        <div className="p-4 rounded-2xl bg-white border border-amber-200/80 space-y-1">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-amber-800 block">
+                            Catatan dari Reviewer Embun:
+                          </span>
+                          <p className="text-xs sm:text-sm text-amber-950 font-semibold leading-relaxed">
+                            "{result.reviewNote}"
+                          </p>
+                        </div>
+                      )}
                     </div>
                   )}
 
-                  {/* ── RINCIAN DATA PENGAJUAN (KYC & MASTER DATA) ────────── */}
+                  {result.status !== 'NEEDS_REVISION' && result.reviewNote && (
+                    <div className="p-5 rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-1.5">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-amber-800 block">
+                        Catatan dari Tim Reviewer Embun:
+                      </span>
+                      <p className="text-xs sm:text-sm text-amber-900 leading-relaxed font-medium">
+                        {result.reviewNote}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* ── 5 DATA CARDS (TARGETED INLINE EDITABLE JIKA REVISI) ── */}
                   <div className="space-y-6 pt-4 border-t border-[#E5E7EB]">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                       <h5 className="text-xs sm:text-sm font-bold text-neutral-900 uppercase tracking-wider">
-                        Rincian Berkas & Data yang Diajukan
+                        {result.status === 'NEEDS_REVISION' ? 'Formulir Data Kemitraan & Perbaikan' : 'Rincian Berkas & Data yang Diajukan'}
                       </h5>
                       {result.createdAt && (
                         <span className="text-[11px] text-neutral-400">
@@ -899,181 +884,604 @@ export default function MitraRegisterPage() {
                       )}
                     </div>
 
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      {/* Box 1: Data Akun & PIC */}
-                      <div className="p-5 rounded-2xl bg-[#F4F7F6]/60 border border-[#E5E7EB] space-y-3">
-                        <div className="flex items-center gap-2 text-xs font-bold text-[#0841B5] uppercase tracking-wider">
-                          <User className="h-4 w-4" />
-                          <span>Informasi Pemilik / PIC</span>
-                        </div>
-                        <div className="space-y-2 text-xs">
-                          <div>
-                            <span className="text-neutral-400 block text-[11px]">Nama Lengkap:</span>
-                            <span className="font-semibold text-neutral-800">{result.ownerName}</span>
-                          </div>
-                          <div>
-                            <span className="text-neutral-400 block text-[11px]">Email Terdaftar:</span>
-                            <span className="font-semibold text-neutral-800">{result.email}</span>
-                          </div>
-                          <div>
-                            <span className="text-neutral-400 block text-[11px]">Nomor WhatsApp:</span>
-                            <span className="font-semibold text-neutral-800">{result.phone}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Box 2: Identitas Legal & KTP */}
-                      <div className="p-5 rounded-2xl bg-[#F4F7F6]/60 border border-[#E5E7EB] space-y-3">
-                        <div className="flex items-center gap-2 text-xs font-bold text-[#0841B5] uppercase tracking-wider">
-                          <IdCard className="h-4 w-4" />
-                          <span>Legalitas & KTP</span>
-                        </div>
-                        <div className="space-y-2 text-xs">
-                          <div>
-                            <span className="text-neutral-400 block text-[11px]">Nomor Induk Kependudukan (NIK):</span>
-                            <span className="font-semibold text-neutral-800">{result.ktpNumber || '-'}</span>
-                          </div>
-                          <div>
-                            <span className="text-neutral-400 block text-[11px]">Alamat Domisili KTP:</span>
-                            <span className="font-medium text-neutral-700 leading-relaxed">{result.ownerAddress || '-'}</span>
-                          </div>
-                          {result.ktpPhotoUrl && (
-                            <div className="pt-1">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const url = result.ktpPhotoUrl?.startsWith('http')
-                                    ? result.ktpPhotoUrl
-                                    : `${API_BASE_URL}${result.ktpPhotoUrl}`;
-                                  setKtpPreviewUrl(url);
-                                  setShowKtpModal(true);
-                                }}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#E5E7EB] text-[#0841B5] hover:border-[#0841B5] text-[11px] font-bold shadow-2xs transition-all cursor-pointer"
-                              >
-                                <Eye className="h-3.5 w-3.5" />
-                                <span>Lihat Foto KTP Terlampir</span>
-                              </button>
+                    <div className="grid gap-5 sm:grid-cols-2">
+                      {/* CARD 1: INFORMASI PEMILIK / PIC */}
+                      {(() => {
+                        const isRevTarget = result.status === 'NEEDS_REVISION' && (!result.revisionSections || result.revisionSections.includes('owner'));
+                        if (isRevTarget) {
+                          return (
+                            <div className="p-6 rounded-3xl bg-amber-50/40 border-2 border-amber-300 space-y-4 shadow-xs">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-xs font-bold text-amber-900 uppercase tracking-wider">
+                                  <User className="h-4 w-4 text-amber-700" />
+                                  <span>1. Informasi Pemilik / PIC</span>
+                                </div>
+                                <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
+                                  Perlu Revisi
+                                </span>
+                              </div>
+                              <div className="space-y-3 pt-1">
+                                <div>
+                                  <label className="block text-xs font-bold text-neutral-700 mb-1">Nama Lengkap Pemilik / PIC *</label>
+                                  <input
+                                    type="text"
+                                    value={form.ownerName}
+                                    onChange={(e) => update('ownerName', e.target.value)}
+                                    className="w-full px-3.5 py-2.5 bg-white border border-amber-200 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-bold text-neutral-700 mb-1">Email Terdaftar *</label>
+                                  <input
+                                    type="email"
+                                    value={form.email}
+                                    onChange={(e) => update('email', e.target.value)}
+                                    className="w-full px-3.5 py-2.5 bg-white border border-amber-200 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-bold text-neutral-700 mb-1">Nomor WhatsApp PIC *</label>
+                                  <div className="relative">
+                                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-neutral-500">+62</span>
+                                    <input
+                                      type="tel"
+                                      value={form.phone}
+                                      onChange={(e) => update('phone', normalizePhone(e.target.value))}
+                                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-amber-200 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none font-medium"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Box 3: Detail Campsite */}
-                      <div className="p-5 rounded-2xl bg-[#F4F7F6]/60 border border-[#E5E7EB] space-y-3">
-                        <div className="flex items-center gap-2 text-xs font-bold text-[#0841B5] uppercase tracking-wider">
-                          <Building2 className="h-4 w-4" />
-                          <span>Profil Tempat Camp</span>
-                        </div>
-                        <div className="space-y-2 text-xs">
-                          <div>
-                            <span className="text-neutral-400 block text-[11px]">Nama Campsite:</span>
-                            <span className="font-semibold text-neutral-800">{result.campsiteName}</span>
-                          </div>
-                          <div>
-                            <span className="text-neutral-400 block text-[11px]">Tipe Properti:</span>
-                            <span className="font-medium text-neutral-700">{result.campsiteType || 'Tidak dicantumkan'}</span>
-                          </div>
-                          <div>
-                            <span className="text-neutral-400 block text-[11px]">Kontak Operasional Camp:</span>
-                            <span className="font-medium text-neutral-700">{result.campsitePhone || result.phone}</span>
-                          </div>
-                          {result.campsiteEmail && (
-                            <div>
-                              <span className="text-neutral-400 block text-[11px]">Email Bisnis:</span>
-                              <span className="font-medium text-neutral-700">{result.campsiteEmail}</span>
-                            </div>
-                          )}
-                          {(result.instagramUrl || result.tiktokUrl || result.websiteUrl) && (
-                            <div className="pt-1 flex flex-wrap gap-2">
-                              {result.instagramUrl && (
-                                <a
-                                  href={result.instagramUrl.startsWith('http') ? result.instagramUrl : `https://${result.instagramUrl}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-[11px] font-medium text-[#0841B5] hover:underline"
-                                >
-                                  Instagram ↗
-                                </a>
-                              )}
-                              {result.tiktokUrl && (
-                                <a
-                                  href={result.tiktokUrl.startsWith('http') ? result.tiktokUrl : `https://${result.tiktokUrl}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-[11px] font-medium text-[#0841B5] hover:underline"
-                                >
-                                  TikTok ↗
-                                </a>
-                              )}
-                              {result.websiteUrl && (
-                                <a
-                                  href={result.websiteUrl.startsWith('http') ? result.websiteUrl : `https://${result.websiteUrl}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-[11px] font-medium text-[#0841B5] hover:underline"
-                                >
-                                  Website ↗
-                                </a>
+                          );
+                        }
+                        return (
+                          <div className="p-5 rounded-2xl bg-[#F4F7F6]/60 border border-[#E5E7EB] space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2 text-xs font-bold text-[#0841B5] uppercase tracking-wider">
+                                <User className="h-4 w-4" />
+                                <span>Informasi Pemilik / PIC</span>
+                              </div>
+                              {result.status === 'NEEDS_REVISION' && (
+                                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Sesuai</span>
                               )}
                             </div>
-                          )}
-                        </div>
-                      </div>
+                            <div className="space-y-2 text-xs">
+                              <div>
+                                <span className="text-neutral-400 block text-[11px]">Nama Lengkap:</span>
+                                <span className="font-semibold text-neutral-800">{result.ownerName}</span>
+                              </div>
+                              <div>
+                                <span className="text-neutral-400 block text-[11px]">Email Terdaftar:</span>
+                                <span className="font-semibold text-neutral-800">{result.email}</span>
+                              </div>
+                              <div>
+                                <span className="text-neutral-400 block text-[11px]">Nomor WhatsApp:</span>
+                                <span className="font-semibold text-neutral-800">{result.phone}</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
 
-                      {/* Box 4: Rekening Pencairan Dana (Payout) */}
-                      <div className="p-5 rounded-2xl bg-[#F4F7F6]/60 border border-[#E5E7EB] space-y-3">
-                        <div className="flex items-center gap-2 text-xs font-bold text-[#0841B5] uppercase tracking-wider">
-                          <CreditCard className="h-4 w-4" />
-                          <span>Rekening Pencairan Dana (Payout)</span>
-                        </div>
-                        <div className="space-y-2 text-xs">
-                          <div>
-                            <span className="text-neutral-400 block text-[11px]">Nama Bank:</span>
-                            <span className="font-bold text-neutral-800">{result.bankName}</span>
+                      {/* CARD 2: LEGALITAS & KTP */}
+                      {(() => {
+                        const isRevTarget = result.status === 'NEEDS_REVISION' && (!result.revisionSections || result.revisionSections.includes('ktp'));
+                        if (isRevTarget) {
+                          return (
+                            <div className="p-6 rounded-3xl bg-amber-50/40 border-2 border-amber-300 space-y-4 shadow-xs">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-xs font-bold text-amber-900 uppercase tracking-wider">
+                                  <IdCard className="h-4 w-4 text-amber-700" />
+                                  <span>2. Legalitas & Foto KTP</span>
+                                </div>
+                                <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
+                                  Perlu Revisi
+                                </span>
+                              </div>
+                              <div className="space-y-3 pt-1">
+                                <div>
+                                  <label className="block text-xs font-bold text-neutral-700 mb-1">Nomor Induk Kependudukan (NIK) *</label>
+                                  <input
+                                    type="text"
+                                    maxLength={16}
+                                    value={form.ktpNumber}
+                                    onChange={(e) => update('ktpNumber', e.target.value.replace(/\D/g, ''))}
+                                    className="w-full px-3.5 py-2.5 bg-white border border-amber-200 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-bold text-neutral-700 mb-1">Alamat Domisili KTP *</label>
+                                  <textarea
+                                    rows={2}
+                                    value={form.ownerAddress}
+                                    onChange={(e) => update('ownerAddress', e.target.value)}
+                                    className="w-full px-3.5 py-2 bg-white border border-amber-200 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-bold text-neutral-700 mb-1">Upload / Ganti Foto KTP</label>
+                                  <div
+                                    onDragOver={handleDragOver}
+                                    onDragLeave={handleDragLeave}
+                                    onDrop={handleDrop}
+                                    className={`relative border-2 border-dashed rounded-2xl p-4 text-center transition-all bg-white ${
+                                      isDragging ? 'border-[#0841B5] bg-blue-50/40' : 'border-amber-300 hover:border-amber-400'
+                                    }`}
+                                  >
+                                    <input
+                                      type="file"
+                                      accept="image/jpeg,image/png,image/webp"
+                                      onChange={(e) => handleKtpChange(e.target.files?.[0] || null)}
+                                      className="hidden"
+                                      id="ktp-upload-compro-status-revision"
+                                    />
+                                    {ktpPreviewUrl ? (
+                                      <div className="flex items-center justify-between gap-2">
+                                        <div className="flex items-center gap-2">
+                                          <div className="h-10 w-14 rounded-lg overflow-hidden border border-neutral-200 bg-neutral-100 shrink-0">
+                                            <img src={ktpPreviewUrl} alt="KTP" className="h-full w-full object-cover" />
+                                          </div>
+                                          <button
+                                            type="button"
+                                            onClick={() => setShowKtpModal(true)}
+                                            className="text-xs font-bold text-[#0841B5] hover:underline"
+                                          >
+                                            Lihat Foto
+                                          </button>
+                                        </div>
+                                        <label
+                                          htmlFor="ktp-upload-compro-status-revision"
+                                          className="px-3 py-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-950 font-bold text-xs cursor-pointer"
+                                        >
+                                          Ganti Foto
+                                        </label>
+                                      </div>
+                                    ) : (
+                                      <label htmlFor="ktp-upload-compro-status-revision" className="cursor-pointer block space-y-1">
+                                        <UploadCloud className="h-6 w-6 text-amber-600 mx-auto" />
+                                        <span className="text-xs font-bold text-amber-900 block">Klik atau Drag Foto KTP Baru</span>
+                                      </label>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        }
+                        return (
+                          <div className="p-5 rounded-2xl bg-[#F4F7F6]/60 border border-[#E5E7EB] space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2 text-xs font-bold text-[#0841B5] uppercase tracking-wider">
+                                <IdCard className="h-4 w-4" />
+                                <span>Legalitas & KTP</span>
+                              </div>
+                              {result.status === 'NEEDS_REVISION' && (
+                                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Sesuai</span>
+                              )}
+                            </div>
+                            <div className="space-y-2 text-xs">
+                              <div>
+                                <span className="text-neutral-400 block text-[11px]">Nomor Induk Kependudukan (NIK):</span>
+                                <span className="font-semibold text-neutral-800">{result.ktpNumber || '-'}</span>
+                              </div>
+                              <div>
+                                <span className="text-neutral-400 block text-[11px]">Alamat Domisili KTP:</span>
+                                <span className="font-medium text-neutral-700 leading-relaxed">{result.ownerAddress || '-'}</span>
+                              </div>
+                              {result.ktpPhotoUrl && (
+                                <div className="pt-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const url = result.ktpPhotoUrl?.startsWith('http')
+                                        ? result.ktpPhotoUrl
+                                        : `${API_BASE_URL}${result.ktpPhotoUrl}`;
+                                      setKtpPreviewUrl(url);
+                                      setShowKtpModal(true);
+                                    }}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#E5E7EB] text-[#0841B5] hover:border-[#0841B5] text-[11px] font-bold shadow-2xs transition-all cursor-pointer"
+                                  >
+                                    <Eye className="h-3.5 w-3.5" />
+                                    <span>Lihat Foto KTP Terlampir</span>
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                          <div>
-                            <span className="text-neutral-400 block text-[11px]">Nomor Rekening:</span>
-                            <span className="font-bold text-neutral-800 tracking-wider">{result.bankAccountNumber}</span>
+                        );
+                      })()}
+
+                      {/* CARD 3: PROFIL TEMPAT CAMP */}
+                      {(() => {
+                        const isRevTarget = result.status === 'NEEDS_REVISION' && (!result.revisionSections || result.revisionSections.includes('campsite'));
+                        if (isRevTarget) {
+                          return (
+                            <div className="p-6 rounded-3xl bg-amber-50/40 border-2 border-amber-300 space-y-4 shadow-xs">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-xs font-bold text-amber-900 uppercase tracking-wider">
+                                  <Building2 className="h-4 w-4 text-amber-700" />
+                                  <span>3. Profil Tempat Camp</span>
+                                </div>
+                                <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
+                                  Perlu Revisi
+                                </span>
+                              </div>
+                              <div className="space-y-3 pt-1">
+                                <div>
+                                  <label className="block text-xs font-bold text-neutral-700 mb-1">Nama Tempat Camp *</label>
+                                  <input
+                                    type="text"
+                                    value={form.campsiteName}
+                                    onChange={(e) => update('campsiteName', e.target.value)}
+                                    className="w-full px-3.5 py-2.5 bg-white border border-amber-200 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-bold text-neutral-700 mb-1.5">Tipe Properti</label>
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {PROPERTY_TYPES.map((t) => {
+                                      const isSelected = selectedTypes.includes(t);
+                                      return (
+                                        <button
+                                          key={t}
+                                          type="button"
+                                          onClick={() => togglePropertyType(t)}
+                                          className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                                            isSelected
+                                              ? 'bg-[#0841B5] text-white'
+                                              : 'bg-white border border-amber-200 text-neutral-700 hover:border-[#0841B5]'
+                                          }`}
+                                        >
+                                          {t}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-bold text-neutral-700 mb-1">No. WhatsApp Campsite *</label>
+                                  <div className="relative">
+                                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-neutral-500">+62</span>
+                                    <input
+                                      type="tel"
+                                      value={form.campsitePhone}
+                                      onChange={(e) => update('campsitePhone', normalizePhone(e.target.value))}
+                                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-amber-200 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none font-medium"
+                                    />
+                                  </div>
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-bold text-neutral-700 mb-1">Email Bisnis Camp (Opsional)</label>
+                                  <input
+                                    type="email"
+                                    value={form.campsiteEmail}
+                                    onChange={(e) => update('campsiteEmail', e.target.value)}
+                                    placeholder="camp@domain.com"
+                                    className="w-full px-3.5 py-2.5 bg-white border border-amber-200 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none"
+                                  />
+                                </div>
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div>
+                                    <label className="block text-[11px] font-bold text-neutral-700 mb-1">Instagram</label>
+                                    <input
+                                      type="text"
+                                      value={form.instagramUrl}
+                                      onChange={(e) => update('instagramUrl', e.target.value)}
+                                      placeholder="instagram.com/..."
+                                      className="w-full px-2.5 py-2 bg-white border border-amber-200 rounded-lg text-xs outline-none"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-[11px] font-bold text-neutral-700 mb-1">TikTok / Website</label>
+                                    <input
+                                      type="text"
+                                      value={form.tiktokUrl}
+                                      onChange={(e) => update('tiktokUrl', e.target.value)}
+                                      placeholder="tiktok.com/@..."
+                                      className="w-full px-2.5 py-2 bg-white border border-amber-200 rounded-lg text-xs outline-none"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        }
+                        return (
+                          <div className="p-5 rounded-2xl bg-[#F4F7F6]/60 border border-[#E5E7EB] space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2 text-xs font-bold text-[#0841B5] uppercase tracking-wider">
+                                <Building2 className="h-4 w-4" />
+                                <span>Profil Tempat Camp</span>
+                              </div>
+                              {result.status === 'NEEDS_REVISION' && (
+                                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Sesuai</span>
+                              )}
+                            </div>
+                            <div className="space-y-2 text-xs">
+                              <div>
+                                <span className="text-neutral-400 block text-[11px]">Nama Campsite:</span>
+                                <span className="font-semibold text-neutral-800">{result.campsiteName}</span>
+                              </div>
+                              <div>
+                                <span className="text-neutral-400 block text-[11px]">Tipe Properti:</span>
+                                <span className="font-medium text-neutral-700">{result.campsiteType || 'Tidak dicantumkan'}</span>
+                              </div>
+                              <div>
+                                <span className="text-neutral-400 block text-[11px]">Kontak Operasional Camp:</span>
+                                <span className="font-medium text-neutral-700">{result.campsitePhone || result.phone}</span>
+                              </div>
+                              {result.campsiteEmail && (
+                                <div>
+                                  <span className="text-neutral-400 block text-[11px]">Email Bisnis:</span>
+                                  <span className="font-medium text-neutral-700">{result.campsiteEmail}</span>
+                                </div>
+                              )}
+                              {(result.instagramUrl || result.tiktokUrl || result.websiteUrl) && (
+                                <div className="pt-1 flex flex-wrap gap-2">
+                                  {result.instagramUrl && (
+                                    <a href={result.instagramUrl.startsWith('http') ? result.instagramUrl : `https://${result.instagramUrl}`} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-[#0841B5] hover:underline">
+                                      Instagram ↗
+                                    </a>
+                                  )}
+                                  {result.tiktokUrl && (
+                                    <a href={result.tiktokUrl.startsWith('http') ? result.tiktokUrl : `https://${result.tiktokUrl}`} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-[#0841B5] hover:underline">
+                                      TikTok ↗
+                                    </a>
+                                  )}
+                                  {result.websiteUrl && (
+                                    <a href={result.websiteUrl.startsWith('http') ? result.websiteUrl : `https://${result.websiteUrl}`} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-[#0841B5] hover:underline">
+                                      Website ↗
+                                    </a>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                           </div>
-                          <div>
-                            <span className="text-neutral-400 block text-[11px]">Nama Pemilik Rekening:</span>
-                            <span className="font-semibold text-neutral-800">{result.bankAccountHolder}</span>
+                        );
+                      })()}
+
+                      {/* CARD 4: REKENING PENCAIRAN (PAYOUT) */}
+                      {(() => {
+                        const isRevTarget = result.status === 'NEEDS_REVISION' && (!result.revisionSections || result.revisionSections.includes('bank'));
+                        if (isRevTarget) {
+                          return (
+                            <div className="p-6 rounded-3xl bg-amber-50/40 border-2 border-amber-300 space-y-4 shadow-xs">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-xs font-bold text-amber-900 uppercase tracking-wider">
+                                  <CreditCard className="h-4 w-4 text-amber-700" />
+                                  <span>4. Rekening Pencairan Dana (Payout)</span>
+                                </div>
+                                <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
+                                  Perlu Revisi
+                                </span>
+                              </div>
+                              <div className="space-y-3 pt-1">
+                                <div>
+                                  <label className="block text-xs font-bold text-neutral-700 mb-1">Nama Bank *</label>
+                                  <div className="relative">
+                                    <select
+                                      value={form.bankName}
+                                      onChange={(e) => update('bankName', e.target.value)}
+                                      className="w-full px-3.5 py-2.5 bg-white border border-amber-200 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none appearance-none cursor-pointer"
+                                    >
+                                      <option value="">Pilih Bank</option>
+                                      {POPULAR_BANKS.map((b) => (
+                                        <option key={b} value={b}>{b}</option>
+                                      ))}
+                                    </select>
+                                    <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                                  </div>
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-bold text-neutral-700 mb-1">Nomor Rekening *</label>
+                                  <input
+                                    type="text"
+                                    value={form.bankAccountNumber}
+                                    onChange={(e) => update('bankAccountNumber', e.target.value.replace(/\D/g, ''))}
+                                    className="w-full px-3.5 py-2.5 bg-white border border-amber-200 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none font-mono"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-bold text-neutral-700 mb-1">Nama Pemilik Rekening *</label>
+                                  <input
+                                    type="text"
+                                    value={form.bankAccountHolder}
+                                    onChange={(e) => update('bankAccountHolder', e.target.value)}
+                                    className="w-full px-3.5 py-2.5 bg-white border border-amber-200 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        }
+                        return (
+                          <div className="p-5 rounded-2xl bg-[#F4F7F6]/60 border border-[#E5E7EB] space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2 text-xs font-bold text-[#0841B5] uppercase tracking-wider">
+                                <CreditCard className="h-4 w-4" />
+                                <span>Rekening Pencairan Dana (Payout)</span>
+                              </div>
+                              {result.status === 'NEEDS_REVISION' && (
+                                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Sesuai</span>
+                              )}
+                            </div>
+                            <div className="space-y-2 text-xs">
+                              <div>
+                                <span className="text-neutral-400 block text-[11px]">Nama Bank:</span>
+                                <span className="font-bold text-neutral-800">{result.bankName}</span>
+                              </div>
+                              <div>
+                                <span className="text-neutral-400 block text-[11px]">Nomor Rekening:</span>
+                                <span className="font-bold text-neutral-800 tracking-wider">{result.bankAccountNumber}</span>
+                              </div>
+                              <div>
+                                <span className="text-neutral-400 block text-[11px]">Nama Pemilik Rekening:</span>
+                                <span className="font-semibold text-neutral-800">{result.bankAccountHolder}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5 text-[11px] text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg w-fit border border-emerald-200 mt-2">
+                                <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
+                                <span>Rekening siap untuk payout reservasi</span>
+                              </div>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-1.5 text-[11px] text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg w-fit border border-emerald-200 mt-2">
-                            <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
-                            <span>Rekening siap untuk payout reservasi</span>
-                          </div>
-                        </div>
-                      </div>
+                        );
+                      })()}
                     </div>
 
-                    {/* Box 5: Lokasi & Titik Peta (Full Width) */}
-                    <div className="p-5 rounded-2xl bg-[#F4F7F6]/60 border border-[#E5E7EB] space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-xs font-bold text-[#0841B5] uppercase tracking-wider">
-                          <MapPin className="h-4 w-4" />
-                          <span>Lokasi & Alamat Campsite</span>
+                    {/* CARD 5: LOKASI & ALAMAT CAMPSITE (FULL WIDTH) */}
+                    {(() => {
+                      const isRevTarget = result.status === 'NEEDS_REVISION' && (!result.revisionSections || result.revisionSections.includes('location'));
+                      if (isRevTarget) {
+                        return (
+                          <div className="p-6 rounded-3xl bg-amber-50/40 border-2 border-amber-300 space-y-4 shadow-xs">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2 text-xs font-bold text-amber-900 uppercase tracking-wider">
+                                <MapPin className="h-4 w-4 text-amber-700" />
+                                <span>5. Lokasi & Alamat Campsite</span>
+                              </div>
+                              <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
+                                Perlu Revisi
+                              </span>
+                            </div>
+                            <div className="space-y-3 pt-1">
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                  <label className="block text-xs font-bold text-neutral-700 mb-1">Provinsi *</label>
+                                  <div className="relative">
+                                    <select
+                                      value={selectedProvinceId}
+                                      onChange={(e) => handleProvinceChange(e.target.value)}
+                                      className="w-full px-3 py-2.5 bg-white border border-amber-200 rounded-xl text-xs outline-none appearance-none"
+                                    >
+                                      <option value="">{form.province || 'Pilih Provinsi'}</option>
+                                      {provinces.map((p) => (
+                                        <option key={p.id} value={p.id}>{toTitleCase(p.name)}</option>
+                                      ))}
+                                    </select>
+                                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-400" />
+                                  </div>
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-bold text-neutral-700 mb-1">Kota / Kabupaten *</label>
+                                  <div className="relative">
+                                    <select
+                                      value={selectedCityId}
+                                      onChange={(e) => handleCityChange(e.target.value)}
+                                      className="w-full px-3 py-2.5 bg-white border border-amber-200 rounded-xl text-xs outline-none appearance-none"
+                                    >
+                                      <option value="">{form.city || 'Pilih Kota'}</option>
+                                      {cities.map((c) => (
+                                        <option key={c.id} value={c.id}>{toTitleCase(c.name)}</option>
+                                      ))}
+                                    </select>
+                                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-400" />
+                                  </div>
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-bold text-neutral-700 mb-1">Kecamatan (Opsional)</label>
+                                  <div className="relative">
+                                    <select
+                                      value={districts.find((d) => toTitleCase(d.name) === form.district)?.id || ''}
+                                      onChange={(e) => handleDistrictChange(e.target.value)}
+                                      className="w-full px-3 py-2.5 bg-white border border-amber-200 rounded-xl text-xs outline-none appearance-none"
+                                    >
+                                      <option value="">{form.district || 'Pilih Kecamatan'}</option>
+                                      {districts.map((d) => (
+                                        <option key={d.id} value={d.id}>{toTitleCase(d.name)}</option>
+                                      ))}
+                                    </select>
+                                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-400" />
+                                  </div>
+                                </div>
+                              </div>
+                              <div>
+                                <label className="block text-xs font-bold text-neutral-700 mb-1">Alamat Lengkap Campsite *</label>
+                                <textarea
+                                  rows={2}
+                                  value={form.campsiteAddress}
+                                  onChange={(e) => update('campsiteAddress', e.target.value)}
+                                  className="w-full px-3.5 py-2 bg-white border border-amber-200 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-bold text-neutral-700 mb-1">Link Titik Google Maps (Share Link)</label>
+                                <div className="relative">
+                                  <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                                  <input
+                                    type="url"
+                                    value={form.googleMapsUrl}
+                                    onChange={(e) => update('googleMapsUrl', e.target.value)}
+                                    placeholder="https://maps.app.goo.gl/..."
+                                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-amber-200 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] outline-none"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return (
+                        <div className="p-5 rounded-2xl bg-[#F4F7F6]/60 border border-[#E5E7EB] space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-xs font-bold text-[#0841B5] uppercase tracking-wider">
+                              <MapPin className="h-4 w-4" />
+                              <span>Lokasi & Alamat Campsite</span>
+                            </div>
+                            {result.status === 'NEEDS_REVISION' ? (
+                              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Sesuai</span>
+                            ) : (
+                              result.googleMapsUrl && (
+                                <a
+                                  href={result.googleMapsUrl.startsWith('http') ? result.googleMapsUrl : `https://${result.googleMapsUrl}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 text-xs font-bold text-[#0841B5] hover:underline"
+                                >
+                                  <span>Buka di Google Maps ↗</span>
+                                </a>
+                              )
+                            )}
+                          </div>
+                          <div className="space-y-1.5 text-xs">
+                            <p className="font-medium text-neutral-800 leading-relaxed">
+                              {result.campsiteAddress}
+                            </p>
+                            <p className="text-neutral-500 text-[11px]">
+                              {result.district ? `${result.district}, ` : ''}{result.city}, {result.province}
+                            </p>
+                          </div>
                         </div>
-                        {result.googleMapsUrl && (
-                          <a
-                            href={result.googleMapsUrl.startsWith('http') ? result.googleMapsUrl : `https://${result.googleMapsUrl}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-xs font-bold text-[#0841B5] hover:underline"
-                          >
-                            <span>Buka di Google Maps ↗</span>
-                          </a>
+                      );
+                    })()}
+
+                    {/* ── TOMBOL SUBMIT PERBAIKAN DATA JIKA NEEDS_REVISION ── */}
+                    {result.status === 'NEEDS_REVISION' && (
+                      <div className="pt-2">
+                        {error && (
+                          <div className="mb-4 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold">
+                            {error}
+                          </div>
                         )}
+                        <div className="p-6 rounded-3xl bg-white border-2 border-[#0841B5]/30 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          <div className="space-y-0.5">
+                            <h5 className="font-black text-sm sm:text-base text-[#191919]">Kirimkan Ulang Perbaikan Data</h5>
+                            <p className="text-xs text-neutral-500">
+                              Periksa kembali data yang telah Anda sesuaikan di atas sebelum dikirimkan ke tim kurasi.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            disabled={submitting}
+                            onClick={resubmit}
+                            className="inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl bg-[#0841B5] hover:bg-[#0841B5]/90 text-white font-bold text-xs sm:text-sm shadow-md transition-all cursor-pointer disabled:opacity-50 shrink-0"
+                          >
+                            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                            <span>Kirim Ulang Revisi Data</span>
+                          </button>
+                        </div>
                       </div>
-                      <div className="space-y-1.5 text-xs">
-                        <p className="font-medium text-neutral-800 leading-relaxed">
-                          {result.campsiteAddress}
-                        </p>
-                        <p className="text-neutral-500 text-[11px]">
-                          {result.district ? `${result.district}, ` : ''}{result.city}, {result.province}
-                        </p>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               )}
