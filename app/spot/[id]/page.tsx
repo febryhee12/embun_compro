@@ -121,7 +121,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
                 const title = `${spotName} by ${c.name} | Embun`;
                 const description = `Pesan ${spotName} di ${c.name}, ${
                   c.city || c.address || "Indonesia"
-                }. Booking mudah, DP 50%, dan konfirmasi instan di Embun.`;
+                }. Booking mudah dan konfirmasi instan di Embun.`;
 
                 return {
                   title,
