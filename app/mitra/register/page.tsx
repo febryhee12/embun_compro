@@ -670,10 +670,10 @@ export default function MitraRegisterPage() {
         </aside>
 
         {/* ── RIGHT MAIN FORM CONTAINER ────────────────────────────────────── */}
-        <main className="flex flex-col justify-start p-6 sm:p-10 lg:p-14 xl:p-16 max-w-4xl w-full mx-auto">
-          
-          {/* Header & Mode Switcher */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-8 border-b border-[#E5E7EB]">
+        <main className="flex flex-col justify-between min-h-screen p-6 sm:p-10 lg:p-14 xl:p-16 max-w-4xl w-full mx-auto">
+          <div className="w-full">
+            {/* Header & Mode Switcher */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-8 border-b border-[#E5E7EB]">
             <div>
               <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-[#191919]">
                 {mode === 'register' ? 'Formulir Pendaftaran Mitra' : 'Pantau Status Pengajuan'}
@@ -2314,9 +2314,10 @@ export default function MitraRegisterPage() {
               </div>
             </div>
           )}
+          </div>
 
           {/* Footer with Logo & PT Alam Kelana Digital */}
-          <footer className="mt-14 pt-6 border-t border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-neutral-500">
+          <footer className="mt-14 pt-6 border-t border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-neutral-500 w-full">
             <div className="flex items-center gap-2.5">
               <Link href="/" className="inline-flex items-center">
                 <Image
