@@ -253,6 +253,7 @@ export default function MitraRegisterPage() {
   const [isRevising, setIsRevising] = useState(false);
   const [resubmitSuccessMsg, setResubmitSuccessMsg] = useState('');
   const [statusTab, setStatusTab] = useState<'revision' | 'details'>('revision');
+  const [isAgreed, setIsAgreed] = useState(false);
 
   const handleLogout = () => {
     setResult(null);
@@ -460,12 +461,13 @@ export default function MitraRegisterPage() {
         return (
           form.bankName.trim().length >= 2 &&
           form.bankAccountNumber.trim().length >= 4 &&
-          form.bankAccountHolder.trim().length >= 3
+          form.bankAccountHolder.trim().length >= 3 &&
+          (isAgreed || isRevising)
         );
       default:
         return false;
     }
-  }, [step, form, ktpPhoto, ktpPreviewUrl, isRevising]);
+  }, [step, form, ktpPhoto, ktpPreviewUrl, isRevising, isAgreed]);
 
   const handleNextStep = () => {
     if (!isStepValid) return;
@@ -2367,6 +2369,26 @@ export default function MitraRegisterPage() {
                         <span>
                           Pastikan nama pemilik rekening sesuai dengan identitas pengelola/badan usaha untuk mempercepat proses persetujuan verifikasi keuangan.
                         </span>
+                      </div>
+
+                      {/* Pernyataan & Persetujuan Keabsahan Data (Agreement Checkbox) */}
+                      <div className="mt-4 p-4 sm:p-5 rounded-2xl bg-blue-50/70 border border-blue-200 text-xs text-neutral-700 leading-relaxed space-y-2">
+                        <label className="flex items-start gap-3 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={isAgreed}
+                            onChange={(e) => setIsAgreed(e.target.checked)}
+                            className="mt-0.5 h-4 w-4 rounded border-neutral-300 text-[#0841B5] focus:ring-[#0841B5] cursor-pointer shrink-0"
+                          />
+                          <div className="space-y-1">
+                            <span className="font-bold text-neutral-900 block">
+                              Pernyataan Keabsahan Data & Dokumen Pendaftaran <span className="text-red-500">*</span>
+                            </span>
+                            <p className="text-neutral-600 leading-relaxed">
+                              Saya menyatakan bahwa seluruh data, identitas KTP, dan informasi properti yang saya berikan adalah <strong>benar, sah, akurat, dan bukan data fiktif / rekayasa</strong>. Saya bersedia bertanggung jawab penuh secara hukum dan menyetujui seluruh ketentuan kemitraan platform Embun.
+                            </p>
+                          </div>
+                        </label>
                       </div>
                     </div>
                   </div>
