@@ -555,7 +555,7 @@ export default function MitraRegisterPage() {
       data.append('password', pwd);
 
       Object.entries(form).forEach(([key, value]) => {
-        if (key === 'password') return;
+        if (key === 'password' || key === 'email') return;
         if (key === 'phone' && value) {
           data.append(key, value.startsWith('0') ? value : '0' + value);
         } else if (key === 'campsitePhone' && value) {
