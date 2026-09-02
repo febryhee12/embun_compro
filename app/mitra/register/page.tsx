@@ -255,7 +255,48 @@ export default function MitraRegisterPage() {
   const [statusTab, setStatusTab] = useState<'revision' | 'details'>('revision');
   const [isAgreed, setIsAgreed] = useState(false);
 
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('embun_mitra_session');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.result) {
+          setResult(parsed.result);
+          populateFormFromResult(parsed.result);
+          if (parsed.authPassword) {
+            setAuthPassword(parsed.authPassword);
+            if (parsed.result.email) {
+              fetch(`${API_BASE_URL}/partner-applications/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: parsed.result.email, password: parsed.authPassword }),
+              })
+                .then(async (res) => {
+                  if (res.ok) {
+                    const latest = await res.json();
+                    setResult(latest);
+                    populateFormFromResult(latest);
+                    localStorage.setItem(
+                      'embun_mitra_session',
+                      JSON.stringify({ result: latest, authPassword: parsed.authPassword }),
+                    );
+                  }
+                })
+                .catch(() => undefined);
+            }
+          }
+          setStatusTab(parsed.result.status === 'NEEDS_REVISION' ? 'revision' : 'details');
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const handleLogout = () => {
+    try {
+      localStorage.removeItem('embun_mitra_session');
+    } catch {}
     setResult(null);
     setLogin({ email: '', password: '' });
     setAuthPassword('');
@@ -585,6 +626,12 @@ export default function MitraRegisterPage() {
         );
       }
       setResult(body);
+      try {
+        localStorage.setItem(
+          'embun_mitra_session',
+          JSON.stringify({ result: body, authPassword: pwd }),
+        );
+      } catch {}
       setIsRevising(false);
       setMode('status');
       setStatusTab('details');
@@ -628,6 +675,12 @@ export default function MitraRegisterPage() {
       }
       setAuthPassword(form.password);
       setResult(body);
+      try {
+        localStorage.setItem(
+          'embun_mitra_session',
+          JSON.stringify({ result: body, authPassword: form.password }),
+        );
+      } catch {}
       setMode('status');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err: any) {
@@ -656,6 +709,12 @@ export default function MitraRegisterPage() {
       }
       setAuthPassword(login.password);
       setResult(body);
+      try {
+        localStorage.setItem(
+          'embun_mitra_session',
+          JSON.stringify({ result: body, authPassword: login.password }),
+        );
+      } catch {}
       populateFormFromResult(body);
       setStatusTab(body.status === 'NEEDS_REVISION' ? 'revision' : 'details');
     } catch (err: any) {
