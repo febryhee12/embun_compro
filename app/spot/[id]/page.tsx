@@ -34,6 +34,17 @@ export async function generateStaticParams() {
   }
 }
 
+function formatPhotoUrl(rawUrl?: string, fallback = ''): string {
+  if (!rawUrl || typeof rawUrl !== 'string') return fallback;
+  const trimmed = rawUrl.trim();
+  if (!trimmed) return fallback;
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed;
+  }
+  const cleanKey = trimmed.replace(/^\/+/, '');
+  return `https://media-staging.embun.app/${cleanKey}`;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolved = await params;
   const targetId = (resolved?.id || "").trim().toLowerCase();
@@ -41,6 +52,114 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     "https://media-staging.embun.app/campsites/51f7987e-2632-4bfa-bfc6-302c782bb81d/1348dba5-1a61-4274-b0e8-d17ba2540a15.jpg";
 
   try {
+    // 1. Direct query to resolve-spot endpoint (Fast & Authoritative)
+    const directRes = await fetch(
+      `https://api-staging.embun.app/api/public/campsites/resolve-spot?token=${encodeURIComponent(targetId)}`,
+      { next: { revalidate: 60 } }
+    );
+    if (directRes.ok) {
+      const data = await directRes.json();
+      const campsite = data?.campsite;
+      const block = data?.block;
+
+      if (campsite) {
+        const campPrimaryPhoto = formatPhotoUrl(
+          (campsite.photos || []).find(
+            (p: any) =>
+              p.category === "home" ||
+              p.category === "cover" ||
+              p.category === "main",
+          )?.url ||
+            (campsite.photos || []).find((p: any) =>
+              (p.category || "").includes("view"),
+            )?.url ||
+            (campsite.photos || [])[0]?.url,
+          fallbackImage
+        );
+
+        if (block) {
+          const spotName =
+            block.blockNumber &&
+            !block.name?.toLowerCase().includes(block.blockNumber.toLowerCase())
+              ? `${block.name} ${block.blockNumber}`
+              : (block.name || block.title || "Spot Camping");
+
+          const spotPhotos = Array.isArray(block.photos) ? block.photos : [];
+          const spotImages = Array.isArray(block.images) ? block.images : [];
+          const spotPrimaryPhoto = formatPhotoUrl(
+            spotPhotos.find((p: any) => p?.url)?.url ||
+              spotImages.find((img: string) => img),
+            campPrimaryPhoto
+          );
+
+          const title = `${spotName} by ${campsite.name} | Embun`;
+          const description = `Pesan ${spotName} di ${campsite.name}, ${
+            campsite.city || campsite.address || "Indonesia"
+          }. Booking mudah dan konfirmasi instan di Embun.`;
+
+          return {
+            title,
+            description,
+            openGraph: {
+              title,
+              description,
+              url: `https://link.embun.app/spot/${targetId}`,
+              siteName: "Embun",
+              images: [
+                {
+                  url: spotPrimaryPhoto,
+                  width: 1200,
+                  height: 630,
+                  alt: `${spotName} - ${campsite.name}`,
+                },
+              ],
+              locale: "id_ID",
+              type: "website",
+            },
+            twitter: {
+              card: "summary_large_image",
+              title,
+              description,
+              images: [spotPrimaryPhoto],
+            },
+          };
+        } else {
+          // Campsite Level
+          const title = `${campsite.name} — Booking Campsite & Glamping | Embun`;
+          const description = `Jelajahi dan pesan penginapan di ${campsite.name}, ${
+            campsite.city || campsite.address || "Indonesia"
+          } lewat Embun.`;
+          return {
+            title,
+            description,
+            openGraph: {
+              title,
+              description,
+              url: `https://link.embun.app/spot/${targetId}`,
+              siteName: "Embun",
+              images: [
+                {
+                  url: campPrimaryPhoto,
+                  width: 1200,
+                  height: 630,
+                  alt: campsite.name,
+                },
+              ],
+              locale: "id_ID",
+              type: "website",
+            },
+            twitter: {
+              card: "summary_large_image",
+              title,
+              description,
+              images: [campPrimaryPhoto],
+            },
+          };
+        }
+      }
+    }
+
+    // 2. Fallback: Search all campsites list
     const res = await fetch("https://api-staging.embun.app/api/public/campsites", {
       cache: "force-cache",
     });
@@ -48,7 +167,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       const campsites = await res.json();
       if (Array.isArray(campsites)) {
         for (const c of campsites) {
-          const campPrimaryPhoto =
+          const campPrimaryPhoto = formatPhotoUrl(
             (c.photos || []).find(
               (p: any) =>
                 p.category === "home" ||
@@ -58,13 +177,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             (c.photos || []).find((p: any) =>
               (p.category || "").includes("view"),
             )?.url ||
-            (c.photos || [])[0]?.url ||
-            fallbackImage;
+            (c.photos || [])[0]?.url,
+            fallbackImage
+          );
 
           const cId = String(c.id || "").trim().toLowerCase();
           const cSlug = String(c.slug || "").trim().toLowerCase();
 
-          // 1. MATCH BY CAMPSITE (PROPERTY LEVEL SHARE)
+          // MATCH BY CAMPSITE
           if (cId === targetId || cSlug === targetId) {
             const title = `${c.name} — Booking Campsite & Glamping | Embun`;
             const description = `Jelajahi dan pesan penginapan di ${c.name}, ${
@@ -76,7 +196,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
               openGraph: {
                 title,
                 description,
-                url: `https://embun.app/spot/${targetId}`,
+                url: `https://link.embun.app/spot/${targetId}`,
                 siteName: "Embun",
                 images: [
                   {
@@ -98,7 +218,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             };
           }
 
-          // 2. MATCH BY BLOCK / SPOT (SPOT DETAIL LEVEL SHARE)
+          // MATCH BY BLOCK / SPOT
           if (Array.isArray(c.blocks)) {
             for (const b of c.blocks) {
               const bId = String(b.id || "").trim().toLowerCase();
@@ -113,10 +233,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
                 const spotPhotos = Array.isArray(b.photos) ? b.photos : [];
                 const spotImages = Array.isArray(b.images) ? b.images : [];
-                const spotPrimaryPhoto =
+                const spotPrimaryPhoto = formatPhotoUrl(
                   spotPhotos.find((p: any) => p?.url)?.url ||
-                  spotImages.find((img: string) => img) ||
-                  campPrimaryPhoto;
+                  spotImages.find((img: string) => img),
+                  campPrimaryPhoto
+                );
 
                 const title = `${spotName} by ${c.name} | Embun`;
                 const description = `Pesan ${spotName} di ${c.name}, ${
