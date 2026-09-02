@@ -12,7 +12,7 @@ function ResetPasswordForm() {
 
   const [verifying, setVerifying] = useState(true);
   const [tokenValid, setTokenValid] = useState(false);
-  const [userInfo, setUserInfo] = useState<{ email?: string; name?: string }>({});
+  const [userInfo, setUserInfo] = useState<{ email?: string; name?: string; accountType?: 'PARTNER_APPLICATION' | 'HOST' }>({});
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -44,7 +44,7 @@ function ResetPasswordForm() {
           throw new Error(data.message || 'Token reset password tidak valid atau sudah kedaluwarsa.');
         }
         setTokenValid(true);
-        setUserInfo({ email: data.email, name: data.name });
+        setUserInfo({ email: data.email, name: data.name, accountType: data.accountType });
       })
       .catch((err) => {
         if (isCancelled) return;
@@ -130,13 +130,22 @@ function ResetPasswordForm() {
                 {error || 'Tautan pengaturan ulang kata sandi sudah kedaluwarsa atau tidak dapat digunakan.'}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => router.push('/login')}
-              className="w-full flex items-center justify-center py-3.5 px-4 rounded-xl shadow-sm text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 transition-all cursor-pointer"
-            >
-              Minta Tautan Baru di Halaman Masuk
-            </button>
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={() => router.push('/mitra/register')}
+                className="w-full flex items-center justify-center py-3 px-4 rounded-xl shadow-sm text-xs font-semibold text-primary-foreground bg-primary hover:bg-primary/90 transition-all cursor-pointer"
+              >
+                Minta Tautan di Halaman Pendaftaran Mitra
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push('/login')}
+                className="w-full flex items-center justify-center py-3 px-4 border border-surface-variant rounded-xl text-xs font-semibold text-foreground bg-surface hover:bg-surface-variant/40 transition-all cursor-pointer"
+              >
+                Minta Tautan di Halaman Masuk Dashboard
+              </button>
+            </div>
           </div>
         ) : success ? (
           <div className="text-center py-4 space-y-6">
@@ -148,15 +157,19 @@ function ResetPasswordForm() {
                 Kata Sandi Berhasil Diubah!
               </h2>
               <p className="text-xs text-secondary leading-relaxed max-w-xs mx-auto">
-                Kata sandi baru Anda telah aktif. Silakan masuk kembali ke dashboard menggunakan kata sandi baru.
+                {userInfo.accountType === 'PARTNER_APPLICATION'
+                  ? 'Kata sandi pendaftaran mitra Anda telah aktif. Silakan masuk untuk memantau status pengajuan atau memperbaiki data berkas.'
+                  : 'Kata sandi baru Anda telah aktif. Silakan masuk kembali ke dashboard menggunakan kata sandi baru.'}
               </p>
             </div>
             <button
               type="button"
-              onClick={() => router.push('/login')}
+              onClick={() => router.push(userInfo.accountType === 'PARTNER_APPLICATION' ? '/mitra/register' : '/login')}
               className="w-full flex items-center justify-center py-3.5 px-4 rounded-xl shadow-sm text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 transition-all cursor-pointer"
             >
-              Masuk ke Dashboard
+              {userInfo.accountType === 'PARTNER_APPLICATION'
+                ? 'Masuk ke Status Pengajuan Mitra'
+                : 'Masuk ke Dashboard'}
               <ArrowRight className="ml-2 w-4 h-4" />
             </button>
           </div>
