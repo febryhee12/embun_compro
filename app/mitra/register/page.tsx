@@ -797,56 +797,69 @@ export default function MitraRegisterPage() {
                         </div>
                       </div>
 
-                      {/* Custom Modern File Upload Box */}
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
-                          Unggah Foto KTP Asli <span className="text-red-500">*</span>
-                        </label>
-
-                        {!ktpPreviewUrl ? (
-                          <label className="group relative flex flex-col items-center justify-center p-7 sm:p-9 border-2 border-dashed border-[#E5E7EB] hover:border-[#0841B5] rounded-2xl bg-[#F4F7F6]/60 hover:bg-[#0841B5]/5 transition-all cursor-pointer text-center">
-                            <input
-                              type="file"
-                              accept="image/jpeg,image/png,image/webp"
-                              className="sr-only"
-                              onChange={(e) => handleKtpChange(e.target.files?.[0] || null)}
-                            />
-                            <div className="h-12 w-12 rounded-2xl bg-white border border-[#E5E7EB] shadow-xs flex items-center justify-center text-[#0841B5] group-hover:scale-110 transition-all mb-3">
-                              <UploadCloud className="h-6 w-6" />
-                            </div>
-                            <span className="text-sm font-bold text-[#191919] group-hover:text-[#0841B5] transition-colors">
-                              Klik untuk pilih foto KTP
-                            </span>
-                            <span className="text-xs text-neutral-400 mt-1">
-                              Format JPG, PNG, atau WebP (Maksimal 10MB). Pastikan teks & foto terbaca jelas.
-                            </span>
+                        {/* Custom Modern File Upload Box */}
+                        <div>
+                          <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
+                            Unggah Foto KTP Asli <span className="text-red-500">*</span>
                           </label>
-                        ) : (
-                          <div className="relative p-4 rounded-2xl border border-emerald-200 bg-emerald-50/40 flex items-center justify-between gap-4">
-                            <div className="flex items-center gap-3.5 min-w-0">
-                              <div className="h-14 w-20 rounded-xl overflow-hidden bg-neutral-100 border border-emerald-200 shrink-0">
-                                <img src={ktpPreviewUrl} alt="Preview KTP" className="h-full w-full object-cover" />
+
+                          {!ktpPreviewUrl ? (
+                            <label className="group relative flex flex-col items-center justify-center p-7 sm:p-9 border-2 border-dashed border-[#E5E7EB] hover:border-[#0841B5] rounded-2xl bg-[#F4F7F6]/60 hover:bg-[#0841B5]/5 transition-all cursor-pointer text-center">
+                              <input
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                className="sr-only"
+                                onChange={(e) => handleKtpChange(e.target.files?.[0] || null)}
+                              />
+                              <div className="h-12 w-12 rounded-2xl bg-white border border-[#E5E7EB] shadow-xs flex items-center justify-center text-[#0841B5] group-hover:scale-110 transition-all mb-3">
+                                <UploadCloud className="h-6 w-6" />
                               </div>
-                              <div className="min-w-0">
-                                <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-700">
-                                  <CheckCircle2 className="h-3.5 w-3.5" /> Foto KTP Terlampir
+                              <span className="text-sm font-bold text-[#191919] group-hover:text-[#0841B5] transition-colors">
+                                Klik untuk pilih foto KTP
+                              </span>
+                              <span className="text-xs text-neutral-400 mt-1">
+                                Format JPG, PNG, atau WebP (Maksimal 10MB).
+                              </span>
+                            </label>
+                          ) : (
+                            <div className="relative p-4 rounded-2xl border border-emerald-200 bg-emerald-50/40 flex items-center justify-between gap-4">
+                              <div className="flex items-center gap-3.5 min-w-0">
+                                <div className="h-14 w-20 rounded-xl overflow-hidden bg-neutral-100 border border-emerald-200 shrink-0">
+                                  <img src={ktpPreviewUrl} alt="Preview KTP" className="h-full w-full object-cover" />
                                 </div>
-                                <p className="text-xs text-neutral-500 truncate max-w-xs mt-0.5">
-                                  {ktpPhoto?.name || 'ktp_file.jpg'}
-                                </p>
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-700">
+                                    <CheckCircle2 className="h-3.5 w-3.5" /> Foto KTP Terlampir
+                                  </div>
+                                  <p className="text-xs text-neutral-500 truncate max-w-xs mt-0.5">
+                                    {ktpPhoto?.name || 'ktp_file.jpg'}
+                                  </p>
+                                </div>
                               </div>
+                              <button
+                                type="button"
+                                onClick={() => handleKtpChange(null)}
+                                className="p-2 rounded-xl text-neutral-400 hover:text-red-600 hover:bg-white border border-transparent hover:border-red-200 transition-all cursor-pointer"
+                                title="Hapus / Ganti Foto"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
                             </div>
-                            <button
-                              type="button"
-                              onClick={() => handleKtpChange(null)}
-                              className="p-2 rounded-xl text-neutral-400 hover:text-red-600 hover:bg-white border border-transparent hover:border-red-200 transition-all cursor-pointer"
-                              title="Hapus / Ganti Foto"
-                            >
-                              <X className="h-4 w-4" />
-                            </button>
+                          )}
+
+                          {/* Panduan Foto KTP Jelas */}
+                          <div className="mt-3 p-3.5 rounded-xl bg-blue-50/70 border border-blue-200/80 text-xs space-y-1.5">
+                            <div className="flex items-center gap-2 font-bold text-[#0841B5]">
+                              <ShieldCheck className="h-4 w-4 shrink-0" />
+                              <span>Ketentuan Foto KTP:</span>
+                            </div>
+                            <ul className="text-neutral-600 pl-6 list-disc space-y-0.5 text-[11px] sm:text-xs">
+                              <li>Foto harus <strong>jelas, tajam, dan tidak buram (blur)</strong>.</li>
+                              <li>Seluruh 4 sudut fisik KTP tampak utuh dan tidak terpotong.</li>
+                              <li>Teks NIK, nama, dan foto wajah terbaca terang tanpa pantulan kilau cahaya (glare).</li>
+                            </ul>
                           </div>
-                        )}
-                      </div>
+                        </div>
 
                       <div>
                         <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
