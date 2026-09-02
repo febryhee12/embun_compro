@@ -153,13 +153,32 @@ const statusBadgeConfig: Record<string, { label: string; bg: string; text: strin
   },
 };
 
-type PartnerApplicationResult = Pick<
-  FormState,
-  'email' | 'ownerName' | 'campsiteName' | 'province' | 'city'
-> & {
+type PartnerApplicationResult = {
   id: string;
   status: string;
+  ownerName: string;
+  email: string;
+  phone: string;
+  ktpNumber?: string;
+  ktpPhotoUrl?: string;
+  ownerAddress?: string;
+  campsiteName: string;
+  campsiteType?: string | null;
+  campsitePhone?: string | null;
+  campsiteEmail?: string | null;
+  instagramUrl?: string | null;
+  tiktokUrl?: string | null;
+  websiteUrl?: string | null;
+  province: string;
+  city: string;
+  district?: string | null;
+  campsiteAddress?: string;
+  googleMapsUrl?: string | null;
+  bankName: string;
+  bankAccountNumber: string;
+  bankAccountHolder: string;
   reviewNote?: string | null;
+  reviewedAt?: string | null;
   createdAt?: string;
 };
 
@@ -672,6 +691,196 @@ export default function MitraRegisterPage() {
                       </p>
                     </div>
                   )}
+
+                  {/* ── RINCIAN DATA PENGAJUAN (KYC & MASTER DATA) ────────── */}
+                  <div className="space-y-6 pt-4 border-t border-[#E5E7EB]">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                      <h5 className="text-xs sm:text-sm font-bold text-neutral-900 uppercase tracking-wider">
+                        Rincian Berkas & Data yang Diajukan
+                      </h5>
+                      {result.createdAt && (
+                        <span className="text-[11px] text-neutral-400">
+                          Diajukan pada: {new Date(result.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {/* Box 1: Data Akun & PIC */}
+                      <div className="p-5 rounded-2xl bg-[#F4F7F6]/60 border border-[#E5E7EB] space-y-3">
+                        <div className="flex items-center gap-2 text-xs font-bold text-[#0841B5] uppercase tracking-wider">
+                          <User className="h-4 w-4" />
+                          <span>Informasi Pemilik / PIC</span>
+                        </div>
+                        <div className="space-y-2 text-xs">
+                          <div>
+                            <span className="text-neutral-400 block text-[11px]">Nama Lengkap:</span>
+                            <span className="font-semibold text-neutral-800">{result.ownerName}</span>
+                          </div>
+                          <div>
+                            <span className="text-neutral-400 block text-[11px]">Email Terdaftar:</span>
+                            <span className="font-semibold text-neutral-800">{result.email}</span>
+                          </div>
+                          <div>
+                            <span className="text-neutral-400 block text-[11px]">Nomor WhatsApp:</span>
+                            <span className="font-semibold text-neutral-800">{result.phone}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Box 2: Identitas Legal & KTP */}
+                      <div className="p-5 rounded-2xl bg-[#F4F7F6]/60 border border-[#E5E7EB] space-y-3">
+                        <div className="flex items-center gap-2 text-xs font-bold text-[#0841B5] uppercase tracking-wider">
+                          <IdCard className="h-4 w-4" />
+                          <span>Legalitas & KTP</span>
+                        </div>
+                        <div className="space-y-2 text-xs">
+                          <div>
+                            <span className="text-neutral-400 block text-[11px]">Nomor Induk Kependudukan (NIK):</span>
+                            <span className="font-semibold text-neutral-800">{result.ktpNumber || '-'}</span>
+                          </div>
+                          <div>
+                            <span className="text-neutral-400 block text-[11px]">Alamat Domisili KTP:</span>
+                            <span className="font-medium text-neutral-700 leading-relaxed">{result.ownerAddress || '-'}</span>
+                          </div>
+                          {result.ktpPhotoUrl && (
+                            <div className="pt-1">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const url = result.ktpPhotoUrl?.startsWith('http')
+                                    ? result.ktpPhotoUrl
+                                    : `${API_BASE_URL}${result.ktpPhotoUrl}`;
+                                  setKtpPreviewUrl(url);
+                                  setShowKtpModal(true);
+                                }}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#E5E7EB] text-[#0841B5] hover:border-[#0841B5] text-[11px] font-bold shadow-2xs transition-all cursor-pointer"
+                              >
+                                <Eye className="h-3.5 w-3.5" />
+                                <span>Lihat Foto KTP Terlampir</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Box 3: Detail Campsite */}
+                      <div className="p-5 rounded-2xl bg-[#F4F7F6]/60 border border-[#E5E7EB] space-y-3">
+                        <div className="flex items-center gap-2 text-xs font-bold text-[#0841B5] uppercase tracking-wider">
+                          <Building2 className="h-4 w-4" />
+                          <span>Profil Tempat Camp</span>
+                        </div>
+                        <div className="space-y-2 text-xs">
+                          <div>
+                            <span className="text-neutral-400 block text-[11px]">Nama Campsite:</span>
+                            <span className="font-semibold text-neutral-800">{result.campsiteName}</span>
+                          </div>
+                          <div>
+                            <span className="text-neutral-400 block text-[11px]">Tipe Properti:</span>
+                            <span className="font-medium text-neutral-700">{result.campsiteType || 'Tidak dicantumkan'}</span>
+                          </div>
+                          <div>
+                            <span className="text-neutral-400 block text-[11px]">Kontak Operasional Camp:</span>
+                            <span className="font-medium text-neutral-700">{result.campsitePhone || result.phone}</span>
+                          </div>
+                          {result.campsiteEmail && (
+                            <div>
+                              <span className="text-neutral-400 block text-[11px]">Email Bisnis:</span>
+                              <span className="font-medium text-neutral-700">{result.campsiteEmail}</span>
+                            </div>
+                          )}
+                          {(result.instagramUrl || result.tiktokUrl || result.websiteUrl) && (
+                            <div className="pt-1 flex flex-wrap gap-2">
+                              {result.instagramUrl && (
+                                <a
+                                  href={result.instagramUrl.startsWith('http') ? result.instagramUrl : `https://${result.instagramUrl}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[11px] font-medium text-[#0841B5] hover:underline"
+                                >
+                                  Instagram ↗
+                                </a>
+                              )}
+                              {result.tiktokUrl && (
+                                <a
+                                  href={result.tiktokUrl.startsWith('http') ? result.tiktokUrl : `https://${result.tiktokUrl}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[11px] font-medium text-[#0841B5] hover:underline"
+                                >
+                                  TikTok ↗
+                                </a>
+                              )}
+                              {result.websiteUrl && (
+                                <a
+                                  href={result.websiteUrl.startsWith('http') ? result.websiteUrl : `https://${result.websiteUrl}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[11px] font-medium text-[#0841B5] hover:underline"
+                                >
+                                  Website ↗
+                                </a>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Box 4: Rekening Pencairan Dana (Payout) */}
+                      <div className="p-5 rounded-2xl bg-[#F4F7F6]/60 border border-[#E5E7EB] space-y-3">
+                        <div className="flex items-center gap-2 text-xs font-bold text-[#0841B5] uppercase tracking-wider">
+                          <CreditCard className="h-4 w-4" />
+                          <span>Rekening Pencairan Dana (Payout)</span>
+                        </div>
+                        <div className="space-y-2 text-xs">
+                          <div>
+                            <span className="text-neutral-400 block text-[11px]">Nama Bank:</span>
+                            <span className="font-bold text-neutral-800">{result.bankName}</span>
+                          </div>
+                          <div>
+                            <span className="text-neutral-400 block text-[11px]">Nomor Rekening:</span>
+                            <span className="font-bold text-neutral-800 tracking-wider">{result.bankAccountNumber}</span>
+                          </div>
+                          <div>
+                            <span className="text-neutral-400 block text-[11px]">Nama Pemilik Rekening:</span>
+                            <span className="font-semibold text-neutral-800">{result.bankAccountHolder}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-[11px] text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg w-fit border border-emerald-200 mt-2">
+                            <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
+                            <span>Rekening siap untuk payout reservasi</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Box 5: Lokasi & Titik Peta (Full Width) */}
+                    <div className="p-5 rounded-2xl bg-[#F4F7F6]/60 border border-[#E5E7EB] space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-xs font-bold text-[#0841B5] uppercase tracking-wider">
+                          <MapPin className="h-4 w-4" />
+                          <span>Lokasi & Alamat Campsite</span>
+                        </div>
+                        {result.googleMapsUrl && (
+                          <a
+                            href={result.googleMapsUrl.startsWith('http') ? result.googleMapsUrl : `https://${result.googleMapsUrl}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs font-bold text-[#0841B5] hover:underline"
+                          >
+                            <span>Buka di Google Maps ↗</span>
+                          </a>
+                        )}
+                      </div>
+                      <div className="space-y-1.5 text-xs">
+                        <p className="font-medium text-neutral-800 leading-relaxed">
+                          {result.campsiteAddress}
+                        </p>
+                        <p className="text-neutral-500 text-[11px]">
+                          {result.district ? `${result.district}, ` : ''}{result.city}, {result.province}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
