@@ -201,6 +201,38 @@ const SECTION_TITLE_MAP: Record<string, string> = {
   bank: 'Rekening Pencairan (Payout)',
 };
 
+const FIELD_TITLE_MAP: Record<string, string> = {
+  // Owner
+  ownerName: 'Nama Pemilik / PIC',
+  email: 'Email Terdaftar',
+  phone: 'Nomor WhatsApp PIC',
+  owner: 'Akun & Kontak Pemilik',
+  // KTP
+  ktpNumber: 'NIK KTP',
+  ownerAddress: 'Alamat Domisili KTP',
+  ktpPhoto: 'Foto KTP',
+  ktp: 'Legalitas & Foto KTP',
+  // Campsite
+  campsiteName: 'Nama Campsite',
+  campsiteType: 'Tipe Properti',
+  campsitePhone: 'No. WhatsApp Campsite',
+  campsiteEmail: 'Email Bisnis Campsite',
+  instagramUrl: 'Instagram',
+  tiktokUrl: 'TikTok / Website',
+  campsite: 'Profil Tempat Camp',
+  // Location
+  provinceCity: 'Provinsi & Kota / Kab',
+  district: 'Kecamatan',
+  campsiteAddress: 'Alamat Lengkap Campsite',
+  googleMapsUrl: 'Link Titik Google Maps',
+  location: 'Lokasi & Alamat Campsite',
+  // Bank
+  bankName: 'Nama Bank',
+  bankAccountNumber: 'Nomor Rekening Bank',
+  bankAccountHolder: 'Nama Pemilik Rekening',
+  bank: 'Rekening Pencairan (Payout)',
+};
+
 export default function MitraRegisterPage() {
   const [mode, setMode] = useState<'register' | 'status'>('register');
   const [step, setStep] = useState(0);
@@ -218,6 +250,20 @@ export default function MitraRegisterPage() {
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [isRevising, setIsRevising] = useState(false);
   const [resubmitSuccessMsg, setResubmitSuccessMsg] = useState('');
+
+  const isFieldNeedsRevision = (fieldKey: string, sectionKey?: string) => {
+    if (!result || result.status !== 'NEEDS_REVISION') return false;
+    if (!result.revisionSections || result.revisionSections.trim() === '') return true;
+    const list = result.revisionSections.split(',').map((s) => s.trim());
+    return list.includes(fieldKey) || (sectionKey ? list.includes(sectionKey) : false);
+  };
+
+  const isSectionNeedsRevision = (sectionKey: string, fieldKeys: string[]) => {
+    if (!result || result.status !== 'NEEDS_REVISION') return false;
+    if (!result.revisionSections || result.revisionSections.trim() === '') return true;
+    const list = result.revisionSections.split(',').map((s) => s.trim());
+    return list.includes(sectionKey) || fieldKeys.some((k) => list.includes(k));
+  };
 
   // Cascading Region Dropdown State
   const [provinces, setProvinces] = useState<{ id: string; name: string }[]>([]);
@@ -842,10 +888,38 @@ export default function MitraRegisterPage() {
                             Pengajuan Anda Memerlukan Perbaikan Data
                           </h5>
                           <p className="text-xs sm:text-sm text-amber-900 leading-relaxed font-medium">
-                            Hanya bagian formulir yang ditandai <strong>"Perlu Revisi"</strong> di bawah ini yang harus Anda ubah. Bagian lain yang bertanda <strong>"✓ Sesuai"</strong> tidak perlu diubah lagi.
+                            Hanya kolom data yang ditandai <strong>"Perlu Diperbaiki"</strong> di bawah ini yang harus Anda ubah. Bagian lain yang bertanda <strong>"✓ Sesuai"</strong> tidak perlu diubah lagi.
                           </p>
                         </div>
                       </div>
+
+                      {/* Revision Badges */}
+                      {(() => {
+                        const revs = result.revisionSections
+                          ? result.revisionSections.split(',').map((s) => s.trim()).filter(Boolean)
+                          : [];
+                        if (revs.length > 0) {
+                          return (
+                            <div className="space-y-2 pt-1 border-t border-amber-200/80">
+                              <span className="text-[11px] font-bold uppercase tracking-wider text-amber-800 block">
+                                Kolom yang Ditandai Perlu Direvisi:
+                              </span>
+                              <div className="flex flex-wrap gap-2">
+                                {revs.map((key) => (
+                                  <span
+                                    key={key}
+                                    className="px-3 py-1.5 rounded-xl bg-amber-100 border border-amber-300/80 text-amber-950 font-bold text-xs flex items-center gap-1.5 shadow-2xs"
+                                  >
+                                    <span className="h-2 w-2 rounded-full bg-amber-600" />
+                                    {FIELD_TITLE_MAP[key] || SECTION_TITLE_MAP[key] || key}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
 
                       {result.reviewNote && (
                         <div className="p-4 rounded-2xl bg-white border border-amber-200/80 space-y-1">
@@ -871,7 +945,7 @@ export default function MitraRegisterPage() {
                     </div>
                   )}
 
-                  {/* ── 5 DATA CARDS (TARGETED INLINE EDITABLE JIKA REVISI) ── */}
+                  {/* ── 5 DATA CARDS (GRANULAR FIELD-LEVEL REVISION) ──────── */}
                   <div className="space-y-6 pt-4 border-t border-[#E5E7EB]">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                       <h5 className="text-xs sm:text-sm font-bold text-neutral-900 uppercase tracking-wider">
@@ -887,78 +961,92 @@ export default function MitraRegisterPage() {
                     <div className="grid gap-5 sm:grid-cols-2">
                       {/* CARD 1: INFORMASI PEMILIK / PIC */}
                       {(() => {
-                        const isRevTarget = result.status === 'NEEDS_REVISION' && (!result.revisionSections || result.revisionSections.includes('owner'));
-                        if (isRevTarget) {
-                          return (
-                            <div className="p-6 rounded-3xl bg-amber-50/40 border-2 border-amber-300 space-y-4 shadow-xs">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2 text-xs font-bold text-amber-900 uppercase tracking-wider">
-                                  <User className="h-4 w-4 text-amber-700" />
-                                  <span>1. Informasi Pemilik / PIC</span>
-                                </div>
-                                <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
-                                  Perlu Revisi
-                                </span>
+                        const needsRev = isSectionNeedsRevision('owner', ['ownerName', 'email', 'phone']);
+                        return (
+                          <div className={`p-6 rounded-3xl transition-all space-y-4 shadow-xs ${
+                            needsRev ? 'bg-amber-50/40 border-2 border-amber-300' : 'bg-[#F4F7F6]/60 border border-[#E5E7EB]'
+                          }`}>
+                            <div className="flex items-center justify-between">
+                              <div className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider ${
+                                needsRev ? 'text-amber-900' : 'text-[#0841B5]'
+                              }`}>
+                                <User className={`h-4 w-4 ${needsRev ? 'text-amber-700' : 'text-[#0841B5]'}`} />
+                                <span>1. Informasi Pemilik / PIC</span>
                               </div>
-                              <div className="space-y-3 pt-1">
+                              {result.status === 'NEEDS_REVISION' && (
+                                needsRev ? (
+                                  <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
+                                    Perlu Revisi
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Sesuai</span>
+                                )
+                              )}
+                            </div>
+
+                            <div className="space-y-3 pt-1 text-xs">
+                              {/* Field: ownerName */}
+                              {isFieldNeedsRevision('ownerName', 'owner') ? (
                                 <div>
-                                  <label className="block text-xs font-bold text-neutral-700 mb-1">Nama Lengkap Pemilik / PIC *</label>
+                                  <label className="block text-xs font-bold text-amber-900 mb-1">
+                                    Nama Lengkap Pemilik / PIC * <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
+                                  </label>
                                   <input
                                     type="text"
                                     value={form.ownerName}
                                     onChange={(e) => update('ownerName', e.target.value)}
-                                    className="w-full px-3.5 py-2.5 bg-white border border-amber-200 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none"
+                                    className="w-full px-3.5 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none font-medium"
                                   />
                                 </div>
+                              ) : (
                                 <div>
-                                  <label className="block text-xs font-bold text-neutral-700 mb-1">Email Terdaftar *</label>
+                                  <span className="text-neutral-400 block text-[11px]">Nama Lengkap:</span>
+                                  <span className="font-semibold text-neutral-800 text-xs sm:text-sm">{result.ownerName}</span>
+                                </div>
+                              )}
+
+                              {/* Field: email */}
+                              {isFieldNeedsRevision('email', 'owner') ? (
+                                <div>
+                                  <label className="block text-xs font-bold text-amber-900 mb-1">
+                                    Email Terdaftar * <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
+                                  </label>
                                   <input
                                     type="email"
                                     value={form.email}
                                     onChange={(e) => update('email', e.target.value)}
-                                    className="w-full px-3.5 py-2.5 bg-white border border-amber-200 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none"
+                                    className="w-full px-3.5 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none font-medium"
                                   />
                                 </div>
+                              ) : (
                                 <div>
-                                  <label className="block text-xs font-bold text-neutral-700 mb-1">Nomor WhatsApp PIC *</label>
+                                  <span className="text-neutral-400 block text-[11px]">Email Terdaftar:</span>
+                                  <span className="font-semibold text-neutral-800 text-xs sm:text-sm">{result.email}</span>
+                                </div>
+                              )}
+
+                              {/* Field: phone */}
+                              {isFieldNeedsRevision('phone', 'owner') ? (
+                                <div>
+                                  <label className="block text-xs font-bold text-amber-900 mb-1">
+                                    Nomor WhatsApp PIC * <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
+                                  </label>
                                   <div className="relative">
                                     <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-neutral-500">+62</span>
                                     <input
                                       type="tel"
                                       value={form.phone}
                                       onChange={(e) => update('phone', normalizePhone(e.target.value))}
-                                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-amber-200 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none font-medium"
+                                      className="w-full pl-12 pr-4 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none font-semibold text-neutral-900"
                                     />
                                   </div>
                                 </div>
-                              </div>
-                            </div>
-                          );
-                        }
-                        return (
-                          <div className="p-5 rounded-2xl bg-[#F4F7F6]/60 border border-[#E5E7EB] space-y-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2 text-xs font-bold text-[#0841B5] uppercase tracking-wider">
-                                <User className="h-4 w-4" />
-                                <span>Informasi Pemilik / PIC</span>
-                              </div>
-                              {result.status === 'NEEDS_REVISION' && (
-                                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Sesuai</span>
+                              ) : (
+                                <div>
+                                  <span className="text-neutral-400 block text-[11px]">Nomor WhatsApp:</span>
+                                  <span className="font-semibold text-neutral-800 text-xs sm:text-sm">{result.phone}</span>
+                                </div>
                               )}
-                            </div>
-                            <div className="space-y-2 text-xs">
-                              <div>
-                                <span className="text-neutral-400 block text-[11px]">Nama Lengkap:</span>
-                                <span className="font-semibold text-neutral-800">{result.ownerName}</span>
-                              </div>
-                              <div>
-                                <span className="text-neutral-400 block text-[11px]">Email Terdaftar:</span>
-                                <span className="font-semibold text-neutral-800">{result.email}</span>
-                              </div>
-                              <div>
-                                <span className="text-neutral-400 block text-[11px]">Nomor WhatsApp:</span>
-                                <span className="font-semibold text-neutral-800">{result.phone}</span>
-                              </div>
                             </div>
                           </div>
                         );
@@ -966,41 +1054,77 @@ export default function MitraRegisterPage() {
 
                       {/* CARD 2: LEGALITAS & KTP */}
                       {(() => {
-                        const isRevTarget = result.status === 'NEEDS_REVISION' && (!result.revisionSections || result.revisionSections.includes('ktp'));
-                        if (isRevTarget) {
-                          return (
-                            <div className="p-6 rounded-3xl bg-amber-50/40 border-2 border-amber-300 space-y-4 shadow-xs">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2 text-xs font-bold text-amber-900 uppercase tracking-wider">
-                                  <IdCard className="h-4 w-4 text-amber-700" />
-                                  <span>2. Legalitas & Foto KTP</span>
-                                </div>
-                                <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
-                                  Perlu Revisi
-                                </span>
+                        const needsRev = isSectionNeedsRevision('ktp', ['ktpNumber', 'ownerAddress', 'ktpPhoto']);
+                        return (
+                          <div className={`p-6 rounded-3xl transition-all space-y-4 shadow-xs ${
+                            needsRev ? 'bg-amber-50/40 border-2 border-amber-300' : 'bg-[#F4F7F6]/60 border border-[#E5E7EB]'
+                          }`}>
+                            <div className="flex items-center justify-between">
+                              <div className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider ${
+                                needsRev ? 'text-amber-900' : 'text-[#0841B5]'
+                              }`}>
+                                <IdCard className={`h-4 w-4 ${needsRev ? 'text-amber-700' : 'text-[#0841B5]'}`} />
+                                <span>2. Legalitas & Foto KTP</span>
                               </div>
-                              <div className="space-y-3 pt-1">
+                              {result.status === 'NEEDS_REVISION' && (
+                                needsRev ? (
+                                  <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
+                                    Perlu Revisi
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Sesuai</span>
+                                )
+                              )}
+                            </div>
+
+                            <div className="space-y-3 pt-1 text-xs">
+                              {/* Field: ktpNumber */}
+                              {isFieldNeedsRevision('ktpNumber', 'ktp') ? (
                                 <div>
-                                  <label className="block text-xs font-bold text-neutral-700 mb-1">Nomor Induk Kependudukan (NIK) *</label>
+                                  <label className="block text-xs font-bold text-amber-900 mb-1">
+                                    Nomor Induk Kependudukan (NIK) * <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
+                                  </label>
                                   <input
                                     type="text"
                                     maxLength={16}
                                     value={form.ktpNumber}
                                     onChange={(e) => update('ktpNumber', e.target.value.replace(/\D/g, ''))}
-                                    className="w-full px-3.5 py-2.5 bg-white border border-amber-200 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none"
+                                    className="w-full px-3.5 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none font-medium"
                                   />
                                 </div>
+                              ) : (
                                 <div>
-                                  <label className="block text-xs font-bold text-neutral-700 mb-1">Alamat Domisili KTP *</label>
+                                  <span className="text-neutral-400 block text-[11px]">Nomor Induk Kependudukan (NIK):</span>
+                                  <span className="font-semibold text-neutral-800 text-xs sm:text-sm">{result.ktpNumber || '-'}</span>
+                                </div>
+                              )}
+
+                              {/* Field: ownerAddress */}
+                              {isFieldNeedsRevision('ownerAddress', 'ktp') ? (
+                                <div>
+                                  <label className="block text-xs font-bold text-amber-900 mb-1">
+                                    Alamat Domisili KTP * <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
+                                  </label>
                                   <textarea
                                     rows={2}
                                     value={form.ownerAddress}
                                     onChange={(e) => update('ownerAddress', e.target.value)}
-                                    className="w-full px-3.5 py-2 bg-white border border-amber-200 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none"
+                                    className="w-full px-3.5 py-2 bg-white border-2 border-amber-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none font-medium"
                                   />
                                 </div>
+                              ) : (
                                 <div>
-                                  <label className="block text-xs font-bold text-neutral-700 mb-1">Upload / Ganti Foto KTP</label>
+                                  <span className="text-neutral-400 block text-[11px]">Alamat Domisili KTP:</span>
+                                  <span className="font-medium text-neutral-700 leading-relaxed text-xs sm:text-sm">{result.ownerAddress || '-'}</span>
+                                </div>
+                              )}
+
+                              {/* Field: ktpPhoto */}
+                              {isFieldNeedsRevision('ktpPhoto', 'ktp') ? (
+                                <div>
+                                  <label className="block text-xs font-bold text-amber-900 mb-1">
+                                    Upload / Ganti Foto KTP <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
+                                  </label>
                                   <div
                                     onDragOver={handleDragOver}
                                     onDragLeave={handleDragLeave}
@@ -1045,47 +1169,25 @@ export default function MitraRegisterPage() {
                                     )}
                                   </div>
                                 </div>
-                              </div>
-                            </div>
-                          );
-                        }
-                        return (
-                          <div className="p-5 rounded-2xl bg-[#F4F7F6]/60 border border-[#E5E7EB] space-y-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2 text-xs font-bold text-[#0841B5] uppercase tracking-wider">
-                                <IdCard className="h-4 w-4" />
-                                <span>Legalitas & KTP</span>
-                              </div>
-                              {result.status === 'NEEDS_REVISION' && (
-                                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Sesuai</span>
-                              )}
-                            </div>
-                            <div className="space-y-2 text-xs">
-                              <div>
-                                <span className="text-neutral-400 block text-[11px]">Nomor Induk Kependudukan (NIK):</span>
-                                <span className="font-semibold text-neutral-800">{result.ktpNumber || '-'}</span>
-                              </div>
-                              <div>
-                                <span className="text-neutral-400 block text-[11px]">Alamat Domisili KTP:</span>
-                                <span className="font-medium text-neutral-700 leading-relaxed">{result.ownerAddress || '-'}</span>
-                              </div>
-                              {result.ktpPhotoUrl && (
-                                <div className="pt-1">
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      const url = result.ktpPhotoUrl?.startsWith('http')
-                                        ? result.ktpPhotoUrl
-                                        : `${API_BASE_URL}${result.ktpPhotoUrl}`;
-                                      setKtpPreviewUrl(url);
-                                      setShowKtpModal(true);
-                                    }}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#E5E7EB] text-[#0841B5] hover:border-[#0841B5] text-[11px] font-bold shadow-2xs transition-all cursor-pointer"
-                                  >
-                                    <Eye className="h-3.5 w-3.5" />
-                                    <span>Lihat Foto KTP Terlampir</span>
-                                  </button>
-                                </div>
+                              ) : (
+                                result.ktpPhotoUrl && (
+                                  <div className="pt-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const url = result.ktpPhotoUrl?.startsWith('http')
+                                          ? result.ktpPhotoUrl
+                                          : `${API_BASE_URL}${result.ktpPhotoUrl}`;
+                                        setKtpPreviewUrl(url);
+                                        setShowKtpModal(true);
+                                      }}
+                                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#E5E7EB] text-[#0841B5] hover:border-[#0841B5] text-[11px] font-bold shadow-2xs transition-all cursor-pointer"
+                                    >
+                                      <Eye className="h-3.5 w-3.5" />
+                                      <span>Lihat Foto KTP Terlampir</span>
+                                    </button>
+                                  </div>
+                                )
                               )}
                             </div>
                           </div>
@@ -1094,31 +1196,56 @@ export default function MitraRegisterPage() {
 
                       {/* CARD 3: PROFIL TEMPAT CAMP */}
                       {(() => {
-                        const isRevTarget = result.status === 'NEEDS_REVISION' && (!result.revisionSections || result.revisionSections.includes('campsite'));
-                        if (isRevTarget) {
-                          return (
-                            <div className="p-6 rounded-3xl bg-amber-50/40 border-2 border-amber-300 space-y-4 shadow-xs">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2 text-xs font-bold text-amber-900 uppercase tracking-wider">
-                                  <Building2 className="h-4 w-4 text-amber-700" />
-                                  <span>3. Profil Tempat Camp</span>
-                                </div>
-                                <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
-                                  Perlu Revisi
-                                </span>
+                        const needsRev = isSectionNeedsRevision('campsite', ['campsiteName', 'campsiteType', 'campsitePhone', 'campsiteEmail', 'instagramUrl', 'tiktokUrl']);
+                        return (
+                          <div className={`p-6 rounded-3xl transition-all space-y-4 shadow-xs ${
+                            needsRev ? 'bg-amber-50/40 border-2 border-amber-300' : 'bg-[#F4F7F6]/60 border border-[#E5E7EB]'
+                          }`}>
+                            <div className="flex items-center justify-between">
+                              <div className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider ${
+                                needsRev ? 'text-amber-900' : 'text-[#0841B5]'
+                              }`}>
+                                <Building2 className={`h-4 w-4 ${needsRev ? 'text-amber-700' : 'text-[#0841B5]'}`} />
+                                <span>3. Profil Tempat Camp</span>
                               </div>
-                              <div className="space-y-3 pt-1">
+                              {result.status === 'NEEDS_REVISION' && (
+                                needsRev ? (
+                                  <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
+                                    Perlu Revisi
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Sesuai</span>
+                                )
+                              )}
+                            </div>
+
+                            <div className="space-y-3 pt-1 text-xs">
+                              {/* Field: campsiteName */}
+                              {isFieldNeedsRevision('campsiteName', 'campsite') ? (
                                 <div>
-                                  <label className="block text-xs font-bold text-neutral-700 mb-1">Nama Tempat Camp *</label>
+                                  <label className="block text-xs font-bold text-amber-900 mb-1">
+                                    Nama Tempat Camp * <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
+                                  </label>
                                   <input
                                     type="text"
                                     value={form.campsiteName}
                                     onChange={(e) => update('campsiteName', e.target.value)}
-                                    className="w-full px-3.5 py-2.5 bg-white border border-amber-200 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none"
+                                    className="w-full px-3.5 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] outline-none font-medium"
                                   />
                                 </div>
+                              ) : (
                                 <div>
-                                  <label className="block text-xs font-bold text-neutral-700 mb-1.5">Tipe Properti</label>
+                                  <span className="text-neutral-400 block text-[11px]">Nama Campsite:</span>
+                                  <span className="font-semibold text-neutral-800 text-xs sm:text-sm">{result.campsiteName}</span>
+                                </div>
+                              )}
+
+                              {/* Field: campsiteType */}
+                              {isFieldNeedsRevision('campsiteType', 'campsite') ? (
+                                <div>
+                                  <label className="block text-xs font-bold text-amber-900 mb-1.5">
+                                    Tipe Properti <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
+                                  </label>
                                   <div className="flex flex-wrap gap-1.5">
                                     {PROPERTY_TYPES.map((t) => {
                                       const isSelected = selectedTypes.includes(t);
@@ -1139,102 +1266,98 @@ export default function MitraRegisterPage() {
                                     })}
                                   </div>
                                 </div>
+                              ) : (
                                 <div>
-                                  <label className="block text-xs font-bold text-neutral-700 mb-1">No. WhatsApp Campsite *</label>
+                                  <span className="text-neutral-400 block text-[11px]">Tipe Properti:</span>
+                                  <span className="font-medium text-neutral-700">{result.campsiteType || 'Tidak dicantumkan'}</span>
+                                </div>
+                              )}
+
+                              {/* Field: campsitePhone */}
+                              {isFieldNeedsRevision('campsitePhone', 'campsite') ? (
+                                <div>
+                                  <label className="block text-xs font-bold text-amber-900 mb-1">
+                                    No. WhatsApp Campsite * <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
+                                  </label>
                                   <div className="relative">
                                     <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-neutral-500">+62</span>
                                     <input
                                       type="tel"
                                       value={form.campsitePhone}
                                       onChange={(e) => update('campsitePhone', normalizePhone(e.target.value))}
-                                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-amber-200 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none font-medium"
+                                      className="w-full pl-12 pr-4 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] outline-none font-medium"
                                     />
                                   </div>
                                 </div>
+                              ) : (
                                 <div>
-                                  <label className="block text-xs font-bold text-neutral-700 mb-1">Email Bisnis Camp (Opsional)</label>
+                                  <span className="text-neutral-400 block text-[11px]">Kontak Operasional Camp:</span>
+                                  <span className="font-medium text-neutral-700">{result.campsitePhone || result.phone}</span>
+                                </div>
+                              )}
+
+                              {/* Field: campsiteEmail */}
+                              {isFieldNeedsRevision('campsiteEmail', 'campsite') ? (
+                                <div>
+                                  <label className="block text-xs font-bold text-amber-900 mb-1">
+                                    Email Bisnis Camp (Opsional) <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
+                                  </label>
                                   <input
                                     type="email"
                                     value={form.campsiteEmail}
                                     onChange={(e) => update('campsiteEmail', e.target.value)}
                                     placeholder="camp@domain.com"
-                                    className="w-full px-3.5 py-2.5 bg-white border border-amber-200 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none"
+                                    className="w-full px-3.5 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] outline-none"
                                   />
                                 </div>
-                                <div className="grid grid-cols-2 gap-2">
+                              ) : (
+                                result.campsiteEmail && (
                                   <div>
-                                    <label className="block text-[11px] font-bold text-neutral-700 mb-1">Instagram</label>
+                                    <span className="text-neutral-400 block text-[11px]">Email Bisnis:</span>
+                                    <span className="font-medium text-neutral-700">{result.campsiteEmail}</span>
+                                  </div>
+                                )
+                              )}
+
+                              {/* Field: Socials */}
+                              {isFieldNeedsRevision('instagramUrl', 'campsite') || isFieldNeedsRevision('tiktokUrl', 'campsite') ? (
+                                <div className="grid grid-cols-2 gap-2 pt-1">
+                                  <div>
+                                    <label className="block text-[11px] font-bold text-amber-900 mb-1">Instagram</label>
                                     <input
                                       type="text"
                                       value={form.instagramUrl}
                                       onChange={(e) => update('instagramUrl', e.target.value)}
                                       placeholder="instagram.com/..."
-                                      className="w-full px-2.5 py-2 bg-white border border-amber-200 rounded-lg text-xs outline-none"
+                                      className="w-full px-2.5 py-2 bg-white border border-amber-300 rounded-lg text-xs outline-none"
                                     />
                                   </div>
                                   <div>
-                                    <label className="block text-[11px] font-bold text-neutral-700 mb-1">TikTok / Website</label>
+                                    <label className="block text-[11px] font-bold text-amber-900 mb-1">TikTok / Website</label>
                                     <input
                                       type="text"
                                       value={form.tiktokUrl}
                                       onChange={(e) => update('tiktokUrl', e.target.value)}
                                       placeholder="tiktok.com/@..."
-                                      className="w-full px-2.5 py-2 bg-white border border-amber-200 rounded-lg text-xs outline-none"
+                                      className="w-full px-2.5 py-2 bg-white border border-amber-300 rounded-lg text-xs outline-none"
                                     />
                                   </div>
                                 </div>
-                              </div>
-                            </div>
-                          );
-                        }
-                        return (
-                          <div className="p-5 rounded-2xl bg-[#F4F7F6]/60 border border-[#E5E7EB] space-y-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2 text-xs font-bold text-[#0841B5] uppercase tracking-wider">
-                                <Building2 className="h-4 w-4" />
-                                <span>Profil Tempat Camp</span>
-                              </div>
-                              {result.status === 'NEEDS_REVISION' && (
-                                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Sesuai</span>
-                              )}
-                            </div>
-                            <div className="space-y-2 text-xs">
-                              <div>
-                                <span className="text-neutral-400 block text-[11px]">Nama Campsite:</span>
-                                <span className="font-semibold text-neutral-800">{result.campsiteName}</span>
-                              </div>
-                              <div>
-                                <span className="text-neutral-400 block text-[11px]">Tipe Properti:</span>
-                                <span className="font-medium text-neutral-700">{result.campsiteType || 'Tidak dicantumkan'}</span>
-                              </div>
-                              <div>
-                                <span className="text-neutral-400 block text-[11px]">Kontak Operasional Camp:</span>
-                                <span className="font-medium text-neutral-700">{result.campsitePhone || result.phone}</span>
-                              </div>
-                              {result.campsiteEmail && (
-                                <div>
-                                  <span className="text-neutral-400 block text-[11px]">Email Bisnis:</span>
-                                  <span className="font-medium text-neutral-700">{result.campsiteEmail}</span>
-                                </div>
-                              )}
-                              {(result.instagramUrl || result.tiktokUrl || result.websiteUrl) && (
-                                <div className="pt-1 flex flex-wrap gap-2">
-                                  {result.instagramUrl && (
-                                    <a href={result.instagramUrl.startsWith('http') ? result.instagramUrl : `https://${result.instagramUrl}`} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-[#0841B5] hover:underline">
-                                      Instagram ↗
-                                    </a>
-                                  )}
-                                  {result.tiktokUrl && (
-                                    <a href={result.tiktokUrl.startsWith('http') ? result.tiktokUrl : `https://${result.tiktokUrl}`} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-[#0841B5] hover:underline">
-                                      TikTok ↗
-                                    </a>
-                                  )}
-                                  {result.websiteUrl && (
-                                    <a href={result.websiteUrl.startsWith('http') ? result.websiteUrl : `https://${result.websiteUrl}`} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-[#0841B5] hover:underline">
-                                      Website ↗
-                                    </a>
-                                  )}
-                                </div>
+                              ) : (
+                                (result.instagramUrl || result.tiktokUrl || result.websiteUrl) && (
+                                  <div className="pt-1 flex flex-wrap gap-2">
+                                    {result.instagramUrl && (
+                                      <a href={result.instagramUrl.startsWith('http') ? result.instagramUrl : `https://${result.instagramUrl}`} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-[#0841B5] hover:underline">
+                                        Instagram ↗
+                                      </a>
+                                    )}
+                                    {result.tiktokUrl && (
+                                      <a href={result.tiktokUrl.startsWith('http') ? result.tiktokUrl : `https://${result.tiktokUrl}`} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-[#0841B5] hover:underline">
+                                        TikTok ↗
+                                      </a>
+                                    )}
+                                  </div>
+                                )
                               )}
                             </div>
                           </div>
@@ -1243,27 +1366,41 @@ export default function MitraRegisterPage() {
 
                       {/* CARD 4: REKENING PENCAIRAN (PAYOUT) */}
                       {(() => {
-                        const isRevTarget = result.status === 'NEEDS_REVISION' && (!result.revisionSections || result.revisionSections.includes('bank'));
-                        if (isRevTarget) {
-                          return (
-                            <div className="p-6 rounded-3xl bg-amber-50/40 border-2 border-amber-300 space-y-4 shadow-xs">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2 text-xs font-bold text-amber-900 uppercase tracking-wider">
-                                  <CreditCard className="h-4 w-4 text-amber-700" />
-                                  <span>4. Rekening Pencairan Dana (Payout)</span>
-                                </div>
-                                <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
-                                  Perlu Revisi
-                                </span>
+                        const needsRev = isSectionNeedsRevision('bank', ['bankName', 'bankAccountNumber', 'bankAccountHolder']);
+                        return (
+                          <div className={`p-6 rounded-3xl transition-all space-y-4 shadow-xs ${
+                            needsRev ? 'bg-amber-50/40 border-2 border-amber-300' : 'bg-[#F4F7F6]/60 border border-[#E5E7EB]'
+                          }`}>
+                            <div className="flex items-center justify-between">
+                              <div className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider ${
+                                needsRev ? 'text-amber-900' : 'text-[#0841B5]'
+                              }`}>
+                                <CreditCard className={`h-4 w-4 ${needsRev ? 'text-amber-700' : 'text-[#0841B5]'}`} />
+                                <span>4. Rekening Pencairan Dana (Payout)</span>
                               </div>
-                              <div className="space-y-3 pt-1">
+                              {result.status === 'NEEDS_REVISION' && (
+                                needsRev ? (
+                                  <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
+                                    Perlu Revisi
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Sesuai</span>
+                                )
+                              )}
+                            </div>
+
+                            <div className="space-y-3 pt-1 text-xs">
+                              {/* Field: bankName */}
+                              {isFieldNeedsRevision('bankName', 'bank') ? (
                                 <div>
-                                  <label className="block text-xs font-bold text-neutral-700 mb-1">Nama Bank *</label>
+                                  <label className="block text-xs font-bold text-amber-900 mb-1">
+                                    Nama Bank * <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
+                                  </label>
                                   <div className="relative">
                                     <select
                                       value={form.bankName}
                                       onChange={(e) => update('bankName', e.target.value)}
-                                      className="w-full px-3.5 py-2.5 bg-white border border-amber-200 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none appearance-none cursor-pointer"
+                                      className="w-full px-3.5 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none appearance-none cursor-pointer"
                                     >
                                       <option value="">Pilih Bank</option>
                                       {POPULAR_BANKS.map((b) => (
@@ -1273,52 +1410,53 @@ export default function MitraRegisterPage() {
                                     <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
                                   </div>
                                 </div>
+                              ) : (
                                 <div>
-                                  <label className="block text-xs font-bold text-neutral-700 mb-1">Nomor Rekening *</label>
+                                  <span className="text-neutral-400 block text-[11px]">Nama Bank:</span>
+                                  <span className="font-bold text-neutral-800 text-xs sm:text-sm">{result.bankName}</span>
+                                </div>
+                              )}
+
+                              {/* Field: bankAccountNumber */}
+                              {isFieldNeedsRevision('bankAccountNumber', 'bank') ? (
+                                <div>
+                                  <label className="block text-xs font-bold text-amber-900 mb-1">
+                                    Nomor Rekening * <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
+                                  </label>
                                   <input
                                     type="text"
                                     value={form.bankAccountNumber}
                                     onChange={(e) => update('bankAccountNumber', e.target.value.replace(/\D/g, ''))}
-                                    className="w-full px-3.5 py-2.5 bg-white border border-amber-200 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none font-mono"
+                                    className="w-full px-3.5 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] outline-none font-mono"
                                   />
                                 </div>
+                              ) : (
                                 <div>
-                                  <label className="block text-xs font-bold text-neutral-700 mb-1">Nama Pemilik Rekening *</label>
+                                  <span className="text-neutral-400 block text-[11px]">Nomor Rekening:</span>
+                                  <span className="font-bold text-neutral-800 tracking-wider text-xs sm:text-sm">{result.bankAccountNumber}</span>
+                                </div>
+                              )}
+
+                              {/* Field: bankAccountHolder */}
+                              {isFieldNeedsRevision('bankAccountHolder', 'bank') ? (
+                                <div>
+                                  <label className="block text-xs font-bold text-amber-900 mb-1">
+                                    Nama Pemilik Rekening * <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
+                                  </label>
                                   <input
                                     type="text"
                                     value={form.bankAccountHolder}
                                     onChange={(e) => update('bankAccountHolder', e.target.value)}
-                                    className="w-full px-3.5 py-2.5 bg-white border border-amber-200 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none"
+                                    className="w-full px-3.5 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] outline-none font-medium"
                                   />
                                 </div>
-                              </div>
-                            </div>
-                          );
-                        }
-                        return (
-                          <div className="p-5 rounded-2xl bg-[#F4F7F6]/60 border border-[#E5E7EB] space-y-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2 text-xs font-bold text-[#0841B5] uppercase tracking-wider">
-                                <CreditCard className="h-4 w-4" />
-                                <span>Rekening Pencairan Dana (Payout)</span>
-                              </div>
-                              {result.status === 'NEEDS_REVISION' && (
-                                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Sesuai</span>
+                              ) : (
+                                <div>
+                                  <span className="text-neutral-400 block text-[11px]">Nama Pemilik Rekening:</span>
+                                  <span className="font-semibold text-neutral-800 text-xs sm:text-sm">{result.bankAccountHolder}</span>
+                                </div>
                               )}
-                            </div>
-                            <div className="space-y-2 text-xs">
-                              <div>
-                                <span className="text-neutral-400 block text-[11px]">Nama Bank:</span>
-                                <span className="font-bold text-neutral-800">{result.bankName}</span>
-                              </div>
-                              <div>
-                                <span className="text-neutral-400 block text-[11px]">Nomor Rekening:</span>
-                                <span className="font-bold text-neutral-800 tracking-wider">{result.bankAccountNumber}</span>
-                              </div>
-                              <div>
-                                <span className="text-neutral-400 block text-[11px]">Nama Pemilik Rekening:</span>
-                                <span className="font-semibold text-neutral-800">{result.bankAccountHolder}</span>
-                              </div>
+
                               <div className="flex items-center gap-1.5 text-[11px] text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg w-fit border border-emerald-200 mt-2">
                                 <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
                                 <span>Rekening siap untuk payout reservasi</span>
@@ -1331,28 +1469,40 @@ export default function MitraRegisterPage() {
 
                     {/* CARD 5: LOKASI & ALAMAT CAMPSITE (FULL WIDTH) */}
                     {(() => {
-                      const isRevTarget = result.status === 'NEEDS_REVISION' && (!result.revisionSections || result.revisionSections.includes('location'));
-                      if (isRevTarget) {
-                        return (
-                          <div className="p-6 rounded-3xl bg-amber-50/40 border-2 border-amber-300 space-y-4 shadow-xs">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2 text-xs font-bold text-amber-900 uppercase tracking-wider">
-                                <MapPin className="h-4 w-4 text-amber-700" />
-                                <span>5. Lokasi & Alamat Campsite</span>
-                              </div>
-                              <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
-                                Perlu Revisi
-                              </span>
+                      const needsRev = isSectionNeedsRevision('location', ['provinceCity', 'district', 'campsiteAddress', 'googleMapsUrl']);
+                      return (
+                        <div className={`p-6 rounded-3xl transition-all space-y-4 shadow-xs ${
+                          needsRev ? 'bg-amber-50/40 border-2 border-amber-300' : 'bg-[#F4F7F6]/60 border border-[#E5E7EB]'
+                        }`}>
+                          <div className="flex items-center justify-between">
+                            <div className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider ${
+                              needsRev ? 'text-amber-900' : 'text-[#0841B5]'
+                            }`}>
+                              <MapPin className={`h-4 w-4 ${needsRev ? 'text-amber-700' : 'text-[#0841B5]'}`} />
+                              <span>5. Lokasi & Alamat Campsite</span>
                             </div>
-                            <div className="space-y-3 pt-1">
+                            {result.status === 'NEEDS_REVISION' && (
+                              needsRev ? (
+                                <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
+                                  Perlu Revisi
+                                </span>
+                              ) : (
+                                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Sesuai</span>
+                              )
+                            )}
+                          </div>
+
+                          <div className="space-y-3 pt-1 text-xs">
+                            {/* Field: Province / City / District */}
+                            {isFieldNeedsRevision('provinceCity', 'location') || isFieldNeedsRevision('district', 'location') ? (
                               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div>
-                                  <label className="block text-xs font-bold text-neutral-700 mb-1">Provinsi *</label>
+                                  <label className="block text-xs font-bold text-amber-900 mb-1">Provinsi *</label>
                                   <div className="relative">
                                     <select
                                       value={selectedProvinceId}
                                       onChange={(e) => handleProvinceChange(e.target.value)}
-                                      className="w-full px-3 py-2.5 bg-white border border-amber-200 rounded-xl text-xs outline-none appearance-none"
+                                      className="w-full px-3 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-xs outline-none appearance-none"
                                     >
                                       <option value="">{form.province || 'Pilih Provinsi'}</option>
                                       {provinces.map((p) => (
@@ -1363,12 +1513,12 @@ export default function MitraRegisterPage() {
                                   </div>
                                 </div>
                                 <div>
-                                  <label className="block text-xs font-bold text-neutral-700 mb-1">Kota / Kabupaten *</label>
+                                  <label className="block text-xs font-bold text-amber-900 mb-1">Kota / Kabupaten *</label>
                                   <div className="relative">
                                     <select
                                       value={selectedCityId}
                                       onChange={(e) => handleCityChange(e.target.value)}
-                                      className="w-full px-3 py-2.5 bg-white border border-amber-200 rounded-xl text-xs outline-none appearance-none"
+                                      className="w-full px-3 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-xs outline-none appearance-none"
                                     >
                                       <option value="">{form.city || 'Pilih Kota'}</option>
                                       {cities.map((c) => (
@@ -1379,12 +1529,12 @@ export default function MitraRegisterPage() {
                                   </div>
                                 </div>
                                 <div>
-                                  <label className="block text-xs font-bold text-neutral-700 mb-1">Kecamatan (Opsional)</label>
+                                  <label className="block text-xs font-bold text-amber-900 mb-1">Kecamatan (Opsional)</label>
                                   <div className="relative">
                                     <select
                                       value={districts.find((d) => toTitleCase(d.name) === form.district)?.id || ''}
                                       onChange={(e) => handleDistrictChange(e.target.value)}
-                                      className="w-full px-3 py-2.5 bg-white border border-amber-200 rounded-xl text-xs outline-none appearance-none"
+                                      className="w-full px-3 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-xs outline-none appearance-none"
                                     >
                                       <option value="">{form.district || 'Pilih Kecamatan'}</option>
                                       {districts.map((d) => (
@@ -1395,17 +1545,43 @@ export default function MitraRegisterPage() {
                                   </div>
                                 </div>
                               </div>
+                            ) : (
                               <div>
-                                <label className="block text-xs font-bold text-neutral-700 mb-1">Alamat Lengkap Campsite *</label>
+                                <span className="text-neutral-400 block text-[11px]">Wilayah:</span>
+                                <span className="font-semibold text-neutral-800 text-xs sm:text-sm">
+                                  {result.district ? `${result.district}, ` : ''}{result.city}, {result.province}
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Field: campsiteAddress */}
+                            {isFieldNeedsRevision('campsiteAddress', 'location') ? (
+                              <div>
+                                <label className="block text-xs font-bold text-amber-900 mb-1">
+                                  Alamat Lengkap Campsite * <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
+                                </label>
                                 <textarea
                                   rows={2}
                                   value={form.campsiteAddress}
                                   onChange={(e) => update('campsiteAddress', e.target.value)}
-                                  className="w-full px-3.5 py-2 bg-white border border-amber-200 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none"
+                                  className="w-full px-3.5 py-2 bg-white border-2 border-amber-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] outline-none font-medium"
                                 />
                               </div>
+                            ) : (
                               <div>
-                                <label className="block text-xs font-bold text-neutral-700 mb-1">Link Titik Google Maps (Share Link)</label>
+                                <span className="text-neutral-400 block text-[11px]">Alamat Lengkap Campsite:</span>
+                                <p className="font-medium text-neutral-800 leading-relaxed text-xs sm:text-sm">
+                                  {result.campsiteAddress}
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Field: googleMapsUrl */}
+                            {isFieldNeedsRevision('googleMapsUrl', 'location') ? (
+                              <div>
+                                <label className="block text-xs font-bold text-amber-900 mb-1">
+                                  Link Titik Google Maps <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
+                                </label>
                                 <div className="relative">
                                   <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
                                   <input
@@ -1413,43 +1589,24 @@ export default function MitraRegisterPage() {
                                     value={form.googleMapsUrl}
                                     onChange={(e) => update('googleMapsUrl', e.target.value)}
                                     placeholder="https://maps.app.goo.gl/..."
-                                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-amber-200 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] outline-none"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] outline-none"
                                   />
                                 </div>
                               </div>
-                            </div>
-                          </div>
-                        );
-                      }
-                      return (
-                        <div className="p-5 rounded-2xl bg-[#F4F7F6]/60 border border-[#E5E7EB] space-y-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 text-xs font-bold text-[#0841B5] uppercase tracking-wider">
-                              <MapPin className="h-4 w-4" />
-                              <span>Lokasi & Alamat Campsite</span>
-                            </div>
-                            {result.status === 'NEEDS_REVISION' ? (
-                              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Sesuai</span>
                             ) : (
                               result.googleMapsUrl && (
-                                <a
-                                  href={result.googleMapsUrl.startsWith('http') ? result.googleMapsUrl : `https://${result.googleMapsUrl}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1 text-xs font-bold text-[#0841B5] hover:underline"
-                                >
-                                  <span>Buka di Google Maps ↗</span>
-                                </a>
+                                <div className="pt-1">
+                                  <a
+                                    href={result.googleMapsUrl.startsWith('http') ? result.googleMapsUrl : `https://${result.googleMapsUrl}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 text-xs font-bold text-[#0841B5] hover:underline"
+                                  >
+                                    <span>Buka di Google Maps ↗</span>
+                                  </a>
+                                </div>
                               )
                             )}
-                          </div>
-                          <div className="space-y-1.5 text-xs">
-                            <p className="font-medium text-neutral-800 leading-relaxed">
-                              {result.campsiteAddress}
-                            </p>
-                            <p className="text-neutral-500 text-[11px]">
-                              {result.district ? `${result.district}, ` : ''}{result.city}, {result.province}
-                            </p>
                           </div>
                         </div>
                       );
