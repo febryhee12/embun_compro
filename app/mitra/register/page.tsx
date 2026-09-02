@@ -945,7 +945,7 @@ export default function MitraRegisterPage() {
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div>
                           <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
-                            No. WhatsApp / Kontak Darurat Camp <span className="text-red-500">*</span>
+                            No. WhatsApp Campsite <span className="text-red-500">*</span>
                           </label>
                           <div className="relative flex items-center">
                             <div className="absolute left-3.5 flex items-center gap-1.5 pointer-events-none text-neutral-600 text-sm font-semibold border-r border-[#E5E7EB] pr-2.5">
