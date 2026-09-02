@@ -262,6 +262,7 @@ export default function MitraRegisterPage() {
         const parsed = JSON.parse(saved);
         if (parsed?.result) {
           setResult(parsed.result);
+          setMode('status');
           populateFormFromResult(parsed.result);
           if (parsed.authPassword) {
             setAuthPassword(parsed.authPassword);
@@ -275,6 +276,7 @@ export default function MitraRegisterPage() {
                   if (res.ok) {
                     const latest = await res.json();
                     setResult(latest);
+                    setMode('status');
                     populateFormFromResult(latest);
                     localStorage.setItem(
                       'embun_mitra_session',
@@ -709,6 +711,7 @@ export default function MitraRegisterPage() {
       }
       setAuthPassword(login.password);
       setResult(body);
+      setMode('status');
       try {
         localStorage.setItem(
           'embun_mitra_session',
@@ -844,8 +847,8 @@ export default function MitraRegisterPage() {
               )}
             </div>
 
-          {/* ── MODE: CHECK STATUS ────────────────────────────────────────── */}
-          {mode === 'status' ? (
+          {/* ── MODE: CHECK STATUS OR LOGGED-IN STATUS DASHBOARD ───────────── */}
+          {(mode === 'status' || result) && !isRevising ? (
             <div className="mt-8 space-y-6 animate-in fade-in duration-200">
               {!result ? (
                 <div className="bg-white rounded-3xl p-7 sm:p-9 border border-[#E5E7EB] shadow-xs space-y-6">
