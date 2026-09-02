@@ -4,11 +4,13 @@ import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
+  AlertCircle,
   Building2,
   Check,
   CheckCircle2,
   ChevronDown,
   CreditCard,
+  Edit3,
   Eye,
   EyeOff,
   Globe,
@@ -178,8 +180,25 @@ type PartnerApplicationResult = {
   bankAccountNumber: string;
   bankAccountHolder: string;
   reviewNote?: string | null;
+  revisionSections?: string | null;
   reviewedAt?: string | null;
   createdAt?: string;
+};
+
+const SECTION_STEP_INDEX: Record<string, number> = {
+  owner: 0,
+  ktp: 1,
+  campsite: 2,
+  location: 3,
+  bank: 4,
+};
+
+const SECTION_TITLE_MAP: Record<string, string> = {
+  owner: 'Akun & Kontak Pemilik',
+  ktp: 'Legalitas & Foto KTP',
+  campsite: 'Profil Tempat Camp',
+  location: 'Lokasi & Alamat Campsite',
+  bank: 'Rekening Pencairan (Payout)',
 };
 
 export default function MitraRegisterPage() {
@@ -197,6 +216,8 @@ export default function MitraRegisterPage() {
   const [error, setError] = useState('');
   const [login, setLogin] = useState({ email: '', password: '' });
   const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [isRevising, setIsRevising] = useState(false);
+  const [resubmitSuccessMsg, setResubmitSuccessMsg] = useState('');
 
   // Cascading Region Dropdown State
   const [provinces, setProvinces] = useState<{ id: string; name: string }[]>([]);
@@ -354,13 +375,13 @@ export default function MitraRegisterPage() {
           form.ownerName.trim().length >= 3 &&
           isValidEmail(form.email) &&
           form.phone.trim().length >= 8 &&
-          form.password.length >= 8
+          (form.password.length >= 8 || isRevising)
         );
       case 1:
         return (
           form.ktpNumber.trim().length >= 16 &&
           form.ownerAddress.trim().length >= 5 &&
-          ktpPhoto !== null
+          (ktpPhoto !== null || ktpPreviewUrl !== null)
         );
       case 2:
         const isCampsiteEmailValid =
@@ -385,7 +406,7 @@ export default function MitraRegisterPage() {
       default:
         return false;
     }
-  }, [step, form, ktpPhoto]);
+  }, [step, form, ktpPhoto, ktpPreviewUrl, isRevising]);
 
   const handleNextStep = () => {
     if (!isStepValid) return;
@@ -403,13 +424,118 @@ export default function MitraRegisterPage() {
 
   const handleGoToStep = (targetIndex: number) => {
     // Hanya izinkan navigasi mundur atau ke step yang sudah pernah diselesaikan
-    if (targetIndex <= step || completedSteps.includes(targetIndex - 1)) {
+    if (isRevising || targetIndex <= step || completedSteps.includes(targetIndex - 1)) {
       setStep(targetIndex);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
+  const startRevision = () => {
+    if (!result) return;
+    setIsRevising(true);
+    setMode('register');
+    setForm({
+      ownerName: result.ownerName || '',
+      email: result.email || '',
+      phone: result.phone ? normalizePhone(result.phone) : '',
+      password: login.password || '',
+      ktpNumber: result.ktpNumber || '',
+      ownerAddress: result.ownerAddress || '',
+      campsiteName: result.campsiteName || '',
+      campsiteType: result.campsiteType || '',
+      campsitePhone: result.campsitePhone ? normalizePhone(result.campsitePhone) : '',
+      campsiteEmail: result.campsiteEmail || '',
+      instagramUrl: result.instagramUrl || '',
+      tiktokUrl: result.tiktokUrl || '',
+      websiteUrl: result.websiteUrl || '',
+      province: result.province || '',
+      city: result.city || '',
+      district: result.district || '',
+      campsiteAddress: result.campsiteAddress || '',
+      googleMapsUrl: result.googleMapsUrl || '',
+      bankName: result.bankName || '',
+      bankAccountNumber: result.bankAccountNumber || '',
+      bankAccountHolder: result.bankAccountHolder || '',
+    });
+    if (result.campsiteType) {
+      setSelectedTypes(
+        result.campsiteType.split(',').map((s) => s.trim()).filter(Boolean),
+      );
+    }
+    if (result.ktpPhotoUrl) {
+      const fullUrl = result.ktpPhotoUrl.startsWith('http')
+        ? result.ktpPhotoUrl
+        : `${API_BASE_URL}${result.ktpPhotoUrl}`;
+      setKtpPreviewUrl(fullUrl);
+    }
+    const revisionArr = result.revisionSections
+      ? result.revisionSections.split(',').map((s) => s.trim()).filter(Boolean)
+      : [];
+    if (revisionArr.length > 0 && SECTION_STEP_INDEX[revisionArr[0]] !== undefined) {
+      setStep(SECTION_STEP_INDEX[revisionArr[0]]);
+    } else {
+      setStep(0);
+    }
+    setCompletedSteps([0, 1, 2, 3, 4]);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const resubmit = async () => {
+    if (!result) return;
+    setSubmitting(true);
+    setError('');
+    setResubmitSuccessMsg('');
+    try {
+      const data = new FormData();
+      data.append('email', result.email);
+      data.append('password', login.password || form.password);
+
+      Object.entries(form).forEach(([key, value]) => {
+        if (key === 'password') return;
+        if (key === 'phone' && value) {
+          data.append(key, value.startsWith('0') ? value : '0' + value);
+        } else if (key === 'campsitePhone' && value) {
+          data.append(key, value.startsWith('0') ? value : '0' + value);
+        } else {
+          data.append(key, value);
+        }
+      });
+
+      if (ktpPhoto) {
+        data.append('ktpPhoto', ktpPhoto);
+      }
+
+      const res = await fetch(
+        `${API_BASE_URL}/partner-applications/${result.id}/resubmit`,
+        {
+          method: 'PATCH',
+          body: data,
+        },
+      );
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(
+          body.message || 'Gagal mengirim ulang perbaikan berkas pendaftaran.',
+        );
+      }
+      setResult(body);
+      setIsRevising(false);
+      setMode('status');
+      setResubmitSuccessMsg(
+        'Revisi pengajuan berhasil dikirimkan ulang! Tim kurasi Embun akan meninjau perubahan data Anda.',
+      );
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err: any) {
+      setError(err?.message || 'Terjadi gangguan jaringan saat mengirim ulang revisi.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const submit = async () => {
+    if (isRevising) {
+      return resubmit();
+    }
     if (!isStepValid) return;
     setSubmitting(true);
     setError('');
@@ -681,6 +807,13 @@ export default function MitraRegisterPage() {
                     {statusBadgeConfig[result.status]?.desc || 'Status pengajuan Anda tercatat pada sistem Embun.'}
                   </div>
 
+                  {resubmitSuccessMsg && (
+                    <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                      <span>{resubmitSuccessMsg}</span>
+                    </div>
+                  )}
+
                   {result.reviewNote && (
                     <div className="p-5 rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-1.5">
                       <span className="text-[11px] font-bold uppercase tracking-wider text-amber-800 block">
@@ -689,6 +822,67 @@ export default function MitraRegisterPage() {
                       <p className="text-xs sm:text-sm text-amber-900 leading-relaxed font-medium">
                         {result.reviewNote}
                       </p>
+                    </div>
+                  )}
+
+                  {/* ── CALLOUT PERBAIKAN / REVISI ──────────────────────────── */}
+                  {result.status === 'NEEDS_REVISION' && (
+                    <div className="p-6 sm:p-7 rounded-3xl bg-amber-50/90 border-2 border-amber-300 shadow-xs space-y-4">
+                      <div className="flex items-start gap-3.5">
+                        <div className="p-2.5 bg-amber-100 rounded-2xl text-amber-800 shrink-0 mt-0.5">
+                          <AlertCircle className="h-6 w-6 text-amber-700" />
+                        </div>
+                        <div className="space-y-1">
+                          <h5 className="text-base font-black text-amber-950">
+                            Pengajuan Anda Memerlukan Perbaikan Data
+                          </h5>
+                          <p className="text-xs sm:text-sm text-amber-900 leading-relaxed font-medium">
+                            Silakan periksa catatan tim kurasi dan perbaiki kolom data yang diminta di bawah ini, kemudian kirimkan ulang untuk melanjutkan proses verifikasi kemitraan.
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Revision Sections Badges */}
+                      {(() => {
+                        const revs = result.revisionSections
+                          ? result.revisionSections.split(',').map((s) => s.trim()).filter(Boolean)
+                          : [];
+                        if (revs.length > 0) {
+                          return (
+                            <div className="space-y-2 pt-1 border-t border-amber-200/80">
+                              <span className="text-[11px] font-bold uppercase tracking-wider text-amber-800 block">
+                                Bagian yang Ditandai Perlu Direvisi:
+                              </span>
+                              <div className="flex flex-wrap gap-2">
+                                {revs.map((key) => (
+                                  <span
+                                    key={key}
+                                    className="px-3 py-1.5 rounded-xl bg-amber-100 border border-amber-300/80 text-amber-950 font-bold text-xs flex items-center gap-1.5 shadow-2xs"
+                                  >
+                                    <span className="h-2 w-2 rounded-full bg-amber-600" />
+                                    {SECTION_TITLE_MAP[key] || key}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
+
+                      <div className="pt-2 flex flex-col sm:flex-row sm:items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={startRevision}
+                          className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#0841B5] hover:bg-[#0841B5]/90 text-white font-bold text-xs sm:text-sm shadow-md transition-all cursor-pointer"
+                        >
+                          <Edit3 className="h-4 w-4" />
+                          <span>Perbaiki & Kirim Ulang Data Pengajuan</span>
+                        </button>
+                        <span className="text-xs text-amber-800 font-medium">
+                          Data yang sudah Anda input sebelumnya akan otomatis terisi.
+                        </span>
+                      </div>
                     </div>
                   )}
 
@@ -888,13 +1082,56 @@ export default function MitraRegisterPage() {
             /* ── MODE: REGISTER STEPPER FORM ──────────────────────────────── */
             <div className="mt-8 space-y-8 animate-in fade-in duration-200">
               
+              {/* Revision Mode Banner */}
+              {isRevising && (
+                <div className="p-4 sm:p-5 rounded-2xl bg-amber-50 border border-amber-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-200">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 text-xs font-bold text-amber-900 uppercase tracking-wider">
+                      <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
+                      <span>Mode Revisi Berkas Pengajuan</span>
+                    </div>
+                    {result?.reviewNote && (
+                      <p className="text-xs text-amber-800 leading-relaxed font-medium">
+                        Catatan Kurator: <span className="font-bold text-amber-950">"{result.reviewNote}"</span>
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={resubmit}
+                      disabled={submitting}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0841B5] text-white text-xs font-bold hover:bg-[#0841B5]/90 transition-all cursor-pointer disabled:opacity-50"
+                    >
+                      {submitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                      <span>Kirim Ulang Revisi</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsRevising(false);
+                        setMode('status');
+                      }}
+                      className="px-3 py-2 rounded-xl bg-white border border-amber-300 text-amber-900 hover:bg-amber-100 text-xs font-bold transition-all cursor-pointer"
+                    >
+                      Batal
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Stepper Progress Bar (Clean, non-skippable forward) */}
               <div className="bg-white p-4 sm:p-5 rounded-2xl border border-[#E5E7EB] shadow-2xs">
                 <div className="grid grid-cols-5 gap-2 sm:gap-4">
                   {steps.map((item, index) => {
                     const isCurrent = index === step;
                     const isDone = completedSteps.includes(index);
-                    const canNavigate = index <= step || completedSteps.includes(index - 1);
+                    const canNavigate = isRevising || index <= step || completedSteps.includes(index - 1);
+                    const revisionArr = result?.revisionSections
+                      ? result.revisionSections.split(',').map((s) => s.trim()).filter(Boolean)
+                      : [];
+                    const isRevisionTarget = isRevising && revisionArr.some((key) => SECTION_STEP_INDEX[key] === index);
+
                     return (
                       <button
                         key={item.title}
@@ -912,23 +1149,38 @@ export default function MitraRegisterPage() {
                         {/* Step Number / Status Indicator */}
                         <div
                           className={`h-8 w-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all mb-1.5 ${
-                            isCurrent
+                            isRevisionTarget
+                              ? 'bg-amber-400 text-amber-950 ring-2 ring-amber-400/50 shadow-xs'
+                              : isCurrent
                               ? 'bg-[#0841B5] text-white shadow-xs'
                               : isDone
                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                               : 'bg-[#F4F7F6] text-neutral-500 border border-[#E5E7EB]'
                           }`}
                         >
-                          {isDone ? <CheckCircle2 className="h-4 w-4" /> : <span>{index + 1}</span>}
+                          {isRevisionTarget ? (
+                            <Edit3 className="h-4 w-4" />
+                          ) : isDone ? (
+                            <CheckCircle2 className="h-4 w-4" />
+                          ) : (
+                            <span>{index + 1}</span>
+                          )}
                         </div>
 
                         {/* Step Title Label */}
-                        <span className="hidden sm:block text-[11px] font-bold truncate max-w-full">
-                          {item.title}
-                        </span>
-                        <span className="sm:hidden text-[10px] font-bold truncate max-w-full">
-                          {item.short}
-                        </span>
+                        <div className="flex flex-col items-center max-w-full">
+                          {isRevisionTarget && (
+                            <span className="px-1.5 py-0.2 rounded bg-amber-200 text-amber-900 font-extrabold text-[9px] uppercase mb-0.5 tracking-wider">
+                              Revisi
+                            </span>
+                          )}
+                          <span className="hidden sm:block text-[11px] font-bold truncate max-w-full">
+                            {item.title}
+                          </span>
+                          <span className="sm:hidden text-[10px] font-bold truncate max-w-full">
+                            {item.short}
+                          </span>
+                        </div>
                       </button>
                     );
                   })}
@@ -1619,14 +1871,26 @@ export default function MitraRegisterPage() {
                   )}
 
                   {step < steps.length - 1 ? (
-                    <button
-                      type="button"
-                      disabled={!isStepValid}
-                      onClick={handleNextStep}
-                      className="px-7 py-3.5 rounded-xl bg-[#0841B5] hover:bg-[#0841B5]/90 text-white text-xs sm:text-sm font-bold shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                    >
-                      Lanjut ke {steps[step + 1].title}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      {isRevising && (
+                        <button
+                          type="button"
+                          disabled={submitting}
+                          onClick={resubmit}
+                          className="px-5 py-3.5 rounded-xl border border-[#0841B5] text-[#0841B5] hover:bg-[#0841B5]/5 text-xs sm:text-sm font-bold transition-all cursor-pointer"
+                        >
+                          Kirim Ulang Sekarang
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        disabled={!isStepValid}
+                        onClick={handleNextStep}
+                        className="px-7 py-3.5 rounded-xl bg-[#0841B5] hover:bg-[#0841B5]/90 text-white text-xs sm:text-sm font-bold shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                      >
+                        Lanjut ke {steps[step + 1].title}
+                      </button>
+                    </div>
                   ) : (
                     <button
                       type="button"
@@ -1635,7 +1899,7 @@ export default function MitraRegisterPage() {
                       className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-[#0841B5] hover:bg-[#0841B5]/90 text-white text-xs sm:text-sm font-bold shadow-md transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                     >
                       {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                      <span>Kirim Pendaftaran Mitra</span>
+                      <span>{isRevising ? 'Kirim Ulang Revisi Pengajuan' : 'Kirim Pendaftaran Mitra'}</span>
                     </button>
                   )}
                 </div>
