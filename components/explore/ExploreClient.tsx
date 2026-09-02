@@ -100,8 +100,12 @@ export function ExploreClient() {
         });
       }
 
-      // Add dedicated Campsite 360 Tour entry if campsite has 360 virtual tours
+      // Add dedicated Campsite 360 Tour entry if campsite has 360 virtual tours.
+      // Fallback: campsite with tour360Enabled=true shows up even when
+      // panoramaSpots is not yet populated (operator sets flag first, uploads
+      // panorama photos later).
       const hasCampPano =
+        camp.tour360Enabled === true ||
         (Array.isArray(camp.panoramaSpots) && camp.panoramaSpots.length > 0) ||
         (Array.isArray(camp.photos) &&
           camp.photos.some(
@@ -133,6 +137,20 @@ export function ExploreClient() {
                 imageUrl: p.url,
               });
             }
+          });
+        }
+
+        // If no dedicated panorama photos yet but tour360Enabled=true, use
+        // cover photo as a visual placeholder so the card still appears.
+        const coverFallback = camp.coverImageUrl ||
+          (Array.isArray(camp.photos) && camp.photos.length > 0
+            ? camp.photos[0].url
+            : null);
+        if (panos.length === 0 && coverFallback) {
+          panos.push({
+            id: `cover-${camp.id}`,
+            label: 'Tur 360° Segera Hadir',
+            imageUrl: coverFallback,
           });
         }
 
