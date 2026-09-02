@@ -820,87 +820,115 @@ export function SpotRedirectClient() {
 
       try {
         if (pannellumViewerRef.current) {
-          pannellumViewerRef.current.destroy();
+          try {
+            pannellumViewerRef.current.destroy();
+          } catch (_) {}
           pannellumViewerRef.current = null;
         }
 
-        const currentPano = panoramaList[activePanoramaIdx];
-        if (!currentPano) return;
+        const container = panoramaContainerRef.current;
+        if (!container) return;
+        container.innerHTML = '';
 
-        const rawHotspots: any[] = (() => {
-          const hs = (currentPano as any).hotspots;
-          if (Array.isArray(hs)) return hs;
-          if (typeof hs === 'string' && hs.trim().length > 0) {
-            try { return JSON.parse(hs); } catch { return []; }
-          }
-          return [];
-        })();
+        const scenesConfig: Record<string, any> = {};
+        panoramaList.forEach((pano) => {
+          const rawHotspots: any[] = (() => {
+            const hs = (pano as any).hotspots;
+            if (Array.isArray(hs)) return hs;
+            if (typeof hs === 'string' && hs.trim().length > 0) {
+              try {
+                return JSON.parse(hs);
+              } catch {
+                return [];
+              }
+            }
+            return [];
+          })();
 
-        const pannellumHotSpots = rawHotspots.map((h: any) => {
-          const isScene =
-            h.type === 'scene' || h.iconStyle === 'arrow_up' || !h.blockId;
-          const label =
-            h.targetLabel ||
-            h.text ||
-            h.label ||
-            (isScene ? 'Pindah Area' : 'Spot Kavling');
-          return {
-            pitch: Number(h.pitch || 0),
-            yaw: Number(h.yaw || 0),
-            type: 'custom',
-            createTooltipFunc: (hotSpotDiv: HTMLElement) => {
-              hotSpotDiv.innerHTML = `
-                <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer; transform: translate(-50%, -50%); transition: transform 0.15s ease-out;">
-                  <div style="background: rgba(15, 23, 42, 0.88); color: #ffffff; padding: 4px 10px; border-radius: 9999px; font-size: 11px; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.35); box-shadow: 0 4px 14px rgba(0,0,0,0.6); white-space: nowrap; margin-bottom: 5px; backdrop-filter: blur(4px);">
-                    ${label}
+          const pannellumHotSpots = rawHotspots.map((h: any) => {
+            const isScene =
+              h.type === 'scene' || h.iconStyle === 'arrow_up' || !h.blockId;
+            const label =
+              h.targetLabel ||
+              h.text ||
+              h.label ||
+              (isScene ? 'Pindah Area' : 'Spot Kavling');
+            return {
+              pitch: Number(h.pitch || 0),
+              yaw: Number(h.yaw || 0),
+              type: 'custom',
+              createTooltipFunc: (hotSpotDiv: HTMLElement) => {
+                hotSpotDiv.innerHTML = `
+                  <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer; transform: translate(-50%, -50%); transition: transform 0.15s ease-out;" onmouseover="this.style.transform='translate(-50%, -50%) scale(1.1)'" onmouseout="this.style.transform='translate(-50%, -50%) scale(1)'">
+                    <div style="background: rgba(15, 23, 42, 0.9); color: #ffffff; padding: 4px 10px; border-radius: 9999px; font-size: 11px; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 4px 14px rgba(0,0,0,0.6); white-space: nowrap; margin-bottom: 5px; backdrop-filter: blur(4px);">
+                      ${label}
+                    </div>
+                    <div style="width: 34px; height: 34px; border-radius: 50%; background: rgba(15, 23, 42, 0.92); border: 2.5px solid #ffffff; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,0.7); backdrop-filter: blur(4px);">
+                      ${
+                        isScene
+                          ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.8"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>'
+                          : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>'
+                      }
+                    </div>
                   </div>
-                  <div style="width: 34px; height: 34px; border-radius: 50%; background: rgba(15, 23, 42, 0.92); border: 2.5px solid #ffffff; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,0.7); backdrop-filter: blur(4px);">
-                    ${
-                      isScene
-                        ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.8"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>'
-                        : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>'
+                `;
+                hotSpotDiv.onclick = (e) => {
+                  e.stopPropagation();
+                  if (h.targetSpotId) {
+                    const targetIdx = panoramaList.findIndex(
+                      (p) =>
+                        p.id === h.targetSpotId ||
+                        p.label?.toLowerCase() ===
+                          h.targetLabel?.toLowerCase() ||
+                        p.label?.toLowerCase() === label.toLowerCase(),
+                    );
+                    if (targetIdx >= 0) {
+                      setActivePanoramaIdx(targetIdx);
+                      if (pannellumViewerRef.current) {
+                        try {
+                          pannellumViewerRef.current.loadScene(
+                            panoramaList[targetIdx].id,
+                          );
+                        } catch (_) {}
+                      }
                     }
-                  </div>
-                </div>
-              `;
-              hotSpotDiv.onclick = (e) => {
-                e.stopPropagation();
-                if (h.targetSpotId) {
-                  const targetIdx = panoramaList.findIndex(
-                    (p) =>
-                      p.id === h.targetSpotId ||
-                      p.label?.toLowerCase() ===
-                        h.targetLabel?.toLowerCase() ||
-                      p.label?.toLowerCase() === label.toLowerCase(),
-                  );
-                  if (targetIdx >= 0) {
-                    setActivePanoramaIdx(targetIdx);
                   }
-                }
-              };
-            },
+                };
+              },
+            };
+          });
+
+          scenesConfig[pano.id] = {
+            type: 'equirectangular',
+            panorama: resolveAssetUrl(pano.imageUrl),
+            yaw: pano.yaw !== undefined ? Number(pano.yaw) : 0,
+            pitch: pano.pitch !== undefined ? Number(pano.pitch) : 0,
+            hotSpots: pannellumHotSpots,
           };
         });
 
-        pannellumViewerRef.current = pannellum.viewer(
-          panoramaContainerRef.current,
-          {
-            type: 'equirectangular',
-            panorama: resolveAssetUrl(currentPano.imageUrl),
+        const activePano =
+          panoramaList[activePanoramaIdx] || panoramaList[0];
+
+        pannellumViewerRef.current = pannellum.viewer(container, {
+          default: {
+            firstScene: activePano.id,
+            sceneFadeDuration: 600,
             autoLoad: true,
-            autoRotate: -2,
-            compass: true,
+            crossOrigin: 'anonymous',
+            compass: false,
+            yaw: activePano.yaw !== undefined ? Number(activePano.yaw) : 0,
+            pitch:
+              activePano.pitch !== undefined ? Number(activePano.pitch) : 0,
+            hfov: 90,
+            minHfov: 50,
+            maxHfov: 110,
             showZoomCtrl: true,
             showFullscreenCtrl: true,
             mouseZoom: true,
-            hfov: 100,
-            yaw:
-              currentPano.yaw !== undefined ? Number(currentPano.yaw) : 0,
-            pitch:
-              currentPano.pitch !== undefined ? Number(currentPano.pitch) : 0,
-            hotSpots: pannellumHotSpots,
           },
-        );
+          scenes: scenesConfig,
+        });
       } catch (err) {
         console.error('Error init pannellum:', err);
       }
@@ -2890,14 +2918,16 @@ export function SpotRedirectClient() {
               </button>
               <span className="font-bold text-sm truncate max-w-xs sm:max-w-md">
                 {isTour360Only
-                  ? `${campsite.name} · Tur Virtual 360°`
-                  : `${activeSpot.name} · Galeri & Tur`}
+                  ? panoramaList[activePanoramaIdx]?.label
+                    ? `${panoramaList[activePanoramaIdx].label} · ${campsite?.name || 'Embun'}`
+                    : `${campsite?.name || 'Embun'} · Tur 360°`
+                  : `${activeSpot?.name || 'Spot'} · Galeri & Tur`}
               </span>
             </div>
 
             {/* Gallery Tabs */}
-            <div className="flex items-center gap-2">
-              {!isTour360Only && (
+            {!isTour360Only && (
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setGalleryTab('photos')}
@@ -2909,34 +2939,34 @@ export function SpotRedirectClient() {
                 >
                   Foto ({spotPhotos.length})
                 </button>
-              )}
-              {panoramaList.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setGalleryTab('360')}
-                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                    galleryTab === '360'
-                      ? 'bg-brand-lime text-black'
-                      : 'bg-white/10 text-white hover:bg-white/20'
-                  }`}
-                >
-                  Tur 360° ({panoramaList.length})
-                </button>
-              )}
-              {!isTour360Only && campsite.mapImageUrl && (
-                <button
-                  type="button"
-                  onClick={() => setGalleryTab('map')}
-                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                    galleryTab === 'map'
-                      ? 'bg-white text-black'
-                      : 'bg-white/10 text-white hover:bg-white/20'
-                  }`}
-                >
-                  Denah
-                </button>
-              )}
-            </div>
+                {panoramaList.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setGalleryTab('360')}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                      galleryTab === '360'
+                        ? 'bg-brand-lime text-black'
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                  >
+                    Tur 360° ({panoramaList.length})
+                  </button>
+                )}
+                {campsite?.mapImageUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setGalleryTab('map')}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                      galleryTab === 'map'
+                        ? 'bg-white text-black'
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                  >
+                    Denah
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Modal Content Body */}
