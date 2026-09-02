@@ -250,6 +250,7 @@ export default function MitraRegisterPage() {
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [isRevising, setIsRevising] = useState(false);
   const [resubmitSuccessMsg, setResubmitSuccessMsg] = useState('');
+  const [statusTab, setStatusTab] = useState<'revision' | 'details'>('revision');
 
   const isFieldNeedsRevision = (fieldKey: string, sectionKey?: string) => {
     if (!result || result.status !== 'NEEDS_REVISION') return false;
@@ -829,6 +830,7 @@ export default function MitraRegisterPage() {
               {/* Status Display Card */}
               {result && (
                 <div className="bg-white rounded-3xl p-7 sm:p-9 border border-[#E5E7EB] shadow-xs space-y-6 animate-in slide-in-from-bottom-2 duration-300">
+                  {/* Property Header & Badge */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#E5E7EB]">
                     <div>
                       <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">Properti</span>
@@ -854,8 +856,29 @@ export default function MitraRegisterPage() {
                     </div>
                   </div>
 
-                  <div className="p-5 rounded-2xl bg-[#F4F7F6] border border-[#E5E7EB] text-xs sm:text-sm text-neutral-600 leading-relaxed">
-                    {statusBadgeConfig[result.status]?.desc || 'Status pengajuan Anda tercatat pada sistem Embun.'}
+                  {/* Status Banner with Left Accent Bar (Xendit Style) */}
+                  <div className={`flex gap-3.5 p-5 rounded-2xl border ${
+                    result.status === 'NEEDS_REVISION'
+                      ? 'bg-amber-50/70 border-amber-200/80'
+                      : result.status === 'APPROVED'
+                      ? 'bg-emerald-50/70 border-emerald-200/80'
+                      : 'bg-blue-50/60 border-blue-200/80'
+                  }`}>
+                    <div className={`w-1 self-stretch rounded-full shrink-0 ${
+                      result.status === 'NEEDS_REVISION'
+                        ? 'bg-amber-500'
+                        : result.status === 'APPROVED'
+                        ? 'bg-emerald-500'
+                        : 'bg-[#0841B5]'
+                    }`} />
+                    <div className="space-y-0.5">
+                      <h5 className="text-sm sm:text-base font-bold text-neutral-900">
+                        {statusBadgeConfig[result.status]?.label || 'Memeriksa Pengajuan Anda...'}
+                      </h5>
+                      <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed font-medium">
+                        {statusBadgeConfig[result.status]?.desc || 'Status pengajuan Anda tercatat pada sistem Embun.'}
+                      </p>
+                    </div>
                   </div>
 
                   {resubmitSuccessMsg && (
@@ -865,53 +888,43 @@ export default function MitraRegisterPage() {
                     </div>
                   )}
 
-                  {/* ── NOTIFIKASI CATATAN KURASI JIKA PERLU REVISI ─────────────────── */}
+                  {/* ── TABS (ONLY WHEN NEEDS_REVISION) ────────────────────────── */}
                   {result.status === 'NEEDS_REVISION' && (
-                    <div className="p-6 sm:p-7 rounded-3xl bg-amber-50/90 border-2 border-amber-300 shadow-xs space-y-4">
-                      <div className="flex items-start gap-3.5">
-                        <div className="p-2.5 bg-amber-100 rounded-2xl text-amber-800 shrink-0 mt-0.5">
-                          <AlertCircle className="h-6 w-6 text-amber-700" />
-                        </div>
-                        <div className="space-y-1">
-                          <h5 className="text-base font-black text-amber-950">
-                            Pengajuan Anda Memerlukan Perbaikan Data
-                          </h5>
-                          <p className="text-xs sm:text-sm text-amber-900 leading-relaxed font-medium">
-                            Hanya kolom data yang ditandai <strong>"Perlu Diperbaiki"</strong> di bawah ini yang harus Anda ubah.
-                          </p>
-                        </div>
-                      </div>
+                    <div className="flex border-b border-neutral-200 gap-4 sm:gap-8 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setStatusTab('revision')}
+                        className={`pb-3 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
+                          statusTab === 'revision'
+                            ? 'border-[#0841B5] text-[#0841B5]'
+                            : 'border-transparent text-neutral-400 hover:text-neutral-700'
+                        }`}
+                      >
+                        <span>Formulir Perbaikan Data</span>
+                        <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[10px] font-black">
+                          {result.revisionSections ? result.revisionSections.split(',').filter(Boolean).length : '1'} Perlu Revisi
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setStatusTab('details')}
+                        className={`pb-3 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
+                          statusTab === 'details'
+                            ? 'border-[#0841B5] text-[#0841B5]'
+                            : 'border-transparent text-neutral-400 hover:text-neutral-700'
+                        }`}
+                      >
+                        <span>Rincian Data Terkirim</span>
+                      </button>
+                    </div>
+                  )}
 
-                      {/* Revision Badges */}
-                      {(() => {
-                        const revs = result.revisionSections
-                          ? result.revisionSections.split(',').map((s) => s.trim()).filter(Boolean)
-                          : [];
-                        if (revs.length > 0) {
-                          return (
-                            <div className="space-y-2 pt-1 border-t border-amber-200/80">
-                              <span className="text-[11px] font-bold uppercase tracking-wider text-amber-800 block">
-                                Kolom yang Ditandai Perlu Direvisi:
-                              </span>
-                              <div className="flex flex-wrap gap-2">
-                                {revs.map((key) => (
-                                  <span
-                                    key={key}
-                                    className="px-3 py-1.5 rounded-xl bg-amber-100 border border-amber-300/80 text-amber-950 font-bold text-xs flex items-center gap-1.5 shadow-2xs"
-                                  >
-                                    <span className="h-2 w-2 rounded-full bg-amber-600" />
-                                    {FIELD_TITLE_MAP[key] || SECTION_TITLE_MAP[key] || key}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          );
-                        }
-                        return null;
-                      })()}
-
+                  {/* ── TAB 1: FORMULIR PERBAIKAN DATA (REVISION TAB) ──────────── */}
+                  {result.status === 'NEEDS_REVISION' && statusTab === 'revision' && (
+                    <div className="space-y-6 pt-2">
+                      {/* Reviewer Note Box */}
                       {result.reviewNote && (
-                        <div className="p-4 rounded-2xl bg-white border border-amber-200/80 space-y-1">
+                        <div className="p-5 rounded-2xl bg-amber-50 border border-amber-200 space-y-1">
                           <span className="text-[11px] font-bold uppercase tracking-wider text-amber-800 block">
                             Catatan dari Reviewer Embun:
                           </span>
@@ -920,682 +933,630 @@ export default function MitraRegisterPage() {
                           </p>
                         </div>
                       )}
-                    </div>
-                  )}
 
-                  {result.status !== 'NEEDS_REVISION' && result.reviewNote && (
-                    <div className="p-5 rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-1.5">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-amber-800 block">
-                        Catatan dari Tim Reviewer Embun:
-                      </span>
-                      <p className="text-xs sm:text-sm text-amber-900 leading-relaxed font-medium">
-                        {result.reviewNote}
-                      </p>
-                    </div>
-                  )}
+                      <div className="space-y-1">
+                        <h6 className="text-xs font-bold uppercase tracking-wider text-neutral-500">
+                          Kolom yang Perlu Diperbaiki
+                        </h6>
+                        <p className="text-xs text-neutral-500">
+                          Silakan sesuaikan data pada kolom di bawah ini. Data sebelumnya tetap dicantumkan sebagai referensi.
+                        </p>
+                      </div>
 
-                  {/* ── 5 DATA CARDS (GRANULAR FIELD-LEVEL REVISION) ──────── */}
-                  <div className="space-y-6 pt-4 border-t border-[#E5E7EB]">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                      <h5 className="text-xs sm:text-sm font-bold text-neutral-900 uppercase tracking-wider">
-                        {result.status === 'NEEDS_REVISION' ? 'Formulir Data Kemitraan & Perbaikan' : 'Rincian Berkas & Data yang Diajukan'}
-                      </h5>
-                      {result.createdAt && (
-                        <span className="text-[11px] text-neutral-400">
-                          Diajukan pada: {new Date(result.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="grid gap-5 sm:grid-cols-2">
-                      {/* CARD 1: INFORMASI PEMILIK / PIC */}
-                      {(() => {
-                        const needsRev = isSectionNeedsRevision('owner', ['ownerName', 'email', 'phone']);
-                        return (
-                          <div className={`p-6 rounded-3xl transition-all space-y-4 shadow-xs ${
-                            needsRev ? 'bg-amber-50/40 border-2 border-amber-300' : 'bg-[#F4F7F6]/60 border border-[#E5E7EB]'
-                          }`}>
-                            <div className="flex items-center justify-between">
-                              <h6 className="text-xs sm:text-sm font-bold text-neutral-900 uppercase tracking-wider">
-                                Informasi Pemilik / PIC
-                              </h6>
-                              {needsRev && (
-                                <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
-                                  Perlu Revisi
-                                </span>
-                              )}
-                            </div>
-
-                            <div className="space-y-3 pt-1 text-xs">
-                              {/* Field: ownerName */}
-                              {isFieldNeedsRevision('ownerName', 'owner') ? (
-                                <div>
-                                  <label className="block text-xs font-bold text-amber-900 mb-1">
-                                    Nama Lengkap Pemilik / PIC * <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
-                                  </label>
-                                  <input
-                                    type="text"
-                                    value={form.ownerName}
-                                    onChange={(e) => update('ownerName', e.target.value)}
-                                    className="w-full px-3.5 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none font-medium"
-                                  />
-                                </div>
-                              ) : (
-                                <div>
-                                  <span className="text-neutral-400 block text-[11px]">Nama Lengkap:</span>
-                                  <span className="font-semibold text-neutral-800 text-xs sm:text-sm">{result.ownerName}</span>
-                                </div>
-                              )}
-
-                              {/* Field: email */}
-                              {isFieldNeedsRevision('email', 'owner') ? (
-                                <div>
-                                  <label className="block text-xs font-bold text-amber-900 mb-1">
-                                    Email Terdaftar * <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
-                                  </label>
-                                  <input
-                                    type="email"
-                                    value={form.email}
-                                    onChange={(e) => update('email', e.target.value)}
-                                    className="w-full px-3.5 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none font-medium"
-                                  />
-                                </div>
-                              ) : (
-                                <div>
-                                  <span className="text-neutral-400 block text-[11px]">Email Terdaftar:</span>
-                                  <span className="font-semibold text-neutral-800 text-xs sm:text-sm">{result.email}</span>
-                                </div>
-                              )}
-
-                              {/* Field: phone */}
-                              {isFieldNeedsRevision('phone', 'owner') ? (
-                                <div>
-                                  <label className="block text-xs font-bold text-amber-900 mb-1">
-                                    Nomor WhatsApp PIC * <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
-                                  </label>
-                                  <div className="relative">
-                                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-neutral-500">+62</span>
-                                    <input
-                                      type="tel"
-                                      value={form.phone}
-                                      onChange={(e) => update('phone', normalizePhone(e.target.value))}
-                                      className="w-full pl-12 pr-4 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none font-semibold text-neutral-900"
-                                    />
-                                  </div>
-                                </div>
-                              ) : (
-                                <div>
-                                  <span className="text-neutral-400 block text-[11px]">Nomor WhatsApp:</span>
-                                  <span className="font-semibold text-neutral-800 text-xs sm:text-sm">{result.phone}</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })()}
-
-                      {/* CARD 2: LEGALITAS & KTP */}
-                      {(() => {
-                        const needsRev = isSectionNeedsRevision('ktp', ['ktpNumber', 'ownerAddress', 'ktpPhoto']);
-                        return (
-                          <div className={`p-6 rounded-3xl transition-all space-y-4 shadow-xs ${
-                            needsRev ? 'bg-amber-50/40 border-2 border-amber-300' : 'bg-[#F4F7F6]/60 border border-[#E5E7EB]'
-                          }`}>
-                            <div className="flex items-center justify-between">
-                              <h6 className="text-xs sm:text-sm font-bold text-neutral-900 uppercase tracking-wider">
-                                Legalitas & Foto KTP
-                              </h6>
-                              {needsRev && (
-                                <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
-                                  Perlu Revisi
-                                </span>
-                              )}
-                            </div>
-
-                            <div className="space-y-3 pt-1 text-xs">
-                              {/* Field: ktpNumber */}
-                              {isFieldNeedsRevision('ktpNumber', 'ktp') ? (
-                                <div>
-                                  <label className="block text-xs font-bold text-amber-900 mb-1">
-                                    Nomor Induk Kependudukan (NIK) * <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
-                                  </label>
-                                  <input
-                                    type="text"
-                                    maxLength={16}
-                                    value={form.ktpNumber}
-                                    onChange={(e) => update('ktpNumber', e.target.value.replace(/\D/g, ''))}
-                                    className="w-full px-3.5 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none font-medium"
-                                  />
-                                </div>
-                              ) : (
-                                <div>
-                                  <span className="text-neutral-400 block text-[11px]">Nomor Induk Kependudukan (NIK):</span>
-                                  <span className="font-semibold text-neutral-800 text-xs sm:text-sm">{result.ktpNumber || '-'}</span>
-                                </div>
-                              )}
-
-                              {/* Field: ownerAddress */}
-                              {isFieldNeedsRevision('ownerAddress', 'ktp') ? (
-                                <div>
-                                  <label className="block text-xs font-bold text-amber-900 mb-1">
-                                    Alamat Domisili KTP * <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
-                                  </label>
-                                  <textarea
-                                    rows={2}
-                                    value={form.ownerAddress}
-                                    onChange={(e) => update('ownerAddress', e.target.value)}
-                                    className="w-full px-3.5 py-2 bg-white border-2 border-amber-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none font-medium"
-                                  />
-                                </div>
-                              ) : (
-                                <div>
-                                  <span className="text-neutral-400 block text-[11px]">Alamat Domisili KTP:</span>
-                                  <span className="font-medium text-neutral-700 leading-relaxed text-xs sm:text-sm">{result.ownerAddress || '-'}</span>
-                                </div>
-                              )}
-
-                              {/* Field: ktpPhoto */}
-                              {isFieldNeedsRevision('ktpPhoto', 'ktp') ? (
-                                <div>
-                                  <label className="block text-xs font-bold text-amber-900 mb-1">
-                                    Upload / Ganti Foto KTP <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
-                                  </label>
-                                  <div
-                                    onDragOver={handleDragOver}
-                                    onDragLeave={handleDragLeave}
-                                    onDrop={handleDrop}
-                                    className={`relative border-2 border-dashed rounded-2xl p-4 text-center transition-all bg-white ${
-                                      isDragging ? 'border-[#0841B5] bg-blue-50/40' : 'border-amber-300 hover:border-amber-400'
-                                    }`}
-                                  >
-                                    <input
-                                      type="file"
-                                      accept="image/jpeg,image/png,image/webp"
-                                      onChange={(e) => handleKtpChange(e.target.files?.[0] || null)}
-                                      className="hidden"
-                                      id="ktp-upload-compro-status-revision"
-                                    />
-                                    {ktpPreviewUrl ? (
-                                      <div className="flex items-center justify-between gap-2">
-                                        <div className="flex items-center gap-2">
-                                          <div className="h-10 w-14 rounded-lg overflow-hidden border border-neutral-200 bg-neutral-100 shrink-0">
-                                            <img src={ktpPreviewUrl} alt="KTP" className="h-full w-full object-cover" />
-                                          </div>
-                                          <button
-                                            type="button"
-                                            onClick={() => setShowKtpModal(true)}
-                                            className="text-xs font-bold text-[#0841B5] hover:underline"
-                                          >
-                                            Lihat Foto
-                                          </button>
-                                        </div>
-                                        <label
-                                          htmlFor="ktp-upload-compro-status-revision"
-                                          className="px-3 py-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-950 font-bold text-xs cursor-pointer"
-                                        >
-                                          Ganti Foto
-                                        </label>
-                                      </div>
-                                    ) : (
-                                      <label htmlFor="ktp-upload-compro-status-revision" className="cursor-pointer block space-y-1">
-                                        <UploadCloud className="h-6 w-6 text-amber-600 mx-auto" />
-                                        <span className="text-xs font-bold text-amber-900 block">Klik atau Drag Foto KTP Baru</span>
-                                      </label>
-                                    )}
-                                  </div>
-                                </div>
-                              ) : (
-                                result.ktpPhotoUrl && (
-                                  <div>
-                                    <span className="text-neutral-400 block text-[11px] mb-1">Foto KTP:</span>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        const url = result.ktpPhotoUrl?.startsWith('http')
-                                          ? result.ktpPhotoUrl
-                                          : `${API_BASE_URL}${result.ktpPhotoUrl}`;
-                                        setKtpPreviewUrl(url);
-                                        setShowKtpModal(true);
-                                      }}
-                                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#E5E7EB] text-[#0841B5] hover:border-[#0841B5] text-[11px] font-bold shadow-2xs transition-all cursor-pointer"
-                                    >
-                                      <Eye className="h-3.5 w-3.5" />
-                                      <span>Lihat Foto KTP Terlampir</span>
-                                    </button>
-                                  </div>
-                                )
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })()}
-
-                      {/* CARD 3: PROFIL TEMPAT CAMP */}
-                      {(() => {
-                        const needsRev = isSectionNeedsRevision('campsite', ['campsiteName', 'campsiteType', 'campsitePhone', 'campsiteEmail', 'instagramUrl', 'tiktokUrl']);
-                        return (
-                          <div className={`p-6 rounded-3xl transition-all space-y-4 shadow-xs ${
-                            needsRev ? 'bg-amber-50/40 border-2 border-amber-300' : 'bg-[#F4F7F6]/60 border border-[#E5E7EB]'
-                          }`}>
-                            <div className="flex items-center justify-between">
-                              <h6 className="text-xs sm:text-sm font-bold text-neutral-900 uppercase tracking-wider">
-                                Profil Tempat Camp
-                              </h6>
-                              {needsRev && (
-                                <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
-                                  Perlu Revisi
-                                </span>
-                              )}
-                            </div>
-
-                            <div className="space-y-3 pt-1 text-xs">
-                              {/* Field: campsiteName */}
-                              {isFieldNeedsRevision('campsiteName', 'campsite') ? (
-                                <div>
-                                  <label className="block text-xs font-bold text-amber-900 mb-1">
-                                    Nama Tempat Camp * <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
-                                  </label>
-                                  <input
-                                    type="text"
-                                    value={form.campsiteName}
-                                    onChange={(e) => update('campsiteName', e.target.value)}
-                                    className="w-full px-3.5 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] outline-none font-medium"
-                                  />
-                                </div>
-                              ) : (
-                                <div>
-                                  <span className="text-neutral-400 block text-[11px]">Nama Campsite:</span>
-                                  <span className="font-semibold text-neutral-800 text-xs sm:text-sm">{result.campsiteName}</span>
-                                </div>
-                              )}
-
-                              {/* Field: campsiteType */}
-                              {isFieldNeedsRevision('campsiteType', 'campsite') ? (
-                                <div>
-                                  <label className="block text-xs font-bold text-amber-900 mb-1.5">
-                                    Tipe Properti <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
-                                  </label>
-                                  <div className="flex flex-wrap gap-1.5">
-                                    {PROPERTY_TYPES.map((t) => {
-                                      const isSelected = selectedTypes.includes(t);
-                                      return (
-                                        <button
-                                          key={t}
-                                          type="button"
-                                          onClick={() => togglePropertyType(t)}
-                                          className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                                            isSelected
-                                              ? 'bg-[#0841B5] text-white'
-                                              : 'bg-white border border-amber-200 text-neutral-700 hover:border-[#0841B5]'
-                                          }`}
-                                        >
-                                          {t}
-                                        </button>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              ) : (
-                                <div>
-                                  <span className="text-neutral-400 block text-[11px]">Tipe Properti:</span>
-                                  <span className="font-semibold text-neutral-800 text-xs sm:text-sm">{result.campsiteType || 'Tidak dicantumkan'}</span>
-                                </div>
-                              )}
-
-                              {/* Field: campsitePhone */}
-                              {isFieldNeedsRevision('campsitePhone', 'campsite') ? (
-                                <div>
-                                  <label className="block text-xs font-bold text-amber-900 mb-1">
-                                    No. WhatsApp Campsite * <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
-                                  </label>
-                                  <div className="relative">
-                                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-neutral-500">+62</span>
-                                    <input
-                                      type="tel"
-                                      value={form.campsitePhone}
-                                      onChange={(e) => update('campsitePhone', normalizePhone(e.target.value))}
-                                      className="w-full pl-12 pr-4 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] outline-none font-medium"
-                                    />
-                                  </div>
-                                </div>
-                              ) : (
-                                <div>
-                                  <span className="text-neutral-400 block text-[11px]">Kontak Operasional Camp:</span>
-                                  <span className="font-semibold text-neutral-800 text-xs sm:text-sm">{result.campsitePhone || result.phone}</span>
-                                </div>
-                              )}
-
-                              {/* Field: campsiteEmail */}
-                              {isFieldNeedsRevision('campsiteEmail', 'campsite') ? (
-                                <div>
-                                  <label className="block text-xs font-bold text-amber-900 mb-1">
-                                    Email Bisnis Camp (Opsional) <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
-                                  </label>
-                                  <input
-                                    type="email"
-                                    value={form.campsiteEmail}
-                                    onChange={(e) => update('campsiteEmail', e.target.value)}
-                                    placeholder="camp@domain.com"
-                                    className="w-full px-3.5 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] outline-none"
-                                  />
-                                </div>
-                              ) : (
-                                result.campsiteEmail && (
-                                  <div>
-                                    <span className="text-neutral-400 block text-[11px]">Email Bisnis:</span>
-                                    <span className="font-semibold text-neutral-800 text-xs sm:text-sm">{result.campsiteEmail}</span>
-                                  </div>
-                                )
-                              )}
-
-                              {/* Field: Socials (Instagram & TikTok) */}
-                              {isFieldNeedsRevision('instagramUrl', 'campsite') || isFieldNeedsRevision('tiktokUrl', 'campsite') ? (
-                                <div className="grid grid-cols-2 gap-2 pt-1">
-                                  <div>
-                                    <label className="block text-[11px] font-bold text-amber-900 mb-1">Instagram</label>
-                                    <input
-                                      type="text"
-                                      value={form.instagramUrl}
-                                      onChange={(e) => update('instagramUrl', e.target.value)}
-                                      placeholder="instagram.com/..."
-                                      className="w-full px-2.5 py-2 bg-white border border-amber-300 rounded-lg text-xs outline-none"
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="block text-[11px] font-bold text-amber-900 mb-1">TikTok / Website</label>
-                                    <input
-                                      type="text"
-                                      value={form.tiktokUrl}
-                                      onChange={(e) => update('tiktokUrl', e.target.value)}
-                                      placeholder="tiktok.com/@..."
-                                      className="w-full px-2.5 py-2 bg-white border border-amber-300 rounded-lg text-xs outline-none"
-                                    />
-                                  </div>
-                                </div>
-                              ) : (
-                                <>
-                                  {result.instagramUrl && (
-                                    <div>
-                                      <span className="text-neutral-400 block text-[11px]">Instagram:</span>
-                                      <span className="font-semibold text-neutral-800 text-xs sm:text-sm">{result.instagramUrl}</span>
-                                    </div>
-                                  )}
-                                  {result.tiktokUrl && (
-                                    <div>
-                                      <span className="text-neutral-400 block text-[11px]">TikTok / Website:</span>
-                                      <span className="font-semibold text-neutral-800 text-xs sm:text-sm">{result.tiktokUrl}</span>
-                                    </div>
-                                  )}
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })()}
-
-                      {/* CARD 4: REKENING PENCAIRAN (PAYOUT) */}
-                      {(() => {
-                        const needsRev = isSectionNeedsRevision('bank', ['bankName', 'bankAccountNumber', 'bankAccountHolder']);
-                        return (
-                          <div className={`p-6 rounded-3xl transition-all space-y-4 shadow-xs ${
-                            needsRev ? 'bg-amber-50/40 border-2 border-amber-300' : 'bg-[#F4F7F6]/60 border border-[#E5E7EB]'
-                          }`}>
-                            <div className="flex items-center justify-between">
-                              <h6 className="text-xs sm:text-sm font-bold text-neutral-900 uppercase tracking-wider">
-                                Rekening Pencairan Dana (Payout)
-                              </h6>
-                              {needsRev && (
-                                <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
-                                  Perlu Revisi
-                                </span>
-                              )}
-                            </div>
-
-                            <div className="space-y-3 pt-1 text-xs">
-                              {/* Field: bankName */}
-                              {isFieldNeedsRevision('bankName', 'bank') ? (
-                                <div>
-                                  <label className="block text-xs font-bold text-amber-900 mb-1">
-                                    Nama Bank * <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
-                                  </label>
-                                  <div className="relative">
-                                    <select
-                                      value={form.bankName}
-                                      onChange={(e) => update('bankName', e.target.value)}
-                                      className="w-full px-3.5 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none appearance-none cursor-pointer"
-                                    >
-                                      <option value="">Pilih Bank</option>
-                                      {POPULAR_BANKS.map((b) => (
-                                        <option key={b} value={b}>{b}</option>
-                                      ))}
-                                    </select>
-                                    <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                                  </div>
-                                </div>
-                              ) : (
-                                <div>
-                                  <span className="text-neutral-400 block text-[11px]">Nama Bank:</span>
-                                  <span className="font-semibold text-neutral-800 text-xs sm:text-sm">{result.bankName}</span>
-                                </div>
-                              )}
-
-                              {/* Field: bankAccountNumber */}
-                              {isFieldNeedsRevision('bankAccountNumber', 'bank') ? (
-                                <div>
-                                  <label className="block text-xs font-bold text-amber-900 mb-1">
-                                    Nomor Rekening * <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
-                                  </label>
-                                  <input
-                                    type="text"
-                                    value={form.bankAccountNumber}
-                                    onChange={(e) => update('bankAccountNumber', e.target.value.replace(/\D/g, ''))}
-                                    className="w-full px-3.5 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] outline-none font-mono"
-                                  />
-                                </div>
-                              ) : (
-                                <div>
-                                  <span className="text-neutral-400 block text-[11px]">Nomor Rekening:</span>
-                                  <span className="font-semibold text-neutral-800 tracking-wider text-xs sm:text-sm">{result.bankAccountNumber}</span>
-                                </div>
-                              )}
-
-                              {/* Field: bankAccountHolder */}
-                              {isFieldNeedsRevision('bankAccountHolder', 'bank') ? (
-                                <div>
-                                  <label className="block text-xs font-bold text-amber-900 mb-1">
-                                    Nama Pemilik Rekening * <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
-                                  </label>
-                                  <input
-                                    type="text"
-                                    value={form.bankAccountHolder}
-                                    onChange={(e) => update('bankAccountHolder', e.target.value)}
-                                    className="w-full px-3.5 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] outline-none font-medium"
-                                  />
-                                </div>
-                              ) : (
-                                <div>
-                                  <span className="text-neutral-400 block text-[11px]">Nama Pemilik Rekening:</span>
-                                  <span className="font-semibold text-neutral-800 text-xs sm:text-sm">{result.bankAccountHolder}</span>
-                                </div>
-                              )}
-
-                              <div className="flex items-center gap-1.5 text-[11px] text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg w-fit border border-emerald-200 mt-2">
-                                <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
-                                <span>Rekening siap untuk payout reservasi</span>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })()}
-                    </div>
-
-                    {/* CARD 5: LOKASI & ALAMAT CAMPSITE (FULL WIDTH) */}
-                    {(() => {
-                      const needsRev = isSectionNeedsRevision('location', ['provinceCity', 'district', 'campsiteAddress', 'googleMapsUrl']);
-                      return (
-                        <div className={`p-6 rounded-3xl transition-all space-y-4 shadow-xs ${
-                          needsRev ? 'bg-amber-50/40 border-2 border-amber-300' : 'bg-[#F4F7F6]/60 border border-[#E5E7EB]'
-                        }`}>
-                          <div className="flex items-center justify-between">
-                            <h6 className="text-xs sm:text-sm font-bold text-neutral-900 uppercase tracking-wider">
-                              Lokasi & Alamat Campsite
-                            </h6>
-                            {needsRev && (
-                              <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
-                                Perlu Revisi
-                              </span>
-                            )}
-                          </div>
-
-                          <div className="space-y-3 pt-1 text-xs">
-                            {/* Field: Province / City / District */}
-                            {isFieldNeedsRevision('provinceCity', 'location') || isFieldNeedsRevision('district', 'location') ? (
-                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <div>
-                                  <label className="block text-xs font-bold text-amber-900 mb-1">Provinsi *</label>
-                                  <div className="relative">
-                                    <select
-                                      value={selectedProvinceId}
-                                      onChange={(e) => handleProvinceChange(e.target.value)}
-                                      className="w-full px-3 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-xs outline-none appearance-none"
-                                    >
-                                      <option value="">{form.province || 'Pilih Provinsi'}</option>
-                                      {provinces.map((p) => (
-                                        <option key={p.id} value={p.id}>{toTitleCase(p.name)}</option>
-                                      ))}
-                                    </select>
-                                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-400" />
-                                  </div>
-                                </div>
-                                <div>
-                                  <label className="block text-xs font-bold text-amber-900 mb-1">Kota / Kabupaten *</label>
-                                  <div className="relative">
-                                    <select
-                                      value={selectedCityId}
-                                      onChange={(e) => handleCityChange(e.target.value)}
-                                      className="w-full px-3 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-xs outline-none appearance-none"
-                                    >
-                                      <option value="">{form.city || 'Pilih Kota'}</option>
-                                      {cities.map((c) => (
-                                        <option key={c.id} value={c.id}>{toTitleCase(c.name)}</option>
-                                      ))}
-                                    </select>
-                                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-400" />
-                                  </div>
-                                </div>
-                                <div>
-                                  <label className="block text-xs font-bold text-amber-900 mb-1">Kecamatan (Opsional)</label>
-                                  <div className="relative">
-                                    <select
-                                      value={districts.find((d) => toTitleCase(d.name) === form.district)?.id || ''}
-                                      onChange={(e) => handleDistrictChange(e.target.value)}
-                                      className="w-full px-3 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-xs outline-none appearance-none"
-                                    >
-                                      <option value="">{form.district || 'Pilih Kecamatan'}</option>
-                                      {districts.map((d) => (
-                                        <option key={d.id} value={d.id}>{toTitleCase(d.name)}</option>
-                                      ))}
-                                    </select>
-                                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-400" />
-                                  </div>
-                                </div>
-                              </div>
-                            ) : (
-                              <div>
-                                <span className="text-neutral-400 block text-[11px]">Wilayah:</span>
-                                <span className="font-semibold text-neutral-800 text-xs sm:text-sm">
-                                  {result.district ? `${result.district}, ` : ''}{result.city}, {result.province}
-                                </span>
-                              </div>
-                            )}
-
-                            {/* Field: campsiteAddress */}
-                            {isFieldNeedsRevision('campsiteAddress', 'location') ? (
-                              <div>
-                                <label className="block text-xs font-bold text-amber-900 mb-1">
-                                  Alamat Lengkap Campsite * <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
-                                </label>
-                                <textarea
-                                  rows={2}
-                                  value={form.campsiteAddress}
-                                  onChange={(e) => update('campsiteAddress', e.target.value)}
-                                  className="w-full px-3.5 py-2 bg-white border-2 border-amber-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] outline-none font-medium"
-                                />
-                              </div>
-                            ) : (
-                              <div>
-                                <span className="text-neutral-400 block text-[11px]">Alamat Lengkap Campsite:</span>
-                                <p className="font-semibold text-neutral-800 leading-relaxed text-xs sm:text-sm">
-                                  {result.campsiteAddress}
-                                </p>
-                              </div>
-                            )}
-
-                            {/* Field: googleMapsUrl */}
-                            {isFieldNeedsRevision('googleMapsUrl', 'location') ? (
-                              <div>
-                                <label className="block text-xs font-bold text-amber-900 mb-1">
-                                  Link Titik Google Maps <span className="text-amber-600 font-normal">(Perlu Diperbaiki)</span>
-                                </label>
-                                <div className="relative">
-                                  <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                                  <input
-                                    type="url"
-                                    value={form.googleMapsUrl}
-                                    onChange={(e) => update('googleMapsUrl', e.target.value)}
-                                    placeholder="https://maps.app.goo.gl/..."
-                                    className="w-full pl-10 pr-4 py-2.5 bg-white border-2 border-amber-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] outline-none"
-                                  />
-                                </div>
-                              </div>
-                            ) : (
-                              result.googleMapsUrl && (
-                                <div>
-                                  <span className="text-neutral-400 block text-[11px]">Link Titik Google Maps:</span>
-                                  <a
-                                    href={result.googleMapsUrl.startsWith('http') ? result.googleMapsUrl : `https://${result.googleMapsUrl}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="font-semibold text-[#0841B5] hover:underline text-xs sm:text-sm block break-all"
-                                  >
-                                    {result.googleMapsUrl}
-                                  </a>
-                                </div>
-                              )
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })()}
-
-                    {/* ── TOMBOL SUBMIT PERBAIKAN DATA JIKA NEEDS_REVISION ── */}
-                    {result.status === 'NEEDS_REVISION' && (
-                      <div className="pt-2">
-                        {error && (
-                          <div className="mb-4 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold">
-                            {error}
+                      {/* Focused Form Inputs Card */}
+                      <div className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-7 space-y-5 shadow-2xs">
+                        {/* 1. ownerName */}
+                        {isFieldNeedsRevision('ownerName', 'owner') && (
+                          <div className="space-y-1.5">
+                            <label className="block text-xs font-bold text-neutral-800">
+                              Nama Lengkap Pemilik / PIC *
+                            </label>
+                            <input
+                              type="text"
+                              value={form.ownerName}
+                              onChange={(e) => update('ownerName', e.target.value)}
+                              placeholder="Nama Lengkap"
+                              className="w-full px-4 py-2.5 bg-white border border-neutral-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none font-medium text-neutral-900"
+                            />
+                            <span className="text-[11px] text-neutral-400 block">Data sebelumnya: {result.ownerName}</span>
                           </div>
                         )}
-                        <div className="p-6 rounded-3xl bg-white border-2 border-[#0841B5]/30 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                          <div className="space-y-0.5">
-                            <h5 className="font-black text-sm sm:text-base text-[#191919]">Kirimkan Ulang Perbaikan Data</h5>
-                            <p className="text-xs text-neutral-500">
-                              Periksa kembali data yang telah Anda sesuaikan di atas sebelum dikirimkan ke tim kurasi.
-                            </p>
+
+                        {/* 2. email */}
+                        {isFieldNeedsRevision('email', 'owner') && (
+                          <div className="space-y-1.5">
+                            <label className="block text-xs font-bold text-neutral-800">
+                              Email Terdaftar *
+                            </label>
+                            <input
+                              type="email"
+                              value={form.email}
+                              onChange={(e) => update('email', e.target.value)}
+                              placeholder="email@domain.com"
+                              className="w-full px-4 py-2.5 bg-white border border-neutral-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none font-medium text-neutral-900"
+                            />
+                            <span className="text-[11px] text-neutral-400 block">Data sebelumnya: {result.email}</span>
                           </div>
-                          <button
-                            type="button"
-                            disabled={submitting}
-                            onClick={resubmit}
-                            className="inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl bg-[#0841B5] hover:bg-[#0841B5]/90 text-white font-bold text-xs sm:text-sm shadow-md transition-all cursor-pointer disabled:opacity-50 shrink-0"
-                          >
-                            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                            <span>Kirim Ulang Revisi Data</span>
-                          </button>
+                        )}
+
+                        {/* 3. phone */}
+                        {isFieldNeedsRevision('phone', 'owner') && (
+                          <div className="space-y-1.5">
+                            <label className="block text-xs font-bold text-neutral-800">
+                              Nomor WhatsApp PIC *
+                            </label>
+                            <div className="relative">
+                              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs sm:text-sm font-bold text-neutral-500">+62</span>
+                              <input
+                                type="tel"
+                                value={form.phone}
+                                onChange={(e) => update('phone', normalizePhone(e.target.value))}
+                                placeholder="81234567890"
+                                className="w-full pl-12 pr-4 py-2.5 bg-white border border-neutral-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none font-medium text-neutral-900"
+                              />
+                            </div>
+                            <span className="text-[11px] text-neutral-400 block">Data sebelumnya: +62 {result.phone}</span>
+                          </div>
+                        )}
+
+                        {/* 4. ktpNumber */}
+                        {isFieldNeedsRevision('ktpNumber', 'ktp') && (
+                          <div className="space-y-1.5">
+                            <label className="block text-xs font-bold text-neutral-800">
+                              Nomor Induk Kependudukan (NIK) *
+                            </label>
+                            <input
+                              type="text"
+                              maxLength={16}
+                              value={form.ktpNumber}
+                              onChange={(e) => update('ktpNumber', e.target.value.replace(/\D/g, ''))}
+                              placeholder="16 digit NIK KTP"
+                              className="w-full px-4 py-2.5 bg-white border border-neutral-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none font-mono text-neutral-900"
+                            />
+                            <span className="text-[11px] text-neutral-400 block">Data sebelumnya: {result.ktpNumber || '-'}</span>
+                          </div>
+                        )}
+
+                        {/* 5. ownerAddress */}
+                        {isFieldNeedsRevision('ownerAddress', 'ktp') && (
+                          <div className="space-y-1.5">
+                            <label className="block text-xs font-bold text-neutral-800">
+                              Alamat Domisili KTP *
+                            </label>
+                            <textarea
+                              rows={2}
+                              value={form.ownerAddress}
+                              onChange={(e) => update('ownerAddress', e.target.value)}
+                              placeholder="Alamat lengkap sesuai KTP"
+                              className="w-full px-4 py-2.5 bg-white border border-neutral-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none font-medium text-neutral-900 leading-relaxed"
+                            />
+                            <span className="text-[11px] text-neutral-400 block">Data sebelumnya: {result.ownerAddress || '-'}</span>
+                          </div>
+                        )}
+
+                        {/* 6. ktpPhoto */}
+                        {isFieldNeedsRevision('ktpPhoto', 'ktp') && (
+                          <div className="space-y-1.5">
+                            <label className="block text-xs font-bold text-neutral-800">
+                              Upload / Ganti Foto KTP *
+                            </label>
+                            <div
+                              onDragOver={handleDragOver}
+                              onDragLeave={handleDragLeave}
+                              onDrop={handleDrop}
+                              className={`relative border-2 border-dashed rounded-2xl p-5 text-center transition-all bg-neutral-50/50 ${
+                                isDragging ? 'border-[#0841B5] bg-blue-50/40' : 'border-neutral-300 hover:border-neutral-400'
+                              }`}
+                            >
+                              <input
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                onChange={(e) => handleKtpChange(e.target.files?.[0] || null)}
+                                className="hidden"
+                                id="ktp-upload-status-revision-tab"
+                              />
+                              {ktpPreviewUrl ? (
+                                <div className="flex items-center justify-between gap-3">
+                                  <div className="flex items-center gap-3">
+                                    <div className="h-12 w-16 rounded-lg overflow-hidden border border-neutral-200 bg-neutral-100 shrink-0">
+                                      <img src={ktpPreviewUrl} alt="KTP" className="h-full w-full object-cover" />
+                                    </div>
+                                    <div className="text-left">
+                                      <span className="text-xs font-bold text-neutral-900 block">Foto KTP Terpilih</span>
+                                      <button
+                                        type="button"
+                                        onClick={() => setShowKtpModal(true)}
+                                        className="text-xs font-bold text-[#0841B5] hover:underline cursor-pointer"
+                                      >
+                                        Lihat Preview
+                                      </button>
+                                    </div>
+                                  </div>
+                                  <label
+                                    htmlFor="ktp-upload-status-revision-tab"
+                                    className="px-3.5 py-1.5 rounded-xl bg-neutral-200 hover:bg-neutral-300 text-neutral-800 font-bold text-xs cursor-pointer"
+                                  >
+                                    Ganti File
+                                  </label>
+                                </div>
+                              ) : (
+                                <label htmlFor="ktp-upload-status-revision-tab" className="cursor-pointer block space-y-1">
+                                  <UploadCloud className="h-7 w-7 text-neutral-400 mx-auto" />
+                                  <span className="text-xs font-bold text-neutral-800 block">Klik atau Drag Foto KTP Baru</span>
+                                  <span className="text-[11px] text-neutral-500 block">Format JPG, PNG, atau WEBP</span>
+                                </label>
+                              )}
+                            </div>
+                            {result.ktpPhotoUrl && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const url = result.ktpPhotoUrl?.startsWith('http')
+                                    ? result.ktpPhotoUrl
+                                    : `${API_BASE_URL}${result.ktpPhotoUrl}`;
+                                  setKtpPreviewUrl(url);
+                                  setShowKtpModal(true);
+                                }}
+                                className="text-[11px] font-semibold text-[#0841B5] hover:underline mt-1 inline-block"
+                              >
+                                Lihat Foto KTP Sebelumnya ↗
+                              </button>
+                            )}
+                          </div>
+                        )}
+
+                        {/* 7. campsiteName */}
+                        {isFieldNeedsRevision('campsiteName', 'campsite') && (
+                          <div className="space-y-1.5">
+                            <label className="block text-xs font-bold text-neutral-800">
+                              Nama Tempat Camp *
+                            </label>
+                            <input
+                              type="text"
+                              value={form.campsiteName}
+                              onChange={(e) => update('campsiteName', e.target.value)}
+                              placeholder="Nama Campsite"
+                              className="w-full px-4 py-2.5 bg-white border border-neutral-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none font-medium text-neutral-900"
+                            />
+                            <span className="text-[11px] text-neutral-400 block">Data sebelumnya: {result.campsiteName}</span>
+                          </div>
+                        )}
+
+                        {/* 8. campsiteType */}
+                        {isFieldNeedsRevision('campsiteType', 'campsite') && (
+                          <div className="space-y-1.5">
+                            <label className="block text-xs font-bold text-neutral-800 mb-1">
+                              Tipe Properti *
+                            </label>
+                            <div className="flex flex-wrap gap-1.5">
+                              {PROPERTY_TYPES.map((t) => {
+                                const isSelected = selectedTypes.includes(t);
+                                return (
+                                  <button
+                                    key={t}
+                                    type="button"
+                                    onClick={() => togglePropertyType(t)}
+                                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                                      isSelected
+                                        ? 'bg-[#0841B5] text-white shadow-xs'
+                                        : 'bg-white border border-neutral-300 text-neutral-700 hover:border-[#0841B5]'
+                                    }`}
+                                  >
+                                    {t}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            <span className="text-[11px] text-neutral-400 block pt-0.5">Data sebelumnya: {result.campsiteType || '-'}</span>
+                          </div>
+                        )}
+
+                        {/* 9. campsitePhone */}
+                        {isFieldNeedsRevision('campsitePhone', 'campsite') && (
+                          <div className="space-y-1.5">
+                            <label className="block text-xs font-bold text-neutral-800">
+                              No. WhatsApp Campsite *
+                            </label>
+                            <div className="relative">
+                              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs sm:text-sm font-bold text-neutral-500">+62</span>
+                              <input
+                                type="tel"
+                                value={form.campsitePhone}
+                                onChange={(e) => update('campsitePhone', normalizePhone(e.target.value))}
+                                placeholder="81234567890"
+                                className="w-full pl-12 pr-4 py-2.5 bg-white border border-neutral-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none font-medium text-neutral-900"
+                              />
+                            </div>
+                            <span className="text-[11px] text-neutral-400 block">Data sebelumnya: +62 {result.campsitePhone || result.phone}</span>
+                          </div>
+                        )}
+
+                        {/* 10. campsiteEmail */}
+                        {isFieldNeedsRevision('campsiteEmail', 'campsite') && (
+                          <div className="space-y-1.5">
+                            <label className="block text-xs font-bold text-neutral-800">
+                              Email Bisnis Camp (Opsional)
+                            </label>
+                            <input
+                              type="email"
+                              value={form.campsiteEmail}
+                              onChange={(e) => update('campsiteEmail', e.target.value)}
+                              placeholder="camp@domain.com"
+                              className="w-full px-4 py-2.5 bg-white border border-neutral-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] outline-none font-medium text-neutral-900"
+                            />
+                            <span className="text-[11px] text-neutral-400 block">Data sebelumnya: {result.campsiteEmail || '-'}</span>
+                          </div>
+                        )}
+
+                        {/* 11. instagramUrl */}
+                        {isFieldNeedsRevision('instagramUrl', 'campsite') && (
+                          <div className="space-y-1.5">
+                            <label className="block text-xs font-bold text-neutral-800">
+                              Instagram
+                            </label>
+                            <input
+                              type="text"
+                              value={form.instagramUrl}
+                              onChange={(e) => update('instagramUrl', e.target.value)}
+                              placeholder="instagram.com/... atau @username"
+                              className="w-full px-4 py-2.5 bg-white border border-neutral-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] outline-none font-medium text-neutral-900"
+                            />
+                            <span className="text-[11px] text-neutral-400 block">Data sebelumnya: {result.instagramUrl || '-'}</span>
+                          </div>
+                        )}
+
+                        {/* 12. tiktokUrl */}
+                        {isFieldNeedsRevision('tiktokUrl', 'campsite') && (
+                          <div className="space-y-1.5">
+                            <label className="block text-xs font-bold text-neutral-800">
+                              TikTok / Website
+                            </label>
+                            <input
+                              type="text"
+                              value={form.tiktokUrl}
+                              onChange={(e) => update('tiktokUrl', e.target.value)}
+                              placeholder="tiktok.com/@..."
+                              className="w-full px-4 py-2.5 bg-white border border-neutral-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] outline-none font-medium text-neutral-900"
+                            />
+                            <span className="text-[11px] text-neutral-400 block">Data sebelumnya: {result.tiktokUrl || '-'}</span>
+                          </div>
+                        )}
+
+                        {/* 13. bankName */}
+                        {isFieldNeedsRevision('bankName', 'bank') && (
+                          <div className="space-y-1.5">
+                            <label className="block text-xs font-bold text-neutral-800">
+                              Nama Bank *
+                            </label>
+                            <div className="relative">
+                              <select
+                                value={form.bankName}
+                                onChange={(e) => update('bankName', e.target.value)}
+                                className="w-full px-4 py-2.5 bg-white border border-neutral-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] outline-none appearance-none font-medium text-neutral-900 cursor-pointer"
+                              >
+                                <option value="">Pilih Bank</option>
+                                {POPULAR_BANKS.map((b) => (
+                                  <option key={b} value={b}>{b}</option>
+                                ))}
+                              </select>
+                              <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                            </div>
+                            <span className="text-[11px] text-neutral-400 block">Data sebelumnya: {result.bankName}</span>
+                          </div>
+                        )}
+
+                        {/* 14. bankAccountNumber */}
+                        {isFieldNeedsRevision('bankAccountNumber', 'bank') && (
+                          <div className="space-y-1.5">
+                            <label className="block text-xs font-bold text-neutral-800">
+                              Nomor Rekening *
+                            </label>
+                            <input
+                              type="text"
+                              value={form.bankAccountNumber}
+                              onChange={(e) => update('bankAccountNumber', e.target.value.replace(/\D/g, ''))}
+                              placeholder="Nomor rekening"
+                              className="w-full px-4 py-2.5 bg-white border border-neutral-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] outline-none font-mono text-neutral-900"
+                            />
+                            <span className="text-[11px] text-neutral-400 block">Data sebelumnya: {result.bankAccountNumber}</span>
+                          </div>
+                        )}
+
+                        {/* 15. bankAccountHolder */}
+                        {isFieldNeedsRevision('bankAccountHolder', 'bank') && (
+                          <div className="space-y-1.5">
+                            <label className="block text-xs font-bold text-neutral-800">
+                              Nama Pemilik Rekening *
+                            </label>
+                            <input
+                              type="text"
+                              value={form.bankAccountHolder}
+                              onChange={(e) => update('bankAccountHolder', e.target.value)}
+                              placeholder="Nama pemilik rekening sesuai buku tabungan"
+                              className="w-full px-4 py-2.5 bg-white border border-neutral-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] outline-none font-medium text-neutral-900"
+                            />
+                            <span className="text-[11px] text-neutral-400 block">Data sebelumnya: {result.bankAccountHolder}</span>
+                          </div>
+                        )}
+
+                        {/* 16. location / provinceCity / district */}
+                        {(isFieldNeedsRevision('provinceCity', 'location') || isFieldNeedsRevision('district', 'location') || isFieldNeedsRevision('location', 'location')) && (
+                          <div className="space-y-1.5">
+                            <label className="block text-xs font-bold text-neutral-800 mb-1">
+                              Wilayah (Provinsi, Kota / Kabupaten, Kecamatan) *
+                            </label>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                              <div className="relative">
+                                <select
+                                  value={selectedProvinceId}
+                                  onChange={(e) => handleProvinceChange(e.target.value)}
+                                  className="w-full px-3.5 py-2.5 bg-white border border-neutral-300 rounded-xl text-xs outline-none appearance-none"
+                                >
+                                  <option value="">{form.province || 'Pilih Provinsi'}</option>
+                                  {provinces.map((p) => (
+                                    <option key={p.id} value={p.id}>{toTitleCase(p.name)}</option>
+                                  ))}
+                                </select>
+                                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-400" />
+                              </div>
+                              <div className="relative">
+                                <select
+                                  value={selectedCityId}
+                                  onChange={(e) => handleCityChange(e.target.value)}
+                                  className="w-full px-3.5 py-2.5 bg-white border border-neutral-300 rounded-xl text-xs outline-none appearance-none"
+                                >
+                                  <option value="">{form.city || 'Pilih Kota'}</option>
+                                  {cities.map((c) => (
+                                    <option key={c.id} value={c.id}>{toTitleCase(c.name)}</option>
+                                  ))}
+                                </select>
+                                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-400" />
+                              </div>
+                              <div className="relative">
+                                <select
+                                  value={districts.find((d) => toTitleCase(d.name) === form.district)?.id || ''}
+                                  onChange={(e) => handleDistrictChange(e.target.value)}
+                                  className="w-full px-3.5 py-2.5 bg-white border border-neutral-300 rounded-xl text-xs outline-none appearance-none"
+                                >
+                                  <option value="">{form.district || 'Pilih Kecamatan'}</option>
+                                  {districts.map((d) => (
+                                    <option key={d.id} value={d.id}>{toTitleCase(d.name)}</option>
+                                  ))}
+                                </select>
+                                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-400" />
+                              </div>
+                            </div>
+                            <span className="text-[11px] text-neutral-400 block">Data sebelumnya: {result.district ? `${result.district}, ` : ''}{result.city}, {result.province}</span>
+                          </div>
+                        )}
+
+                        {/* 17. campsiteAddress */}
+                        {isFieldNeedsRevision('campsiteAddress', 'location') && (
+                          <div className="space-y-1.5">
+                            <label className="block text-xs font-bold text-neutral-800">
+                              Alamat Lengkap Campsite *
+                            </label>
+                            <textarea
+                              rows={2}
+                              value={form.campsiteAddress}
+                              onChange={(e) => update('campsiteAddress', e.target.value)}
+                              placeholder="Alamat jalan, nomor, RT/RW atau patokan"
+                              className="w-full px-4 py-2.5 bg-white border border-neutral-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] outline-none font-medium text-neutral-900 leading-relaxed"
+                            />
+                            <span className="text-[11px] text-neutral-400 block">Data sebelumnya: {result.campsiteAddress}</span>
+                          </div>
+                        )}
+
+                        {/* 18. googleMapsUrl */}
+                        {isFieldNeedsRevision('googleMapsUrl', 'location') && (
+                          <div className="space-y-1.5">
+                            <label className="block text-xs font-bold text-neutral-800">
+                              Link Titik Google Maps (Share Link)
+                            </label>
+                            <div className="relative">
+                              <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                              <input
+                                type="url"
+                                value={form.googleMapsUrl}
+                                onChange={(e) => update('googleMapsUrl', e.target.value)}
+                                placeholder="https://maps.app.goo.gl/..."
+                                className="w-full pl-10 pr-4 py-2.5 bg-white border border-neutral-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] outline-none font-medium text-neutral-900"
+                              />
+                            </div>
+                            <span className="text-[11px] text-neutral-400 block">Data sebelumnya: {result.googleMapsUrl || '-'}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Resubmit CTA Button */}
+                      <div className="p-5 sm:p-6 rounded-2xl bg-neutral-50 border border-neutral-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="space-y-0.5">
+                          <h6 className="font-bold text-sm text-neutral-900">Sudah Selesai Memperbaiki Data?</h6>
+                          <p className="text-xs text-neutral-500">
+                            Pastikan perubahan data di atas sudah benar sebelum mengirimkannya kembali ke tim kurasi.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          disabled={submitting}
+                          onClick={resubmit}
+                          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#0841B5] hover:bg-[#0841B5]/90 text-white font-bold text-xs sm:text-sm shadow-sm transition-all cursor-pointer disabled:opacity-50 shrink-0"
+                        >
+                          {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                          <span>Kirimkan Ulang Perbaikan Data</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ── TAB 2 / DEFAULT: RINCIAN DATA LENGKAP (XENDIT KYC CLEAN PREVIEW) ─ */}
+                  {(result.status !== 'NEEDS_REVISION' || statusTab === 'details') && (
+                    <div className="space-y-8 pt-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                        <h5 className="text-xs sm:text-sm font-bold text-neutral-900 uppercase tracking-wider">
+                          Rincian Berkas & Data yang Diajukan
+                        </h5>
+                        {result.createdAt && (
+                          <span className="text-[11px] text-neutral-400">
+                            Diajukan pada: {new Date(result.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Section 1: Informasi Pemilik / PIC */}
+                      <div className="space-y-2.5">
+                        <h6 className="text-xs font-bold uppercase tracking-wider text-neutral-500">
+                          Informasi Pemilik / PIC
+                        </h6>
+                        <div className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 divide-y divide-neutral-100 shadow-2xs">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-3 first:pt-0 last:pb-0">
+                            <span className="sm:col-span-1 text-xs text-neutral-400 font-medium">Nama Lengkap</span>
+                            <span className="sm:col-span-2 text-xs sm:text-sm text-neutral-900 font-semibold">{result.ownerName}</span>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-3 first:pt-0 last:pb-0">
+                            <span className="sm:col-span-1 text-xs text-neutral-400 font-medium">Email Terdaftar</span>
+                            <span className="sm:col-span-2 text-xs sm:text-sm text-neutral-900 font-semibold">{result.email}</span>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-3 first:pt-0 last:pb-0">
+                            <span className="sm:col-span-1 text-xs text-neutral-400 font-medium">Nomor WhatsApp</span>
+                            <span className="sm:col-span-2 text-xs sm:text-sm text-neutral-900 font-semibold">{result.phone}</span>
+                          </div>
                         </div>
                       </div>
-                    )}
-                  </div>
+
+                      {/* Section 2: Legalitas & Foto KTP */}
+                      <div className="space-y-2.5">
+                        <h6 className="text-xs font-bold uppercase tracking-wider text-neutral-500">
+                          Legalitas & Foto KTP
+                        </h6>
+                        <div className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 divide-y divide-neutral-100 shadow-2xs">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-3 first:pt-0 last:pb-0">
+                            <span className="sm:col-span-1 text-xs text-neutral-400 font-medium">Nomor Induk Kependudukan (NIK)</span>
+                            <span className="sm:col-span-2 text-xs sm:text-sm text-neutral-900 font-semibold font-mono">{result.ktpNumber || '-'}</span>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-3 first:pt-0 last:pb-0">
+                            <span className="sm:col-span-1 text-xs text-neutral-400 font-medium">Alamat Domisili KTP</span>
+                            <span className="sm:col-span-2 text-xs sm:text-sm text-neutral-900 font-semibold leading-relaxed">{result.ownerAddress || '-'}</span>
+                          </div>
+                          {result.ktpPhotoUrl && (
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-3 first:pt-0 last:pb-0 items-center">
+                              <span className="sm:col-span-1 text-xs text-neutral-400 font-medium">Foto KTP Terlampir</span>
+                              <div className="sm:col-span-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const url = result.ktpPhotoUrl?.startsWith('http')
+                                      ? result.ktpPhotoUrl
+                                      : `${API_BASE_URL}${result.ktpPhotoUrl}`;
+                                    setKtpPreviewUrl(url);
+                                    setShowKtpModal(true);
+                                  }}
+                                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 text-[#0841B5] text-xs font-bold transition-all cursor-pointer"
+                                >
+                                  <Eye className="h-3.5 w-3.5" />
+                                  <span>Lihat Foto KTP Terlampir</span>
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Section 3: Profil Tempat Camp */}
+                      <div className="space-y-2.5">
+                        <h6 className="text-xs font-bold uppercase tracking-wider text-neutral-500">
+                          Profil Tempat Camp
+                        </h6>
+                        <div className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 divide-y divide-neutral-100 shadow-2xs">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-3 first:pt-0 last:pb-0">
+                            <span className="sm:col-span-1 text-xs text-neutral-400 font-medium">Nama Campsite</span>
+                            <span className="sm:col-span-2 text-xs sm:text-sm text-neutral-900 font-semibold">{result.campsiteName}</span>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-3 first:pt-0 last:pb-0">
+                            <span className="sm:col-span-1 text-xs text-neutral-400 font-medium">Tipe Properti</span>
+                            <span className="sm:col-span-2 text-xs sm:text-sm text-neutral-900 font-semibold">{result.campsiteType || 'Tidak dicantumkan'}</span>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-3 first:pt-0 last:pb-0">
+                            <span className="sm:col-span-1 text-xs text-neutral-400 font-medium">Kontak Operasional Camp</span>
+                            <span className="sm:col-span-2 text-xs sm:text-sm text-neutral-900 font-semibold">{result.campsitePhone || result.phone}</span>
+                          </div>
+                          {result.campsiteEmail && (
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-3 first:pt-0 last:pb-0">
+                              <span className="sm:col-span-1 text-xs text-neutral-400 font-medium">Email Bisnis Camp</span>
+                              <span className="sm:col-span-2 text-xs sm:text-sm text-neutral-900 font-semibold">{result.campsiteEmail}</span>
+                            </div>
+                          )}
+                          {result.instagramUrl && (
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-3 first:pt-0 last:pb-0">
+                              <span className="sm:col-span-1 text-xs text-neutral-400 font-medium">Instagram</span>
+                              <span className="sm:col-span-2 text-xs sm:text-sm text-neutral-900 font-semibold">{result.instagramUrl}</span>
+                            </div>
+                          )}
+                          {result.tiktokUrl && (
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-3 first:pt-0 last:pb-0">
+                              <span className="sm:col-span-1 text-xs text-neutral-400 font-medium">TikTok / Website</span>
+                              <span className="sm:col-span-2 text-xs sm:text-sm text-neutral-900 font-semibold">{result.tiktokUrl}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Section 4: Rekening Pencairan Dana (Payout) */}
+                      <div className="space-y-2.5">
+                        <h6 className="text-xs font-bold uppercase tracking-wider text-neutral-500">
+                          Rekening Pencairan Dana (Payout)
+                        </h6>
+                        <div className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 divide-y divide-neutral-100 shadow-2xs">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-3 first:pt-0 last:pb-0">
+                            <span className="sm:col-span-1 text-xs text-neutral-400 font-medium">Nama Bank</span>
+                            <span className="sm:col-span-2 text-xs sm:text-sm text-neutral-900 font-semibold">{result.bankName}</span>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-3 first:pt-0 last:pb-0">
+                            <span className="sm:col-span-1 text-xs text-neutral-400 font-medium">Nomor Rekening</span>
+                            <span className="sm:col-span-2 text-xs sm:text-sm text-neutral-900 font-semibold font-mono tracking-wider">{result.bankAccountNumber}</span>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-3 first:pt-0 last:pb-0">
+                            <span className="sm:col-span-1 text-xs text-neutral-400 font-medium">Nama Pemilik Rekening</span>
+                            <span className="sm:col-span-2 text-xs sm:text-sm text-neutral-900 font-semibold">{result.bankAccountHolder}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Section 5: Lokasi & Alamat Campsite */}
+                      <div className="space-y-2.5">
+                        <h6 className="text-xs font-bold uppercase tracking-wider text-neutral-500">
+                          Lokasi & Alamat Campsite
+                        </h6>
+                        <div className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6 divide-y divide-neutral-100 shadow-2xs">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-3 first:pt-0 last:pb-0">
+                            <span className="sm:col-span-1 text-xs text-neutral-400 font-medium">Wilayah</span>
+                            <span className="sm:col-span-2 text-xs sm:text-sm text-neutral-900 font-semibold">
+                              {result.district ? `${result.district}, ` : ''}{result.city}, {result.province}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-3 first:pt-0 last:pb-0">
+                            <span className="sm:col-span-1 text-xs text-neutral-400 font-medium">Alamat Lengkap Campsite</span>
+                            <span className="sm:col-span-2 text-xs sm:text-sm text-neutral-900 font-semibold leading-relaxed">{result.campsiteAddress}</span>
+                          </div>
+                          {result.googleMapsUrl && (
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-3 first:pt-0 last:pb-0">
+                              <span className="sm:col-span-1 text-xs text-neutral-400 font-medium">Link Titik Google Maps</span>
+                              <div className="sm:col-span-2">
+                                <a
+                                  href={result.googleMapsUrl.startsWith('http') ? result.googleMapsUrl : `https://${result.googleMapsUrl}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs sm:text-sm font-semibold text-[#0841B5] hover:underline block break-all"
+                                >
+                                  {result.googleMapsUrl}
+                                </a>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
