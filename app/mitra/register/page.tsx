@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import {
   Building2,
+  Check,
   CheckCircle2,
   ChevronDown,
   CreditCard,
@@ -23,6 +24,16 @@ import {
   X,
 } from 'lucide-react';
 import { API_BASE_URL } from '@/lib/api-client';
+
+const PROPERTY_TYPES = [
+  'Camping Ground',
+  'Glamping',
+  'Cabin',
+  'Campervan',
+  'Motocamp',
+  'Bike Camp',
+  'Saung / Gazebo',
+] as const;
 
 type FormState = {
   ownerName: string;
@@ -217,6 +228,16 @@ export default function MitraRegisterPage() {
     const d = districts.find((item) => item.id === districtId);
     const districtName = d ? toTitleCase(d.name) : '';
     setForm((prev) => ({ ...prev, district: districtName }));
+  };
+
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+
+  const togglePropertyType = (type: string) => {
+    const updated = selectedTypes.includes(type)
+      ? selectedTypes.filter((t) => t !== type)
+      : [...selectedTypes, type];
+    setSelectedTypes(updated);
+    setForm((prev) => ({ ...prev, campsiteType: updated.join(', ') }));
   };
 
   const update = (key: keyof FormState, value: string) => {
@@ -851,16 +872,37 @@ export default function MitraRegisterPage() {
                       </div>
 
                       <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
-                          Tipe Properti (Opsional)
+                        <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-2">
+                          Tipe Properti (Bisa pilih lebih dari satu)
                         </label>
-                        <input
-                          type="text"
-                          value={form.campsiteType}
-                          onChange={(e) => update('campsiteType', e.target.value)}
-                          placeholder="Misal: Riverside Camp, Luxury Glamping, Campervan Park, Cabin"
-                          className="w-full px-4 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all"
-                        />
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                          {PROPERTY_TYPES.map((type) => {
+                            const isSelected = selectedTypes.includes(type);
+                            return (
+                              <button
+                                key={type}
+                                type="button"
+                                onClick={() => togglePropertyType(type)}
+                                className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs text-left transition-all cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-[#0841B5]/5 border-[#0841B5] text-[#0841B5] font-semibold shadow-xs'
+                                    : 'bg-[#F4F7F6] border-[#E5E7EB] text-neutral-700 hover:border-neutral-300 font-medium'
+                                }`}
+                              >
+                                <div
+                                  className={`h-4 w-4 rounded border flex items-center justify-center shrink-0 transition-colors ${
+                                    isSelected
+                                      ? 'bg-[#0841B5] border-[#0841B5] text-white'
+                                      : 'border-neutral-400 bg-white'
+                                  }`}
+                                >
+                                  {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
+                                </div>
+                                <span className="truncate">{type}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
 
                       <div className="grid gap-4 sm:grid-cols-2">
