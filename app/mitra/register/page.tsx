@@ -17,6 +17,7 @@ import {
   IdCard,
   Loader2,
   Lock,
+  LogOut,
   Mail,
   MapPin,
   Phone,
@@ -247,10 +248,21 @@ export default function MitraRegisterPage() {
   const [result, setResult] = useState<PartnerApplicationResult | null>(null);
   const [error, setError] = useState('');
   const [login, setLogin] = useState({ email: '', password: '' });
+  const [authPassword, setAuthPassword] = useState('');
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [isRevising, setIsRevising] = useState(false);
   const [resubmitSuccessMsg, setResubmitSuccessMsg] = useState('');
   const [statusTab, setStatusTab] = useState<'revision' | 'details'>('revision');
+
+  const handleLogout = () => {
+    setResult(null);
+    setLogin({ email: '', password: '' });
+    setAuthPassword('');
+    setError('');
+    setResubmitSuccessMsg('');
+    setIsRevising(false);
+    setStatusTab('revision');
+  };
 
   const isFieldNeedsRevision = (fieldKey: string, sectionKey?: string) => {
     if (!result || result.status !== 'NEEDS_REVISION') return false;
@@ -482,7 +494,7 @@ export default function MitraRegisterPage() {
       ownerName: app.ownerName || '',
       email: app.email || '',
       phone: app.phone ? normalizePhone(app.phone) : '',
-      password: login.password || '',
+      password: authPassword || login.password || form.password || '',
       ktpNumber: app.ktpNumber || '',
       ownerAddress: app.ownerAddress || '',
       campsiteName: app.campsiteName || '',
@@ -539,7 +551,8 @@ export default function MitraRegisterPage() {
     try {
       const data = new FormData();
       data.append('email', result.email);
-      data.append('password', login.password || form.password);
+      const pwd = authPassword || login.password || form.password;
+      data.append('password', pwd);
 
       Object.entries(form).forEach(([key, value]) => {
         if (key === 'password') return;
@@ -611,6 +624,7 @@ export default function MitraRegisterPage() {
       if (!res.ok) {
         throw new Error(body.message || 'Pendaftaran gagal dikirim. Periksa kembali kelengkapan data.');
       }
+      setAuthPassword(form.password);
       setResult(body);
       setMode('status');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -636,10 +650,12 @@ export default function MitraRegisterPage() {
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(body.message || 'Email atau password tidak terdaftar.');
+        throw new Error(body.message || 'Email atau password tidak sesuai.');
       }
+      setAuthPassword(login.password);
       setResult(body);
       populateFormFromResult(body);
+      setStatusTab(body.status === 'NEEDS_REVISION' ? 'revision' : 'details');
     } catch (err: any) {
       setError(err?.message || 'Email atau password tidak sesuai.');
     } finally {
@@ -762,76 +778,76 @@ export default function MitraRegisterPage() {
           {/* ── MODE: CHECK STATUS ────────────────────────────────────────── */}
           {mode === 'status' ? (
             <div className="mt-8 space-y-6 animate-in fade-in duration-200">
-              <div className="bg-white rounded-3xl p-7 sm:p-9 border border-[#E5E7EB] shadow-xs space-y-6">
-                <div className="space-y-1">
-                  <h3 className="text-lg font-black text-[#191919]">Masuk untuk Cek Status</h3>
-                  <p className="text-xs text-neutral-500">
-                    Gunakan email dan password yang Anda buat saat pertama kali mengisi form pendaftaran.
-                  </p>
-                </div>
+              {!result ? (
+                <div className="bg-white rounded-3xl p-7 sm:p-9 border border-[#E5E7EB] shadow-xs space-y-6">
+                  <div className="space-y-1">
+                    <h3 className="text-lg font-black text-[#191919]">Masuk untuk Cek Status</h3>
+                    <p className="text-xs text-neutral-500">
+                      Gunakan email dan password yang Anda buat saat pertama kali mengisi form pendaftaran.
+                    </p>
+                  </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
-                      Alamat Email
-                    </label>
-                    <div className="relative">
-                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                      <input
-                        type="email"
-                        value={login.email}
-                        onChange={(e) => setLogin((p) => ({ ...p, email: e.target.value }))}
-                        placeholder="owner@domain.com"
-                        className="w-full pl-10 pr-4 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all"
-                      />
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
+                        Alamat Email
+                      </label>
+                      <div className="relative">
+                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                        <input
+                          type="email"
+                          value={login.email}
+                          onChange={(e) => setLogin((p) => ({ ...p, email: e.target.value }))}
+                          placeholder="owner@domain.com"
+                          className="w-full pl-10 pr-4 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
+                        Password
+                      </label>
+                      <div className="relative">
+                        <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                        <input
+                          type={showLoginPassword ? 'text' : 'password'}
+                          value={login.password}
+                          onChange={(e) => setLogin((p) => ({ ...p, password: e.target.value }))}
+                          placeholder="••••••••"
+                          className="w-full pl-10 pr-11 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowLoginPassword(!showLoginPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 p-1 cursor-pointer"
+                        >
+                          {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
-                      Password
-                    </label>
-                    <div className="relative">
-                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                      <input
-                        type={showLoginPassword ? 'text' : 'password'}
-                        value={login.password}
-                        onChange={(e) => setLogin((p) => ({ ...p, password: e.target.value }))}
-                        placeholder="••••••••"
-                        className="w-full pl-10 pr-11 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowLoginPassword(!showLoginPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 p-1 cursor-pointer"
-                      >
-                        {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
+                  {error && (
+                    <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold">
+                      {error}
                     </div>
-                  </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={checkStatus}
+                    disabled={submitting}
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl bg-[#0841B5] hover:bg-[#0841B5]/90 text-white font-bold text-sm shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+                  >
+                    {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                    <span>Periksa Status Pengajuan</span>
+                  </button>
                 </div>
-
-                {error && (
-                  <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold">
-                    {error}
-                  </div>
-                )}
-
-                <button
-                  type="button"
-                  onClick={checkStatus}
-                  disabled={submitting}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl bg-[#0841B5] hover:bg-[#0841B5]/90 text-white font-bold text-sm shadow-sm transition-all disabled:opacity-50 cursor-pointer"
-                >
-                  {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                  <span>Periksa Status Pengajuan</span>
-                </button>
-              </div>
-
-              {/* Status Display Card */}
-              {result && (
+              ) : (
+                /* Status Display Card */
                 <div className="bg-white rounded-3xl p-7 sm:p-9 border border-[#E5E7EB] shadow-xs space-y-6 animate-in slide-in-from-bottom-2 duration-300">
-                  {/* Property Header & Badge */}
+                  {/* Property Header & Badge + Logout */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#E5E7EB]">
                     <div>
                       <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">Properti</span>
@@ -839,7 +855,15 @@ export default function MitraRegisterPage() {
                       <p className="text-xs text-neutral-500 mt-0.5">{result.city}, {result.province} • a.n. {result.ownerName}</p>
                     </div>
 
-                    <div className="self-start sm:self-auto">
+                    <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-neutral-300 hover:border-neutral-400 bg-white hover:bg-neutral-50 text-neutral-700 hover:text-neutral-900 font-bold text-xs transition-all cursor-pointer shadow-2xs"
+                      >
+                        <LogOut className="h-3.5 w-3.5 text-neutral-500" />
+                        <span>Keluar</span>
+                      </button>
                       {(() => {
                         const conf = statusBadgeConfig[result.status] || {
                           label: result.status,
