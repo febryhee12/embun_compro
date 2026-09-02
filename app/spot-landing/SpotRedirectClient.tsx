@@ -1028,6 +1028,53 @@ export function SpotRedirectClient() {
     return tentKeywords.some((kw) => name.includes(kw) || id.includes(kw));
   };
 
+  // Helper to check if a specific addon is already included in the selected package
+  const isAddonIncludedInSelectedPackage = (addon: any) => {
+    if (!selectedPackage || !addon) return false;
+    // 1. Direct match with package's tentPackageAddonId
+    if (
+      (selectedPackage as any).tentPackageAddonId &&
+      (selectedPackage as any).tentPackageAddonId === addon.id
+    ) {
+      return true;
+    }
+    // 2. Name matching if package is specific tent package (e.g. Paket Villager vs Paket Elcipta)
+    const pkgName = (selectedPackage.name || '').toLowerCase();
+    const addonName = (addon.name || '').toLowerCase();
+    const addonId = (addon.id || '').toLowerCase();
+
+    // Check specific tent model keywords
+    const tentModels = [
+      'villager',
+      'elcipta',
+      'safari',
+      'arpenaz',
+      'quechua',
+      'charlie',
+      'borneo',
+      'glamping',
+      'dome',
+    ];
+    for (const model of tentModels) {
+      if (
+        pkgName.includes(model) &&
+        (addonName.includes(model) || addonId.includes(model))
+      ) {
+        return true;
+      }
+    }
+
+    // 3. If only 1 tent addon exists in campsite and package is a tent package without specific ID
+    if (isTentPackage && !(selectedPackage as any).tentPackageAddonId) {
+      const tentAddons = availableAddons.filter((a) => isTentAddon(a));
+      if (tentAddons.length === 1 && tentAddons[0].id === addon.id) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
   // Total Tents currently selected across all tent addons combined
   const totalTentsSelected = useMemo(() => {
     return availableAddons.reduce((sum, a) => {
@@ -1942,6 +1989,8 @@ export function SpotRedirectClient() {
                   {availableAddons.map((addon) => {
                     const qty = selectedAddons[addon.id] || 0;
                     const isTent = isTentAddon(addon);
+                    const isIncludedInPkg =
+                      isAddonIncludedInSelectedPackage(addon);
                     const isTentDisabled = isTent && isTentPackage;
                     const isMaxTentReached =
                       isTent &&
@@ -1973,9 +2022,14 @@ export function SpotRedirectClient() {
                             <p className="font-bold text-foreground text-xs sm:text-[13px] truncate">
                               {addon.name}
                             </p>
-                            {isTentDisabled && (
+                            {isIncludedInPkg && (
                               <span className="text-[9px] font-bold text-brand-blue bg-brand-blue/10 px-1.5 py-0.5 rounded-full">
                                 Termasuk di Paket
+                              </span>
+                            )}
+                            {isTent && isTentPackage && !isIncludedInPkg && (
+                              <span className="text-[9px] font-semibold text-foreground-muted bg-surface px-1.5 py-0.5 rounded-full border border-border">
+                                Paket sudah ada tenda
                               </span>
                             )}
                             {isTent && !isTentPackage && (
@@ -1993,7 +2047,15 @@ export function SpotRedirectClient() {
                           </p>
                         </div>
 
-                        {!isTentDisabled ? (
+                        {isIncludedInPkg ? (
+                          <div className="text-[10.5px] font-bold text-brand-blue shrink-0 px-2.5 py-1 bg-brand-blue/10 rounded-full border border-brand-blue/20">
+                            Included
+                          </div>
+                        ) : isTentDisabled ? (
+                          <div className="text-[10px] font-medium text-foreground-muted shrink-0 px-2 py-1 bg-surface rounded-full border border-border opacity-75">
+                            Terkunci
+                          </div>
+                        ) : (
                           <div className="flex items-center gap-2 shrink-0 bg-white border border-border p-1 rounded-full shadow-2xs">
                             <button
                               type="button"
@@ -2014,10 +2076,6 @@ export function SpotRedirectClient() {
                             >
                               <Plus size={12} />
                             </button>
-                          </div>
-                        ) : (
-                          <div className="text-[10px] font-bold text-brand-blue shrink-0 px-2.5 py-1 bg-brand-blue/5 rounded-xl">
-                            Included
                           </div>
                         )}
                       </div>
@@ -2746,9 +2804,6 @@ export function SpotRedirectClient() {
                       <span className="block text-xs font-extrabold text-brand-blue mt-0.5">
                         {rupiah(dp50Total)}
                       </span>
-                      <span className="block text-[9.5px] text-foreground-muted mt-0.5">
-                        Sisa di lokasi / aplikasi
-                      </span>
                     </button>
 
                     <button
@@ -3256,6 +3311,8 @@ export function SpotRedirectClient() {
                   {availableAddons.map((addon) => {
                     const qty = selectedAddons[addon.id] || 0;
                     const isTent = isTentAddon(addon);
+                    const isIncludedInPkg =
+                      isAddonIncludedInSelectedPackage(addon);
                     const isTentDisabled = isTent && isTentPackage;
                     const isMaxTentReached =
                       isTent &&
@@ -3285,9 +3342,14 @@ export function SpotRedirectClient() {
                             <p className="font-semibold text-foreground text-[11.5px] truncate">
                               {addon.name}
                             </p>
-                            {isTentDisabled && (
+                            {isIncludedInPkg && (
                               <span className="text-[9px] font-bold text-brand-blue bg-brand-blue/10 px-1.5 py-0.5 rounded-full">
                                 Termasuk di Paket
+                              </span>
+                            )}
+                            {isTent && isTentPackage && !isIncludedInPkg && (
+                              <span className="text-[9px] font-semibold text-foreground-muted bg-surface px-1.5 py-0.5 rounded-full border border-border">
+                                Paket sudah ada tenda
                               </span>
                             )}
                             {isTent && !isTentPackage && (
@@ -3305,7 +3367,15 @@ export function SpotRedirectClient() {
                           </p>
                         </div>
 
-                        {!isTentDisabled ? (
+                        {isIncludedInPkg ? (
+                          <div className="text-[10px] font-bold text-brand-blue shrink-0 px-2 py-1 bg-brand-blue/10 rounded-full border border-brand-blue/20">
+                            Included
+                          </div>
+                        ) : isTentDisabled ? (
+                          <div className="text-[9.5px] font-medium text-foreground-muted shrink-0 px-1.5 py-0.5 bg-surface rounded-full border border-border opacity-75">
+                            Terkunci
+                          </div>
+                        ) : (
                           <div className="flex items-center gap-2 shrink-0">
                             <button
                               type="button"
@@ -3326,10 +3396,6 @@ export function SpotRedirectClient() {
                             >
                               <Plus size={11} />
                             </button>
-                          </div>
-                        ) : (
-                          <div className="text-[10px] font-bold text-brand-blue shrink-0 px-2 py-1 bg-brand-blue/5 rounded-xl">
-                            Included
                           </div>
                         )}
                       </div>
@@ -3393,9 +3459,6 @@ export function SpotRedirectClient() {
                   </span>
                   <span className="block text-xs font-extrabold text-brand-blue mt-0.5">
                     {rupiah(dp50Total)}
-                  </span>
-                  <span className="block text-[10px] text-foreground-muted mt-0.5">
-                    Sisa di lokasi / aplikasi
                   </span>
                 </button>
 
