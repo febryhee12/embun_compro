@@ -5,10 +5,9 @@ import Link from 'next/link';
 import {
   ArrowLeft,
   User,
-  LogOut,
   Loader2,
-  Receipt,
   CheckCircle2,
+  Camera,
 } from 'lucide-react';
 import {
   getStoredGuestProfile,
@@ -17,6 +16,7 @@ import {
   fetchGuestProfile,
   updateGuestProfile,
   resolveAssetUrl,
+  API_BASE_URL,
   ApiError,
 } from '@/lib/api-client';
 
@@ -27,6 +27,8 @@ export function ProfileClient() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
@@ -69,6 +71,69 @@ export function ProfileClient() {
     void load();
   }, []);
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setError('Format file harus berupa gambar (JPG, PNG, atau WebP).');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Ukuran foto maksimal 5 MB.');
+      return;
+    }
+
+    setUploadingPhoto(true);
+    setError(null);
+    try {
+      const token = getGuestToken();
+      if (!token) throw new Error('Anda harus masuk terlebih dahulu.');
+
+      // 1. Dapatkan presigned upload URL
+      const presignRes = await fetch(
+        `${API_BASE_URL}/guest/me/photo-upload-url`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            contentType: file.type,
+            contentLength: file.size,
+          }),
+        },
+      );
+      if (!presignRes.ok) {
+        const errData = await presignRes.json().catch(() => ({}));
+        throw new Error(errData.message || 'Gagal menyiapkan unggahan foto.');
+      }
+      const { uploadUrl, photoKey } = await presignRes.json();
+
+      // 2. Upload file langsung ke R2
+      const uploadRes = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file,
+      });
+      if (!uploadRes.ok) {
+        throw new Error('Gagal mengunggah foto ke penyimpanan.');
+      }
+
+      // 3. Simpan foto ke profil tamu
+      const updated = await updateGuestProfile({ photoKey });
+      setProfile(updated);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (err: any) {
+      setError(err.message || 'Gagal memperbarui foto profil.');
+    } finally {
+      setUploadingPhoto(false);
+      e.target.value = '';
+    }
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -105,6 +170,8 @@ export function ProfileClient() {
     clearGuestSession();
     window.location.href = '/explore';
   };
+
+  const photoSrc = profile?.photoUrl || profile?.avatarUrl;
 
   return (
     <div className="min-h-screen bg-white text-foreground">
@@ -143,17 +210,37 @@ export function ProfileClient() {
           <div className="space-y-8">
             {/* Avatar + summary */}
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-brand-lime/30 text-brand-blue flex items-center justify-center font-bold text-xl border-2 border-brand-lime shadow-xs overflow-hidden shrink-0">
-                {profile?.photoUrl ? (
-                  <img
-                    src={resolveAssetUrl(profile.photoUrl)}
-                    alt="Avatar"
-                    className="w-full h-full object-cover"
+              <div className="relative group">
+                <div className="w-18 h-18 rounded-full bg-brand-lime/30 text-brand-blue flex items-center justify-center font-bold text-xl border-2 border-brand-lime shadow-xs overflow-hidden shrink-0">
+                  {uploadingPhoto ? (
+                    <Loader2 size={24} className="animate-spin text-brand-blue" />
+                  ) : photoSrc ? (
+                    <img
+                      src={resolveAssetUrl(photoSrc)}
+                      alt="Avatar"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <User size={32} />
+                  )}
+                </div>
+                <label
+                  htmlFor="profile-photo-input"
+                  className="absolute bottom-0 right-0 p-1.5 bg-brand-blue text-white rounded-full shadow-md hover:bg-brand-blue/90 transition-all cursor-pointer border-2 border-white flex items-center justify-center"
+                  title="Ubah Foto Profil"
+                >
+                  <Camera size={13} />
+                  <input
+                    id="profile-photo-input"
+                    type="file"
+                    accept="image/*"
+                    disabled={uploadingPhoto}
+                    className="hidden"
+                    onChange={handlePhotoUpload}
                   />
-                ) : (
-                  <User size={28} />
-                )}
+                </label>
               </div>
+
               <div>
                 <h2 className="font-bold text-base text-foreground">
                   {profile?.fullName || 'Tamu Embun'}
@@ -241,7 +328,7 @@ export function ProfileClient() {
 
               <button
                 type="submit"
-                disabled={saving}
+                disabled={saving || uploadingPhoto}
                 className="w-full py-3.5 px-6 rounded-full bg-brand-blue hover:bg-brand-blue/90 text-white font-bold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer shadow-xs hover:shadow-md"
               >
                 {saving ? <Loader2 size={16} className="animate-spin" /> : null}
@@ -252,7 +339,7 @@ export function ProfileClient() {
             <div className="pt-4">
               <button
                 type="button"
-                onClick={handleLogout}
+                onClick={() => setShowLogoutConfirm(true)}
                 className="w-full py-3.5 px-6 rounded-full border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
               >
                 <span>Keluar dari Akun</span>
@@ -261,6 +348,36 @@ export function ProfileClient() {
           </div>
         )}
       </main>
+
+      {/* Logout Confirmation Dialog */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 z-60 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-sm bg-white text-foreground rounded-3xl shadow-2xl border border-border p-6 text-center space-y-4 animate-in zoom-in-95 duration-150">
+            <h3 className="font-bold text-lg text-foreground">
+              Keluar dari Akun?
+            </h3>
+            <p className="text-xs text-foreground-muted leading-relaxed">
+              Apakah Anda yakin ingin keluar dari akun Anda saat ini?
+            </p>
+            <div className="flex gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 py-3 px-4 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-all cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex-1 py-3 px-4 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
+              >
+                Keluar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

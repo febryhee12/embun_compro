@@ -5,6 +5,7 @@ import { ArrowLeft, User, LogOut, Loader2, Receipt } from 'lucide-react';
 import {
   setGuestSession,
   clearGuestSession,
+  resolveAssetUrl,
   API_BASE_URL,
 } from '@/lib/api-client';
 
@@ -54,6 +55,7 @@ export function GuestAuthModal({
 }: GuestAuthModalProps) {
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Load Google Identity Services SDK dynamically
   useEffect(() => {
@@ -297,8 +299,18 @@ export function GuestAuthModal({
           {currentUser ? (
             /* Logged in profile view */
             <div className="space-y-4 text-center py-4">
-              <div className="w-20 h-20 rounded-full bg-brand-lime/30 text-brand-blue mx-auto flex items-center justify-center font-bold text-2xl border-2 border-brand-lime shadow-xs">
-                <User size={36} />
+              <div className="w-20 h-20 rounded-full bg-brand-lime/30 text-brand-blue mx-auto flex items-center justify-center font-bold text-2xl border-2 border-brand-lime shadow-xs overflow-hidden shrink-0">
+                {currentUser.photoUrl || currentUser.avatarUrl ? (
+                  <img
+                    src={resolveAssetUrl(
+                      currentUser.photoUrl || currentUser.avatarUrl,
+                    )}
+                    alt="Avatar"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <User size={36} />
+                )}
               </div>
               <div className="space-y-1">
                 <h3 className="font-bold text-lg text-foreground">
@@ -327,11 +339,7 @@ export function GuestAuthModal({
                 <div className="pt-3">
                   <button
                     type="button"
-                    onClick={() => {
-                      clearGuestSession();
-                      if (onLogout) onLogout();
-                      onClose();
-                    }}
+                    onClick={() => setShowLogoutConfirm(true)}
                     className="w-full py-3.5 px-6 rounded-full border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
                   >
                     <span>Keluar dari Akun</span>
@@ -450,6 +458,41 @@ export function GuestAuthModal({
           </p>
         </div>
       </div>
+
+      {/* Logout Confirmation Dialog */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 z-60 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-sm bg-white text-foreground rounded-3xl shadow-2xl border border-border p-6 text-center space-y-4 animate-in zoom-in-95 duration-150">
+            <h3 className="font-bold text-lg text-foreground">
+              Keluar dari Akun?
+            </h3>
+            <p className="text-xs text-foreground-muted leading-relaxed">
+              Apakah Anda yakin ingin keluar dari akun Anda saat ini?
+            </p>
+            <div className="flex gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 py-3 px-4 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-all cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  clearGuestSession();
+                  setShowLogoutConfirm(false);
+                  if (onLogout) onLogout();
+                  onClose();
+                }}
+                className="flex-1 py-3 px-4 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
+              >
+                Keluar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -248,11 +248,13 @@ export async function fetchGuestProfile() {
   return guest;
 }
 
-/** `PATCH /api/guest/me` — edit profile (fullName/phone/address/etc, all optional). */
+/** `PATCH /api/guest/me` — edit profile (fullName/phone/address/photoKey/etc, all optional). */
 export async function updateGuestProfile(payload: {
   fullName?: string;
   phone?: string;
   address?: string;
+  photoKey?: string;
+  clearPhoto?: boolean;
 }) {
   const res = await fetch(`${API_BASE_URL}/guest/me`, {
     method: 'PATCH',
