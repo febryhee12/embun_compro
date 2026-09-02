@@ -299,13 +299,23 @@ export function ProfileClient() {
                 <label className="text-xs font-semibold text-foreground-muted">
                   Nomor WhatsApp
                 </label>
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="08123456789"
-                  className="w-full px-4 py-3 rounded-2xl border border-border bg-white text-sm text-foreground outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all"
-                />
+                <div className="relative flex items-center">
+                  <span className="absolute left-4 text-sm font-bold text-foreground pointer-events-none select-none">
+                    +62
+                  </span>
+                  <input
+                    type="tel"
+                    value={phone ? phone.replace(/^(\+62|62|0)/, '') : ''}
+                    onChange={(e) => {
+                      let val = e.target.value.replace(/\D/g, '');
+                      if (val.startsWith('62')) val = val.slice(2);
+                      while (val.startsWith('0')) val = val.slice(1);
+                      setPhone(val ? `08${val.startsWith('8') ? val.slice(1) : val}` : '');
+                    }}
+                    placeholder="81234567890"
+                    className="w-full pl-14 pr-4 py-3 rounded-2xl border border-border bg-white text-sm text-foreground outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all"
+                  />
+                </div>
               </div>
 
               <div className="space-y-1.5">

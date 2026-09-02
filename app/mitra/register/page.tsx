@@ -455,7 +455,7 @@ export default function MitraRegisterPage() {
     if (cleaned.startsWith('62')) {
       cleaned = cleaned.slice(2);
     }
-    if (cleaned.startsWith('0')) {
+    while (cleaned.startsWith('0')) {
       cleaned = cleaned.slice(1);
     }
     return cleaned;
