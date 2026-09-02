@@ -2869,29 +2869,47 @@ export function SpotRedirectClient() {
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => setIsGalleryOpen(false)}
+                onClick={() => {
+                  if (isTour360Only) {
+                    if (
+                      typeof window !== 'undefined' &&
+                      window.history.length > 1
+                    ) {
+                      window.history.back();
+                    } else {
+                      window.location.href = '/explore';
+                    }
+                  } else {
+                    setIsGalleryOpen(false);
+                  }
+                }}
                 className="p-2 rounded-full hover:bg-white/10 text-white transition-colors cursor-pointer"
+                title="Tutup"
               >
                 <X size={20} />
               </button>
               <span className="font-bold text-sm truncate max-w-xs sm:max-w-md">
-                {activeSpot.name} · Galeri & Tur
+                {isTour360Only
+                  ? `${campsite.name} · Tur Virtual 360°`
+                  : `${activeSpot.name} · Galeri & Tur`}
               </span>
             </div>
 
             {/* Gallery Tabs */}
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setGalleryTab('photos')}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                  galleryTab === 'photos'
-                    ? 'bg-white text-black'
-                    : 'bg-white/10 text-white hover:bg-white/20'
-                }`}
-              >
-                Foto ({spotPhotos.length})
-              </button>
+              {!isTour360Only && (
+                <button
+                  type="button"
+                  onClick={() => setGalleryTab('photos')}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                    galleryTab === 'photos'
+                      ? 'bg-white text-black'
+                      : 'bg-white/10 text-white hover:bg-white/20'
+                  }`}
+                >
+                  Foto ({spotPhotos.length})
+                </button>
+              )}
               {panoramaList.length > 0 && (
                 <button
                   type="button"
@@ -2905,7 +2923,7 @@ export function SpotRedirectClient() {
                   Tur 360° ({panoramaList.length})
                 </button>
               )}
-              {campsite.mapImageUrl && (
+              {!isTour360Only && campsite.mapImageUrl && (
                 <button
                   type="button"
                   onClick={() => setGalleryTab('map')}

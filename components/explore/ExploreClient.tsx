@@ -164,40 +164,38 @@ export function ExploreClient() {
         });
       }
 
-      // If camp has 360 markers, create dedicated 360 spot cards for each marker (e.g. Strawberry Side, Skyview)
+      // If camp has 360 markers, create a unified Campsite 360 Tour entry
       if (camp360Markers.length > 0) {
-        camp360Markers.forEach((pm) => {
-          list.push({
-            id: `tour360-${pm.id}`,
-            name: `Tur 360°: ${pm.label}`,
-            tentType: 'Tur 360°',
-            baseCapacity: 0,
-            maxCapacity: 0,
-            weekdayPrice: 0,
-            weekendPrice: 0,
-            holidayPrice: 0,
-            isTour360Only: true,
-            panoramaPhotos: [
-              pm,
-              ...camp360Markers.filter((other) => other.id !== pm.id),
-            ],
-            photos: [{ url: pm.imageUrl, category: '360' }],
-            images: [pm.imageUrl],
-            campsite: {
-              id: camp.id,
-              name: camp.name,
-              slug: camp.slug,
-              address: camp.address,
-              city: camp.city,
-              province: camp.province,
-              mapImageUrl: camp.mapImageUrl,
-              addons: [],
-              rating: camp.rating ? Number(camp.rating) : 5.0,
-              reviewCount: camp.reviewCount || 48,
-              panoramaSpots: camp360Markers,
-            },
-          } as any);
-        });
+        list.push({
+          id: `tour360-${camp.id}`,
+          name: `Tur 360° ${camp.name}`,
+          tentType: 'Tur 360°',
+          baseCapacity: 0,
+          maxCapacity: 0,
+          weekdayPrice: 0,
+          weekendPrice: 0,
+          holidayPrice: 0,
+          isTour360Only: true,
+          panoramaPhotos: camp360Markers,
+          photos: camp360Markers.map((m) => ({
+            url: m.imageUrl,
+            category: '360',
+          })),
+          images: camp360Markers.map((m) => m.imageUrl),
+          campsite: {
+            id: camp.id,
+            name: camp.name,
+            slug: camp.slug,
+            address: camp.address,
+            city: camp.city,
+            province: camp.province,
+            mapImageUrl: camp.mapImageUrl,
+            addons: [],
+            rating: camp.rating ? Number(camp.rating) : 5.0,
+            reviewCount: camp.reviewCount || 48,
+            panoramaSpots: camp360Markers,
+          },
+        } as any);
       } else if (camp.tour360Enabled === true) {
         // Fallback: campsite with tour360Enabled=true shows up even when
         // panorama photos are still in progress

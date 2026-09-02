@@ -179,11 +179,8 @@ export function SpotCard({
 
   const isTour360Mode =
     (spot as any).isTour360Only || spot.tentType === 'Tur 360°';
-  const startPanoId = spot.panoramaPhotos?.[0]?.id;
   const targetUrl = isTour360Mode
-    ? `/spot/${spot.campsite.slug || spot.campsite.id}?view360=true${
-        startPanoId ? `&spot=${encodeURIComponent(startPanoId)}` : ''
-      }`
+    ? `/spot/${spot.campsite.slug || spot.campsite.id}?view360=true`
     : `/spot/${spot.shareCode || spot.id}${has360 ? '?view360=true' : ''}`;
   const currentPhotoUrl = validPhotos[photoIndex] || validPhotos[0];
 
@@ -300,13 +297,8 @@ export function SpotCard({
         </p>
 
         {/* Price or View-Only 360 Tour indicator */}
-        <div className="pt-0.5 flex items-baseline justify-between gap-2">
-          {isTour360Mode ? (
-            <p className="text-xs font-bold text-brand-blue flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
-              <Compass size={13} />
-              <span>Eksplorasi Tur 360° →</span>
-            </p>
-          ) : (
+        {!isTour360Mode && (
+          <div className="pt-0.5 flex items-baseline justify-between gap-2">
             <p className="text-sm text-foreground">
               <span className="text-xs font-normal text-foreground-muted mr-1">
                 mulai dari
@@ -318,8 +310,8 @@ export function SpotCard({
                 / malam
               </span>
             </p>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </a>
   );
