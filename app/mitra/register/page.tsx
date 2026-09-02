@@ -298,6 +298,10 @@ export default function MitraRegisterPage() {
     setForm((prev) => ({ ...prev, campsiteType: updated.join(', ') }));
   };
 
+  const isValidEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  };
+
   const normalizePhone = (val: string) => {
     let cleaned = val.replace(/\D/g, '');
     if (cleaned.startsWith('62')) {
@@ -329,7 +333,7 @@ export default function MitraRegisterPage() {
       case 0:
         return (
           form.ownerName.trim().length >= 3 &&
-          form.email.trim().includes('@') &&
+          isValidEmail(form.email) &&
           form.phone.trim().length >= 8 &&
           form.password.length >= 8
         );
@@ -340,9 +344,12 @@ export default function MitraRegisterPage() {
           ktpPhoto !== null
         );
       case 2:
+        const isCampsiteEmailValid =
+          !form.campsiteEmail.trim() || isValidEmail(form.campsiteEmail);
         return (
           form.campsiteName.trim().length >= 3 &&
-          form.campsitePhone.trim().length >= 8
+          form.campsitePhone.trim().length >= 8 &&
+          isCampsiteEmailValid
         );
       case 3:
         return (
@@ -766,10 +773,18 @@ export default function MitraRegisterPage() {
                               value={form.email}
                               onChange={(e) => update('email', e.target.value)}
                               placeholder="nama@email.com"
-                              className="w-full pl-10 pr-4 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all"
+                              className={`w-full pl-10 pr-4 py-3 bg-[#F4F7F6] border rounded-xl text-sm focus:bg-white outline-none transition-all ${
+                                form.email.length > 0 && !isValidEmail(form.email)
+                                  ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                                  : 'border-[#E5E7EB] focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20'
+                              }`}
                             />
                           </div>
-                          <p className="text-[11px] text-neutral-400 mt-1">Dipakai untuk menerima notifikasi status pengajuan.</p>
+                          {form.email.length > 0 && !isValidEmail(form.email) ? (
+                            <p className="text-[11px] text-red-500 mt-1 font-medium">Format email belum valid (contoh: nama@email.com)</p>
+                          ) : (
+                            <p className="text-[11px] text-neutral-400 mt-1">Dipakai untuk menerima notifikasi status pengajuan.</p>
+                          )}
                         </div>
 
                         <div>
@@ -1068,9 +1083,16 @@ export default function MitraRegisterPage() {
                               value={form.campsiteEmail}
                               onChange={(e) => update('campsiteEmail', e.target.value)}
                               placeholder="info@campsite.com"
-                              className="w-full pl-10 pr-4 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all"
+                              className={`w-full pl-10 pr-4 py-3 bg-[#F4F7F6] border rounded-xl text-sm focus:bg-white outline-none transition-all ${
+                                form.campsiteEmail.length > 0 && !isValidEmail(form.campsiteEmail)
+                                  ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                                  : 'border-[#E5E7EB] focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20'
+                              }`}
                             />
                           </div>
+                          {form.campsiteEmail.length > 0 && !isValidEmail(form.campsiteEmail) && (
+                            <p className="text-[11px] text-red-500 mt-1 font-medium">Format email belum valid (contoh: info@campsite.com)</p>
+                          )}
                         </div>
                       </div>
 
