@@ -865,17 +865,6 @@ export default function MitraRegisterPage() {
                     </div>
                   )}
 
-                  {result.reviewNote && (
-                    <div className="p-5 rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-1.5">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-amber-800 block">
-                        Catatan dari Tim Reviewer Embun:
-                      </span>
-                      <p className="text-xs sm:text-sm text-amber-900 leading-relaxed font-medium">
-                        {result.reviewNote}
-                      </p>
-                    </div>
-                  )}
-
                   {/* ── NOTIFIKASI CATATAN KURASI JIKA PERLU REVISI ─────────────────── */}
                   {result.status === 'NEEDS_REVISION' && (
                     <div className="p-6 sm:p-7 rounded-3xl bg-amber-50/90 border-2 border-amber-300 shadow-xs space-y-4">
@@ -888,7 +877,7 @@ export default function MitraRegisterPage() {
                             Pengajuan Anda Memerlukan Perbaikan Data
                           </h5>
                           <p className="text-xs sm:text-sm text-amber-900 leading-relaxed font-medium">
-                            Hanya kolom data yang ditandai <strong>"Perlu Diperbaiki"</strong> di bawah ini yang harus Anda ubah. Bagian lain yang bertanda <strong>"✓ Sesuai"</strong> tidak perlu diubah lagi.
+                            Hanya kolom data yang ditandai <strong>"Perlu Diperbaiki"</strong> di bawah ini yang harus Anda ubah.
                           </p>
                         </div>
                       </div>
@@ -967,20 +956,13 @@ export default function MitraRegisterPage() {
                             needsRev ? 'bg-amber-50/40 border-2 border-amber-300' : 'bg-[#F4F7F6]/60 border border-[#E5E7EB]'
                           }`}>
                             <div className="flex items-center justify-between">
-                              <div className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider ${
-                                needsRev ? 'text-amber-900' : 'text-[#0841B5]'
-                              }`}>
-                                <User className={`h-4 w-4 ${needsRev ? 'text-amber-700' : 'text-[#0841B5]'}`} />
-                                <span>1. Informasi Pemilik / PIC</span>
-                              </div>
-                              {result.status === 'NEEDS_REVISION' && (
-                                needsRev ? (
-                                  <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
-                                    Perlu Revisi
-                                  </span>
-                                ) : (
-                                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Sesuai</span>
-                                )
+                              <h6 className="text-xs sm:text-sm font-bold text-neutral-900 uppercase tracking-wider">
+                                Informasi Pemilik / PIC
+                              </h6>
+                              {needsRev && (
+                                <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
+                                  Perlu Revisi
+                                </span>
                               )}
                             </div>
 
@@ -1060,20 +1042,13 @@ export default function MitraRegisterPage() {
                             needsRev ? 'bg-amber-50/40 border-2 border-amber-300' : 'bg-[#F4F7F6]/60 border border-[#E5E7EB]'
                           }`}>
                             <div className="flex items-center justify-between">
-                              <div className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider ${
-                                needsRev ? 'text-amber-900' : 'text-[#0841B5]'
-                              }`}>
-                                <IdCard className={`h-4 w-4 ${needsRev ? 'text-amber-700' : 'text-[#0841B5]'}`} />
-                                <span>2. Legalitas & Foto KTP</span>
-                              </div>
-                              {result.status === 'NEEDS_REVISION' && (
-                                needsRev ? (
-                                  <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
-                                    Perlu Revisi
-                                  </span>
-                                ) : (
-                                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Sesuai</span>
-                                )
+                              <h6 className="text-xs sm:text-sm font-bold text-neutral-900 uppercase tracking-wider">
+                                Legalitas & Foto KTP
+                              </h6>
+                              {needsRev && (
+                                <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
+                                  Perlu Revisi
+                                </span>
                               )}
                             </div>
 
@@ -1171,7 +1146,8 @@ export default function MitraRegisterPage() {
                                 </div>
                               ) : (
                                 result.ktpPhotoUrl && (
-                                  <div className="pt-1">
+                                  <div>
+                                    <span className="text-neutral-400 block text-[11px] mb-1">Foto KTP:</span>
                                     <button
                                       type="button"
                                       onClick={() => {
@@ -1202,20 +1178,13 @@ export default function MitraRegisterPage() {
                             needsRev ? 'bg-amber-50/40 border-2 border-amber-300' : 'bg-[#F4F7F6]/60 border border-[#E5E7EB]'
                           }`}>
                             <div className="flex items-center justify-between">
-                              <div className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider ${
-                                needsRev ? 'text-amber-900' : 'text-[#0841B5]'
-                              }`}>
-                                <Building2 className={`h-4 w-4 ${needsRev ? 'text-amber-700' : 'text-[#0841B5]'}`} />
-                                <span>3. Profil Tempat Camp</span>
-                              </div>
-                              {result.status === 'NEEDS_REVISION' && (
-                                needsRev ? (
-                                  <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
-                                    Perlu Revisi
-                                  </span>
-                                ) : (
-                                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Sesuai</span>
-                                )
+                              <h6 className="text-xs sm:text-sm font-bold text-neutral-900 uppercase tracking-wider">
+                                Profil Tempat Camp
+                              </h6>
+                              {needsRev && (
+                                <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
+                                  Perlu Revisi
+                                </span>
                               )}
                             </div>
 
@@ -1269,7 +1238,7 @@ export default function MitraRegisterPage() {
                               ) : (
                                 <div>
                                   <span className="text-neutral-400 block text-[11px]">Tipe Properti:</span>
-                                  <span className="font-medium text-neutral-700">{result.campsiteType || 'Tidak dicantumkan'}</span>
+                                  <span className="font-semibold text-neutral-800 text-xs sm:text-sm">{result.campsiteType || 'Tidak dicantumkan'}</span>
                                 </div>
                               )}
 
@@ -1292,7 +1261,7 @@ export default function MitraRegisterPage() {
                               ) : (
                                 <div>
                                   <span className="text-neutral-400 block text-[11px]">Kontak Operasional Camp:</span>
-                                  <span className="font-medium text-neutral-700">{result.campsitePhone || result.phone}</span>
+                                  <span className="font-semibold text-neutral-800 text-xs sm:text-sm">{result.campsitePhone || result.phone}</span>
                                 </div>
                               )}
 
@@ -1314,12 +1283,12 @@ export default function MitraRegisterPage() {
                                 result.campsiteEmail && (
                                   <div>
                                     <span className="text-neutral-400 block text-[11px]">Email Bisnis:</span>
-                                    <span className="font-medium text-neutral-700">{result.campsiteEmail}</span>
+                                    <span className="font-semibold text-neutral-800 text-xs sm:text-sm">{result.campsiteEmail}</span>
                                   </div>
                                 )
                               )}
 
-                              {/* Field: Socials */}
+                              {/* Field: Socials (Instagram & TikTok) */}
                               {isFieldNeedsRevision('instagramUrl', 'campsite') || isFieldNeedsRevision('tiktokUrl', 'campsite') ? (
                                 <div className="grid grid-cols-2 gap-2 pt-1">
                                   <div>
@@ -1344,20 +1313,20 @@ export default function MitraRegisterPage() {
                                   </div>
                                 </div>
                               ) : (
-                                (result.instagramUrl || result.tiktokUrl || result.websiteUrl) && (
-                                  <div className="pt-1 flex flex-wrap gap-2">
-                                    {result.instagramUrl && (
-                                      <a href={result.instagramUrl.startsWith('http') ? result.instagramUrl : `https://${result.instagramUrl}`} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-[#0841B5] hover:underline">
-                                        Instagram ↗
-                                      </a>
-                                    )}
-                                    {result.tiktokUrl && (
-                                      <a href={result.tiktokUrl.startsWith('http') ? result.tiktokUrl : `https://${result.tiktokUrl}`} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-[#0841B5] hover:underline">
-                                        TikTok ↗
-                                      </a>
-                                    )}
-                                  </div>
-                                )
+                                <>
+                                  {result.instagramUrl && (
+                                    <div>
+                                      <span className="text-neutral-400 block text-[11px]">Instagram:</span>
+                                      <span className="font-semibold text-neutral-800 text-xs sm:text-sm">{result.instagramUrl}</span>
+                                    </div>
+                                  )}
+                                  {result.tiktokUrl && (
+                                    <div>
+                                      <span className="text-neutral-400 block text-[11px]">TikTok / Website:</span>
+                                      <span className="font-semibold text-neutral-800 text-xs sm:text-sm">{result.tiktokUrl}</span>
+                                    </div>
+                                  )}
+                                </>
                               )}
                             </div>
                           </div>
@@ -1372,20 +1341,13 @@ export default function MitraRegisterPage() {
                             needsRev ? 'bg-amber-50/40 border-2 border-amber-300' : 'bg-[#F4F7F6]/60 border border-[#E5E7EB]'
                           }`}>
                             <div className="flex items-center justify-between">
-                              <div className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider ${
-                                needsRev ? 'text-amber-900' : 'text-[#0841B5]'
-                              }`}>
-                                <CreditCard className={`h-4 w-4 ${needsRev ? 'text-amber-700' : 'text-[#0841B5]'}`} />
-                                <span>4. Rekening Pencairan Dana (Payout)</span>
-                              </div>
-                              {result.status === 'NEEDS_REVISION' && (
-                                needsRev ? (
-                                  <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
-                                    Perlu Revisi
-                                  </span>
-                                ) : (
-                                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Sesuai</span>
-                                )
+                              <h6 className="text-xs sm:text-sm font-bold text-neutral-900 uppercase tracking-wider">
+                                Rekening Pencairan Dana (Payout)
+                              </h6>
+                              {needsRev && (
+                                <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
+                                  Perlu Revisi
+                                </span>
                               )}
                             </div>
 
@@ -1413,7 +1375,7 @@ export default function MitraRegisterPage() {
                               ) : (
                                 <div>
                                   <span className="text-neutral-400 block text-[11px]">Nama Bank:</span>
-                                  <span className="font-bold text-neutral-800 text-xs sm:text-sm">{result.bankName}</span>
+                                  <span className="font-semibold text-neutral-800 text-xs sm:text-sm">{result.bankName}</span>
                                 </div>
                               )}
 
@@ -1433,7 +1395,7 @@ export default function MitraRegisterPage() {
                               ) : (
                                 <div>
                                   <span className="text-neutral-400 block text-[11px]">Nomor Rekening:</span>
-                                  <span className="font-bold text-neutral-800 tracking-wider text-xs sm:text-sm">{result.bankAccountNumber}</span>
+                                  <span className="font-semibold text-neutral-800 tracking-wider text-xs sm:text-sm">{result.bankAccountNumber}</span>
                                 </div>
                               )}
 
@@ -1475,20 +1437,13 @@ export default function MitraRegisterPage() {
                           needsRev ? 'bg-amber-50/40 border-2 border-amber-300' : 'bg-[#F4F7F6]/60 border border-[#E5E7EB]'
                         }`}>
                           <div className="flex items-center justify-between">
-                            <div className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider ${
-                              needsRev ? 'text-amber-900' : 'text-[#0841B5]'
-                            }`}>
-                              <MapPin className={`h-4 w-4 ${needsRev ? 'text-amber-700' : 'text-[#0841B5]'}`} />
-                              <span>5. Lokasi & Alamat Campsite</span>
-                            </div>
-                            {result.status === 'NEEDS_REVISION' && (
-                              needsRev ? (
-                                <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
-                                  Perlu Revisi
-                                </span>
-                              ) : (
-                                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Sesuai</span>
-                              )
+                            <h6 className="text-xs sm:text-sm font-bold text-neutral-900 uppercase tracking-wider">
+                              Lokasi & Alamat Campsite
+                            </h6>
+                            {needsRev && (
+                              <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider">
+                                Perlu Revisi
+                              </span>
                             )}
                           </div>
 
@@ -1570,7 +1525,7 @@ export default function MitraRegisterPage() {
                             ) : (
                               <div>
                                 <span className="text-neutral-400 block text-[11px]">Alamat Lengkap Campsite:</span>
-                                <p className="font-medium text-neutral-800 leading-relaxed text-xs sm:text-sm">
+                                <p className="font-semibold text-neutral-800 leading-relaxed text-xs sm:text-sm">
                                   {result.campsiteAddress}
                                 </p>
                               </div>
@@ -1595,14 +1550,15 @@ export default function MitraRegisterPage() {
                               </div>
                             ) : (
                               result.googleMapsUrl && (
-                                <div className="pt-1">
+                                <div>
+                                  <span className="text-neutral-400 block text-[11px]">Link Titik Google Maps:</span>
                                   <a
                                     href={result.googleMapsUrl.startsWith('http') ? result.googleMapsUrl : `https://${result.googleMapsUrl}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1 text-xs font-bold text-[#0841B5] hover:underline"
+                                    className="font-semibold text-[#0841B5] hover:underline text-xs sm:text-sm block break-all"
                                   >
-                                    <span>Buka di Google Maps ↗</span>
+                                    {result.googleMapsUrl}
                                   </a>
                                 </div>
                               )
