@@ -314,30 +314,29 @@ export function GuestAuthModal({
               <div className="pt-6 space-y-2.5">
                 <a
                   href="/profile"
-                  className="w-full py-3.5 px-6 rounded-full border border-border bg-white hover:bg-surface text-foreground text-xs font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
+                  className="w-full py-3.5 px-6 rounded-full border border-border bg-white hover:bg-surface text-foreground text-xs font-bold transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
                 >
-                  <User size={16} />
                   <span>Edit Profil</span>
                 </a>
                 <a
                   href="/orders"
-                  className="w-full py-3.5 px-6 rounded-full border border-border bg-white hover:bg-surface text-foreground text-xs font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
+                  className="w-full py-3.5 px-6 rounded-full border border-border bg-white hover:bg-surface text-foreground text-xs font-bold transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
                 >
-                  <Receipt size={16} />
                   <span>Pesanan Saya</span>
                 </a>
-                <button
-                  type="button"
-                  onClick={() => {
-                    clearGuestSession();
-                    if (onLogout) onLogout();
-                    onClose();
-                  }}
-                  className="w-full py-3.5 px-6 rounded-full border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
-                >
-                  <LogOut size={16} />
-                  <span>Keluar dari Akun</span>
-                </button>
+                <div className="pt-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      clearGuestSession();
+                      if (onLogout) onLogout();
+                      onClose();
+                    }}
+                    className="w-full py-3.5 px-6 rounded-full border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
+                  >
+                    <span>Keluar dari Akun</span>
+                  </button>
+                </div>
               </div>
             </div>
           ) : (

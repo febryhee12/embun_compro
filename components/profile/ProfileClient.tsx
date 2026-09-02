@@ -54,11 +54,12 @@ export function ProfileClient() {
         setFullName(fresh.fullName || '');
         setPhone(fresh.phone || '');
         setAddress(fresh.address || '');
+        setError(null);
       } catch (err: any) {
         if (err instanceof ApiError && err.status === 401) {
           clearGuestSession();
           setAuthRequired(true);
-        } else {
+        } else if (!stored) {
           setError(err.message || 'Gagal memuat profil.');
         }
       } finally {
@@ -167,8 +168,7 @@ export function ProfileClient() {
               href="/orders"
               className="flex items-center justify-between px-5 py-4 rounded-2xl border border-border bg-surface/50 hover:bg-surface transition-colors"
             >
-              <span className="flex items-center gap-2.5 text-sm font-semibold text-foreground">
-                <Receipt size={18} className="text-brand-blue" />
+              <span className="text-sm font-semibold text-foreground">
                 Pesanan Saya
               </span>
               <ArrowLeft
@@ -242,21 +242,22 @@ export function ProfileClient() {
               <button
                 type="submit"
                 disabled={saving}
-                className="w-full py-3.5 px-6 rounded-full bg-brand-blue hover:bg-brand-blue/90 text-white font-bold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+                className="w-full py-3.5 px-6 rounded-full bg-brand-blue hover:bg-brand-blue/90 text-white font-bold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer shadow-xs hover:shadow-md"
               >
                 {saving ? <Loader2 size={16} className="animate-spin" /> : null}
                 <span>{saving ? 'Menyimpan...' : 'Simpan Perubahan'}</span>
               </button>
             </form>
 
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="w-full py-3.5 px-6 rounded-full border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold transition-colors flex items-center justify-center gap-2"
-            >
-              <LogOut size={16} />
-              <span>Keluar dari Akun</span>
-            </button>
+            <div className="pt-4">
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="w-full py-3.5 px-6 rounded-full border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
+              >
+                <span>Keluar dari Akun</span>
+              </button>
+            </div>
           </div>
         )}
       </main>

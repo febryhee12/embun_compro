@@ -238,7 +238,10 @@ export async function fetchGuestProfile() {
     headers: guestAuthHeaders(),
     cache: 'no-store',
   });
-  if (!res.ok) throw new Error('Gagal memuat profil.');
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new ApiError(err.message || 'Gagal memuat profil.', res.status);
+  }
   const guest = await res.json();
   const token = getGuestToken();
   if (token) setGuestSession(token, guest);
@@ -258,7 +261,7 @@ export async function updateGuestProfile(payload: {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || 'Gagal menyimpan profil.');
+    throw new ApiError(err.message || 'Gagal menyimpan profil.', res.status);
   }
   const guest = await res.json();
   const token = getGuestToken();
