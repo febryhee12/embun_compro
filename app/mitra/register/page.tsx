@@ -738,42 +738,50 @@ export default function MitraRegisterPage() {
           <div className="w-full">
             {/* Header & Mode Switcher */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-8 border-b border-[#E5E7EB]">
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-[#191919]">
-                {mode === 'register' ? 'Formulir Pendaftaran Mitra' : 'Pantau Status Pengajuan'}
-              </h2>
-              <p className="text-xs sm:text-sm text-neutral-500 mt-1">
-                {mode === 'register'
-                  ? 'Lengkapi data awal properti Anda untuk proses verifikasi kurasi.'
-                  : 'Cek perkembangan status review berkas pendaftaran yang telah dikirim.'}
-              </p>
-            </div>
+              <div>
+                <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-[#191919]">
+                  {result
+                    ? 'Status Pengajuan Kemitraan'
+                    : mode === 'register'
+                    ? 'Formulir Pendaftaran Mitra'
+                    : 'Pantau Status Pengajuan'}
+                </h2>
+                <p className="text-xs sm:text-sm text-neutral-500 mt-1">
+                  {result
+                    ? 'Pantau progres verifikasi kurasi atau lengkapi kolom data yang perlu diperbaiki.'
+                    : mode === 'register'
+                    ? 'Lengkapi data awal properti Anda untuk proses verifikasi kurasi.'
+                    : 'Cek perkembangan status review berkas pendaftaran yang telah dikirim.'}
+                </p>
+              </div>
 
-            <div className="inline-flex p-1 rounded-xl bg-[#E5E7EB]/60 border border-[#E5E7EB] self-start sm:self-auto shrink-0">
-              <button
-                type="button"
-                onClick={() => setMode('register')}
-                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  mode === 'register'
-                    ? 'bg-white text-[#0841B5] shadow-xs'
-                    : 'text-neutral-600 hover:text-neutral-900'
-                }`}
-              >
-                Daftar Baru
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode('status')}
-                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  mode === 'status'
-                    ? 'bg-white text-[#0841B5] shadow-xs'
-                    : 'text-neutral-600 hover:text-neutral-900'
-                }`}
-              >
-                Cek Status
-              </button>
+              {!result && (
+                <div className="inline-flex p-1 rounded-xl bg-[#E5E7EB]/60 border border-[#E5E7EB] self-start sm:self-auto shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setMode('register')}
+                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      mode === 'register'
+                        ? 'bg-white text-[#0841B5] shadow-xs'
+                        : 'text-neutral-600 hover:text-neutral-900'
+                    }`}
+                  >
+                    Daftar Baru
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMode('status')}
+                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      mode === 'status'
+                        ? 'bg-white text-[#0841B5] shadow-xs'
+                        : 'text-neutral-600 hover:text-neutral-900'
+                    }`}
+                  >
+                    Cek Status
+                  </button>
+                </div>
+              )}
             </div>
-          </div>
 
           {/* ── MODE: CHECK STATUS ────────────────────────────────────────── */}
           {mode === 'status' ? (
