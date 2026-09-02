@@ -2256,14 +2256,9 @@ export function SpotRedirectClient() {
                           )}
                         </div>
                         <div className="space-y-0.5">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="px-2 py-0.5 rounded-full text-[9.5px] sm:text-[10px] font-black uppercase tracking-wider bg-brand-lime text-black shadow-none">
-                              Mitra Resmi Embun
-                            </span>
-                            <span className="text-[11px] text-white/80 font-medium">
-                              · {campsite.city || campsite.address || 'Indonesia'}
-                            </span>
-                          </div>
+                          <p className="text-[11px] sm:text-xs text-white/90 font-medium tracking-wide">
+                            {campsite.city || campsite.address || 'Indonesia'}
+                          </p>
                           <h3 className="font-extrabold text-base sm:text-2xl text-white tracking-tight drop-shadow-md">
                             {campsite.name}
                           </h3>
@@ -2288,13 +2283,10 @@ export function SpotRedirectClient() {
                       )}
                     </div>
                     <div>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-brand-lime text-black shadow-none">
-                        Mitra Resmi Embun
-                      </span>
-                      <h3 className="font-bold text-lg sm:text-xl text-foreground mt-1">
+                      <h3 className="font-bold text-lg sm:text-xl text-foreground">
                         {campsite.name}
                       </h3>
-                      <p className="text-xs text-foreground-muted">
+                      <p className="text-xs text-foreground-muted mt-0.5">
                         {campsite.city || campsite.address || 'Indonesia'}
                       </p>
                     </div>
