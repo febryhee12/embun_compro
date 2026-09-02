@@ -397,8 +397,17 @@ export default function MitraRegisterPage() {
           </div>
 
           {/* Bottom Note */}
-          <div className="relative z-10 mt-14 pt-8 border-t border-neutral-800/80 text-xs leading-relaxed text-neutral-400">
+          <div className="relative z-10 mt-14 pt-8 border-t border-neutral-800/80 text-xs leading-relaxed text-neutral-400 space-y-1.5">
             <p>Pendaftaran tidak dipungut biaya. Tim Embun akan meninjau kelengkapan data dalam 1–2 hari kerja.</p>
+            <p className="text-neutral-500">
+              Butuh bantuan pendaftaran? Hubungi{' '}
+              <a
+                href="mailto:support@embun.app"
+                className="text-neutral-300 hover:text-white underline underline-offset-2 transition-colors"
+              >
+                support@embun.app
+              </a>
+            </p>
           </div>
         </aside>
 
@@ -1207,9 +1216,18 @@ export default function MitraRegisterPage() {
               <span className="text-neutral-300">|</span>
               <span className="font-medium text-neutral-600">PT Alam Kelana Digital</span>
             </div>
-            <p className="text-neutral-400">
-              © {new Date().getFullYear()} embun-app. Seluruh hak cipta dilindungi.
-            </p>
+            <div className="flex items-center gap-3 text-neutral-400">
+              <a
+                href="mailto:support@embun.app"
+                className="hover:text-[#0841B5] transition-colors"
+              >
+                support@embun.app
+              </a>
+              <span className="text-neutral-300">•</span>
+              <p>
+                © {new Date().getFullYear()} embun-app. Seluruh hak cipta dilindungi.
+              </p>
+            </div>
           </footer>
         </main>
       </div>
