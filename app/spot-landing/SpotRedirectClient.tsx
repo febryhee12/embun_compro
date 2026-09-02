@@ -556,33 +556,55 @@ export function SpotRedirectClient() {
     }
   }, [checkInDate, checkOutDate]);
 
-  // Sort and extract photos
+  // Sort and extract photos (deduplicated, prioritizing spot photos then campsite photos)
   const spotPhotos = useMemo(() => {
-    if (!activeSpot) return [];
+    if (!activeSpot && !campsite) return [];
     const list: PhotoItem[] = [];
+    const seenUrls = new Set<string>();
 
-    if (Array.isArray(activeSpot.photos) && activeSpot.photos.length > 0) {
+    const addPhoto = (url?: string, category?: string) => {
+      if (!url || typeof url !== 'string') return;
+      const cleanUrl = url.trim();
+      if (!cleanUrl || seenUrls.has(cleanUrl)) return;
+      seenUrls.add(cleanUrl);
+      list.push({ url: cleanUrl, category });
+    };
+
+    // 1. Add spot's own photos
+    if (activeSpot && Array.isArray(activeSpot.photos) && activeSpot.photos.length > 0) {
       activeSpot.photos.forEach((p) => {
-        if (p?.url) list.push(p);
+        addPhoto(p?.url, p?.category);
       });
     }
 
-    if (list.length === 0 && Array.isArray(activeSpot.images)) {
+    // 2. Add spot's images array
+    if (activeSpot && Array.isArray(activeSpot.images)) {
       activeSpot.images.forEach((img) => {
-        if (img) list.push({ url: img, category: 'Foto Unit' });
+        addPhoto(img, 'Foto Unit');
       });
     }
 
-    if (list.length === 0 && Array.isArray(campsite?.photos)) {
+    // 3. Supplement with campsite general photos
+    if (Array.isArray(campsite?.photos)) {
       campsite?.photos.forEach((p) => {
-        if (p?.url) list.push(p);
+        addPhoto(p?.url, p?.category || 'Area Campsite');
       });
+    }
+
+    // 4. Supplement with campsite cover / main image
+    if ((campsite as any)?.coverImageUrl) {
+      addPhoto((campsite as any).coverImageUrl, 'Pemandangan Utama');
+    }
+    if ((campsite as any)?.mainImage) {
+      addPhoto((campsite as any).mainImage, 'Pemandangan Utama');
     }
 
     const priorities = [
       'Tampak Luar / Pemandangan',
       'Kamar Utama / Tenda',
       'Ruang Santai / Balkon',
+      'Pemandangan Utama',
+      'Area Campsite',
       'Fasilitas Lainnya',
       'Kamar Mandi / Toilet',
     ];
@@ -595,6 +617,30 @@ export function SpotRedirectClient() {
       return scoreA - scoreB;
     });
   }, [activeSpot, campsite]);
+
+  // Primary cover photo of campsite property
+  const campsiteCoverPhoto = useMemo(() => {
+    if ((campsite as any)?.coverImageUrl) return (campsite as any).coverImageUrl;
+    if ((campsite as any)?.mainImage) return (campsite as any).mainImage;
+    if (Array.isArray(campsite?.photos) && campsite.photos.length > 0) {
+      const cover = campsite.photos.find(
+        (p) =>
+          p?.url &&
+          (p.category?.toLowerCase() === 'home' ||
+            p.category?.toLowerCase() === 'cover' ||
+            p.category?.toLowerCase() === 'main' ||
+            p.category?.toLowerCase().includes('view') ||
+            p.category?.toLowerCase().includes('pemandangan')),
+      );
+      if (cover?.url) return cover.url;
+      const valid = campsite.photos.find((p) => p?.url);
+      if (valid?.url) return valid.url;
+    }
+    if (Array.isArray(spotPhotos) && spotPhotos.length > 0) {
+      return spotPhotos[0]?.url;
+    }
+    return campsite?.mapImageUrl || '';
+  }, [campsite, spotPhotos]);
 
   // Extract 360 Panoramas
   const panoramaList = useMemo(() => {
@@ -1297,24 +1343,27 @@ export function SpotRedirectClient() {
         </div>
 
         {/* ════════════════════════════════════════════════════════════════════════
-            3. AIRBNB 5-PHOTO BENTO GRID & 360 TRIGGER
+            3. ADAPTIVE PHOTO BENTO GRID & 360 TRIGGER
         ════════════════════════════════════════════════════════════════════════ */}
-        <div className="relative rounded-3xl overflow-hidden border border-border shadow-2xs">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-2 h-[320px] sm:h-[420px]">
-            {/* Big Main Photo (Left 2 cols) */}
+        <div className="relative rounded-3xl overflow-hidden border border-border shadow-2xs bg-surface">
+          {spotPhotos.length <= 1 ? (
+            /* 1 Single Photo Full Width */
             <div
               onClick={() => {
                 setGalleryTab('photos');
                 setActivePhotoIdx(0);
                 setIsGalleryOpen(true);
               }}
-              className="md:col-span-2 relative h-full bg-surface overflow-hidden cursor-pointer group"
+              className="relative w-full h-[320px] sm:h-[420px] bg-surface overflow-hidden cursor-pointer group"
             >
               {spotPhotos[0] ? (
                 <img
                   src={resolveAssetUrl(spotPhotos[0].url)}
                   alt={activeSpot.name}
-                  className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500"
+                  className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = 'none';
+                  }}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-surface text-foreground-muted">
@@ -1322,37 +1371,184 @@ export function SpotRedirectClient() {
                 </div>
               )}
             </div>
-
-            {/* 4 Small Grid Photos (Right 2 cols) */}
-            <div className="hidden md:grid col-span-2 grid-cols-2 gap-2 h-full">
-              {[1, 2, 3, 4].map((idx) => {
-                const photo = spotPhotos[idx] || spotPhotos[0];
-                return (
+          ) : spotPhotos.length === 2 ? (
+            /* 2 Photos Side-by-Side */
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 h-[320px] sm:h-[420px]">
+              {spotPhotos.slice(0, 2).map((photo, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => {
+                    setGalleryTab('photos');
+                    setActivePhotoIdx(idx);
+                    setIsGalleryOpen(true);
+                  }}
+                  className="relative h-full bg-surface overflow-hidden cursor-pointer group"
+                >
+                  <img
+                    src={resolveAssetUrl(photo.url)}
+                    alt={`${activeSpot.name} ${idx + 1}`}
+                    className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500"
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : spotPhotos.length === 3 ? (
+            /* 3 Photos: 1 Big Left + 2 Stacked Right */
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-2 h-[320px] sm:h-[420px]">
+              <div
+                onClick={() => {
+                  setGalleryTab('photos');
+                  setActivePhotoIdx(0);
+                  setIsGalleryOpen(true);
+                }}
+                className="md:col-span-2 relative h-full bg-surface overflow-hidden cursor-pointer group"
+              >
+                <img
+                  src={resolveAssetUrl(spotPhotos[0].url)}
+                  alt={activeSpot.name}
+                  className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500"
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = 'none';
+                  }}
+                />
+              </div>
+              <div className="hidden md:grid col-span-2 grid-rows-2 gap-2 h-full">
+                {spotPhotos.slice(1, 3).map((photo, idx) => (
                   <div
                     key={idx}
                     onClick={() => {
                       setGalleryTab('photos');
-                      setActivePhotoIdx(idx < spotPhotos.length ? idx : 0);
+                      setActivePhotoIdx(idx + 1);
                       setIsGalleryOpen(true);
                     }}
                     className="relative h-[205px] bg-surface overflow-hidden cursor-pointer group"
                   >
-                    {photo ? (
-                      <img
-                        src={resolveAssetUrl(photo.url)}
-                        alt={`Foto ${idx + 1}`}
-                        className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-surface text-foreground-muted">
-                        <Tent size={24} />
-                      </div>
-                    )}
+                    <img
+                      src={resolveAssetUrl(photo.url)}
+                      alt={`${activeSpot.name} ${idx + 2}`}
+                      className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500"
+                      onError={(e) => {
+                        (e.target as HTMLElement).style.display = 'none';
+                      }}
+                    />
                   </div>
-                );
-              })}
+                ))}
+              </div>
             </div>
-          </div>
+          ) : spotPhotos.length === 4 ? (
+            /* 4 Photos: 1 Big Left + 3 Slots Right */
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-2 h-[320px] sm:h-[420px]">
+              <div
+                onClick={() => {
+                  setGalleryTab('photos');
+                  setActivePhotoIdx(0);
+                  setIsGalleryOpen(true);
+                }}
+                className="md:col-span-2 relative h-full bg-surface overflow-hidden cursor-pointer group"
+              >
+                <img
+                  src={resolveAssetUrl(spotPhotos[0].url)}
+                  alt={activeSpot.name}
+                  className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500"
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = 'none';
+                  }}
+                />
+              </div>
+              <div className="hidden md:grid col-span-2 grid-cols-2 grid-rows-2 gap-2 h-full">
+                <div
+                  onClick={() => {
+                    setGalleryTab('photos');
+                    setActivePhotoIdx(1);
+                    setIsGalleryOpen(true);
+                  }}
+                  className="col-span-2 relative h-[205px] bg-surface overflow-hidden cursor-pointer group"
+                >
+                  <img
+                    src={resolveAssetUrl(spotPhotos[1].url)}
+                    alt={`${activeSpot.name} 2`}
+                    className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500"
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+                {spotPhotos.slice(2, 4).map((photo, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => {
+                      setGalleryTab('photos');
+                      setActivePhotoIdx(idx + 2);
+                      setIsGalleryOpen(true);
+                    }}
+                    className="relative h-[205px] bg-surface overflow-hidden cursor-pointer group"
+                  >
+                    <img
+                      src={resolveAssetUrl(photo.url)}
+                      alt={`${activeSpot.name} ${idx + 3}`}
+                      className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500"
+                      onError={(e) => {
+                        (e.target as HTMLElement).style.display = 'none';
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            /* 5+ Photos: Airbnb 5-Photo Bento Grid */
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-2 h-[320px] sm:h-[420px]">
+              <div
+                onClick={() => {
+                  setGalleryTab('photos');
+                  setActivePhotoIdx(0);
+                  setIsGalleryOpen(true);
+                }}
+                className="md:col-span-2 relative h-full bg-surface overflow-hidden cursor-pointer group"
+              >
+                {spotPhotos[0] ? (
+                  <img
+                    src={resolveAssetUrl(spotPhotos[0].url)}
+                    alt={activeSpot.name}
+                    className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500"
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-surface text-foreground-muted">
+                    <Tent size={48} />
+                  </div>
+                )}
+              </div>
+
+              <div className="hidden md:grid col-span-2 grid-cols-2 gap-2 h-full">
+                {spotPhotos.slice(1, 5).map((photo, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => {
+                      setGalleryTab('photos');
+                      setActivePhotoIdx(idx + 1);
+                      setIsGalleryOpen(true);
+                    }}
+                    className="relative h-[205px] bg-surface overflow-hidden cursor-pointer group"
+                  >
+                    <img
+                      src={resolveAssetUrl(photo.url)}
+                      alt={`${activeSpot.name} ${idx + 2}`}
+                      className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500"
+                      onError={(e) => {
+                        (e.target as HTMLElement).style.display = 'none';
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Overlay Buttons */}
           <div className="absolute bottom-4 right-4 flex items-center gap-2">
@@ -1801,14 +1997,95 @@ export function SpotRedirectClient() {
 
             {/* ── SECTION: TENTANG PROPERTI CAMPSITE (PROPERTY DETAILS) ── */}
             <div className="space-y-6 pb-8 border-b border-border">
-              <div className="space-y-2">
-                <h3 className="font-bold text-xl text-foreground">
-                  Tentang Properti {campsite.name}
-                </h3>
-                <p className="text-xs sm:text-sm text-foreground/80 leading-relaxed">
-                  {campsite.description ||
-                    `${campsite.name} merupakan destinasi camping dan glamping pilihan di ${campsite.city || 'Jawa Barat'} dengan suasana asri, udara sejuk, dan fasilitas lengkap untuk liburan Anda.`}
-                </p>
+              {/* Property Cover Banner & Mitra Profile Header */}
+              <div className="rounded-3xl border border-border overflow-hidden bg-surface shadow-2xs">
+                {campsiteCoverPhoto ? (
+                  <div className="relative aspect-[16/9] sm:aspect-[21/8] w-full bg-surface overflow-hidden">
+                    <img
+                      src={resolveAssetUrl(campsiteCoverPhoto)}
+                      alt={campsite.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLElement).style.display = 'none';
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+
+                    {/* Campsite Logo & Badge Overlay on Banner */}
+                    <div className="absolute bottom-4 left-4 sm:left-6 right-4 flex items-end justify-between gap-3 text-white">
+                      <div className="flex items-center gap-3.5">
+                        <div className="w-13 h-13 sm:w-16 sm:h-16 rounded-2xl bg-white border-2 border-white shadow-xl overflow-hidden flex items-center justify-center shrink-0">
+                          {campsite.logoUrl ? (
+                            <img
+                              src={resolveAssetUrl(campsite.logoUrl)}
+                              alt={campsite.name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLElement).style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-brand-blue text-white flex items-center justify-center font-black text-xl">
+                              {campsite.name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="px-2 py-0.5 rounded-full text-[9.5px] sm:text-[10px] font-black uppercase tracking-wider bg-brand-lime text-black shadow-none">
+                              Mitra Resmi Embun
+                            </span>
+                            <span className="text-[11px] text-white/80 font-medium">
+                              · {campsite.city || campsite.address || 'Indonesia'}
+                            </span>
+                          </div>
+                          <h3 className="font-extrabold text-base sm:text-2xl text-white tracking-tight drop-shadow-md">
+                            {campsite.name}
+                          </h3>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-5 sm:p-6 bg-gradient-to-br from-brand-blue/10 via-surface to-surface flex items-center gap-4">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-brand-blue text-white flex items-center justify-center font-bold text-2xl shrink-0 shadow-md overflow-hidden">
+                      {campsite.logoUrl ? (
+                        <img
+                          src={resolveAssetUrl(campsite.logoUrl)}
+                          alt={campsite.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        campsite.name.charAt(0).toUpperCase()
+                      )}
+                    </div>
+                    <div>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-brand-lime text-black shadow-none">
+                        Mitra Resmi Embun
+                      </span>
+                      <h3 className="font-bold text-lg sm:text-xl text-foreground mt-1">
+                        {campsite.name}
+                      </h3>
+                      <p className="text-xs text-foreground-muted">
+                        {campsite.city || campsite.address || 'Indonesia'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Description Body */}
+                <div className="p-4 sm:p-6 space-y-2">
+                  <h4 className="font-bold text-xs uppercase tracking-wider text-brand-blue">
+                    Tentang Kawasan
+                  </h4>
+                  <p className="text-xs sm:text-sm text-foreground/85 leading-relaxed">
+                    {campsite.description ||
+                      `${campsite.name} merupakan destinasi camping dan glamping pilihan di ${campsite.city || 'Jawa Barat'} dengan suasana asri, udara sejuk, dan fasilitas lengkap untuk liburan Anda.`}
+                  </p>
+                </div>
               </div>
 
               {/* Fasilitas Properti Campsite */}
