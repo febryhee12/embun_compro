@@ -35,6 +35,37 @@ const PROPERTY_TYPES = [
   'Saung / Gazebo',
 ] as const;
 
+const POPULAR_BANKS = [
+  'BCA (Bank Central Asia)',
+  'Bank Mandiri',
+  'BRI (Bank Rakyat Indonesia)',
+  'BNI (Bank Negara Indonesia)',
+  'BSI (Bank Syariah Indonesia)',
+  'Bank CIMB Niaga',
+  'Bank Permata',
+  'Bank Danamon',
+  'Bank BTN (Bank Tabungan Negara)',
+  'Bank BJB (BJB Jawa Barat & Banten)',
+  'Bank Jatim',
+  'Bank Jateng',
+  'Bank Sumut',
+  'Bank Nagari (BPD Sumatera Barat)',
+  'Bank Sulselbar',
+  'Bank Kalbar',
+  'Bank Kalsel',
+  'Bank Jago',
+  'SeaBank Indonesia',
+  'Bank Neo Commerce (BNC)',
+  'Allo Bank Indonesia',
+  'Bank OCBC NISP',
+  'Bank Panin',
+  'Bank Maybank Indonesia',
+  'Bank Sinarmas',
+  'Bank Mega',
+  'Bank Muamalat',
+  'Bank Lainnya',
+] as const;
+
 type FormState = {
   ownerName: string;
   email: string;
@@ -1212,14 +1243,24 @@ export default function MitraRegisterPage() {
                         <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
                           Nama Bank <span className="text-red-500">*</span>
                         </label>
-                        <input
-                          type="text"
-                          required
-                          value={form.bankName}
-                          onChange={(e) => update('bankName', e.target.value)}
-                          placeholder="BCA / Mandiri / BNI / BRI / CIMB Niaga"
-                          className="w-full px-4 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all"
-                        />
+                        <div className="relative">
+                          <select
+                            required
+                            value={form.bankName}
+                            onChange={(e) => update('bankName', e.target.value)}
+                            className="w-full px-4 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all appearance-none cursor-pointer text-neutral-800"
+                          >
+                            <option value="">Pilih Bank</option>
+                            {POPULAR_BANKS.map((b) => (
+                              <option key={b} value={b}>
+                                {b}
+                              </option>
+                            ))}
+                          </select>
+                          <div className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400">
+                            <ChevronDown className="h-4 w-4" />
+                          </div>
+                        </div>
                       </div>
 
                       <div className="grid gap-4 sm:grid-cols-2">
