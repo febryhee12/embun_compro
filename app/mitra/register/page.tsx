@@ -2382,10 +2382,10 @@ export default function MitraRegisterPage() {
                           />
                           <div className="space-y-1">
                             <span className="font-bold text-neutral-900 block">
-                              Pernyataan Keabsahan Data & Dokumen Pendaftaran <span className="text-red-500">*</span>
+                              Pernyataan Keabsahan Data <span className="text-red-500">*</span>
                             </span>
                             <p className="text-neutral-600 leading-relaxed">
-                              Saya menyatakan bahwa seluruh data, identitas KTP, dan informasi properti yang saya berikan adalah <strong>benar, sah, akurat, dan bukan data fiktif / rekayasa</strong>. Saya bersedia bertanggung jawab penuh secara hukum dan menyetujui seluruh ketentuan kemitraan platform Embun.
+                              Saya menyatakan bahwa seluruh data dan informasi properti yang saya berikan adalah <strong>benar, sah, akurat, dan bukan data fiktif / rekayasa</strong>. Saya bersedia bertanggung jawab penuh secara hukum dan menyetujui seluruh ketentuan kemitraan platform Embun.
                             </p>
                           </div>
                         </label>
