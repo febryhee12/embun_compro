@@ -395,6 +395,7 @@ export function SpotRedirectClient() {
     null,
   );
   const [isTicketOpen, setIsTicketOpen] = useState(false);
+  const [isTour360Only, setIsTour360Only] = useState(false);
 
   const formatDateDisplay = (dateStr?: string) => {
     if (!dateStr) return '-';
@@ -417,6 +418,19 @@ export function SpotRedirectClient() {
   // 1. Initial Load & Fetch Data
   useEffect(() => {
     setCurrentUser(getStoredGuestProfile());
+
+    if (typeof window !== 'undefined') {
+      const sp = new URLSearchParams(window.location.search);
+      const is360Requested =
+        sp.get('view360') === 'true' ||
+        sp.get('tour360') === 'true' ||
+        sp.get('tab') === '360';
+      if (is360Requested) {
+        setIsTour360Only(true);
+        setIsGalleryOpen(true);
+        setGalleryTab('360');
+      }
+    }
 
     const rawPath = window.location.pathname;
     const resolvedToken = resolveTokenFromPath(rawPath);
@@ -584,34 +598,77 @@ export function SpotRedirectClient() {
 
   // Extract 360 Panoramas
   const panoramaList = useMemo(() => {
-    if (!activeSpot) return [];
     const list: PanoramaItem[] = [];
+    const addedUrls = new Set<string>();
 
-    if (Array.isArray(activeSpot.panoramaPhotos)) {
+    // 1. Check activeSpot.panoramaPhotos
+    if (activeSpot && Array.isArray(activeSpot.panoramaPhotos)) {
       activeSpot.panoramaPhotos.forEach((p: any) => {
-        if (p?.imageUrl || p?.url) {
+        const url = p?.imageUrl || p?.url;
+        if (url && !addedUrls.has(url)) {
+          addedUrls.add(url);
           list.push({
             id: p.id || String(Math.random()),
-            label: p.label || p.category || 'Tur 360° Unit',
-            imageUrl: p.imageUrl || p.url,
+            label: p.label || p.category || `${activeSpot.name} (360°)`,
+            imageUrl: url,
             category: p.category,
           });
         }
       });
     }
 
+    // 2. Check campsite.panoramaSpots
+    if (Array.isArray((campsite as any)?.panoramaSpots)) {
+      (campsite as any).panoramaSpots.forEach((p: any) => {
+        const url = p?.imageUrl || p?.url;
+        if (url && !addedUrls.has(url)) {
+          addedUrls.add(url);
+          list.push({
+            id: p.id || String(Math.random()),
+            label: p.label || p.description || 'Tur 360° Kawasan',
+            imageUrl: url,
+            category: 'panorama_campsite',
+          });
+        }
+      });
+    }
+
+    // 3. Check all other spots in campsite for 360 photos
+    if (Array.isArray(campsite?.blocks)) {
+      campsite?.blocks.forEach((b: any) => {
+        if (Array.isArray(b.panoramaPhotos)) {
+          b.panoramaPhotos.forEach((p: any) => {
+            const url = p?.imageUrl || p?.url;
+            if (url && !addedUrls.has(url)) {
+              addedUrls.add(url);
+              list.push({
+                id: p.id || String(Math.random()),
+                label: p.label || `${b.name} (360°)`,
+                imageUrl: url,
+                category: p.category,
+              });
+            }
+          });
+        }
+      });
+    }
+
+    // 4. Check campsite.photos for 360/panorama category
     if (Array.isArray(campsite?.photos)) {
       campsite?.photos.forEach((p) => {
         if (
           p.category?.toLowerCase().includes('360') ||
           p.category?.toLowerCase().includes('panorama')
         ) {
-          list.push({
-            id: p.id,
-            label: 'Panorama Area Camp',
-            imageUrl: p.url,
-            category: p.category,
-          });
+          if (p.url && !addedUrls.has(p.url)) {
+            addedUrls.add(p.url);
+            list.push({
+              id: p.id,
+              label: 'Tur 360° Area Camp',
+              imageUrl: p.url,
+              category: p.category,
+            });
+          }
         }
       });
     }
@@ -2012,300 +2069,341 @@ export function SpotRedirectClient() {
             </div>
           </div>
 
-          {/* ── RIGHT COLUMN: STICKY BOOKING CARD (DESKTOP ONLY) ── */}
+          {/* ── RIGHT COLUMN: STICKY BOOKING CARD (DESKTOP ONLY) OR 360 TOUR CARD ── */}
           <div className="hidden lg:block lg:col-span-5 xl:col-span-4">
-            <div className="sticky top-24 bg-white rounded-3xl border border-border shadow-xl p-5 space-y-3.5">
-              {/* Header Price & Rating */}
-              <div className="flex items-baseline justify-between border-b border-border pb-3">
-                <div>
-                  <span className="text-2xl font-extrabold text-foreground tracking-tight">
-                    {rupiah(spotPricePerNight)}
-                  </span>
-                  <span className="text-xs text-foreground-muted">
-                    {' '}
-                    / malam
-                  </span>
+            {isTour360Only ? (
+              <div className="sticky top-24 bg-white rounded-3xl border border-border shadow-xl p-6 space-y-4 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-brand-blue/10 text-brand-blue flex items-center justify-center mx-auto">
+                  <Compass size={28} />
                 </div>
-                {reviewAggregate && reviewAggregate.ratingCount > 0 ? (
-                  <div className="flex items-center gap-1 text-xs font-bold text-foreground">
-                    <Star size={13} className="fill-amber-500 text-amber-500" />
-                    <span>{reviewAggregate.ratingAvg.toFixed(1)}</span>
-                    <span className="text-foreground-muted">
-                      · {reviewAggregate.ratingCount} ulasan
+                <div>
+                  <h3 className="font-bold text-base text-foreground">
+                    Tur Virtual 360°
+                  </h3>
+                  <p className="text-xs text-foreground-muted mt-1 leading-relaxed">
+                    Jelajahi lanskap, area camp, dan fasilitas di{' '}
+                    <span className="font-semibold text-foreground">
+                      {campsite.name}
+                    </span>{' '}
+                    secara visual interaktif.
+                  </p>
+                </div>
+                {panoramaList.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsGalleryOpen(true);
+                      setGalleryTab('360');
+                    }}
+                    className="w-full py-3.5 px-6 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
+                  >
+                    <Compass size={16} />
+                    <span>Buka Tur 360° ({panoramaList.length} Area)</span>
+                  </button>
+                )}
+                <div className="pt-2 border-t border-border">
+                  <a
+                    href="/explore"
+                    className="text-xs font-bold text-brand-blue hover:underline"
+                  >
+                    ← Kembali ke Embun Explore
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <div className="sticky top-24 bg-white rounded-3xl border border-border shadow-xl p-5 space-y-3.5">
+                {/* Header Price & Rating */}
+                <div className="flex items-baseline justify-between border-b border-border pb-3">
+                  <div>
+                    <span className="text-2xl font-extrabold text-foreground tracking-tight">
+                      {rupiah(spotPricePerNight)}
+                    </span>
+                    <span className="text-xs text-foreground-muted">
+                      {' '}
+                      / malam
                     </span>
                   </div>
-                ) : (
-                  <div className="flex items-center gap-1 text-xs font-bold text-foreground">
-                    <Sparkles
-                      size={13}
-                      className="text-brand-lime fill-brand-lime"
-                    />
-                    <span className="text-brand-blue">Baru</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Package Selector (Sidebar) */}
-              {Array.isArray(activeSpot.pricingPackages) &&
-                activeSpot.pricingPackages.length > 1 && (
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-foreground flex items-center justify-between">
-                      <span>Pilihan Paket</span>
-                      <span className="text-[10px] font-semibold text-brand-blue truncate max-w-[140px]">
-                        {selectedPackage?.name}
+                  {reviewAggregate && reviewAggregate.ratingCount > 0 ? (
+                    <div className="flex items-center gap-1 text-xs font-bold text-foreground">
+                      <Star size={13} className="fill-amber-500 text-amber-500" />
+                      <span>{reviewAggregate.ratingAvg.toFixed(1)}</span>
+                      <span className="text-foreground-muted">
+                        · {reviewAggregate.ratingCount} ulasan
                       </span>
-                    </label>
-                    <div className="grid grid-cols-2 gap-1.5 text-xs">
-                      {activeSpot.pricingPackages.map((pkg) => {
-                        const isSelected =
-                          (selectedPackage?.id ||
-                            activeSpot.pricingPackages?.[0]?.id) === pkg.id;
-                        const pkgPrice =
-                          pkg.flatRateMode && pkg.flatRate
-                            ? Number(pkg.flatRate)
-                            : Number(pkg.weekdayRate) || 0;
-                        return (
-                          <button
-                            key={pkg.id}
-                            type="button"
-                            onClick={() => setSelectedPackageId(pkg.id || null)}
-                            className={`p-2 rounded-2xl border text-left transition-all cursor-pointer ${
-                              isSelected
-                                ? 'border-brand-blue bg-brand-blue/5 ring-1 ring-brand-blue'
-                                : 'border-border bg-surface/50 hover:bg-surface'
-                            }`}
-                          >
-                            <span className="font-bold text-foreground block truncate text-[11px]">
-                              {pkg.name}
-                            </span>
-                            <span className="font-extrabold text-brand-blue block text-[10.5px] mt-0.5">
-                              {rupiah(pkgPrice)}
-                            </span>
-                          </button>
-                        );
-                      })}
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1 text-xs font-bold text-foreground">
+                      <Sparkles
+                        size={13}
+                        className="text-brand-lime fill-brand-lime"
+                      />
+                      <span className="text-brand-blue">Baru</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Package Selector (Sidebar) */}
+                {Array.isArray(activeSpot.pricingPackages) &&
+                  activeSpot.pricingPackages.length > 1 && (
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-foreground flex items-center justify-between">
+                        <span>Pilihan Paket</span>
+                        <span className="text-[10px] font-semibold text-brand-blue truncate max-w-[140px]">
+                          {selectedPackage?.name}
+                        </span>
+                      </label>
+                      <div className="grid grid-cols-2 gap-1.5 text-xs">
+                        {activeSpot.pricingPackages.map((pkg) => {
+                          const isSelected =
+                            (selectedPackage?.id ||
+                              activeSpot.pricingPackages?.[0]?.id) === pkg.id;
+                          const pkgPrice =
+                            pkg.flatRateMode && pkg.flatRate
+                              ? Number(pkg.flatRate)
+                              : Number(pkg.weekdayRate) || 0;
+                          return (
+                            <button
+                              key={pkg.id}
+                              type="button"
+                              onClick={() => setSelectedPackageId(pkg.id || null)}
+                              className={`p-2 rounded-2xl border text-left transition-all cursor-pointer ${
+                                isSelected
+                                  ? 'border-brand-blue bg-brand-blue/5 ring-1 ring-brand-blue'
+                                  : 'border-border bg-surface/50 hover:bg-surface'
+                              }`}
+                            >
+                              <span className="font-bold text-foreground block truncate text-[11px]">
+                                {pkg.name}
+                              </span>
+                              <span className="font-extrabold text-brand-blue block text-[10.5px] mt-0.5">
+                                {rupiah(pkgPrice)}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                {/* Date & Guest Input Box */}
+                <div className="border border-border rounded-2xl overflow-hidden shadow-2xs divide-y divide-border text-xs">
+                  {/* Date Trigger Box in Sidebar */}
+                  <div
+                    onClick={() => setIsCalendarOpen(true)}
+                    className="grid grid-cols-2 divide-x divide-border bg-surface/50 hover:bg-surface transition-colors cursor-pointer group"
+                  >
+                    <div className="p-2.5">
+                      <span className="block text-[9px] font-bold uppercase tracking-wider text-foreground-muted">
+                        Check-In
+                      </span>
+                      <span className="font-bold text-foreground group-hover:text-brand-blue text-xs block mt-0.5 transition-colors">
+                        {formatDateDisplay(checkInDate)}
+                      </span>
+                    </div>
+                    <div className="p-2.5">
+                      <span className="block text-[9px] font-bold uppercase tracking-wider text-foreground-muted">
+                        Check-Out
+                      </span>
+                      <span className="font-bold text-foreground group-hover:text-brand-blue text-xs block mt-0.5 transition-colors">
+                        {formatDateDisplay(checkOutDate)}
+                      </span>
                     </div>
                   </div>
-                )}
 
-              {/* Date & Guest Input Box */}
-              <div className="border border-border rounded-2xl overflow-hidden shadow-2xs divide-y divide-border text-xs">
-                {/* Date Trigger Box in Sidebar */}
-                <div
-                  onClick={() => setIsCalendarOpen(true)}
-                  className="grid grid-cols-2 divide-x divide-border bg-surface/50 hover:bg-surface transition-colors cursor-pointer group"
-                >
-                  <div className="p-2.5">
-                    <span className="block text-[9px] font-bold uppercase tracking-wider text-foreground-muted">
-                      Check-In
-                    </span>
-                    <span className="font-bold text-foreground group-hover:text-brand-blue text-xs block mt-0.5 transition-colors">
-                      {formatDateDisplay(checkInDate)}
-                    </span>
-                  </div>
-                  <div className="p-2.5">
-                    <span className="block text-[9px] font-bold uppercase tracking-wider text-foreground-muted">
-                      Check-Out
-                    </span>
-                    <span className="font-bold text-foreground group-hover:text-brand-blue text-xs block mt-0.5 transition-colors">
-                      {formatDateDisplay(checkOutDate)}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Guest Counter in Sidebar */}
-                <div className="p-2.5 bg-white flex items-center justify-between">
-                  <div>
-                    <span className="block text-[9px] font-bold uppercase tracking-wider text-foreground-muted">
-                      Jumlah Tamu
-                    </span>
-                    <span className="font-bold text-foreground text-xs">
-                      {guestCount} Orang (Maks. {effectiveMaxCapacity})
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      disabled={guestCount <= 1}
-                      onClick={() => setGuestCount(Math.max(1, guestCount - 1))}
-                      className="w-6 h-6 rounded-full border border-border flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
-                    >
-                      <Minus size={11} />
-                    </button>
-                    <span className="font-bold text-xs w-3 text-center">
-                      {guestCount}
-                    </span>
-                    <button
-                      type="button"
-                      disabled={guestCount >= effectiveMaxCapacity}
-                      onClick={() =>
-                        setGuestCount(
-                          Math.min(effectiveMaxCapacity, guestCount + 1),
-                        )
-                      }
-                      className="w-6 h-6 rounded-full border border-border flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
-                    >
-                      <Plus size={11} />
-                    </button>
+                  {/* Guest Counter in Sidebar */}
+                  <div className="p-2.5 bg-white flex items-center justify-between">
+                    <div>
+                      <span className="block text-[9px] font-bold uppercase tracking-wider text-foreground-muted">
+                        Jumlah Tamu
+                      </span>
+                      <span className="font-bold text-foreground text-xs">
+                        {guestCount} Orang (Maks. {effectiveMaxCapacity})
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        disabled={guestCount <= 1}
+                        onClick={() => setGuestCount(Math.max(1, guestCount - 1))}
+                        className="w-6 h-6 rounded-full border border-border flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                      >
+                        <Minus size={11} />
+                      </button>
+                      <span className="font-bold text-xs w-3 text-center">
+                        {guestCount}
+                      </span>
+                      <button
+                        type="button"
+                        disabled={guestCount >= effectiveMaxCapacity}
+                        onClick={() =>
+                          setGuestCount(
+                            Math.min(effectiveMaxCapacity, guestCount + 1),
+                          )
+                        }
+                        className="w-6 h-6 rounded-full border border-border flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                      >
+                        <Plus size={11} />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Price Calculation Breakdown */}
-              <div className="space-y-2 pt-2 border-t border-border text-xs">
-                <div className="flex justify-between text-foreground-muted">
-                  <span>
-                    {selectedPackage?.name || 'Sewa'} (
-                    {rupiah(spotPricePerNight)} x {nights} malam)
-                  </span>
-                  <span className="font-semibold text-foreground">
-                    {rupiah(spotPricePerNight * nights)}
-                  </span>
-                </div>
-
-                {addonTotal > 0 && (
+                {/* Price Calculation Breakdown */}
+                <div className="space-y-2 pt-2 border-t border-border text-xs">
                   <div className="flex justify-between text-foreground-muted">
-                    <span>Perlengkapan Tambahan</span>
+                    <span>
+                      {selectedPackage?.name || 'Sewa'} (
+                      {rupiah(spotPricePerNight)} x {nights} malam)
+                    </span>
                     <span className="font-semibold text-foreground">
-                      +{rupiah(addonTotal)}
+                      {rupiah(spotPricePerNight * nights)}
                     </span>
                   </div>
-                )}
 
-                <div className="flex justify-between text-foreground-muted">
-                  <span>Biaya Layanan & Pajak</span>
-                  <span className="font-semibold text-foreground">
-                    +{rupiah(totalServiceAndTaxFee)}
-                  </span>
-                </div>
+                  {addonTotal > 0 && (
+                    <div className="flex justify-between text-foreground-muted">
+                      <span>Perlengkapan Tambahan</span>
+                      <span className="font-semibold text-foreground">
+                        +{rupiah(addonTotal)}
+                      </span>
+                    </div>
+                  )}
 
-                <div className="flex justify-between items-baseline pt-2 border-t border-border font-bold text-sm text-foreground">
-                  <span>Total Tagihan</span>
-                  <span className="text-base text-brand-blue font-extrabold">
-                    {rupiah(grandTotal)}
-                  </span>
-                </div>
-              </div>
+                  <div className="flex justify-between text-foreground-muted">
+                    <span>Biaya Layanan & Pajak</span>
+                    <span className="font-semibold text-foreground">
+                      +{rupiah(totalServiceAndTaxFee)}
+                    </span>
+                  </div>
 
-              {/* Payment Scheme Choice */}
-              <div className="space-y-1.5">
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setPaymentScheme('DP_50')}
-                    className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
-                      paymentScheme === 'DP_50'
-                        ? 'border-brand-blue bg-brand-blue/5 ring-2 ring-brand-blue/20'
-                        : 'border-border bg-surface/50 hover:bg-surface'
-                    }`}
-                  >
-                    <span className="block text-[11px] font-bold text-foreground">
-                      DP 50%
-                    </span>
-                    <span className="block text-xs font-extrabold text-brand-blue mt-0.5">
-                      {rupiah(dp50Total)}
-                    </span>
-                    <span className="block text-[9.5px] text-foreground-muted mt-0.5">
-                      Sisa di lokasi / aplikasi
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setPaymentScheme('FULL')}
-                    className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
-                      paymentScheme === 'FULL'
-                        ? 'border-brand-blue bg-brand-blue/5 ring-2 ring-brand-blue/20'
-                        : 'border-border bg-surface/50 hover:bg-surface'
-                    }`}
-                  >
-                    <span className="block text-[11px] font-bold text-foreground">
-                      Bayar Lunas
-                    </span>
-                    <span className="block text-xs font-extrabold text-foreground mt-0.5">
+                  <div className="flex justify-between items-baseline pt-2 border-t border-border font-bold text-sm text-foreground">
+                    <span>Total Tagihan</span>
+                    <span className="text-base text-brand-blue font-extrabold">
                       {rupiah(grandTotal)}
                     </span>
-                    <span className="block text-[9.5px] text-emerald-600 font-semibold mt-0.5">
-                      Lunas langsung
+                  </div>
+                </div>
+
+                {/* Payment Scheme Choice */}
+                <div className="space-y-1.5">
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPaymentScheme('DP_50')}
+                      className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                        paymentScheme === 'DP_50'
+                          ? 'border-brand-blue bg-brand-blue/5 ring-2 ring-brand-blue/20'
+                          : 'border-border bg-surface/50 hover:bg-surface'
+                      }`}
+                    >
+                      <span className="block text-[11px] font-bold text-foreground">
+                        DP 50%
+                      </span>
+                      <span className="block text-xs font-extrabold text-brand-blue mt-0.5">
+                        {rupiah(dp50Total)}
+                      </span>
+                      <span className="block text-[9.5px] text-foreground-muted mt-0.5">
+                        Sisa di lokasi / aplikasi
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setPaymentScheme('FULL')}
+                      className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                        paymentScheme === 'FULL'
+                          ? 'border-brand-blue bg-brand-blue/5 ring-2 ring-brand-blue/20'
+                          : 'border-border bg-surface/50 hover:bg-surface'
+                      }`}
+                    >
+                      <span className="block text-[11px] font-bold text-foreground">
+                        Bayar Lunas
+                      </span>
+                      <span className="block text-xs font-extrabold text-foreground mt-0.5">
+                        {rupiah(grandTotal)}
+                      </span>
+                      <span className="block text-[9.5px] text-emerald-600 font-semibold mt-0.5">
+                        Lunas langsung
+                      </span>
+                    </button>
+                  </div>
+                </div>
+
+                {orderError && (
+                  <div className="p-2.5 rounded-2xl bg-red-50 border border-red-200 text-red-600 text-xs font-semibold">
+                    {orderError}
+                  </div>
+                )}
+
+                {/* CTA Booking Button */}
+                <div className="space-y-2.5 pt-1">
+                  <button
+                    type="button"
+                    disabled={submittingOrder}
+                    onClick={handleProceedBooking}
+                    className="w-full py-3.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-[0.99]"
+                  >
+                    <span>
+                      {submittingOrder
+                        ? 'Memproses Pesanan...'
+                        : `Pesan Sekarang · ${rupiah(paymentAmountToPay)}`}
                     </span>
                   </button>
-                </div>
-              </div>
 
-              {orderError && (
-                <div className="p-2.5 rounded-2xl bg-red-50 border border-red-200 text-red-600 text-xs font-semibold">
-                  {orderError}
-                </div>
-              )}
-
-              {/* CTA Booking Button */}
-              <div className="space-y-2.5 pt-1">
-                <button
-                  type="button"
-                  disabled={submittingOrder}
-                  onClick={handleProceedBooking}
-                  className="w-full py-3.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-[0.99]"
-                >
-                  <span>
-                    {submittingOrder
-                      ? 'Memproses Pesanan...'
-                      : `Pesan Sekarang · ${rupiah(paymentAmountToPay)}`}
-                  </span>
-                </button>
-
-                {/* Direct App Store & Google Play Badges Under Booking Button */}
-                <div className="pt-2 border-t border-border space-y-1.5">
-                  <p className="text-[11px] font-bold text-foreground">
-                    Tersedia di iOS & Android
-                  </p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <a
-                      href={APP_STORE_HREF}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 rounded-2xl border border-border bg-surface/60 hover:bg-surface flex items-center justify-center gap-1.5 text-foreground transition-all cursor-pointer shadow-2xs hover:shadow-xs group"
-                    >
-                      <svg
-                        viewBox="0 0 24 24"
-                        width="14"
-                        height="14"
-                        fill="currentColor"
+                  {/* Direct App Store & Google Play Badges Under Booking Button */}
+                  <div className="pt-2 border-t border-border space-y-1.5">
+                    <p className="text-[11px] font-bold text-foreground">
+                      Tersedia di iOS & Android
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <a
+                        href={APP_STORE_HREF}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 rounded-2xl border border-border bg-surface/60 hover:bg-surface flex items-center justify-center gap-1.5 text-foreground transition-all cursor-pointer shadow-2xs hover:shadow-xs group"
                       >
-                        <path d="M17.05 12.53c-.02-2.02 1.65-2.99 1.72-3.04-.94-1.37-2.4-1.56-2.92-1.58-1.24-.13-2.42.73-3.05.73-.63 0-1.6-.71-2.63-.69-1.35.02-2.6.79-3.29 2-1.4 2.43-.36 6.02 1.01 7.99.67.96 1.47 2.04 2.51 2 1.01-.04 1.39-.65 2.61-.65 1.22 0 1.56.65 2.63.63 1.09-.02 1.78-.98 2.44-1.95.77-1.12 1.09-2.2 1.11-2.26-.02-.01-2.13-.82-2.15-3.24zM15.04 6.34c.56-.68.94-1.62.83-2.56-.81.03-1.79.54-2.37 1.21-.52.6-.97 1.56-.85 2.48.9.07 1.83-.46 2.39-1.13z" />
-                      </svg>
-                      <span className="text-[11px] font-bold">App Store</span>
-                    </a>
+                        <svg
+                          viewBox="0 0 24 24"
+                          width="14"
+                          height="14"
+                          fill="currentColor"
+                        >
+                          <path d="M17.05 12.53c-.02-2.02 1.65-2.99 1.72-3.04-.94-1.37-2.4-1.56-2.92-1.58-1.24-.13-2.42.73-3.05.73-.63 0-1.6-.71-2.63-.69-1.35.02-2.6.79-3.29 2-1.4 2.43-.36 6.02 1.01 7.99.67.96 1.47 2.04 2.51 2 1.01-.04 1.39-.65 2.61-.65 1.22 0 1.56.65 2.63.63 1.09-.02 1.78-.98 2.44-1.95.77-1.12 1.09-2.2 1.11-2.26-.02-.01-2.13-.82-2.15-3.24zM15.04 6.34c.56-.68.94-1.62.83-2.56-.81.03-1.79.54-2.37 1.21-.52.6-.97 1.56-.85 2.48.9.07 1.83-.46 2.39-1.13z" />
+                        </svg>
+                        <span className="text-[11px] font-bold">App Store</span>
+                      </a>
 
-                    <a
-                      href={GOOGLE_PLAY_HREF}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 rounded-2xl border border-border bg-surface/60 hover:bg-surface flex items-center justify-center gap-1.5 text-foreground transition-all cursor-pointer shadow-2xs hover:shadow-xs group"
-                    >
-                      <svg viewBox="0 0 24 24" width="13" height="13">
-                        <path
-                          d="M3.6 2.3c-.24.25-.38.63-.38 1.13v17.14c0 .5.14.88.38 1.13l.06.05L13 12.06v-.12L3.66 2.25l-.06.05z"
-                          fill="#00D0FF"
-                        />
-                        <path
-                          d="M16.5 15.56 13 12.06v-.12l3.5-3.5.08.05 4.15 2.36c1.18.67 1.18 1.77 0 2.45l-4.15 2.36-.08.05z"
-                          fill="#FFCE00"
-                        />
-                        <path
-                          d="M16.58 15.51 13 12l-9.4 9.4c.39.41 1.03.46 1.76.05l11.22-6.44"
-                          fill="#FF3D44"
-                        />
-                        <path
-                          d="M16.58 8.49 5.36 2.05C4.63 1.64 3.99 1.69 3.6 2.1L13 11.5l3.58-3.01z"
-                          fill="#00F076"
-                        />
-                      </svg>
-                      <span className="text-[11px] font-bold">Google Play</span>
-                    </a>
+                      <a
+                        href={GOOGLE_PLAY_HREF}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 rounded-2xl border border-border bg-surface/60 hover:bg-surface flex items-center justify-center gap-1.5 text-foreground transition-all cursor-pointer shadow-2xs hover:shadow-xs group"
+                      >
+                        <svg viewBox="0 0 24 24" width="13" height="13">
+                          <path
+                            d="M3.6 2.3c-.24.25-.38.63-.38 1.13v17.14c0 .5.14.88.38 1.13l.06.05L13 12.06v-.12L3.66 2.25l-.06.05z"
+                            fill="#00D0FF"
+                          />
+                          <path
+                            d="M16.5 15.56 13 12.06v-.12l3.5-3.5.08.05 4.15 2.36c1.18.67 1.18 1.77 0 2.45l-4.15 2.36-.08.05z"
+                            fill="#FFCE00"
+                          />
+                          <path
+                            d="M16.58 15.51 13 12l-9.4 9.4c.39.41 1.03.46 1.76.05l11.22-6.44"
+                            fill="#FF3D44"
+                          />
+                          <path
+                            d="M16.58 8.49 5.36 2.05C4.63 1.64 3.99 1.69 3.6 2.1L13 11.5l3.58-3.01z"
+                            fill="#00F076"
+                          />
+                        </svg>
+                        <span className="text-[11px] font-bold">Google Play</span>
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </main>
@@ -2313,12 +2411,13 @@ export function SpotRedirectClient() {
       {/* ════════════════════════════════════════════════════════════════════════
           5. MOBILE STICKY BOTTOM BAR
       ════════════════════════════════════════════════════════════════════════ */}
-      <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-border p-4 shadow-xl">
-        <div className="flex items-center justify-between gap-4">
-          <div
-            onClick={() => setIsCalendarOpen(true)}
-            className="cursor-pointer group"
-          >
+      {!isTour360Only && (
+        <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-border p-4 shadow-xl">
+          <div className="flex items-center justify-between gap-4">
+            <div
+              onClick={() => setIsCalendarOpen(true)}
+              className="cursor-pointer group"
+            >
             <span className="text-base font-extrabold text-foreground">
               {rupiah(spotPricePerNight)}
             </span>
@@ -2342,6 +2441,7 @@ export function SpotRedirectClient() {
           </button>
         </div>
       </div>
+      )}
 
       {/* ════════════════════════════════════════════════════════════════════════
           6. FULLSCREEN GALLERY & 360 LIGHTBOX MODAL

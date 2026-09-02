@@ -177,11 +177,15 @@ export function SpotCard({
     return 0;
   }, [spot]);
 
+  const isTour360Mode = (spot as any).isTour360Only || spot.tentType === 'Tur 360°';
+  const targetUrl = isTour360Mode
+    ? `/spot/${spot.campsite.slug || spot.campsite.id}?view360=true`
+    : `/spot/${spot.shareCode || spot.id}${has360 ? '?view360=true' : ''}`;
   const currentPhotoUrl = validPhotos[photoIndex] || validPhotos[0];
 
   return (
     <a
-      href={`/spot/${spot.shareCode || spot.id}`}
+      href={targetUrl}
       target="_blank"
       rel="noopener noreferrer"
       onClick={(e) => {
@@ -207,12 +211,16 @@ export function SpotCard({
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center text-foreground-muted bg-surface/80 p-4 text-center">
-            <Tent size={36} className="text-brand-blue/60 mb-1" />
+            {isTour360Mode ? (
+              <Compass size={36} className="text-brand-blue/60 mb-1" />
+            ) : (
+              <Tent size={36} className="text-brand-blue/60 mb-1" />
+            )}
             <span className="text-[11px] font-semibold text-foreground">
               {spot.name}
             </span>
             <span className="text-[10px] text-foreground-muted">
-              {spot.tentType || 'Spot Camp'}
+              {isTour360Mode ? 'Tur Virtual 360°' : (spot.tentType || 'Spot Camp')}
             </span>
           </div>
         )}
@@ -224,7 +232,7 @@ export function SpotCard({
               <Sparkles size={9} className="fill-black text-black" />
               Embun Plus
             </span>
-          ) : has360 ? (
+          ) : isTour360Mode || has360 ? (
             <span className="px-2.5 py-0.5 rounded-full text-[9.5px] font-bold bg-brand-lime text-black border border-brand-lime/60 shadow-none flex items-center gap-1">
               <Compass size={10} />
               Tur 360°
@@ -287,19 +295,26 @@ export function SpotCard({
           {spot.campsite?.name || 'Embun Campsite'}
         </p>
 
-        {/* Price (Mulai Dari) */}
+        {/* Price or View-Only 360 Tour indicator */}
         <div className="pt-0.5 flex items-baseline justify-between gap-2">
-          <p className="text-sm text-foreground">
-            <span className="text-xs font-normal text-foreground-muted mr-1">
-              mulai dari
-            </span>
-            <span className="font-bold text-foreground">
-              {rupiah(startingPrice)}
-            </span>
-            <span className="text-[11px] font-normal text-foreground-muted ml-1">
-              / malam
-            </span>
-          </p>
+          {isTour360Mode ? (
+            <p className="text-xs font-bold text-brand-blue flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+              <Compass size={13} />
+              <span>Eksplorasi Tur 360° →</span>
+            </p>
+          ) : (
+            <p className="text-sm text-foreground">
+              <span className="text-xs font-normal text-foreground-muted mr-1">
+                mulai dari
+              </span>
+              <span className="font-bold text-foreground">
+                {rupiah(startingPrice)}
+              </span>
+              <span className="text-[11px] font-normal text-foreground-muted ml-1">
+                / malam
+              </span>
+            </p>
+          )}
         </div>
       </div>
     </a>

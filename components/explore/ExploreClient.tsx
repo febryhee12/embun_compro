@@ -58,15 +58,30 @@ export function ExploreClient() {
     void loadData();
   }, []);
 
-  // 2. Extract All Spots from Campsites
+  // 2. Extract All Spots & 360 Tours from Campsites
   const allSpots: SpotData[] = useMemo(() => {
     const list: SpotData[] = [];
     campsites.forEach((camp) => {
-      if (Array.isArray(camp.blocks)) {
+      const campHasBlocks = Array.isArray(camp.blocks) && camp.blocks.length > 0;
+
+      if (campHasBlocks) {
         camp.blocks.forEach((b: any) => {
           if (b.status === 'active' || !b.status) {
+            const blockPanos = Array.isArray(b.panoramaPhotos) ? [...b.panoramaPhotos] : [];
+            if (blockPanos.length === 0 && Array.isArray(camp.panoramaSpots) && camp.panoramaSpots.length > 0) {
+              camp.panoramaSpots.forEach((ps: any) => {
+                blockPanos.push({
+                  id: ps.id,
+                  label: ps.label || ps.description || 'Tur 360° Kawasan',
+                  imageUrl: ps.imageUrl,
+                  category: 'panorama_campsite',
+                });
+              });
+            }
+
             list.push({
               ...b,
+              panoramaPhotos: blockPanos,
               campsite: {
                 id: camp.id,
                 name: camp.name,
@@ -78,10 +93,78 @@ export function ExploreClient() {
                 addons: camp.addons || [],
                 rating: camp.rating ? Number(camp.rating) : 5.0,
                 reviewCount: camp.reviewCount || 48,
+                panoramaSpots: camp.panoramaSpots || [],
               },
             });
           }
         });
+      }
+
+      // Add dedicated Campsite 360 Tour entry if campsite has 360 virtual tours
+      const hasCampPano =
+        (Array.isArray(camp.panoramaSpots) && camp.panoramaSpots.length > 0) ||
+        (Array.isArray(camp.photos) &&
+          camp.photos.some(
+            (p: any) =>
+              p.category?.toLowerCase().includes('360') ||
+              p.category?.toLowerCase().includes('panorama'),
+          ));
+
+      if (hasCampPano) {
+        const panos: any[] = [];
+        if (Array.isArray(camp.panoramaSpots)) {
+          camp.panoramaSpots.forEach((ps: any) => {
+            panos.push({
+              id: ps.id,
+              label: ps.label || ps.description || 'Tur 360° Kawasan',
+              imageUrl: ps.imageUrl,
+            });
+          });
+        }
+        if (Array.isArray(camp.photos)) {
+          camp.photos.forEach((p: any) => {
+            if (
+              p.category?.toLowerCase().includes('360') ||
+              p.category?.toLowerCase().includes('panorama')
+            ) {
+              panos.push({
+                id: p.id,
+                label: 'Tur 360° Area Camp',
+                imageUrl: p.url,
+              });
+            }
+          });
+        }
+
+        if (panos.length > 0) {
+          list.push({
+            id: `tour360-${camp.id}`,
+            name: `Tur 360° ${camp.name}`,
+            tentType: 'Tur 360°',
+            baseCapacity: 0,
+            maxCapacity: 0,
+            weekdayPrice: 0,
+            weekendPrice: 0,
+            holidayPrice: 0,
+            isTour360Only: true,
+            panoramaPhotos: panos,
+            photos: Array.isArray(camp.photos) ? camp.photos : [],
+            images: camp.coverImageUrl ? [camp.coverImageUrl] : [],
+            campsite: {
+              id: camp.id,
+              name: camp.name,
+              slug: camp.slug,
+              address: camp.address,
+              city: camp.city,
+              province: camp.province,
+              mapImageUrl: camp.mapImageUrl,
+              addons: [],
+              rating: camp.rating ? Number(camp.rating) : 5.0,
+              reviewCount: camp.reviewCount || 48,
+              panoramaSpots: camp.panoramaSpots || [],
+            },
+          } as any);
+        }
       }
     });
     return list;
@@ -126,8 +209,21 @@ export function ExploreClient() {
       let matchCat = true;
       if (selectedCategory === '360') {
         matchCat =
-          Array.isArray(spot.panoramaPhotos) && spot.panoramaPhotos.length > 0;
+          (spot as any).isTour360Only ||
+          (Array.isArray(spot.panoramaPhotos) && spot.panoramaPhotos.length > 0) ||
+          !!(spot as any).panoramaImageUrl ||
+          (Array.isArray(spot.photos) &&
+            spot.photos.some(
+              (p) =>
+                p.category?.toLowerCase().includes('360') ||
+                p.category?.toLowerCase().includes('panorama'),
+            )) ||
+          (Array.isArray((spot.campsite as any)?.panoramaSpots) &&
+            (spot.campsite as any).panoramaSpots.length > 0);
       } else if (selectedCategory !== 'all') {
+        // If not in 360 category, exclude standalone 360 tour placeholder cards
+        if ((spot as any).isTour360Only) return false;
+
         const cleanTarget = selectedCategory.toLowerCase().trim();
         const spotType = (spot.tentType || '').toLowerCase().trim();
         const spotName = (spot.name || '').toLowerCase().trim();
