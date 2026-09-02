@@ -177,9 +177,13 @@ export function SpotCard({
     return 0;
   }, [spot]);
 
-  const isTour360Mode = (spot as any).isTour360Only || spot.tentType === 'Tur 360°';
+  const isTour360Mode =
+    (spot as any).isTour360Only || spot.tentType === 'Tur 360°';
+  const startPanoId = spot.panoramaPhotos?.[0]?.id;
   const targetUrl = isTour360Mode
-    ? `/spot/${spot.campsite.slug || spot.campsite.id}?view360=true`
+    ? `/spot/${spot.campsite.slug || spot.campsite.id}?view360=true${
+        startPanoId ? `&spot=${encodeURIComponent(startPanoId)}` : ''
+      }`
     : `/spot/${spot.shareCode || spot.id}${has360 ? '?view360=true' : ''}`;
   const currentPhotoUrl = validPhotos[photoIndex] || validPhotos[0];
 

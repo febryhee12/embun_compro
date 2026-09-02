@@ -100,64 +100,76 @@ export function ExploreClient() {
         });
       }
 
-      // Add dedicated Campsite 360 Tour entry if campsite has 360 virtual tours.
-      // Fallback: campsite with tour360Enabled=true shows up even when
-      // panoramaSpots is not yet populated (operator sets flag first, uploads
-      // panorama photos later).
-      const hasCampPano =
-        camp.tour360Enabled === true ||
-        (Array.isArray(camp.panoramaSpots) && camp.panoramaSpots.length > 0) ||
-        (Array.isArray(camp.photos) &&
-          camp.photos.some(
-            (p: any) =>
-              p.category?.toLowerCase().includes('360') ||
-              p.category?.toLowerCase().includes('panorama'),
-          ));
+      // Collect individual 360 panorama markers across maps, mapMarkers, panoramaSpots, and photos
+      const camp360Markers: any[] = [];
+      const seenPanoUrls = new Set<string>();
 
-      if (hasCampPano) {
-        const panos: any[] = [];
-        if (Array.isArray(camp.panoramaSpots)) {
-          camp.panoramaSpots.forEach((ps: any) => {
-            panos.push({
-              id: ps.id,
-              label: ps.label || ps.description || 'Tur 360° Kawasan',
-              imageUrl: ps.imageUrl,
+      const addPanoMarker = (marker: any) => {
+        const img = (
+          marker.panoramaImageUrl ||
+          marker.imageUrl ||
+          marker.url ||
+          ''
+        ).trim();
+        if (img && !seenPanoUrls.has(img)) {
+          seenPanoUrls.add(img);
+          camp360Markers.push({
+            id: marker.id || `pano-${camp360Markers.length}`,
+            label: marker.label || marker.description || 'Spot 360°',
+            imageUrl: img,
+            lat: marker.lat,
+            lng: marker.lng,
+            isDefault: marker.isDefaultPanorama ?? marker.isDefault ?? false,
+            hotspots: marker.panoramaHotspots || marker.hotspots || [],
+            yaw: marker.panoramaYaw ?? marker.yaw,
+            pitch: marker.panoramaPitch ?? marker.pitch,
+          });
+        }
+      };
+
+      if (Array.isArray(camp.maps)) {
+        camp.maps.forEach((m: any) => {
+          if (Array.isArray(m.markers)) {
+            m.markers.forEach((marker: any) => {
+              if (marker.type === 'panorama' || marker.panoramaImageUrl) {
+                addPanoMarker(marker);
+              }
             });
-          });
-        }
-        if (Array.isArray(camp.photos)) {
-          camp.photos.forEach((p: any) => {
-            if (
-              p.category?.toLowerCase().includes('360') ||
-              p.category?.toLowerCase().includes('panorama')
-            ) {
-              panos.push({
-                id: p.id,
-                label: 'Tur 360° Area Camp',
-                imageUrl: p.url,
-              });
-            }
-          });
-        }
+          }
+        });
+      }
 
-        // If no dedicated panorama photos yet but tour360Enabled=true, use
-        // cover photo as a visual placeholder so the card still appears.
-        const coverFallback = camp.coverImageUrl ||
-          (Array.isArray(camp.photos) && camp.photos.length > 0
-            ? camp.photos[0].url
-            : null);
-        if (panos.length === 0 && coverFallback) {
-          panos.push({
-            id: `cover-${camp.id}`,
-            label: 'Tur 360° Segera Hadir',
-            imageUrl: coverFallback,
-          });
-        }
+      if (Array.isArray(camp.mapMarkers)) {
+        camp.mapMarkers.forEach((marker: any) => {
+          if (marker.type === 'panorama' || marker.panoramaImageUrl) {
+            addPanoMarker(marker);
+          }
+        });
+      }
 
-        if (panos.length > 0) {
+      if (Array.isArray(camp.panoramaSpots)) {
+        camp.panoramaSpots.forEach((ps: any) => {
+          addPanoMarker(ps);
+        });
+      }
+
+      if (Array.isArray(camp.photos)) {
+        camp.photos.forEach((p: any) => {
+          if (
+            p.category?.toLowerCase().includes('360') ||
+            p.category?.toLowerCase().includes('panorama')
+          ) {
+            addPanoMarker(p);
+          }
+        });
+      }
+
+      // If camp has 360 markers, create dedicated 360 spot cards for each marker (e.g. Strawberry Side, Skyview)
+      if (camp360Markers.length > 0) {
+        camp360Markers.forEach((pm) => {
           list.push({
-            id: `tour360-${camp.id}`,
-            name: `Tur 360° ${camp.name}`,
+            id: `tour360-${pm.id}`,
+            name: `Tur 360°: ${pm.label}`,
             tentType: 'Tur 360°',
             baseCapacity: 0,
             maxCapacity: 0,
@@ -165,9 +177,12 @@ export function ExploreClient() {
             weekendPrice: 0,
             holidayPrice: 0,
             isTour360Only: true,
-            panoramaPhotos: panos,
-            photos: Array.isArray(camp.photos) ? camp.photos : [],
-            images: camp.coverImageUrl ? [camp.coverImageUrl] : [],
+            panoramaPhotos: [
+              pm,
+              ...camp360Markers.filter((other) => other.id !== pm.id),
+            ],
+            photos: [{ url: pm.imageUrl, category: '360' }],
+            images: [pm.imageUrl],
             campsite: {
               id: camp.id,
               name: camp.name,
@@ -179,10 +194,53 @@ export function ExploreClient() {
               addons: [],
               rating: camp.rating ? Number(camp.rating) : 5.0,
               reviewCount: camp.reviewCount || 48,
-              panoramaSpots: camp.panoramaSpots || [],
+              panoramaSpots: camp360Markers,
             },
           } as any);
-        }
+        });
+      } else if (camp.tour360Enabled === true) {
+        // Fallback: campsite with tour360Enabled=true shows up even when
+        // panorama photos are still in progress
+        const coverFallback =
+          camp.coverImageUrl ||
+          (Array.isArray(camp.photos) && camp.photos.length > 0
+            ? camp.photos[0].url
+            : null);
+        list.push({
+          id: `tour360-${camp.id}`,
+          name: `Tur 360° ${camp.name}`,
+          tentType: 'Tur 360°',
+          baseCapacity: 0,
+          maxCapacity: 0,
+          weekdayPrice: 0,
+          weekendPrice: 0,
+          holidayPrice: 0,
+          isTour360Only: true,
+          panoramaPhotos: coverFallback
+            ? [
+                {
+                  id: `cover-${camp.id}`,
+                  label: 'Tur 360° Segera Hadir',
+                  imageUrl: coverFallback,
+                },
+              ]
+            : [],
+          photos: Array.isArray(camp.photos) ? camp.photos : [],
+          images: camp.coverImageUrl ? [camp.coverImageUrl] : [],
+          campsite: {
+            id: camp.id,
+            name: camp.name,
+            slug: camp.slug,
+            address: camp.address,
+            city: camp.city,
+            province: camp.province,
+            mapImageUrl: camp.mapImageUrl,
+            addons: [],
+            rating: camp.rating ? Number(camp.rating) : 5.0,
+            reviewCount: camp.reviewCount || 48,
+            panoramaSpots: [],
+          },
+        } as any);
       }
     });
     return list;

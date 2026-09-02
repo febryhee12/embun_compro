@@ -80,6 +80,9 @@ interface PanoramaItem {
   label?: string;
   imageUrl: string;
   category?: string;
+  hotspots?: any[];
+  yaw?: number;
+  pitch?: number;
 }
 
 interface PricingPackageItem {
@@ -154,6 +157,9 @@ interface CampsiteDetail {
     price: number;
     unit?: string;
   }>;
+  maps?: any[];
+  mapMarkers?: any[];
+  panoramaSpots?: any[];
   blocks: SpotItem[];
 }
 
@@ -719,10 +725,90 @@ export function SpotRedirectClient() {
       });
     }
 
+    // 5. Check campsite.maps[].markers for 360 photos
+    if (Array.isArray(campsite?.maps)) {
+      campsite?.maps.forEach((m: any) => {
+        if (Array.isArray(m.markers)) {
+          m.markers.forEach((marker: any) => {
+            const img = (
+              marker.panoramaImageUrl ||
+              marker.imageUrl ||
+              ''
+            ).trim();
+            if (
+              (marker.type === 'panorama' || marker.panoramaImageUrl) &&
+              img &&
+              !addedUrls.has(img)
+            ) {
+              addedUrls.add(img);
+              list.push({
+                id: marker.id || String(Math.random()),
+                label: marker.label || 'Tur 360° Kawasan',
+                imageUrl: img,
+                category: 'panorama_campsite',
+                hotspots: marker.panoramaHotspots || marker.hotspots || [],
+                yaw: marker.panoramaYaw,
+                pitch: marker.panoramaPitch,
+              });
+            }
+          });
+        }
+      });
+    }
+
+    // 6. Check campsite.mapMarkers for 360 photos
+    if (Array.isArray(campsite?.mapMarkers)) {
+      campsite?.mapMarkers.forEach((marker: any) => {
+        const img = (
+          marker.panoramaImageUrl ||
+          marker.imageUrl ||
+          ''
+        ).trim();
+        if (
+          (marker.type === 'panorama' || marker.panoramaImageUrl) &&
+          img &&
+          !addedUrls.has(img)
+        ) {
+          addedUrls.add(img);
+          list.push({
+            id: marker.id || String(Math.random()),
+            label: marker.label || 'Tur 360° Kawasan',
+            imageUrl: img,
+            category: 'panorama_campsite',
+            hotspots: marker.panoramaHotspots || marker.hotspots || [],
+            yaw: marker.panoramaYaw,
+            pitch: marker.panoramaPitch,
+          });
+        }
+      });
+    }
+
     return list;
   }, [activeSpot, campsite]);
 
-  // Init 360 Pannellum in modal
+  // Synchronize active panorama index when URL contains a specific spot or pano query param
+  useEffect(() => {
+    if (typeof window !== 'undefined' && panoramaList.length > 0) {
+      const sp = new URLSearchParams(window.location.search);
+      const targetSpot = sp.get('spot');
+      const targetPano = sp.get('pano');
+      if (targetSpot) {
+        const cleanTarget = targetSpot.replace(/^tour360-/, '');
+        const idx = panoramaList.findIndex(
+          (p) =>
+            p.id === cleanTarget ||
+            p.id === targetSpot ||
+            p.label?.toLowerCase() === targetSpot.toLowerCase(),
+        );
+        if (idx >= 0) setActivePanoramaIdx(idx);
+      } else if (targetPano) {
+        const idx = panoramaList.findIndex((p) => p.imageUrl === targetPano);
+        if (idx >= 0) setActivePanoramaIdx(idx);
+      }
+    }
+  }, [panoramaList]);
+
+  // Init 360 Pannellum in modal with interactive hotspots
   useEffect(() => {
     if (!isGalleryOpen || galleryTab !== '360' || panoramaList.length === 0)
       return;
@@ -741,6 +827,61 @@ export function SpotRedirectClient() {
         const currentPano = panoramaList[activePanoramaIdx];
         if (!currentPano) return;
 
+        const rawHotspots: any[] = (() => {
+          const hs = (currentPano as any).hotspots;
+          if (Array.isArray(hs)) return hs;
+          if (typeof hs === 'string' && hs.trim().length > 0) {
+            try { return JSON.parse(hs); } catch { return []; }
+          }
+          return [];
+        })();
+
+        const pannellumHotSpots = rawHotspots.map((h: any) => {
+          const isScene =
+            h.type === 'scene' || h.iconStyle === 'arrow_up' || !h.blockId;
+          const label =
+            h.targetLabel ||
+            h.text ||
+            h.label ||
+            (isScene ? 'Pindah Area' : 'Spot Kavling');
+          return {
+            pitch: Number(h.pitch || 0),
+            yaw: Number(h.yaw || 0),
+            type: 'custom',
+            createTooltipFunc: (hotSpotDiv: HTMLElement) => {
+              hotSpotDiv.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer; transform: translate(-50%, -50%); transition: transform 0.15s ease-out;">
+                  <div style="background: rgba(15, 23, 42, 0.88); color: #ffffff; padding: 4px 10px; border-radius: 9999px; font-size: 11px; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.35); box-shadow: 0 4px 14px rgba(0,0,0,0.6); white-space: nowrap; margin-bottom: 5px; backdrop-filter: blur(4px);">
+                    ${label}
+                  </div>
+                  <div style="width: 34px; height: 34px; border-radius: 50%; background: rgba(15, 23, 42, 0.92); border: 2.5px solid #ffffff; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,0.7); backdrop-filter: blur(4px);">
+                    ${
+                      isScene
+                        ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.8"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>'
+                        : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>'
+                    }
+                  </div>
+                </div>
+              `;
+              hotSpotDiv.onclick = (e) => {
+                e.stopPropagation();
+                if (h.targetSpotId) {
+                  const targetIdx = panoramaList.findIndex(
+                    (p) =>
+                      p.id === h.targetSpotId ||
+                      p.label?.toLowerCase() ===
+                        h.targetLabel?.toLowerCase() ||
+                      p.label?.toLowerCase() === label.toLowerCase(),
+                  );
+                  if (targetIdx >= 0) {
+                    setActivePanoramaIdx(targetIdx);
+                  }
+                }
+              };
+            },
+          };
+        });
+
         pannellumViewerRef.current = pannellum.viewer(
           panoramaContainerRef.current,
           {
@@ -753,6 +894,11 @@ export function SpotRedirectClient() {
             showFullscreenCtrl: true,
             mouseZoom: true,
             hfov: 100,
+            yaw:
+              currentPano.yaw !== undefined ? Number(currentPano.yaw) : 0,
+            pitch:
+              currentPano.pitch !== undefined ? Number(currentPano.pitch) : 0,
+            hotSpots: pannellumHotSpots,
           },
         );
       } catch (err) {
