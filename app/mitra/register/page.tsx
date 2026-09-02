@@ -170,6 +170,8 @@ export default function MitraRegisterPage() {
   const [form, setForm] = useState<FormState>(initialForm);
   const [ktpPhoto, setKtpPhoto] = useState<File | null>(null);
   const [ktpPreviewUrl, setKtpPreviewUrl] = useState<string | null>(null);
+  const [showKtpModal, setShowKtpModal] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<PartnerApplicationResult | null>(null);
@@ -186,6 +188,31 @@ export default function MitraRegisterPage() {
   const [loadingProvinces, setLoadingProvinces] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
   const [loadingDistricts, setLoadingDistricts] = useState(false);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      if (file.type.startsWith('image/')) {
+        handleKtpChange(file);
+      }
+    }
+  };
 
   const toTitleCase = (str: string) => {
     return str
@@ -834,46 +861,79 @@ export default function MitraRegisterPage() {
                           </label>
 
                           {!ktpPreviewUrl ? (
-                            <label className="group relative flex flex-col items-center justify-center p-7 sm:p-9 border-2 border-dashed border-[#E5E7EB] hover:border-[#0841B5] rounded-2xl bg-[#F4F7F6]/60 hover:bg-[#0841B5]/5 transition-all cursor-pointer text-center">
+                            <label
+                              onDragOver={handleDragOver}
+                              onDragEnter={handleDragOver}
+                              onDragLeave={handleDragLeave}
+                              onDrop={handleDrop}
+                              className={`group relative flex flex-col items-center justify-center p-7 sm:p-9 border-2 border-dashed rounded-2xl transition-all cursor-pointer text-center ${
+                                isDragging
+                                  ? 'border-[#0841B5] bg-[#0841B5]/10 scale-[1.01]'
+                                  : 'border-[#E5E7EB] hover:border-[#0841B5] bg-[#F4F7F6]/60 hover:bg-[#0841B5]/5'
+                              }`}
+                            >
                               <input
                                 type="file"
                                 accept="image/jpeg,image/png,image/webp"
                                 className="sr-only"
                                 onChange={(e) => handleKtpChange(e.target.files?.[0] || null)}
                               />
-                              <div className="h-12 w-12 rounded-2xl bg-white border border-[#E5E7EB] shadow-xs flex items-center justify-center text-[#0841B5] group-hover:scale-110 transition-all mb-3">
+                              <div
+                                className={`h-12 w-12 rounded-2xl bg-white border border-[#E5E7EB] shadow-xs flex items-center justify-center text-[#0841B5] group-hover:scale-110 transition-all mb-3 ${
+                                  isDragging ? 'scale-110' : ''
+                                }`}
+                              >
                                 <UploadCloud className="h-6 w-6" />
                               </div>
                               <span className="text-sm font-bold text-[#191919] group-hover:text-[#0841B5] transition-colors">
-                                Klik untuk pilih foto KTP
+                                {isDragging ? 'Lepaskan file foto di sini' : 'Klik atau Tarik (Drag & Drop) Foto KTP ke Sini'}
                               </span>
                               <span className="text-xs text-neutral-400 mt-1">
                                 Format JPG, PNG, atau WebP (Maksimal 10MB).
                               </span>
                             </label>
                           ) : (
-                            <div className="relative p-4 rounded-2xl border border-emerald-200 bg-emerald-50/40 flex items-center justify-between gap-4">
-                              <div className="flex items-center gap-3.5 min-w-0">
-                                <div className="h-14 w-20 rounded-xl overflow-hidden bg-neutral-100 border border-emerald-200 shrink-0">
+                            <div className="relative p-4 rounded-2xl border border-emerald-200 bg-emerald-50/40 flex items-center justify-between gap-3">
+                              <div
+                                onClick={() => setShowKtpModal(true)}
+                                className="flex items-center gap-3.5 min-w-0 cursor-pointer group flex-1"
+                                title="Klik untuk memperbesar foto KTP"
+                              >
+                                <div className="h-14 w-20 rounded-xl overflow-hidden bg-neutral-100 border border-emerald-200 shrink-0 relative group-hover:ring-2 group-hover:ring-[#0841B5] transition-all">
                                   <img src={ktpPreviewUrl} alt="Preview KTP" className="h-full w-full object-cover" />
+                                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-[10px] font-bold">
+                                    Zoom
+                                  </div>
                                 </div>
                                 <div className="min-w-0">
-                                  <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-700">
+                                  <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 group-hover:text-[#0841B5] transition-colors">
                                     <CheckCircle2 className="h-3.5 w-3.5" /> Foto KTP Terlampir
                                   </div>
                                   <p className="text-xs text-neutral-500 truncate max-w-xs mt-0.5">
                                     {ktpPhoto?.name || 'ktp_file.jpg'}
                                   </p>
+                                  <span className="text-[11px] text-[#0841B5] font-semibold underline underline-offset-2">
+                                    Klik untuk pratinjau / perbesar
+                                  </span>
                                 </div>
                               </div>
-                              <button
-                                type="button"
-                                onClick={() => handleKtpChange(null)}
-                                className="p-2 rounded-xl text-neutral-400 hover:text-red-600 hover:bg-white border border-transparent hover:border-red-200 transition-all cursor-pointer"
-                                title="Hapus / Ganti Foto"
-                              >
-                                <X className="h-4 w-4" />
-                              </button>
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => setShowKtpModal(true)}
+                                  className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-white border border-neutral-200 hover:border-[#0841B5] text-neutral-700 hover:text-[#0841B5] transition-all cursor-pointer"
+                                >
+                                  Pratinjau
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleKtpChange(null)}
+                                  className="p-2 rounded-xl text-neutral-400 hover:text-red-600 hover:bg-white border border-transparent hover:border-red-200 transition-all cursor-pointer"
+                                  title="Hapus / Ganti Foto"
+                                >
+                                  <X className="h-4 w-4" />
+                                </button>
+                              </div>
                             </div>
                           )}
 
@@ -1382,6 +1442,52 @@ export default function MitraRegisterPage() {
           </footer>
         </main>
       </div>
+
+      {/* ── KTP FULL PREVIEW MODAL ────────────────────────────────────── */}
+      {showKtpModal && ktpPreviewUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={() => setShowKtpModal(false)}
+        >
+          <div
+            className="relative max-w-2xl w-full bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-neutral-100 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-neutral-100 pb-3.5">
+              <div>
+                <h4 className="text-base font-bold text-neutral-900">Pratinjau Foto KTP</h4>
+                <p className="text-xs text-neutral-500">Pastikan NIK, nama, dan foto wajah tampak tajam & jelas.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowKtpModal(false)}
+                className="p-2 rounded-xl text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-all cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="rounded-2xl overflow-hidden bg-neutral-950 flex items-center justify-center max-h-[65vh] p-2 border border-neutral-200">
+              <img
+                src={ktpPreviewUrl}
+                alt="Foto KTP Lengkap"
+                className="max-h-[60vh] w-auto max-w-full object-contain rounded-lg"
+              />
+            </div>
+
+            <div className="flex items-center justify-between pt-1">
+              <span className="text-xs text-neutral-400 truncate max-w-xs">{ktpPhoto?.name}</span>
+              <button
+                type="button"
+                onClick={() => setShowKtpModal(false)}
+                className="px-5 py-2.5 rounded-xl bg-[#0841B5] text-white text-xs font-bold hover:bg-[#0841B5]/90 transition-all cursor-pointer"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
