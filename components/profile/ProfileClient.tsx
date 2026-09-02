@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft,
-  User,
   Loader2,
   CheckCircle2,
   Camera,
@@ -217,11 +216,19 @@ export function ProfileClient() {
                   ) : photoSrc ? (
                     <img
                       src={resolveAssetUrl(photoSrc)}
-                      alt="Avatar"
+                      alt={profile?.fullName || 'Avatar'}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLElement).style.display = 'none';
+                      }}
                     />
                   ) : (
-                    <User size={32} />
+                    <span className="text-xl font-black text-brand-blue select-none">
+                      {(profile?.fullName || 'Tamu')
+                        .trim()
+                        .charAt(0)
+                        .toUpperCase()}
+                    </span>
                   )}
                 </div>
                 <label

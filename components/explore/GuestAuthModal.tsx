@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, User, LogOut, Loader2, Receipt } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import {
   setGuestSession,
   clearGuestSession,
@@ -305,11 +305,19 @@ export function GuestAuthModal({
                     src={resolveAssetUrl(
                       currentUser.photoUrl || currentUser.avatarUrl,
                     )}
-                    alt="Avatar"
+                    alt={currentUser.fullName || 'Avatar'}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = 'none';
+                    }}
                   />
                 ) : (
-                  <User size={36} />
+                  <span className="text-2xl font-black text-brand-blue select-none">
+                    {(currentUser.fullName || 'Tamu')
+                      .trim()
+                      .charAt(0)
+                      .toUpperCase()}
+                  </span>
                 )}
               </div>
               <div className="space-y-1">
