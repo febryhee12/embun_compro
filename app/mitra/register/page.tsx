@@ -759,7 +759,6 @@ export default function MitraRegisterPage() {
                             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           </button>
                         </div>
-                        <p className="text-[11px] text-neutral-400 mt-1">Disimpan terenkripsi aman untuk akses login Anda.</p>
                       </div>
                     </div>
                   </div>
