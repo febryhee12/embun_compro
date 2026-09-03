@@ -9,9 +9,8 @@ import {
   Play,
   Info,
   Compass,
+  Menu,
 } from 'lucide-react';
-import { SiteHeader } from '@/components/layout/SiteHeader';
-import { SiteFooter } from '@/components/layout/SiteFooter';
 import { SpotCard, type SpotData } from '@/components/explore/SpotCard';
 
 interface PhotoItem {
@@ -34,6 +33,7 @@ interface PricingPackageItem {
   flatRate: number;
   weekdayPrice?: number;
   weekendPrice?: number;
+  holidayPrice?: number;
   maxOccupancy?: number;
   baseCapacity?: number;
 }
@@ -139,6 +139,133 @@ function extractYouTubeVideoId(rawUrl?: string | null): string | null {
 
 let pannellumLoaderPromise: Promise<any> | null = null;
 
+/** Header Persis Beranda Home (Zero Dependency, No Crash) */
+function HomeStyleHeader() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  return (
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-border transition-all">
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between gap-4">
+        {/* Logo Resmi Embun */}
+        <a href="/" className="inline-flex items-center">
+          <img
+            src="/images/logo/model1_blue.svg"
+            alt="Embun"
+            className="h-8 w-auto object-contain"
+          />
+        </a>
+
+        {/* Desktop Nav & CTA Button */}
+        <div className="hidden md:flex items-center gap-6 lg:gap-8">
+          <nav>
+            <ul className="flex items-center gap-6 lg:gap-8 text-sm font-medium text-foreground">
+              <li>
+                <a href="/explore" className="hover:text-brand-blue transition-colors">
+                  Jelajahi Spot
+                </a>
+              </li>
+              <li>
+                <a href="/id/mitra" className="hover:text-brand-blue transition-colors">
+                  Gabung jadi mitra
+                </a>
+              </li>
+              <li>
+                <a href="/id/mitra/direktori" className="hover:text-brand-blue transition-colors">
+                  Mitra kami
+                </a>
+              </li>
+            </ul>
+          </nav>
+
+          <a
+            href="/id/mitra/#contact"
+            className="inline-flex items-center justify-center rounded-xl bg-[#cbfd00] hover:bg-[#b8e600] text-[#0841b5] font-semibold px-6 py-2.5 text-sm transition-all duration-200 shadow-sm active:scale-95"
+          >
+            Hubungi Kami
+          </a>
+        </div>
+
+        {/* Mobile Actions */}
+        <div className="flex md:hidden items-center gap-2">
+          <a
+            href="/id/mitra/#contact"
+            className="inline-flex items-center justify-center rounded-xl bg-[#cbfd00] text-[#0841b5] font-bold px-3 py-1.5 text-xs shadow-xs"
+          >
+            Hubungi Kami
+          </a>
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-2 rounded-xl border border-border text-foreground hover:bg-surface transition-colors cursor-pointer"
+            aria-label="Menu"
+          >
+            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Drawer */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t border-border bg-white px-6 py-4 space-y-3 shadow-lg">
+          <nav className="flex flex-col space-y-2.5 text-sm font-medium text-foreground">
+            <a href="/explore" className="py-2 hover:text-brand-blue">
+              Jelajahi Spot
+            </a>
+            <a href="/id/mitra" className="py-2 hover:text-brand-blue">
+              Gabung jadi mitra
+            </a>
+            <a href="/id/mitra/direktori" className="py-2 hover:text-brand-blue">
+              Mitra kami
+            </a>
+          </nav>
+        </div>
+      )}
+    </header>
+  );
+}
+
+/** Footer Persis Beranda Home (Zero Dependency, No Crash) */
+function HomeStyleFooter() {
+  return (
+    <footer className="bg-[#FAFEE8] text-brand-black border-t border-[#E8F5B5] mt-auto">
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12 flex flex-col md:flex-row md:items-start md:justify-between gap-8">
+        <div className="max-w-xs space-y-3">
+          <img
+            src="/images/logo/model1_blue.svg"
+            alt="Embun"
+            className="h-8 w-auto object-contain"
+          />
+          <p className="text-sm text-foreground-muted leading-relaxed">
+            Sepraktis embun pagi, seluas caramu menikmati alam.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-x-8 gap-y-3 text-xs sm:text-sm font-medium text-foreground-muted">
+          <a href="/explore" className="hover:text-brand-blue transition-colors">
+            Jelajahi Spot
+          </a>
+          <a href="/id/mitra" className="hover:text-brand-blue transition-colors">
+            Gabung Mitra
+          </a>
+          <a href="/id/kebijakan-privasi" className="hover:text-brand-blue transition-colors">
+            Kebijakan Privasi
+          </a>
+          <a href="/id/syarat-ketentuan" className="hover:text-brand-blue transition-colors">
+            Syarat & Ketentuan
+          </a>
+          <a href="/id/kebijakan-refund" className="hover:text-brand-blue transition-colors">
+            Kebijakan Refund
+          </a>
+        </div>
+      </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 pb-8 pt-4 border-t border-[#E8F5B5]/60 text-xs text-foreground-muted flex flex-col sm:flex-row items-center justify-between gap-2">
+        <p>© {new Date().getFullYear()} PT Embun Rekreasi Alam. Hak cipta dilindungi undang-undang.</p>
+        <p>Platform Camping & Glamping Resmi</p>
+      </div>
+    </footer>
+  );
+}
+
 export function CampsiteLandingClient() {
   const [campsite, setCampsite] = useState<CampsiteDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -155,7 +282,6 @@ export function CampsiteLandingClient() {
   const [show360Modal, setShow360Modal] = useState(false);
   const [active360Index, setActive360Index] = useState(0);
 
-  const pannellumContainerRef = useRef<HTMLDivElement | null>(null);
   const pannellumRef = useRef<any>(null);
 
   // Resolve Campsite Data
@@ -459,8 +585,8 @@ export function CampsiteLandingClient() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      {/* ── 1. GLOBAL SITE HEADER (EXACT SAME AS HOME) ── */}
-      <SiteHeader />
+      {/* ── 1. GLOBAL HEADER PERSIS DENGAN HOME (ZERO RISK) ── */}
+      <HomeStyleHeader />
 
       {/* ── 2. FULL-WIDTH PROPERTY HERO BANNER ── */}
       <section className="relative w-full h-[380px] sm:h-[480px] md:h-[540px] bg-black overflow-hidden">
@@ -695,6 +821,9 @@ export function CampsiteLandingClient() {
                     key={spot.id}
                     spot={spotData}
                     showRating={false}
+                    onSelectSpot={(s) => {
+                      window.location.href = `/spot/${s.shareCode || s.id}`;
+                    }}
                   />
                 );
               })}
@@ -805,8 +934,8 @@ export function CampsiteLandingClient() {
         )}
       </main>
 
-      {/* ── 5. GLOBAL SITE FOOTER (EXACT SAME AS HOME) ── */}
-      <SiteFooter />
+      {/* ── 5. GLOBAL FOOTER PERSIS DENGAN HOME (ZERO RISK) ── */}
+      <HomeStyleFooter />
 
       {/* ── MODAL TUR 360° ── */}
       {show360Modal && panoramaList.length > 0 && (
