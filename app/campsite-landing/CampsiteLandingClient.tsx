@@ -6,12 +6,18 @@ import {
   Star,
   Maximize2,
   X,
-  Play,
   Info,
   Compass,
-  Menu,
+  Smartphone,
+  Share2,
+  Heart,
+  User,
+  ArrowUp,
+  ShieldCheck,
 } from 'lucide-react';
 import { SpotCard, type SpotData } from '@/components/explore/SpotCard';
+import { GuestAuthModal } from '@/components/explore/GuestAuthModal';
+import { getStoredGuestProfile } from '@/lib/api-client';
 
 interface PhotoItem {
   id?: string;
@@ -93,12 +99,20 @@ interface CampsiteDetail {
 
 interface ReviewItem {
   id: string;
-  guestName: string;
+  authorName?: string;
+  maskedAuthorName?: string;
+  guestName?: string;
+  userName?: string;
+  user?: { name?: string; fullName?: string };
+  authorPhotoUrl?: string;
   guestAvatar?: string;
-  rating: number;
-  comment: string;
-  createdAt: string;
+  rating?: number;
+  comment?: string;
+  content?: string;
+  review?: string;
+  createdAt?: string;
   spotName?: string;
+  blockName?: string;
 }
 
 const API_BASE =
@@ -137,134 +151,24 @@ function extractYouTubeVideoId(rawUrl?: string | null): string | null {
   return match ? match[1] : null;
 }
 
+/** Parses HTML string into clean bullet array */
+function parseHtmlRules(htmlString?: string): string[] {
+  if (!htmlString) return [];
+  const liMatches = htmlString.match(/<li[^>]*>([\s\S]*?)<\/li>/gi);
+  if (liMatches && liMatches.length > 0) {
+    return liMatches
+      .map((li) => li.replace(/<[^>]+>/g, '').trim())
+      .filter(Boolean);
+  }
+  return htmlString
+    .replace(/<br\s*[\/]?>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .split('\n')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 let pannellumLoaderPromise: Promise<any> | null = null;
-
-/** Header Persis Beranda Home (Zero Dependency, No Crash) */
-function HomeStyleHeader() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-border transition-all">
-      <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between gap-4">
-        {/* Logo Resmi Embun */}
-        <a href="/" className="inline-flex items-center">
-          <img
-            src="/images/logo/model1_blue.svg"
-            alt="Embun"
-            className="h-8 w-auto object-contain"
-          />
-        </a>
-
-        {/* Desktop Nav & CTA Button */}
-        <div className="hidden md:flex items-center gap-6 lg:gap-8">
-          <nav>
-            <ul className="flex items-center gap-6 lg:gap-8 text-sm font-medium text-foreground">
-              <li>
-                <a href="/explore" className="hover:text-brand-blue transition-colors">
-                  Jelajahi Spot
-                </a>
-              </li>
-              <li>
-                <a href="/id/mitra" className="hover:text-brand-blue transition-colors">
-                  Gabung jadi mitra
-                </a>
-              </li>
-              <li>
-                <a href="/id/mitra/direktori" className="hover:text-brand-blue transition-colors">
-                  Mitra kami
-                </a>
-              </li>
-            </ul>
-          </nav>
-
-          <a
-            href="/id/mitra/#contact"
-            className="inline-flex items-center justify-center rounded-xl bg-[#cbfd00] hover:bg-[#b8e600] text-[#0841b5] font-semibold px-6 py-2.5 text-sm transition-all duration-200 shadow-sm active:scale-95"
-          >
-            Hubungi Kami
-          </a>
-        </div>
-
-        {/* Mobile Actions */}
-        <div className="flex md:hidden items-center gap-2">
-          <a
-            href="/id/mitra/#contact"
-            className="inline-flex items-center justify-center rounded-xl bg-[#cbfd00] text-[#0841b5] font-bold px-3 py-1.5 text-xs shadow-xs"
-          >
-            Hubungi Kami
-          </a>
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-xl border border-border text-foreground hover:bg-surface transition-colors cursor-pointer"
-            aria-label="Menu"
-          >
-            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile Drawer */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t border-border bg-white px-6 py-4 space-y-3 shadow-lg">
-          <nav className="flex flex-col space-y-2.5 text-sm font-medium text-foreground">
-            <a href="/explore" className="py-2 hover:text-brand-blue">
-              Jelajahi Spot
-            </a>
-            <a href="/id/mitra" className="py-2 hover:text-brand-blue">
-              Gabung jadi mitra
-            </a>
-            <a href="/id/mitra/direktori" className="py-2 hover:text-brand-blue">
-              Mitra kami
-            </a>
-          </nav>
-        </div>
-      )}
-    </header>
-  );
-}
-
-/** Footer Persis Beranda Home (Zero Dependency, No Crash) */
-function HomeStyleFooter() {
-  return (
-    <footer className="bg-[#FAFEE8] text-brand-black border-t border-[#E8F5B5] mt-auto">
-      <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12 flex flex-col md:flex-row md:items-start md:justify-between gap-8">
-        <div className="max-w-xs space-y-3">
-          <img
-            src="/images/logo/model1_blue.svg"
-            alt="Embun"
-            className="h-8 w-auto object-contain"
-          />
-          <p className="text-sm text-foreground-muted leading-relaxed">
-            Sepraktis embun pagi, seluas caramu menikmati alam.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap gap-x-8 gap-y-3 text-xs sm:text-sm font-medium text-foreground-muted">
-          <a href="/explore" className="hover:text-brand-blue transition-colors">
-            Jelajahi Spot
-          </a>
-          <a href="/id/mitra" className="hover:text-brand-blue transition-colors">
-            Gabung Mitra
-          </a>
-          <a href="/id/kebijakan-privasi" className="hover:text-brand-blue transition-colors">
-            Kebijakan Privasi
-          </a>
-          <a href="/id/syarat-ketentuan" className="hover:text-brand-blue transition-colors">
-            Syarat & Ketentuan
-          </a>
-          <a href="/id/kebijakan-refund" className="hover:text-brand-blue transition-colors">
-            Kebijakan Refund
-          </a>
-        </div>
-      </div>
-      <div className="max-w-7xl mx-auto px-4 sm:px-8 pb-8 pt-4 border-t border-[#E8F5B5]/60 text-xs text-foreground-muted flex flex-col sm:flex-row items-center justify-between gap-2">
-        <p>© {new Date().getFullYear()} PT Embun Rekreasi Alam. Hak cipta dilindungi undang-undang.</p>
-        <p>Platform Camping & Glamping Resmi</p>
-      </div>
-    </footer>
-  );
-}
 
 class SafeErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -287,7 +191,6 @@ class SafeErrorBoundary extends React.Component<
     if (this.state.hasError) {
       return (
         <div className="min-h-screen bg-background text-foreground flex flex-col">
-          <HomeStyleHeader />
           <div className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-4 max-w-md mx-auto">
             <h2 className="text-xl font-bold text-foreground">
               Memuat Profil Kawasan
@@ -306,7 +209,6 @@ class SafeErrorBoundary extends React.Component<
               Muat Ulang Halaman
             </button>
           </div>
-          <HomeStyleFooter />
         </div>
       );
     }
@@ -333,12 +235,20 @@ function CampsiteLandingClientInner() {
   // Filter spot tipe
   const [selectedSpotType, setSelectedSpotType] = useState<string>('Semua');
 
-  // Modals
+  // Modals & User state
   const [showFullMapModal, setShowFullMapModal] = useState(false);
   const [show360Modal, setShow360Modal] = useState(false);
   const [active360Index, setActive360Index] = useState(0);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any | null>(null);
 
   const pannellumRef = useRef<any>(null);
+
+  // Load current user
+  useEffect(() => {
+    setCurrentUser(getStoredGuestProfile());
+  }, []);
 
   // Resolve Campsite Data
   useEffect(() => {
@@ -606,6 +516,38 @@ function CampsiteLandingClientInner() {
     };
   }, [show360Modal, active360Index, panoramaList]);
 
+  // Actions
+  const handleOpenApp = () => {
+    const code = campsite?.slug || campsite?.id || '';
+    window.location.href = `embun://campsite/${code}`;
+    setTimeout(() => {
+      window.location.href = 'https://embun.app/explore';
+    }, 1200);
+  };
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: campsite?.name || 'Embun Campsite',
+          url,
+        });
+      } catch {
+        // cancelled
+      }
+    } else {
+      navigator.clipboard?.writeText(url);
+      alert('Tautan kawasan berhasil disalin!');
+    }
+  };
+
+  // Parsed Rules
+  const parsedRules = useMemo(
+    () => parseHtmlRules(campsite?.rules),
+    [campsite?.rules],
+  );
+
   // Loading skeleton
   if (loading) {
     return (
@@ -641,8 +583,99 @@ function CampsiteLandingClientInner() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      {/* ── 1. GLOBAL HEADER PERSIS DENGAN HOME (ZERO RISK) ── */}
-      <HomeStyleHeader />
+      {/* ── 1. HEADER KHAS EMBUN EXPLORE (SESUAI GAMBAR 1) ── */}
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-border transition-all">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between gap-4">
+          {/* Logo Embun + Badge EXPLORE */}
+          <div className="flex items-center gap-3">
+            <a
+              href="/explore"
+              className="flex items-center gap-2.5 group cursor-pointer"
+              title="Katalog Explore"
+            >
+              <img
+                src="/images/logo/primary_blue.svg"
+                alt="Embun"
+                className="h-7 w-auto object-contain transition-transform group-hover:scale-102"
+              />
+              <span className="text-[10px] uppercase font-black tracking-wider px-2 py-0.5 rounded-full bg-brand-lime text-black border border-brand-lime/80 shadow-2xs">
+                Explore
+              </span>
+            </a>
+          </div>
+
+          {/* Tengah: Pill Lokasi Kawasan (Desktop) */}
+          <div className="hidden md:flex items-center gap-2 border border-border rounded-full py-1.5 px-4 shadow-2xs bg-surface text-xs text-foreground font-medium">
+            <MapPin size={13} className="text-brand-blue shrink-0" />
+            <span className="font-bold">{campsite.name}</span>
+            <span className="text-foreground-muted">
+              · {campsite.address || campsite.city}
+            </span>
+          </div>
+
+          {/* Kanan: Buka App, Bagikan, Favorit, Akun / Masuk */}
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={handleOpenApp}
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-lime hover:bg-brand-lime/90 text-black text-xs font-bold transition-all cursor-pointer shadow-2xs"
+              title="Buka langsung di Aplikasi Embun"
+            >
+              <Smartphone size={13} />
+              <span>Buka App</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleShare}
+              className="p-2 rounded-full border border-border hover:bg-surface text-foreground transition-colors cursor-pointer"
+              title="Bagikan Halaman Ini"
+            >
+              <Share2 size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsFavorite(!isFavorite)}
+              className={`p-2 rounded-full border border-border hover:bg-surface transition-colors cursor-pointer ${
+                isFavorite ? 'text-red-500' : 'text-foreground'
+              }`}
+              title="Simpan ke Favorit"
+            >
+              <Heart size={16} className={isFavorite ? 'fill-red-500' : ''} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsAuthOpen(true)}
+              className="flex items-center gap-2 border border-border rounded-full py-1.5 px-3 hover:shadow-sm transition-all bg-white text-xs font-semibold text-foreground cursor-pointer"
+            >
+              {currentUser ? (
+                <>
+                  <div className="w-6 h-6 rounded-full bg-brand-blue text-white flex items-center justify-center font-bold text-[11px] overflow-hidden">
+                    {currentUser?.avatarUrl || currentUser?.photoUrl ? (
+                      <img
+                        src={resolveAssetUrl(
+                          currentUser.avatarUrl || currentUser.photoUrl,
+                        )}
+                        alt="Avatar"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      currentUser.fullName?.charAt(0).toUpperCase() || <User size={12} />
+                    )}
+                  </div>
+                  <span>
+                    {currentUser.fullName?.split(' ')[0] || 'Akun'}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <User size={15} className="text-foreground-muted" />
+                  <span>Masuk</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </header>
 
       {/* ── 2. FULL-WIDTH PROPERTY HERO BANNER ── */}
       <section className="relative w-full h-[380px] sm:h-[480px] md:h-[540px] bg-black overflow-hidden">
@@ -785,6 +818,28 @@ function CampsiteLandingClientInner() {
           </section>
         )}
 
+        {/* ── ATURAN & KEBIJAKAN KAWASAN (DIPINDAHKAN KE ATAS, TEPAT DI BAWAH VIDEO) ── */}
+        {parsedRules.length > 0 && (
+          <section className="space-y-3">
+            <h2 className="font-extrabold text-xl text-foreground">
+              Aturan & Kebijakan Kawasan
+            </h2>
+            <div className="p-6 rounded-3xl bg-white border border-border space-y-3 text-xs sm:text-sm">
+              <h3 className="font-bold text-sm sm:text-base text-foreground flex items-center gap-2">
+                <ShieldCheck size={16} className="text-emerald-600" />
+                <span>Tata Tertib Menginap</span>
+              </h3>
+              <ul className="space-y-2.5 text-foreground/80 list-disc list-inside leading-relaxed">
+                {parsedRules.map((rule, rIdx) => (
+                  <li key={rIdx} className="leading-relaxed">
+                    {rule}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        )}
+
         {/* KATALOG SEMUA SPOT DI KAWASAN (MENGGUNAKAN STANDAR SPOTCARD COMPRO) */}
         <section id="katalog-spot" className="space-y-6 scroll-mt-24">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 pb-3 border-b border-border">
@@ -912,35 +967,6 @@ function CampsiteLandingClientInner() {
           </section>
         )}
 
-        {/* ATURAN & KEBIJAKAN MENGINAP */}
-        <section className="space-y-3">
-          <h2 className="font-extrabold text-xl text-foreground">
-            Aturan & Kebijakan Kawasan
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-foreground-muted leading-relaxed">
-            <div className="p-5 rounded-3xl bg-white border border-border space-y-2">
-              <h3 className="font-bold text-sm text-foreground">
-                Waktu Menginap
-              </h3>
-              <p>Check-in: Mulai pukul {campsite.checkInTime || '14:00'} WIB</p>
-              <p>Check-out: Maksimal pukul {campsite.checkOutTime || '12:00'} WIB</p>
-              <p className="text-[11px] text-foreground-muted/80 pt-1">
-                Keterlambatan check-out dapat dikenakan biaya tambahan sesuai kebijakan campsite.
-              </p>
-            </div>
-
-            <div className="p-5 rounded-3xl bg-white border border-border space-y-2">
-              <h3 className="font-bold text-sm text-foreground">
-                Tata Tertib Menginap
-              </h3>
-              <p>
-                {campsite.rules ||
-                  'Menjaga kebersihan area camping, membuang sampah pada tempat yang disediakan, menjaga ketenangan di jam istirahat malam (pukul 22:00 - 06:00), dan mematuhi instruksi pengelola.'}
-              </p>
-            </div>
-          </div>
-        </section>
-
         {/* ULASAN TAMU */}
         {reviews.length > 0 && (
           <section className="space-y-4">
@@ -1011,8 +1037,46 @@ function CampsiteLandingClientInner() {
         )}
       </main>
 
-      {/* ── 5. GLOBAL FOOTER PERSIS DENGAN HOME (ZERO RISK) ── */}
-      <HomeStyleFooter />
+      {/* ── 5. FOOTER KHAS EMBUN EXPLORE (SESUAI GAMBAR 2) ── */}
+      <footer className="border-t border-border bg-surface py-8 px-4 sm:px-8 text-xs text-foreground-muted mt-auto relative">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <span className="font-black text-lg text-brand-blue tracking-tight">embun</span>
+            <span>© 2026 PT Alam Kelana Digital. Hak Cipta Dilindungi.</span>
+          </div>
+          <div className="flex items-center gap-6">
+            <a href="/kebijakan-privasi" className="hover:underline">
+              Privasi
+            </a>
+            <a href="/syarat-ketentuan" className="hover:underline">
+              Syarat & Ketentuan
+            </a>
+            <a href="/mitra" className="hover:underline">
+              Mitra Camp
+            </a>
+            <button
+              type="button"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="w-9 h-9 rounded-full bg-brand-lime text-black flex items-center justify-center shadow-md hover:scale-105 transition-transform cursor-pointer"
+              title="Kembali ke atas"
+              aria-label="Kembali ke atas"
+            >
+              <ArrowUp size={16} />
+            </button>
+          </div>
+        </div>
+      </footer>
+
+      {/* ── MODAL AUTH ── */}
+      {isAuthOpen && (
+        <GuestAuthModal
+          isOpen={isAuthOpen}
+          onClose={() => setIsAuthOpen(false)}
+          currentUser={currentUser}
+          onSuccess={(user) => setCurrentUser(user)}
+          onLogout={() => setCurrentUser(null)}
+        />
+      )}
 
       {/* ── MODAL TUR 360° ── */}
       {show360Modal && panoramaList.length > 0 && (
