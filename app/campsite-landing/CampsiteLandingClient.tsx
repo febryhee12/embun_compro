@@ -1245,8 +1245,15 @@ function CampsiteLandingClientInner() {
           </div>
 
           {/* Canvas Pannellum Edge-to-Edge */}
-          <div className="relative flex-1 w-full bg-black overflow-hidden">
-            <div id="campsite-panorama-box" className="w-full h-full" />
+          <div
+            className="relative flex-1 w-full bg-black overflow-hidden"
+            onContextMenu={(e) => e.preventDefault()}
+          >
+            <div
+              id="campsite-panorama-box"
+              className="w-full h-full"
+              onContextMenu={(e) => e.preventDefault()}
+            />
 
             {/* Thumbnail Selector at Bottom if multiple */}
             {panoramaList.length > 1 && (

@@ -353,6 +353,7 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
             <div
               ref={panoramaContainerRef}
               className="w-full h-full"
+              onContextMenu={(e) => e.preventDefault()}
             />
 
             {/* Hint at bottom */}

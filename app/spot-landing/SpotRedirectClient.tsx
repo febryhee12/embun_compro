@@ -3234,6 +3234,7 @@ export function SpotRedirectClient() {
                     <div
                       ref={panoramaContainerRef}
                       className="w-full h-full"
+                      onContextMenu={(e) => e.preventDefault()}
                     />
 
                     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-xs font-semibold text-white/90 flex items-center gap-2 pointer-events-none shadow-2xl z-20">
