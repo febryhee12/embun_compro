@@ -65,6 +65,7 @@ import {
   rupiah,
   ApiError,
   fetchPricingQuote,
+  fetchCampsiteAvailability,
 } from '@/lib/api-client';
 import { BookingCalendarModal } from '@/components/explore/BookingCalendarModal';
 import { GuestAuthModal } from '@/components/explore/GuestAuthModal';
@@ -444,6 +445,7 @@ export function SpotRedirectClient() {
   const [selectedSpotType, setSelectedSpotType] = useState<string>('Semua');
   const [detailPackage, setDetailPackage] = useState<PricingPackageItem | null>(null);
   const [detailAddon, setDetailAddon] = useState<any | null>(null);
+  const [bookedDates, setBookedDates] = useState<string[]>([]);
 
   const formatDateDisplay = (dateStr?: string) => {
     if (!dateStr) return '-';
@@ -626,6 +628,28 @@ export function SpotRedirectClient() {
 
     void fetchData();
   }, []);
+
+  // 1b. Ambil ketersediaan tanggal aktual dari server (sinkron dengan Aplikasi Mobile)
+  useEffect(() => {
+    if (!campsite?.id || !activeSpot?.id) return;
+    let isMounted = true;
+    fetchCampsiteAvailability(campsite.id)
+      .then((data) => {
+        if (!isMounted || !data?.blocks) return;
+        const block = data.blocks.find((b: any) => b.blockId === activeSpot.id);
+        if (block && Array.isArray(block.bookedDates)) {
+          setBookedDates(block.bookedDates);
+        } else {
+          setBookedDates([]);
+        }
+      })
+      .catch((err) => {
+        console.error('Error fetching spot availability:', err);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [campsite?.id, activeSpot?.id]);
 
   // Selected Pricing Package
   const selectedPackage = useMemo(() => {
@@ -3625,6 +3649,7 @@ export function SpotRedirectClient() {
           setCheckOutDate(outD);
         }}
         spotName={activeSpot?.name}
+        bookedDates={bookedDates}
       />
 
       {/* ════════════════════════════════════════════════════════════════════════

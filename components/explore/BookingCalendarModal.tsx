@@ -18,6 +18,7 @@ interface BookingCalendarModalProps {
   checkOutDate: string; // "YYYY-MM-DD"
   onSelectDates: (checkIn: string, checkOut: string) => void;
   spotName?: string;
+  bookedDates?: string[];
 }
 
 const MONTH_NAMES = [
@@ -67,14 +68,32 @@ export function BookingCalendarModal({
   checkOutDate,
   onSelectDates,
   spotName,
+  bookedDates = [],
 }: BookingCalendarModalProps) {
   const todayStr = useMemo(() => new Date().toISOString().split("T")[0], []);
+  const bookedSet = useMemo(() => new Set(bookedDates || []), [bookedDates]);
 
   // Temporary selection states
   const [tempIn, setTempIn] = useState<string>(checkInDate || todayStr);
   const [tempOut, setTempOut] = useState<string>(checkOutDate || "");
   const [activeStep, setActiveStep] = useState<"checkIn" | "checkOut">("checkIn");
   const [hoveredDate, setHoveredDate] = useState<string | null>(null);
+
+  // Helper untuk mengecek apakah ada malam yang sudah penuh di antara dua tanggal
+  const hasBookedBetween = (startStr: string, endStr: string): boolean => {
+    try {
+      const cur = new Date(startStr);
+      const end = new Date(endStr);
+      while (cur < end) {
+        const key = cur.toISOString().split("T")[0];
+        if (bookedSet.has(key)) return true;
+        cur.setDate(cur.getDate() + 1);
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  };
 
   // Initial month based on current checkInDate or today
   const [viewDate, setViewDate] = useState<Date>(() => {
@@ -122,17 +141,27 @@ export function BookingCalendarModal({
     if (dateStr < todayStr) return;
 
     if (activeStep === "checkIn") {
+      if (bookedSet.has(dateStr)) return; // Tidak boleh check-in di hari penuh
       setTempIn(dateStr);
       setTempOut("");
       setActiveStep("checkOut");
     } else {
       // selecting checkOut
       if (dateStr <= tempIn) {
-        // User clicked earlier date -> reset check-in to this date
+        if (bookedSet.has(dateStr)) return;
         setTempIn(dateStr);
         setTempOut("");
         setActiveStep("checkOut");
       } else {
+        // Jangan izinkan check-out bila rentang menginap melompati hari penuh
+        if (hasBookedBetween(tempIn, dateStr)) {
+          if (!bookedSet.has(dateStr)) {
+            setTempIn(dateStr);
+            setTempOut("");
+            setActiveStep("checkOut");
+          }
+          return;
+        }
         setTempOut(dateStr);
         setActiveStep("checkIn");
       }
@@ -182,6 +211,8 @@ export function BookingCalendarModal({
         day,
       ).padStart(2, "0")}`;
       const isPast = dayStr < todayStr;
+      const isBooked = bookedSet.has(dayStr);
+      const isDisabled = isPast || isBooked;
       const isStart = dayStr === tempIn;
       const isEnd = dayStr === tempOut;
       const isInRange =
@@ -191,7 +222,8 @@ export function BookingCalendarModal({
         !tempOut &&
         hoveredDate &&
         dayStr > tempIn &&
-        dayStr <= hoveredDate;
+        dayStr <= hoveredDate &&
+        !hasBookedBetween(tempIn, hoveredDate);
 
       days.push(
         <div
@@ -203,21 +235,30 @@ export function BookingCalendarModal({
           } ${isStart && tempOut ? "rounded-l-full bg-brand-blue/10" : ""} ${
             isEnd && tempIn ? "rounded-r-full bg-brand-blue/10" : ""
           }`}
-          onMouseEnter={() => !isPast && setHoveredDate(dayStr)}
+          onMouseEnter={() => !isDisabled && setHoveredDate(dayStr)}
           onMouseLeave={() => setHoveredDate(null)}
         >
           <button
             type="button"
-            disabled={isPast}
+            disabled={isDisabled}
             onClick={() => handleDateClick(dayStr)}
-            className={`h-9 w-9 sm:h-10 sm:w-10 rounded-full flex items-center justify-center text-xs font-semibold transition-all cursor-pointer ${
-              isPast
-                ? "text-foreground-muted/30 line-through cursor-not-allowed"
+            title={
+              isBooked
+                ? "Spot sudah penuh di tanggal ini"
+                : isPast
+                ? "Tanggal lewat"
+                : undefined
+            }
+            className={`h-9 w-9 sm:h-10 sm:w-10 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
+              isDisabled
+                ? isBooked
+                  ? "text-neutral-400 bg-neutral-100/80 line-through cursor-not-allowed opacity-60"
+                  : "text-foreground-muted/30 line-through cursor-not-allowed"
                 : isStart || isEnd
                 ? "bg-brand-blue text-white font-bold shadow-md scale-105"
                 : isInRange || isHovered
                 ? "text-brand-blue font-bold hover:bg-brand-blue/20"
-                : "text-foreground hover:bg-surface hover:scale-105"
+                : "text-foreground hover:bg-surface hover:scale-105 cursor-pointer"
             }`}
           >
             {day}
@@ -353,6 +394,22 @@ export function BookingCalendarModal({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:divide-x md:divide-border/80">
             <div>{renderMonth(month1)}</div>
             <div className="hidden md:block md:pl-8">{renderMonth(month2)}</div>
+          </div>
+
+          {/* Legend */}
+          <div className="flex flex-wrap items-center justify-center gap-5 pt-3 border-t border-border/50 text-[11px] text-foreground-muted">
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-full bg-brand-blue" />
+              <span>Terpilih</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-full bg-white border border-border" />
+              <span>Tersedia</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-4 h-4 rounded-full bg-neutral-100 border border-neutral-200 text-neutral-400 line-through flex items-center justify-center text-[9px] font-bold">✕</span>
+              <span>Penuh / Dipesan</span>
+            </div>
           </div>
         </div>
 

@@ -186,10 +186,22 @@ export async function createRealOrder(payload: {
 }
 
 /** `POST /api/orders/:id/pay` — returns `{ snapToken, snapRedirectUrl, paymentExpiresAt, ... }`. */
-export async function initiateOrderPayment(orderId: string) {
+export async function initiateOrderPayment(
+  orderId: string,
+  options?: { returnUrl?: string },
+) {
+  const headers: Record<string, string> = {
+    ...guestAuthHeaders(),
+    'Content-Type': 'application/json',
+  };
+  const body = options?.returnUrl
+    ? JSON.stringify({ returnUrl: options.returnUrl })
+    : undefined;
+
   const res = await fetch(`${API_BASE_URL}/orders/${orderId}/pay`, {
     method: 'POST',
-    headers: guestAuthHeaders(),
+    headers,
+    body,
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
@@ -342,5 +354,18 @@ export async function fetchPricingQuote(payload: QuotePayload) {
     throw new ApiError(err.message || 'Gagal menghitung tarif.', res.status);
   }
   return res.json();
+}
+
+/** `GET /api/public/campsites/:id/availability` — fetches booked dates and remaining quota for campsite blocks. */
+export async function fetchCampsiteAvailability(campsiteId: string) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/public/campsites/${campsiteId}/availability`, {
+      cache: 'no-store',
+    });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
 }
 

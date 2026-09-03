@@ -277,8 +277,14 @@ export function CheckoutClient() {
         throw new Error('Gagal membuat pesanan di server.');
       }
 
-      // 2. Inisiasi pembayaran Xendit
-      const paymentInit = await initiateOrderPayment(createdOrder.id);
+      // 2. Inisiasi pembayaran Xendit dengan redirect langsung kembali ke website
+      const returnUrl =
+        typeof window !== 'undefined'
+          ? `${window.location.origin}/orders/detail?id=${createdOrder.id}`
+          : undefined;
+      const paymentInit = await initiateOrderPayment(createdOrder.id, {
+        returnUrl,
+      });
       const xenditPaymentUrl =
         paymentInit?.snapRedirectUrl ||
         paymentInit?.redirectUrl ||
@@ -347,7 +353,13 @@ export function CheckoutClient() {
     setSubmitting(true);
     setError(null);
     try {
-      const paymentInit = await initiateOrderPayment(existingPendingOrder.id);
+      const returnUrl =
+        typeof window !== 'undefined'
+          ? `${window.location.origin}/orders/detail?id=${existingPendingOrder.id}`
+          : undefined;
+      const paymentInit = await initiateOrderPayment(existingPendingOrder.id, {
+        returnUrl,
+      });
       const url =
         paymentInit?.snapRedirectUrl ||
         paymentInit?.redirectUrl ||
