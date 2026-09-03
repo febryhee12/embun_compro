@@ -128,6 +128,7 @@ export function SpotCard({
     Array.isArray(spot.panoramaPhotos) && spot.panoramaPhotos.length > 0;
 
   const handlePrev = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     setPhotoIndex((prev) =>
       prev === 0 ? validPhotos.length - 1 : prev - 1,
@@ -135,6 +136,7 @@ export function SpotCard({
   };
 
   const handleNext = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     setPhotoIndex((prev) =>
       prev === validPhotos.length - 1 ? 0 : prev + 1,
@@ -188,16 +190,15 @@ export function SpotCard({
   const currentPhotoUrl = validPhotos[photoIndex] || validPhotos[0];
 
   return (
-    <a
-      href={targetUrl}
+    <div
       onClick={(e) => {
         if ((e.target as HTMLElement).closest('button')) {
-          e.preventDefault();
           return;
         }
         if (onSelectSpot) {
-          e.preventDefault();
           onSelectSpot(spot);
+        } else {
+          window.location.href = targetUrl;
         }
       }}
       onMouseEnter={() => setIsHovered(true)}
@@ -329,6 +330,6 @@ export function SpotCard({
           </div>
         )}
       </div>
-    </a>
+    </div>
   );
 }
