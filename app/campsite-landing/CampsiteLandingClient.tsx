@@ -4,41 +4,15 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   MapPin,
   Star,
-  Users,
-  Share2,
-  ExternalLink,
-  ChevronRight,
-  Sparkles,
-  Clock,
-  ShieldCheck,
-  Layers,
-  Flame,
-  Camera,
-  Droplets,
   Maximize2,
   X,
-  ArrowRight,
   Play,
   Info,
-  RotateCw,
   Compass,
-  Smartphone,
-  Heart,
-  Grid,
-  Trees,
-  CheckCircle2,
-  Tent,
-  Wifi,
-  Bath,
-  Zap,
-  Car,
-  MoonStar,
-  Coffee,
-  Waves,
-  BriefcaseMedical,
-  Store,
-  Mountain,
 } from 'lucide-react';
+import { SiteHeader } from '@/components/layout/SiteHeader';
+import { SiteFooter } from '@/components/layout/SiteFooter';
+import { SpotCard, type SpotData } from '@/components/explore/SpotCard';
 
 interface PhotoItem {
   id?: string;
@@ -58,7 +32,10 @@ interface PricingPackageItem {
   name: string;
   type: string;
   flatRate: number;
-  description?: string;
+  weekdayPrice?: number;
+  weekendPrice?: number;
+  maxOccupancy?: number;
+  baseCapacity?: number;
 }
 
 interface SpotItem {
@@ -66,59 +43,66 @@ interface SpotItem {
   name: string;
   blockNumber?: string | null;
   tentType?: string;
-  roomSize?: string | null;
-  bedType?: string | null;
-  baseCapacity: number;
-  maxCapacity: number;
-  pitchStock?: number | null;
-  weekdayPrice: number;
-  weekendPrice: number;
-  holidayPrice: number;
-  extraPersonFee: number;
-  images?: string[];
-  photos?: PhotoItem[];
-  panoramaPhotos?: PanoramaItem[] | any;
-  facilities?: string[];
-  viewOptions?: string[];
-  specificNotes?: string;
+  status?: string;
+  capacity?: number;
+  maxCapacity?: number;
+  weekdayPrice?: number;
+  weekendPrice?: number;
+  holidayPrice?: number;
   pricingPackages?: PricingPackageItem[];
+  photos?: PhotoItem[];
+  images?: string[];
+  panoramaPhotos?: Array<{ id: string; label?: string; imageUrl?: string; url?: string; category?: string }>;
   isEmbunPlus?: boolean;
   shareCode?: string;
-  status?: string;
+  viewOptions?: string[];
+  facilities?: string[];
 }
 
 interface CampsiteDetail {
   id: string;
   name: string;
-  slug: string;
+  slug?: string;
+  description?: string;
   address?: string;
   city?: string;
   province?: string;
-  latitude?: number | string;
-  longitude?: number | string;
-  description?: string;
-  logoUrl?: string;
+  coverImageUrl?: string;
+  mainImage?: string;
   mapImageUrl?: string;
-  googleMapsUrl?: string;
-  checkInTime?: string;
-  checkOutTime?: string;
   rating?: number;
   reviewCount?: number;
+  checkInTime?: string;
+  checkOutTime?: string;
+  youtube?: string;
   rules?: string;
-  facilities?: Array<{ id: string; name: string; icon?: string }>;
-  photos?: Array<{ id: string; url: string; category?: string }>;
-  blocks: SpotItem[];
-  youtube?: string | null;
+  facilities?: Array<{ id: string; name: string; icon?: string } | string>;
+  blocks?: SpotItem[];
+  photos?: PhotoItem[];
+  panoramaSpots?: Array<{ id: string; label?: string; description?: string; imageUrl?: string; url?: string }>;
+  maps?: Array<{
+    markers?: Array<{
+      id: string;
+      label?: string;
+      type?: string;
+      imageUrl?: string;
+      panoramaImageUrl?: string;
+    }>;
+  }>;
 }
 
 interface ReviewItem {
   id: string;
+  guestName: string;
+  guestAvatar?: string;
   rating: number;
-  message: string;
+  comment: string;
   createdAt: string;
-  maskedAuthorName?: string;
-  authorPhotoUrl?: string | null;
+  spotName?: string;
 }
+
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL || 'https://api-staging.embun.app/api';
 
 function resolveAssetUrl(rawUrl?: string, fallback = ''): string {
   if (!rawUrl || typeof rawUrl !== 'string') return fallback;
@@ -132,455 +116,304 @@ function resolveAssetUrl(rawUrl?: string, fallback = ''): string {
 }
 
 function rupiah(num: number): string {
-  return 'Rp ' + Math.round(num).toLocaleString('id-ID');
-}
-
-function extractYoutubeVideoId(url?: string | null): string | null {
-  if (!url || typeof url !== 'string') return null;
-  const cleanUrl = url.trim();
-  if (!cleanUrl) return null;
-
-  if (/^[a-zA-Z0-9_-]{11}$/.test(cleanUrl)) {
-    return cleanUrl;
+  try {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      maximumFractionDigits: 0,
+    }).format(num);
+  } catch {
+    return `Rp ${num.toLocaleString('id-ID')}`;
   }
-
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
-  const match = cleanUrl.match(regExp);
-  return match && match[2].length === 11 ? match[2] : null;
 }
 
-function getFacilityIcon(name: string, iconId?: string | null) {
-  const n = (name + ' ' + (iconId || '')).toLowerCase();
-  const cls = 'text-brand-blue shrink-0';
-  if (n.includes('wifi') || n.includes('internet')) return <Wifi size={16} className={cls} />;
-  if (n.includes('toilet') || n.includes('wc') || n.includes('mandi') || n.includes('shower'))
-    return <Bath size={16} className={cls} />;
-  if (n.includes('listrik') || n.includes('colokan') || n.includes('stopkontak'))
-    return <Zap size={16} className={cls} />;
-  if (n.includes('parkir') || n.includes('mobil') || n.includes('motor'))
-    return <Car size={16} className={cls} />;
-  if (n.includes('mushola') || n.includes('masjid') || n.includes('ibadah'))
-    return <MoonStar size={16} className={cls} />;
-  if (n.includes('kafe') || n.includes('cafe') || n.includes('kopi') || n.includes('minum'))
-    return <Coffee size={16} className={cls} />;
-  if (n.includes('sungai') || n.includes('danau') || n.includes('air') || n.includes('river'))
-    return <Waves size={16} className={cls} />;
-  if (n.includes('medis') || n.includes('p3k') || n.includes('obat'))
-    return <BriefcaseMedical size={16} className={cls} />;
-  if (n.includes('warung') || n.includes('toko') || n.includes('kantin'))
-    return <Store size={16} className={cls} />;
-  if (n.includes('api') || n.includes('unggun') || n.includes('bonfire'))
-    return <Flame size={16} className={cls} />;
-  if (n.includes('pemandangan') || n.includes('view') || n.includes('bukit') || n.includes('gunung'))
-    return <Mountain size={16} className={cls} />;
-  return <Trees size={16} className={cls} />;
+function extractYouTubeVideoId(rawUrl?: string | null): string | null {
+  if (!rawUrl || typeof rawUrl !== 'string') return null;
+  const trimmed = rawUrl.trim();
+  if (/^[\w-]{11}$/.test(trimmed)) return trimmed;
+  const match = trimmed.match(
+    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/|watch\?.+&v=))([\w-]{11})/i,
+  );
+  return match ? match[1] : null;
 }
 
-function getSpotMainPhoto(spot: SpotItem): string {
-  if (Array.isArray(spot.photos) && spot.photos.length > 0) {
-    // 1. Kamar Utama / Tenda / Gambar Utama
-    const utama = spot.photos.find((p) => {
-      const cat = (p?.category || '').toLowerCase();
-      return (
-        cat.includes('utama') ||
-        cat.includes('kamar') ||
-        cat.includes('tenda') ||
-        cat.includes('main') ||
-        cat.includes('room')
-      ) && !cat.includes('mandi') && !cat.includes('toilet');
-    });
-    if (utama?.url) return utama.url;
-
-    // 2. Pemandangan / Tampak Luar
-    const view = spot.photos.find((p) => {
-      const cat = (p?.category || '').toLowerCase();
-      return (
-        cat.includes('luar') ||
-        cat.includes('pemandangan') ||
-        cat.includes('view') ||
-        cat.includes('depan')
-      ) && !cat.includes('mandi') && !cat.includes('toilet');
-    });
-    if (view?.url) return view.url;
-
-    // 3. Foto selain toilet
-    const nonToilet = spot.photos.find((p) => {
-      const cat = (p?.category || '').toLowerCase();
-      return !cat.includes('mandi') && !cat.includes('toilet') && !cat.includes('bathroom') && !cat.includes('wc');
-    });
-    if (nonToilet?.url) return nonToilet.url;
-
-    if (spot.photos[0]?.url) return spot.photos[0].url;
-  }
-
-  if (Array.isArray(spot.images) && spot.images.length > 0) {
-    const valid = spot.images.find((img) => img && typeof img === 'string');
-    if (valid) return valid;
-  }
-
-  return '';
-}
+let pannellumLoaderPromise: Promise<any> | null = null;
 
 export function CampsiteLandingClient() {
   const [campsite, setCampsite] = useState<CampsiteDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  // Reviews
+  const [reviews, setReviews] = useState<ReviewItem[]>([]);
+
+  // Filter spot tipe
   const [selectedSpotType, setSelectedSpotType] = useState<string>('Semua');
+
+  // Modals
+  const [showFullMapModal, setShowFullMapModal] = useState(false);
   const [show360Modal, setShow360Modal] = useState(false);
   const [active360Index, setActive360Index] = useState(0);
-  const [isCopied, setIsCopied] = useState(false);
-  const [showFullMapModal, setShowFullMapModal] = useState(false);
 
-  const [reviews, setReviews] = useState<ReviewItem[]>([]);
-  const [reviewsLoading, setReviewsLoading] = useState(false);
-
-  // Panorama Pannellum ref
+  const pannellumContainerRef = useRef<HTMLDivElement | null>(null);
   const pannellumRef = useRef<any>(null);
 
-  // 1. Resolve campsite token from URL or Query
+  // Resolve Campsite Data
   useEffect(() => {
-    async function init() {
+    const segments = window.location.pathname.split('/').filter(Boolean);
+    const slugOrId =
+      segments.length >= 2 && (segments[0] === 'campsite' || segments[0] === 'spot')
+        ? segments[1]
+        : new URLSearchParams(window.location.search).get('id') ||
+          new URLSearchParams(window.location.search).get('slug') ||
+          new URLSearchParams(window.location.search).get('token') ||
+          null;
+
+    const loadReviews = async (cid: string) => {
       try {
-        let token = '';
-        if (typeof window !== 'undefined') {
-          const pathSegments = window.location.pathname.split('/').filter(Boolean);
-          const campIdx = pathSegments.indexOf('campsite');
-          if (campIdx !== -1 && pathSegments[campIdx + 1]) {
-            token = pathSegments[campIdx + 1];
-          } else {
-            const urlParams = new URLSearchParams(window.location.search);
-            token = urlParams.get('id') || urlParams.get('slug') || urlParams.get('token') || '';
-          }
+        const res = await fetch(`${API_BASE}/public/reviews/campsite/${cid}?limit=8`);
+        if (res.ok) {
+          const data = await res.json();
+          setReviews(data.items || []);
+        }
+      } catch (err) {
+        console.error('Failed to load reviews:', err);
+      }
+    };
+
+    const fetchCampsite = async () => {
+      try {
+        setLoading(true);
+        setErrorMsg(null);
+
+        let url = `${API_BASE}/public/campsites/resolve-spot`;
+        if (slugOrId) {
+          url += `?token=${encodeURIComponent(slugOrId)}`;
         }
 
-        const resolvedToken = (token || '').trim();
-        if (!resolvedToken) {
-          setErrorMsg('Kawasan campsite tidak ditemukan.');
-          setLoading(false);
-          return;
-        }
-
-        // Fetch authoritative campsite data
-        const res = await fetch(
-          `https://api-staging.embun.app/api/public/campsites/resolve-spot?token=${encodeURIComponent(
-            resolvedToken,
-          )}`,
-        );
-
+        const res = await fetch(url);
         if (!res.ok) {
-          // Fallback direct campsite lookup
-          const fallbackRes = await fetch(
-            `https://api-staging.embun.app/api/public/campsites/${encodeURIComponent(resolvedToken)}`,
-          );
-          if (fallbackRes.ok) {
-            const fbData = await fallbackRes.json();
-            setCampsite(fbData);
-            setLoading(false);
-            return;
+          if (slugOrId) {
+            const fallbackRes = await fetch(`${API_BASE}/public/campsites/${encodeURIComponent(slugOrId)}`);
+            if (fallbackRes.ok) {
+              const fallbackData = await fallbackRes.json();
+              setCampsite(fallbackData);
+              if (fallbackData.name) {
+                document.title = `${fallbackData.name} — Profil Kawasan & Spot Camping | Embun`;
+              }
+              if (fallbackData.id) loadReviews(fallbackData.id);
+              return;
+            }
           }
-          throw new Error('Gagal memuat profil kawasan');
+
+          const allRes = await fetch(`${API_BASE}/public/campsites`);
+          if (allRes.ok) {
+            const all = await allRes.json();
+            if (Array.isArray(all) && all.length > 0) {
+              const first = all[0];
+              setCampsite(first);
+              document.title = `${first.name} — Profil Kawasan & Spot Camping | Embun`;
+              if (first.id) loadReviews(first.id);
+              return;
+            }
+          }
+
+          throw new Error('Kawasan campsite tidak ditemukan.');
         }
 
         const data = await res.json();
-        const camp: CampsiteDetail = data.campsite || data;
+        const camp = data.campsite || data;
         setCampsite(camp);
-
-        // Fetch reviews
-        if (camp.id) {
-          fetchReviews(camp.id);
+        if (camp.name) {
+          document.title = `${camp.name} — Profil Kawasan & Spot Camping | Embun`;
         }
+        if (camp.id) loadReviews(camp.id);
       } catch (err: any) {
-        console.error('Error fetching campsite landing:', err);
-        setErrorMsg('Kawasan campsite belum tersedia atau tautan tidak valid.');
+        setErrorMsg(err?.message || 'Gagal memuat profil kawasan campsite.');
       } finally {
         setLoading(false);
       }
-    }
+    };
 
-    async function fetchReviews(campsiteId: string) {
-      try {
-        setReviewsLoading(true);
-        const res = await fetch(
-          `https://api-staging.embun.app/api/public/reviews/campsite/${encodeURIComponent(campsiteId)}?limit=6`,
-        );
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data?.items)) {
-            setReviews(data.items);
-          } else if (Array.isArray(data)) {
-            setReviews(data);
-          }
-        }
-      } catch (e) {
-        console.warn('Could not load reviews:', e);
-      } finally {
-        setReviewsLoading(false);
-      }
-    }
-
-    init();
+    fetchCampsite();
   }, []);
 
-  // Cover Image
+  // Cover image
   const coverImage = useMemo(() => {
-    if (!campsite) return '';
-    if ((campsite as any).coverImageUrl) return (campsite as any).coverImageUrl;
-    if ((campsite as any).mainImage) return (campsite as any).mainImage;
-    if (Array.isArray(campsite.photos) && campsite.photos.length > 0) {
-      const cover = campsite.photos.find(
-        (p) =>
-          p?.url &&
-          (p.category?.toLowerCase() === 'home' ||
-            p.category?.toLowerCase() === 'cover' ||
-            p.category?.toLowerCase() === 'main' ||
-            p.category?.toLowerCase().includes('view')),
+    if (campsite?.coverImageUrl) return campsite.coverImageUrl;
+    if (campsite?.mainImage) return campsite.mainImage;
+    if (Array.isArray(campsite?.photos) && campsite.photos.length > 0) {
+      const p = campsite.photos.find(
+        (x) =>
+          x?.url &&
+          (x.category?.toLowerCase() === 'home' ||
+            x.category?.toLowerCase() === 'cover' ||
+            x.category?.toLowerCase() === 'main' ||
+            x.category?.toLowerCase().includes('view') ||
+            x.category?.toLowerCase().includes('pemandangan')),
       );
-      if (cover?.url) return cover.url;
-      const valid = campsite.photos.find((p) => p?.url);
-      if (valid?.url) return valid.url;
+      if (p?.url) return p.url;
+      if (campsite.photos[0]?.url) return campsite.photos[0].url;
     }
-    const firstBlockPhoto = campsite.blocks?.[0]?.photos?.[0]?.url || campsite.blocks?.[0]?.images?.[0];
-    if (firstBlockPhoto) return firstBlockPhoto;
-    return campsite.mapImageUrl || '';
+    return '';
   }, [campsite]);
 
-  // Extract all 360 Panoramas in this campsite
-  const panoramaList = useMemo(() => {
-    const list: PanoramaItem[] = [];
-    const addedUrls = new Set<string>();
-
-    if (!campsite) return list;
-
-    // 1. Check campsite.panoramaSpots
-    if (Array.isArray((campsite as any).panoramaSpots)) {
-      (campsite as any).panoramaSpots.forEach((p: any) => {
-        const url = p?.imageUrl || p?.url;
-        if (url && !addedUrls.has(url)) {
-          addedUrls.add(url);
-          list.push({
-            id: p.id || String(Math.random()),
-            label: p.label || p.description || 'Tur 360° Kawasan',
-            imageUrl: url,
-          });
-        }
-      });
-    }
-
-    // 2. Check blocks
-    if (Array.isArray(campsite.blocks)) {
-      campsite.blocks.forEach((b: any) => {
-        if (Array.isArray(b.panoramaPhotos)) {
-          b.panoramaPhotos.forEach((p: any) => {
-            const url = p?.imageUrl || p?.url;
-            if (url && !addedUrls.has(url)) {
-              addedUrls.add(url);
-              list.push({
-                id: p.id || String(Math.random()),
-                label: p.label || `${b.name} (360°)`,
-                imageUrl: url,
-              });
-            }
-          });
-        }
-      });
-    }
-
-    // 3. Check campsite photos
-    if (Array.isArray(campsite.photos)) {
-      campsite.photos.forEach((p) => {
-        if (
-          p.category?.toLowerCase().includes('360') ||
-          p.category?.toLowerCase().includes('panorama')
-        ) {
-          if (p.url && !addedUrls.has(p.url)) {
-            addedUrls.add(p.url);
-            list.push({
-              id: p.id,
-              label: 'Tur 360° Area Camp',
-              imageUrl: p.url,
-            });
-          }
-        }
-      });
-    }
-
-    return list;
-  }, [campsite]);
-
-  // Extract all spots
+  // All active spots
   const allSpots = useMemo(() => {
     if (!campsite || !Array.isArray(campsite.blocks)) return [];
-    return campsite.blocks.filter((b) => b && b.name);
+    return campsite.blocks.filter((b) => b.status === 'active' || !b.status);
   }, [campsite]);
 
-  // Spot types with intelligent 360 tour option
+  // Available Spot Types for filtering
   const availableSpotTypes = useMemo(() => {
     const types = new Set<string>();
-    types.add('Semua');
-
     allSpots.forEach((b) => {
-      if (b.tentType && typeof b.tentType === 'string' && b.tentType.trim()) {
-        types.add(b.tentType.trim());
-      }
+      const t = (b.tentType || '').trim();
+      if (t) types.add(t);
     });
 
-    if (panoramaList.length > 0) {
-      types.add('Tur 360°');
+    const list = ['Semua', ...Array.from(types)];
+    const hasAny360 = allSpots.some(
+      (b) => Array.isArray(b.panoramaPhotos) && b.panoramaPhotos.length > 0,
+    );
+    if (hasAny360) {
+      list.push('Tur 360°');
     }
-
-    return Array.from(types);
-  }, [allSpots, panoramaList]);
+    return list;
+  }, [allSpots]);
 
   // Filtered spots
   const filteredSpots = useMemo(() => {
-    if (selectedSpotType === 'Semua') {
-      return allSpots;
-    }
+    if (selectedSpotType === 'Semua') return allSpots;
     if (selectedSpotType === 'Tur 360°') {
       return allSpots.filter(
         (b) => Array.isArray(b.panoramaPhotos) && b.panoramaPhotos.length > 0,
       );
     }
-    return allSpots.filter((b) => b.tentType === selectedSpotType);
+    return allSpots.filter(
+      (b) => (b.tentType || '').trim().toLowerCase() === selectedSpotType.toLowerCase(),
+    );
   }, [allSpots, selectedSpotType]);
 
-  // Minimum starting price
+  // Starting price across all spots
   const startingPrice = useMemo(() => {
     if (allSpots.length === 0) return 0;
-    let min = Infinity;
+    const prices: number[] = [];
     allSpots.forEach((b) => {
-      const price = b.pricingPackages?.[0]?.flatRate || b.weekdayPrice || 0;
-      if (price > 0 && price < min) {
-        min = price;
-      }
+      const p = b.pricingPackages?.[0]?.flatRate || b.weekdayPrice;
+      if (p && Number(p) > 0) prices.push(Number(p));
     });
-    return min === Infinity ? 0 : min;
+    return prices.length > 0 ? Math.min(...prices) : 0;
   }, [allSpots]);
 
-  // Youtube Video ID
-  const youtubeVideoId = useMemo(() => {
-    return extractYoutubeVideoId(campsite?.youtube);
-  }, [campsite?.youtube]);
+  // All 360 Panoramas
+  const panoramaList = useMemo(() => {
+    const list: PanoramaItem[] = [];
+    const seen = new Set<string>();
 
-  // Share handler
-  const handleShare = async () => {
-    const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
-    const shareTitle = `${campsite?.name || 'Campsite'} — Embun`;
-    const shareText = `Jelajahi seluruh pilihan spot camping & glamping di ${campsite?.name} lewat aplikasi Embun!`;
-
-    if (typeof navigator !== 'undefined' && navigator.share) {
-      try {
-        await navigator.share({
-          title: shareTitle,
-          text: shareText,
-          url: shareUrl,
+    allSpots.forEach((spot) => {
+      if (Array.isArray(spot.panoramaPhotos)) {
+        spot.panoramaPhotos.forEach((p) => {
+          const img = p?.imageUrl || p?.url;
+          if (img && !seen.has(img)) {
+            seen.add(img);
+            list.push({
+              id: p.id || String(Math.random()),
+              label: p.label || `${spot.name} (360°)`,
+              imageUrl: img,
+              category: p.category,
+            });
+          }
         });
-        return;
-      } catch (e: any) {
-        if (e.name !== 'AbortError') {
-          console.warn('Share sheet cancelled or failed:', e);
-        } else {
-          return;
+      }
+    });
+
+    if (Array.isArray(campsite?.panoramaSpots)) {
+      campsite.panoramaSpots.forEach((p) => {
+        const img = p?.imageUrl || p?.url;
+        if (img && !seen.has(img)) {
+          seen.add(img);
+          list.push({
+            id: p.id || String(Math.random()),
+            label: p.label || p.description || 'Tur 360° Kawasan',
+            imageUrl: img,
+            category: 'panorama_campsite',
+          });
         }
-      }
+      });
     }
 
-    if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      try {
-        await navigator.clipboard.writeText(shareUrl);
-        setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 2500);
-      } catch (e) {
-        console.warn('Clipboard write failed:', e);
-      }
-    }
-  };
+    return list;
+  }, [allSpots, campsite]);
 
-  // Open App Deep Link
-  const handleOpenApp = () => {
-    if (!campsite) return;
-    const token = campsite.slug || campsite.id;
-    const deepLink = `embun://campsite/${encodeURIComponent(token)}`;
-    const isAndroid = /android/i.test(navigator.userAgent || '');
-    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent || '');
+  // YouTube Video
+  const youtubeVideoId = useMemo(
+    () => extractYouTubeVideoId(campsite?.youtube),
+    [campsite?.youtube],
+  );
 
-    const fallbackUrl = isAndroid
-      ? 'https://play.google.com/store/apps/details?id=app.embun'
-      : isIOS
-      ? 'https://apps.apple.com/app/embun'
-      : 'https://embun.app';
-
-    const start = Date.now();
-    window.location.href = deepLink;
-
-    setTimeout(() => {
-      if (Date.now() - start < 1500) {
-        window.location.href = fallbackUrl;
-      }
-    }, 1000);
-  };
-
-  // Initialize Pannellum Viewer when modal opens
+  // Pannellum initialization
   useEffect(() => {
     if (!show360Modal || panoramaList.length === 0) return;
-
     let destroyed = false;
 
-    function initViewer() {
-      if (destroyed) return;
-      const pannellum = (window as any).pannellum;
-      if (!pannellum) return;
+    const runPannellum = async () => {
+      if (typeof window === 'undefined') return;
+
+      const pannellum = (window as any).pannellum
+        ? (window as any).pannellum
+        : await (pannellumLoaderPromise ||
+            (pannellumLoaderPromise = new Promise((resolve) => {
+              if (!document.getElementById('pannellum-css')) {
+                const link = document.createElement('link');
+                link.id = 'pannellum-css';
+                link.rel = 'stylesheet';
+                link.href =
+                  'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css';
+                document.head.appendChild(link);
+              }
+              const script = document.createElement('script');
+              script.src =
+                'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js';
+              script.async = true;
+              script.onload = () => resolve((window as any).pannellum);
+              script.onerror = () => resolve(null);
+              document.body.appendChild(script);
+            })));
+
+      if (destroyed || !pannellum) return;
 
       const container = document.getElementById('campsite-panorama-box');
       if (!container) return;
 
-      if (pannellumRef.current && typeof pannellumRef.current.destroy === 'function') {
-        try {
-          pannellumRef.current.destroy();
-        } catch (e) {
-          // ignore
-        }
-      }
-
-      const cur = panoramaList[active360Index] || panoramaList[0];
-      const directUrl = resolveAssetUrl(cur.imageUrl);
+      container.innerHTML = '';
+      const currentPano = panoramaList[active360Index] || panoramaList[0];
+      if (!currentPano) return;
 
       try {
+        if (pannellumRef.current && typeof pannellumRef.current.destroy === 'function') {
+          pannellumRef.current.destroy();
+          pannellumRef.current = null;
+        }
+
         pannellumRef.current = pannellum.viewer('campsite-panorama-box', {
           type: 'equirectangular',
-          panorama: directUrl,
+          panorama: resolveAssetUrl(currentPano.imageUrl),
           autoLoad: true,
           autoRotate: -1.5,
-          compass: true,
+          compass: false,
           showZoomCtrl: true,
-          showFullscreenCtrl: false,
-          mouseZoom: true,
-          hfov: 100,
-          minHfov: 50,
-          maxHfov: 120,
+          showFullscreenCtrl: true,
         });
-      } catch (e) {
-        console.error('Failed to init pannellum:', e);
+      } catch (err) {
+        console.error('Error initiating Pannellum:', err);
       }
-    }
+    };
 
-    if (!(window as any).pannellum) {
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = 'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css';
-      document.head.appendChild(link);
-
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js';
-      script.onload = () => initViewer();
-      document.body.appendChild(script);
-    } else {
-      setTimeout(initViewer, 150);
-    }
-
+    const timer = setTimeout(runPannellum, 100);
     return () => {
       destroyed = true;
+      clearTimeout(timer);
       if (pannellumRef.current && typeof pannellumRef.current.destroy === 'function') {
         try {
           pannellumRef.current.destroy();
@@ -625,205 +458,99 @@ export function CampsiteLandingClient() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-24">
-      {/* ── MOBILE SMART APP BANNER ── */}
-      <div className="md:hidden bg-brand-blue text-white px-4 py-2.5 flex items-center justify-between text-xs shadow-sm sticky top-0 z-50">
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-            <Smartphone size={16} className="text-white" />
-          </div>
-          <div className="truncate">
-            <span className="font-bold">Buka di Aplikasi Embun</span>
-            <span className="block text-[10px] text-white/80">Pemesanan lebih mudah & instan</span>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={handleOpenApp}
-          className="px-3 py-1.5 rounded-lg bg-brand-lime text-black font-bold text-[11px] shrink-0 ml-2 shadow-xs cursor-pointer active:scale-95 transition-transform"
-        >
-          Buka App
-        </button>
-      </div>
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
+      {/* ── 1. GLOBAL SITE HEADER (EXACT SAME AS HOME) ── */}
+      <SiteHeader />
 
-      {/* ── TOP NAVBAR ── */}
-      <header className="sticky top-0 md:top-0 z-40 bg-white/95 backdrop-blur-md border-b border-border/80">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <a href="/explore" className="flex items-center gap-2 group">
-              <span className="font-black text-xl tracking-tight text-foreground group-hover:text-brand-blue transition-colors">
-                embun
+      {/* ── 2. FULL-WIDTH PROPERTY HERO BANNER ── */}
+      <section className="relative w-full h-[380px] sm:h-[480px] md:h-[540px] bg-black overflow-hidden">
+        {coverImage ? (
+          <img
+            src={resolveAssetUrl(coverImage)}
+            alt={campsite.name}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-surface text-foreground-muted font-bold text-lg">
+            {campsite.name}
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/20" />
+
+        {/* 360 Tour badge on top right if available */}
+        {panoramaList.length > 0 && (
+          <div className="absolute top-6 right-4 sm:right-8 z-10">
+            <button
+              type="button"
+              onClick={() => setShow360Modal(true)}
+              className="px-4 py-2 rounded-full text-xs font-bold bg-white/95 backdrop-blur-md text-foreground flex items-center gap-2 shadow-sm hover:bg-white transition-all cursor-pointer"
+            >
+              <Compass size={14} className="text-brand-blue" />
+              <span>Tur 360° Tersedia</span>
+            </button>
+          </div>
+        )}
+
+        {/* Campsite details at bottom of hero */}
+        <div className="absolute bottom-0 inset-x-0 pb-8 sm:pb-12">
+          <div className="max-w-7xl mx-auto px-4 sm:px-8 text-white space-y-2">
+            <div className="flex items-center gap-1.5 text-xs sm:text-sm text-white/90">
+              <MapPin size={14} className="text-brand-lime shrink-0" />
+              <span>
+                {campsite.address
+                  ? `${campsite.address}, ${campsite.city || ''}`
+                  : `${campsite.city || 'Jawa Barat'}, Indonesia`}
               </span>
-            </a>
-            <div className="h-4 w-px bg-border hidden sm:block" />
-            <div className="hidden sm:flex items-center gap-1.5 text-xs text-foreground-muted truncate max-w-xs">
-              <MapPin size={12} className="text-brand-blue shrink-0" />
-              <span className="font-semibold text-foreground truncate">{campsite.name}</span>
-              <span>·</span>
-              <span>{campsite.city || 'Indonesia'}</span>
             </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleShare}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-foreground hover:bg-surface border border-border transition-all cursor-pointer"
-            >
-              <Share2 size={14} />
-              <span className="hidden sm:inline">{isCopied ? 'Tersalin!' : 'Bagikan'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleOpenApp}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-brand-blue text-white shadow-xs hover:bg-brand-blue/90 transition-all cursor-pointer"
-            >
-              <Smartphone size={14} />
-              <span>Buka di App</span>
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* ── HERO BANNER PROPERTI ── */}
-      <section className="relative bg-surface border-b border-border">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 md:py-8">
-          {/* Cover image */}
-          <div className="relative aspect-[21/9] sm:aspect-[24/9] w-full rounded-3xl overflow-hidden shadow-lg bg-black border border-border">
-            {coverImage ? (
-              <img
-                src={resolveAssetUrl(coverImage)}
-                alt={campsite.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-brand-blue/10 text-brand-blue font-bold text-lg">
-                {campsite.name}
+            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white drop-shadow-md">
+              {campsite.name}
+            </h1>
+            {campsite.rating && Number(campsite.rating) > 0 && (
+              <div className="flex items-center gap-2 pt-1">
+                <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-white/20 backdrop-blur-xs text-xs font-bold">
+                  <Star size={13} className="fill-amber-400 text-amber-400" />
+                  <span>{Number(campsite.rating).toFixed(1)}</span>
+                </div>
+                <span className="text-xs text-white/80 font-medium">
+                  ({campsite.reviewCount || 0} ulasan terverifikasi)
+                </span>
               </div>
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-
-            {/* Quick badges on top */}
-            <div className="absolute top-4 left-4 flex flex-wrap items-center gap-2">
-              <span className="px-3 py-1 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider bg-brand-lime text-black shadow-xs">
-                Destinasi Resmi
-              </span>
-              {panoramaList.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setShow360Modal(true)}
-                  className="px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-white/90 backdrop-blur-md text-foreground flex items-center gap-1.5 shadow-xs hover:bg-white transition-all cursor-pointer"
-                >
-                  <Compass size={13} className="text-brand-blue" />
-                  <span>Tur 360° Tersedia</span>
-                </button>
-              )}
-            </div>
-
-            {/* Campsite details over banner */}
-            <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-6 right-4 sm:right-6 text-white flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-              <div className="space-y-1.5 max-w-2xl">
-                <div className="flex items-center gap-2 text-xs text-white/85">
-                  <MapPin size={13} className="text-brand-lime shrink-0" />
-                  <span>
-                    {campsite.address
-                      ? `${campsite.address}, ${campsite.city || ''}`
-                      : `${campsite.city || 'Jawa Barat'}, Indonesia`}
-                  </span>
-                </div>
-                <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white drop-shadow-md">
-                  {campsite.name}
-                </h1>
-                {campsite.rating && Number(campsite.rating) > 0 && (
-                  <div className="flex items-center gap-2 pt-0.5">
-                    <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/20 backdrop-blur-xs text-xs font-bold">
-                      <Star size={12} className="fill-amber-400 text-amber-400" />
-                      <span>{Number(campsite.rating).toFixed(1)}</span>
-                    </div>
-                    <span className="text-xs text-white/80 font-medium">
-                      ({campsite.reviewCount || 0} ulasan terverifikasi)
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0">
-                <a
-                  href="#katalog-spot"
-                  className="px-5 py-2.5 rounded-xl bg-brand-lime hover:bg-brand-lime/90 text-black font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer flex items-center gap-2"
-                >
-                  <span>Pilih Spot Camping</span>
-                  <ArrowRight size={14} />
-                </a>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick summary strip below cover */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
-            <div className="p-3.5 rounded-2xl bg-white border border-border flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-brand-blue/10 text-brand-blue flex items-center justify-center shrink-0">
-                <Tent size={20} />
-              </div>
-              <div className="min-w-0">
-                <span className="block text-[11px] text-foreground-muted font-medium">Pilihan Unit</span>
-                <span className="block font-bold text-sm text-foreground truncate">
-                  {allSpots.length} Unit Spot
-                </span>
-              </div>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-white border border-border flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                <Flame size={20} />
-              </div>
-              <div className="min-w-0">
-                <span className="block text-[11px] text-foreground-muted font-medium">Mulai Dari</span>
-                <span className="block font-bold text-sm text-foreground truncate">
-                  {startingPrice > 0 ? `${rupiah(startingPrice)}/mlm` : 'Hubungi Camp'}
-                </span>
-              </div>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-white border border-border flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                <Clock size={20} />
-              </div>
-              <div className="min-w-0">
-                <span className="block text-[11px] text-foreground-muted font-medium">Check-In / Out</span>
-                <span className="block font-bold text-sm text-foreground truncate">
-                  {campsite.checkInTime || '14:00'} - {campsite.checkOutTime || '12:00'}
-                </span>
-              </div>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-white border border-border flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
-                <ShieldCheck size={20} />
-              </div>
-              <div className="min-w-0">
-                <span className="block text-[11px] text-foreground-muted font-medium">Pemesanan</span>
-                <span className="block font-bold text-sm text-foreground truncate">
-                  Konfirmasi Instan
-                </span>
-              </div>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* ── MAIN CONTENT CONTAINER ── */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-12">
-        {/* 1. TENTANG KAWASAN */}
-        <section className="space-y-3">
-          <div className="flex items-center gap-2 text-brand-blue">
-            <Trees size={18} />
-            <h2 className="font-extrabold text-lg sm:text-xl text-foreground">
-              Tentang Kawasan {campsite.name}
-            </h2>
+      {/* ── 3. CLEAN SUBTLE METADATA STRIP (NO BIG ICONS) ── */}
+      <div className="bg-surface/60 border-b border-border py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs sm:text-sm text-foreground-muted">
+          <div>
+            <span className="text-foreground font-bold">{allSpots.length} Unit Spot</span> Tersedia
           </div>
-          <div className="p-6 rounded-3xl bg-white border border-border shadow-xs leading-relaxed text-sm text-foreground/85 whitespace-pre-line">
+          <span className="text-border hidden sm:inline">•</span>
+          {startingPrice > 0 && (
+            <>
+              <div>
+                Mulai dari <span className="text-foreground font-bold">{rupiah(startingPrice)}</span> / malam
+              </div>
+              <span className="text-border hidden sm:inline">•</span>
+            </>
+          )}
+          <div>
+            Check-in <span className="text-foreground font-semibold">{campsite.checkInTime || '14:00'}</span> · Check-out <span className="text-foreground font-semibold">{campsite.checkOutTime || '12:00'}</span>
+          </div>
+          <span className="text-border hidden sm:inline">•</span>
+          <div>Konfirmasi Instan</div>
+        </div>
+      </div>
+
+      {/* ── 4. MAIN CONTENT CONTAINER ── */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-8 py-10 space-y-14 flex-1 w-full">
+        {/* TENTANG KAWASAN */}
+        <section className="space-y-3">
+          <h2 className="font-extrabold text-xl text-foreground">
+            Tentang Kawasan {campsite.name}
+          </h2>
+          <div className="p-6 rounded-3xl bg-white border border-border leading-relaxed text-sm text-foreground/85 whitespace-pre-line">
             {campsite.description ||
               `${campsite.name} merupakan destinasi camping dan glamping pilihan di ${
                 campsite.city || 'Jawa Barat'
@@ -831,45 +558,38 @@ export function CampsiteLandingClient() {
           </div>
         </section>
 
-        {/* 2. FASILITAS UTAMA PROPERTI */}
+        {/* FASILITAS KAWASAN — CLEAN MINIMAL PILLS */}
         {Array.isArray(campsite.facilities) && campsite.facilities.length > 0 && (
           <section className="space-y-4">
-            <h2 className="font-extrabold text-lg sm:text-xl text-foreground">
-              Fasilitas Utama Kawasan
+            <h2 className="font-extrabold text-xl text-foreground">
+              Fasilitas Kawasan
             </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-xs sm:text-sm text-foreground">
+            <div className="flex flex-wrap gap-2.5 text-xs sm:text-sm">
               {campsite.facilities.map((fac: any, idx: number) => {
                 const facName = typeof fac === 'string' ? fac : fac.name || 'Fasilitas';
-                const facIcon = typeof fac === 'object' ? fac.icon : null;
                 return (
-                  <div
+                  <span
                     key={fac.id || idx}
-                    className="flex items-center gap-3 p-3.5 rounded-2xl bg-white border border-border/80 shadow-2xs"
+                    className="px-3.5 py-2 rounded-xl bg-surface border border-border text-foreground font-medium"
                   >
-                    {getFacilityIcon(facName, facIcon || fac.id)}
-                    <span className="font-semibold truncate">{facName}</span>
-                  </div>
+                    {facName}
+                  </span>
                 );
               })}
             </div>
           </section>
         )}
 
-        {/* 3. VIDEO SUASANA KAWASAN (YOUTUBE) */}
+        {/* VIDEO SUASANA KAWASAN (YOUTUBE) */}
         {youtubeVideoId && (
           <section className="space-y-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-red-600 text-white flex items-center justify-center shadow-xs">
-                <Play size={15} className="fill-white ml-0.5" />
-              </div>
-              <div>
-                <h2 className="font-extrabold text-lg sm:text-xl text-foreground">
-                  Video Suasana Kawasan
-                </h2>
-                <p className="text-xs text-foreground-muted">
-                  Tonton keindahan alam, suasana malam, dan aktivitas di {campsite.name}
-                </p>
-              </div>
+            <div>
+              <h2 className="font-extrabold text-xl text-foreground">
+                Video Suasana Kawasan
+              </h2>
+              <p className="text-xs text-foreground-muted mt-0.5">
+                Tonton keindahan alam, suasana malam, dan aktivitas di {campsite.name}
+              </p>
             </div>
             <div className="relative aspect-video w-full rounded-3xl overflow-hidden shadow-lg border border-border bg-black">
               <iframe
@@ -883,9 +603,9 @@ export function CampsiteLandingClient() {
           </section>
         )}
 
-        {/* 4. KATALOG SEMUA SPOT DI KAWASAN (THE CORE HERO CATALOG) */}
-        <section id="katalog-spot" className="space-y-5 scroll-mt-24">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 pb-2 border-b border-border">
+        {/* KATALOG SEMUA SPOT DI KAWASAN (MENGGUNAKAN STANDAR SPOTCARD COMPRO) */}
+        <section id="katalog-spot" className="space-y-6 scroll-mt-24">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 pb-3 border-b border-border">
             <div>
               <h2 className="font-extrabold text-xl sm:text-2xl text-foreground">
                 Pilihan Spot & Kavling di {campsite.name}
@@ -919,10 +639,9 @@ export function CampsiteLandingClient() {
             )}
           </div>
 
-          {/* Grid Kartu Spot */}
+          {/* Grid Kartu Spot — Standar SpotCard Compro Tanpa Bintang */}
           {filteredSpots.length === 0 ? (
             <div className="p-12 text-center bg-white rounded-3xl border border-dashed border-border space-y-2">
-              <Tent size={36} className="mx-auto text-foreground-muted/60" />
               <p className="text-sm font-semibold text-foreground">Tidak ada spot untuk filter ini</p>
               <button
                 type="button"
@@ -933,108 +652,60 @@ export function CampsiteLandingClient() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {filteredSpots.map((spot) => {
-                const spotCover = getSpotMainPhoto(spot);
-                const spotPrice = spot.pricingPackages?.[0]?.flatRate || spot.weekdayPrice || 0;
-                const has360 = Array.isArray(spot.panoramaPhotos) && spot.panoramaPhotos.length > 0;
-                const spotDetailUrl = `/spot/${spot.shareCode || spot.id}`;
+                const spotData: SpotData = {
+                  id: spot.id,
+                  name: spot.name,
+                  blockNumber: spot.blockNumber || null,
+                  tentType: spot.tentType,
+                  roomSize: (spot as any).roomSize || null,
+                  bedType: (spot as any).bedType || null,
+                  baseCapacity: spot.capacity || spot.maxCapacity || 4,
+                  maxCapacity: spot.maxCapacity || spot.capacity || 4,
+                  weekdayPrice: spot.pricingPackages?.[0]?.flatRate || spot.weekdayPrice || 0,
+                  weekendPrice: spot.pricingPackages?.[0]?.flatRate || spot.weekendPrice || 0,
+                  holidayPrice:
+                    spot.pricingPackages?.[0]?.flatRate ||
+                    spot.holidayPrice ||
+                    spot.weekdayPrice ||
+                    0,
+                  isEmbunPlus: spot.isEmbunPlus,
+                  shareCode: spot.shareCode,
+                  photos: spot.photos,
+                  images: spot.images,
+                  panoramaPhotos: spot.panoramaPhotos,
+                  viewOptions: spot.viewOptions,
+                  facilities: spot.facilities,
+                  campsite: {
+                    id: campsite.id,
+                    name: campsite.name,
+                    slug: campsite.slug,
+                    address: campsite.address,
+                    city: campsite.city,
+                    province: campsite.province,
+                    mapImageUrl: campsite.mapImageUrl,
+                    rating: campsite.rating,
+                    reviewCount: campsite.reviewCount,
+                  },
+                };
 
                 return (
-                  <div
+                  <SpotCard
                     key={spot.id}
-                    className="group p-4 rounded-3xl border border-border bg-white hover:border-brand-blue/50 hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
-                  >
-                    <div className="space-y-3">
-                      {/* Photo cover */}
-                      <a
-                        href={spotDetailUrl}
-                        className="block relative aspect-[4/3] w-full rounded-2xl overflow-hidden bg-surface cursor-pointer"
-                      >
-                        {spotCover ? (
-                          <img
-                            src={resolveAssetUrl(spotCover)}
-                            alt={spot.name}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-foreground-muted bg-surface/80">
-                            <Tent size={32} />
-                          </div>
-                        )}
-
-                        {/* Top Badges */}
-                        <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
-                          {spot.tentType && (
-                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/90 backdrop-blur-xs text-foreground shadow-2xs">
-                              {spot.tentType}
-                            </span>
-                          )}
-                          {has360 && (
-                            <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-brand-lime text-black flex items-center gap-1 shadow-2xs">
-                              <Compass size={10} />
-                              360°
-                            </span>
-                          )}
-                        </div>
-                      </a>
-
-                      {/* Spot Title & Specs */}
-                      <div>
-                        <a href={spotDetailUrl} className="block">
-                          <h3 className="font-extrabold text-base text-foreground group-hover:text-brand-blue transition-colors truncate">
-                            {spot.name}
-                          </h3>
-                        </a>
-
-                        <div className="flex items-center gap-3 text-xs text-foreground-muted mt-1.5">
-                          <div className="flex items-center gap-1">
-                            <Users size={13} className="text-brand-blue" />
-                            <span>{spot.baseCapacity}-{spot.maxCapacity} Tamu</span>
-                          </div>
-                          {spot.roomSize && (
-                            <div className="flex items-center gap-1">
-                              <Layers size={13} />
-                              <span>{spot.roomSize}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Price & CTA Button */}
-                    <div className="pt-3 mt-3 border-t border-border/80 flex items-center justify-between gap-2">
-                      <div>
-                        <span className="text-[10px] text-foreground-muted block">Mulai dari</span>
-                        {Number(spotPrice) > 0 ? (
-                          <span className="font-black text-sm text-foreground">
-                            {rupiah(Number(spotPrice))}
-                            <span className="text-[10px] font-normal text-foreground-muted">/mlm</span>
-                          </span>
-                        ) : (
-                          <span className="text-xs font-bold text-brand-blue">Hubungi Camp</span>
-                        )}
-                      </div>
-
-                      <a
-                        href={spotDetailUrl}
-                        className="px-4 py-2 rounded-xl bg-brand-blue hover:bg-brand-blue/90 text-white font-bold text-xs shadow-2xs transition-all flex items-center gap-1.5 group-hover:translate-x-0.5 cursor-pointer"
-                      >
-                        <span>Lihat & Pesan</span>
-                        <ArrowRight size={13} />
-                      </a>
-                    </div>
-                  </div>
+                    spot={spotData}
+                    showRating={false}
+                  />
                 );
               })}
             </div>
           )}
         </section>
 
-        {/* 5. DENAH KAWASAN / SITE MAP */}
+        {/* DENAH KAWASAN / SITE MAP */}
         {campsite.mapImageUrl && (
           <section className="space-y-3">
-            <h2 className="font-extrabold text-lg sm:text-xl text-foreground">
+            <h2 className="font-extrabold text-xl text-foreground">
               Denah Peta Kawasan
             </h2>
             <div
@@ -1056,16 +727,15 @@ export function CampsiteLandingClient() {
           </section>
         )}
 
-        {/* 6. ATURAN & KEBIJAKAN MENGINAP */}
+        {/* ATURAN & KEBIJAKAN MENGINAP */}
         <section className="space-y-3">
-          <h2 className="font-extrabold text-lg sm:text-xl text-foreground">
+          <h2 className="font-extrabold text-xl text-foreground">
             Aturan & Kebijakan Kawasan
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-foreground-muted leading-relaxed">
             <div className="p-5 rounded-3xl bg-white border border-border space-y-2">
-              <h3 className="font-bold text-sm text-foreground flex items-center gap-2">
-                <Clock size={16} className="text-brand-blue" />
-                <span>Waktu Menginap</span>
+              <h3 className="font-bold text-sm text-foreground">
+                Waktu Menginap
               </h3>
               <p>Check-in: Mulai pukul {campsite.checkInTime || '14:00'} WIB</p>
               <p>Check-out: Maksimal pukul {campsite.checkOutTime || '12:00'} WIB</p>
@@ -1075,9 +745,8 @@ export function CampsiteLandingClient() {
             </div>
 
             <div className="p-5 rounded-3xl bg-white border border-border space-y-2">
-              <h3 className="font-bold text-sm text-foreground flex items-center gap-2">
-                <ShieldCheck size={16} className="text-emerald-600" />
-                <span>Tata Tertib Menginap</span>
+              <h3 className="font-bold text-sm text-foreground">
+                Tata Tertib Menginap
               </h3>
               <p>
                 {campsite.rules ||
@@ -1087,88 +756,57 @@ export function CampsiteLandingClient() {
           </div>
         </section>
 
-        {/* 7. ULASAN TAMU */}
+        {/* ULASAN TAMU */}
         {reviews.length > 0 && (
           <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="font-extrabold text-lg sm:text-xl text-foreground">
-                  Ulasan Tamu di {campsite.name}
-                </h2>
-                <p className="text-xs text-foreground-muted">
-                  Pengalaman nyata dari pengunjung terverifikasi
-                </p>
-              </div>
-              {campsite.rating && (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 text-amber-900 border border-amber-200/60 font-bold text-xs">
-                  <Star size={14} className="fill-amber-400 text-amber-400" />
-                  <span>{Number(campsite.rating).toFixed(1)} / 5.0</span>
-                </div>
-              )}
+            <div>
+              <h2 className="font-extrabold text-xl text-foreground">
+                Ulasan Tamu di {campsite.name}
+              </h2>
+              <p className="text-xs text-foreground-muted mt-0.5">
+                Pengalaman nyata dari pengunjung terverifikasi
+              </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {reviews.map((rev) => (
                 <div
                   key={rev.id}
-                  className="p-4 rounded-2xl bg-white border border-border space-y-2.5 text-xs shadow-2xs"
+                  className="p-5 rounded-3xl bg-white border border-border space-y-2.5"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-brand-blue/10 text-brand-blue font-bold flex items-center justify-center text-[10px]">
-                        {(rev.maskedAuthorName || 'Tamu')[0]}
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-full bg-brand-blue/10 text-brand-blue font-bold text-xs flex items-center justify-center">
+                        {rev.guestName.charAt(0).toUpperCase()}
                       </div>
-                      <span className="font-bold text-foreground">
-                        {rev.maskedAuthorName || 'Tamu Embun'}
-                      </span>
+                      <div>
+                        <span className="font-bold text-xs text-foreground block">
+                          {rev.guestName}
+                        </span>
+                        {rev.spotName && (
+                          <span className="text-[10px] text-foreground-muted">
+                            Menginap di {rev.spotName}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-0.5 text-amber-500">
-                      {Array.from({ length: rev.rating || 5 }).map((_, i) => (
-                        <Star key={i} size={11} className="fill-amber-400 text-amber-400" />
-                      ))}
+                    <div className="flex items-center gap-1 text-amber-500 font-bold text-xs">
+                      <Star size={12} className="fill-amber-500" />
+                      <span>{Number(rev.rating).toFixed(1)}</span>
                     </div>
                   </div>
-                  <p className="text-foreground/80 leading-relaxed italic">
-                    &ldquo;{rev.message}&rdquo;
+                  <p className="text-xs text-foreground/80 leading-relaxed italic">
+                    &ldquo;{rev.comment}&rdquo;
                   </p>
                 </div>
               ))}
             </div>
           </section>
         )}
-
-        {/* 8. FOOTER BANNER CTA */}
-        <section className="p-8 sm:p-10 rounded-3xl bg-gradient-to-br from-brand-blue to-blue-900 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
-          <div className="space-y-2 text-center md:text-left">
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-brand-lime text-black inline-block">
-              Aplikasi Booking Camping #1
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
-              Liburan Lebih Menyenangkan di Aplikasi Embun
-            </h2>
-            <p className="text-xs sm:text-sm text-white/80 max-w-xl">
-              Dapatkan promo eksklusif, tur 360°, chat langsung dengan mitra campsite, dan kemudahan check-in tanpa ribet.
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0">
-            <button
-              type="button"
-              onClick={handleOpenApp}
-              className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-brand-lime hover:bg-brand-lime/90 text-black font-extrabold text-sm shadow-md transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2"
-            >
-              <Smartphone size={16} />
-              <span>Buka di Aplikasi Embun</span>
-            </button>
-            <a
-              href="/explore"
-              className="w-full sm:w-auto px-5 py-3.5 rounded-xl bg-white/15 hover:bg-white/20 text-white font-bold text-sm border border-white/20 transition-all text-center"
-            >
-              Cari Destinasi Lain
-            </a>
-          </div>
-        </section>
       </main>
+
+      {/* ── 5. GLOBAL SITE FOOTER (EXACT SAME AS HOME) ── */}
+      <SiteFooter />
 
       {/* ── MODAL TUR 360° ── */}
       {show360Modal && panoramaList.length > 0 && (

@@ -47,10 +47,11 @@ export interface SpotData {
 
 interface SpotCardProps {
   spot: SpotData;
-  onSelectSpot: (spot: SpotData) => void;
+  onSelectSpot?: (spot: SpotData) => void;
   isFavorite?: boolean;
   onToggleFavorite?: (spotId: string) => void;
   showBadge?: boolean;
+  showRating?: boolean;
 }
 
 export function getPhotoCategoryScore(category?: string): number {
@@ -97,6 +98,7 @@ export function SpotCard({
   isFavorite = false,
   onToggleFavorite,
   showBadge = false,
+  showRating = true,
 }: SpotCardProps) {
   const [photoIndex, setPhotoIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
@@ -302,12 +304,14 @@ export function SpotCard({
           <h4 className="font-bold text-sm text-foreground truncate group-hover:text-brand-blue transition-colors">
             {spot.name}
           </h4>
-          <div className="flex items-center gap-1 shrink-0 font-semibold text-foreground">
-            <Star size={12} className="fill-amber-500 text-amber-500" />
-            <span>
-              {spot.campsite?.rating ? Number(spot.campsite.rating).toFixed(1) : '5.0'}
-            </span>
-          </div>
+          {showRating && (
+            <div className="flex items-center gap-1 shrink-0 font-semibold text-foreground">
+              <Star size={12} className="fill-amber-500 text-amber-500" />
+              <span>
+                {spot.campsite?.rating ? Number(spot.campsite.rating).toFixed(1) : '5.0'}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Campsite & Location */}
