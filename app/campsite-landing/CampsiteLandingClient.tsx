@@ -266,7 +266,63 @@ function HomeStyleFooter() {
   );
 }
 
+class SafeErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error('CampsiteLandingClient error caught:', error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-background text-foreground flex flex-col">
+          <HomeStyleHeader />
+          <div className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-4 max-w-md mx-auto">
+            <h2 className="text-xl font-bold text-foreground">
+              Memuat Profil Kawasan
+            </h2>
+            <p className="text-xs text-foreground-muted leading-relaxed">
+              Sedang menghubungkan ke data properti terbaru. Silakan klik tombol di bawah.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                this.setState({ hasError: false, error: null });
+                window.location.reload();
+              }}
+              className="px-6 py-2.5 rounded-full bg-brand-blue text-white text-xs font-bold shadow-md cursor-pointer hover:bg-brand-blue/90"
+            >
+              Muat Ulang Halaman
+            </button>
+          </div>
+          <HomeStyleFooter />
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export function CampsiteLandingClient() {
+  return (
+    <SafeErrorBoundary>
+      <CampsiteLandingClientInner />
+    </SafeErrorBoundary>
+  );
+}
+
+function CampsiteLandingClientInner() {
   const [campsite, setCampsite] = useState<CampsiteDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
