@@ -305,15 +305,22 @@ export function CheckoutClient() {
         setError('Sesi login telah berakhir. Silakan masuk kembali.');
         setIsAuthOpen(true);
       } else {
-        const msg = err.message || 'Gagal memproses pesanan.';
-        setError(msg);
+        const rawMsg = err.message || 'Gagal memproses pesanan.';
+        const isConflict =
+          rawMsg.includes('dibooking') ||
+          rawMsg.includes('SpotUnavailable') ||
+          rawMsg.includes('DateBlocked') ||
+          rawMsg.includes('diblokir') ||
+          rawMsg.includes('kavling') ||
+          err?.status === 409;
+
+        const friendlyMsg = isConflict
+          ? 'Spot yang Anda pilih sudah penuh pada tanggal yang dipilih.'
+          : rawMsg;
+        setError(friendlyMsg);
 
         // Jika terjadi conflict karena tanggal/kavling sudah dibooking (biasanya oleh order pending tamu sendiri)
-        if (
-          msg.includes('dibooking') ||
-          msg.includes('SpotUnavailable') ||
-          err?.status === 409
-        ) {
+        if (isConflict) {
           void fetchGuestOrders()
             .then((res) => {
               const orders = Array.isArray(res) ? res : res?.rows || [];
@@ -440,13 +447,6 @@ export function CheckoutClient() {
               KOLOM KIRI: FORM & DATA PEMESANAN (AIRBNB STYLE)
           ════════════════════════════════════════════════════════════════ */}
           <div className="lg:col-span-7 space-y-6">
-            {error && (
-              <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2">
-                <AlertCircle size={16} className="shrink-0" />
-                <span>{error}</span>
-              </div>
-            )}
-
             {/* 1. Perjalanan Anda */}
             <div className="bg-white rounded-3xl border border-border p-6 shadow-2xs space-y-4">
               <h2 className="text-base font-extrabold text-foreground">Perjalanan Anda</h2>
