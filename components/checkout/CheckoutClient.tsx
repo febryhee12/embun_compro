@@ -18,6 +18,7 @@ import {
   Sparkles,
   Receipt,
   Info,
+  FileText,
 } from 'lucide-react';
 import {
   createRealOrder,
@@ -104,6 +105,7 @@ export function CheckoutClient() {
 
   // Skema bayar yang bisa diubah di halaman checkout
   const [paymentScheme, setPaymentScheme] = useState<'DP_50' | 'FULL'>('FULL');
+  const [bookingNote, setBookingNote] = useState('');
 
   // Submission state
   const [submitting, setSubmitting] = useState(false);
@@ -227,6 +229,7 @@ export function CheckoutClient() {
         campsiteId: draft.campsite.id,
         paymentMethod: 'TRANSFER' as const,
         isDownPayment: isDP,
+        bookingNote: bookingNote.trim() || undefined,
         items: [
           {
             blockId: draft.spot.id,
@@ -450,7 +453,34 @@ export function CheckoutClient() {
               )}
             </div>
 
-            {/* 4. Aturan & Kebijakan Campsite */}
+            {/* 4. Catatan untuk Campsite (Opsional) */}
+            <div className="bg-white rounded-3xl border border-border p-6 shadow-2xs space-y-3.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileText size={18} className="text-brand-blue" />
+                  <h2 className="text-base font-extrabold text-foreground">Catatan untuk Campsite</h2>
+                </div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted bg-surface px-2.5 py-0.5 rounded-full border border-border">
+                  Opsional
+                </span>
+              </div>
+              <p className="text-xs text-foreground-muted leading-relaxed">
+                Punya permintaan khusus, perkiraan jam tiba, atau info tambahan untuk pihak campsite? Sampaikan langsung di sini.
+              </p>
+              <textarea
+                rows={3}
+                value={bookingNote}
+                onChange={(e) => setBookingNote(e.target.value)}
+                placeholder="Contoh: Perkiraan tiba sekitar pukul 15:30 WIB, mohon bantuannya untuk disiapkan tempat dekat fasilitas air / kami membawa anak kecil..."
+                maxLength={500}
+                className="w-full px-4 py-3 rounded-2xl border border-border focus:border-brand-blue focus:outline-hidden text-sm bg-surface/40 transition-colors resize-none placeholder:text-foreground-muted/60"
+              />
+              <div className="flex justify-end text-[11px] text-foreground-muted">
+                <span>{bookingNote.length}/500</span>
+              </div>
+            </div>
+
+            {/* 5. Aturan & Kebijakan Campsite */}
             <div className="bg-white rounded-3xl border border-border p-6 shadow-2xs space-y-3.5">
               <h2 className="text-base font-extrabold text-foreground">Kebijakan Penginapan</h2>
 
