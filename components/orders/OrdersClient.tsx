@@ -185,8 +185,12 @@ export function OrdersClient() {
           </div>
         ) : authRequired ? (
           <div className="text-center py-20 bg-white rounded-3xl border border-border p-8 space-y-5 shadow-2xs max-w-md mx-auto">
-            <div className="w-14 h-14 mx-auto rounded-2xl bg-brand-blue/10 flex items-center justify-center text-brand-blue">
-              <Tent size={26} />
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-brand-blue/8 flex items-center justify-center p-3 border border-brand-blue/15 shadow-2xs">
+              <img
+                src="/images/logo/logogram_blue.svg"
+                alt="Embun"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div className="space-y-1">
               <h3 className="font-bold text-base text-foreground">Masuk ke Akun Anda</h3>
@@ -231,8 +235,12 @@ export function OrdersClient() {
           </div>
         ) : orders.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-3xl border border-border p-8 space-y-4 shadow-2xs max-w-md mx-auto">
-            <div className="w-14 h-14 mx-auto rounded-2xl bg-surface flex items-center justify-center text-foreground-muted">
-              <Tent size={26} />
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-surface flex items-center justify-center p-3.5 border border-border">
+              <img
+                src="/images/logo/logogram_blue.svg"
+                alt="Embun"
+                className="w-full h-full object-contain opacity-40 grayscale"
+              />
             </div>
             <div className="space-y-1">
               <h3 className="font-bold text-base text-foreground">Belum Ada Pesanan</h3>
