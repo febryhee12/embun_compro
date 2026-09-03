@@ -68,6 +68,7 @@ interface CheckoutDraft {
   totalServiceAndTaxFee: number;
   grandTotal: number;
   paymentAmountToPay: number;
+  returnUrl?: string;
   extraPersonInfo?: {
     count: number;
     unitPrice: number;
@@ -280,6 +281,14 @@ export function CheckoutClient() {
     }
   };
 
+  const handleBack = () => {
+    if (draft?.returnUrl) {
+      router.push(draft.returnUrl);
+    } else {
+      router.back();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#fafafa] text-foreground">
       {/* Header Sticky */}
@@ -288,7 +297,7 @@ export function CheckoutClient() {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => router.back()}
+              onClick={handleBack}
               className="p-2 -ml-2 rounded-full hover:bg-surface text-foreground transition-colors cursor-pointer"
               aria-label="Kembali"
             >

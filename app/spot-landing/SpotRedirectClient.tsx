@@ -340,6 +340,12 @@ function loadPannellum(): Promise<any> {
   return pannellumPromise;
 }
 
+// In-memory cache for loaded spot and campsite details to prevent flash/reload on back navigation
+const spotDetailCache = new Map<
+  string,
+  { campsite: CampsiteDetail; activeSpot: SpotItem }
+>();
+
 export function SpotRedirectClient() {
   const router = useRouter();
   const [campsite, setCampsite] = useState<CampsiteDetail | null>(null);
@@ -463,8 +469,53 @@ export function SpotRedirectClient() {
 
     const rawPath = window.location.pathname;
     const resolvedToken = resolveTokenFromPath(rawPath);
+    const cacheKey = resolvedToken || 'default';
+
+    const tryRestoreDraft = (spot: SpotItem) => {
+      try {
+        const stored = sessionStorage.getItem('embun_checkout_draft');
+        if (stored) {
+          const draft = JSON.parse(stored);
+          if (draft.spot?.id === spot.id) {
+            if (draft.checkInDate) setCheckInDate(draft.checkInDate);
+            if (draft.checkOutDate) setCheckOutDate(draft.checkOutDate);
+            if (draft.guestCount) setGuestCount(draft.guestCount);
+            if (draft.selectedPackage?.id) {
+              setSelectedPackageId(draft.selectedPackage.id);
+            } else if (spot.pricingPackages?.[0]?.id) {
+              setSelectedPackageId(spot.pricingPackages[0].id);
+            }
+            if (draft.paymentScheme) setPaymentScheme(draft.paymentScheme);
+            if (draft.selectedAddons) setSelectedAddons(draft.selectedAddons);
+            return true;
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to restore draft:', e);
+      }
+      return false;
+    };
 
     const fetchData = async () => {
+      // 1. Cek cache in-memory agar saat back dari checkout tidak refresh/flicker
+      const cached = spotDetailCache.get(cacheKey);
+      if (cached) {
+        setCampsite(cached.campsite);
+        setActiveSpot(cached.activeSpot);
+        setLoading(false);
+        const restored = tryRestoreDraft(cached.activeSpot);
+        if (!restored && cached.activeSpot.pricingPackages?.[0]?.id) {
+          setSelectedPackageId(cached.activeSpot.pricingPackages[0].id);
+        }
+        if (cached.activeSpot && cached.campsite) {
+          document.title = `${cached.activeSpot.name} · ${cached.campsite.name} | Embun`;
+        }
+        if (cached.campsite?.id) {
+          fetchReviews(cached.campsite.id);
+        }
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
@@ -487,9 +538,16 @@ export function SpotRedirectClient() {
               setActiveSpot(firstSpot);
               if (firstSpot) {
                 document.title = `${firstSpot.name} · ${fallbackCamp.name} | Embun`;
-                setSelectedPackageId(
-                  firstSpot.pricingPackages?.[0]?.id || null,
-                );
+                const restored = tryRestoreDraft(firstSpot);
+                if (!restored) {
+                  setSelectedPackageId(
+                    firstSpot.pricingPackages?.[0]?.id || null,
+                  );
+                }
+                spotDetailCache.set(cacheKey, {
+                  campsite: fallbackCamp,
+                  activeSpot: firstSpot,
+                });
               }
               // Fetch reviews for fallback camp
               fetchReviews(fallbackCamp.id);
@@ -514,7 +572,11 @@ export function SpotRedirectClient() {
 
         setActiveSpot(matched || null);
         if (matched) {
-          setSelectedPackageId(matched.pricingPackages?.[0]?.id || null);
+          const restored = tryRestoreDraft(matched);
+          if (!restored) {
+            setSelectedPackageId(matched.pricingPackages?.[0]?.id || null);
+          }
+          spotDetailCache.set(cacheKey, { campsite: camp, activeSpot: matched });
         }
         if (matched && camp) {
           document.title = `${matched.name} · ${camp.name} | Embun`;
@@ -1420,6 +1482,10 @@ export function SpotRedirectClient() {
       grandTotal,
       dp50Total,
       paymentAmountToPay,
+      returnUrl:
+        typeof window !== 'undefined'
+          ? window.location.pathname + window.location.search
+          : '/spot-landing',
     };
 
     try {
