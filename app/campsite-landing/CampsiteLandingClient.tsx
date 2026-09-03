@@ -862,8 +862,6 @@ function CampsiteLandingClientInner() {
           <div>
             Check-in <span className="text-foreground font-semibold">{campsite.checkInTime || '14:00'}</span> · Check-out <span className="text-foreground font-semibold">{campsite.checkOutTime || '12:00'}</span>
           </div>
-          <span className="text-border hidden sm:inline">•</span>
-          <div>Konfirmasi Instan</div>
         </div>
       </div>
 
