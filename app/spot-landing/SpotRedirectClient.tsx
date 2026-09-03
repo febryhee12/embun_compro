@@ -51,6 +51,7 @@ import {
   BriefcaseMedical,
   Store,
   Mountain,
+  Package,
 } from 'lucide-react';
 import {
   getStoredGuestProfile,
@@ -94,6 +95,10 @@ interface PricingPackageItem {
   id?: string;
   name: string;
   description?: string;
+  images?: string[];
+  photos?: string[];
+  photoUrl?: string;
+  tentPackageAddonId?: string | null;
   pricingModel?: string;
   flatRateMode?: boolean;
   flatRate?: number | string;
@@ -106,6 +111,7 @@ interface PricingPackageItem {
   baseCapacity?: number;
   extraPersonFee?: number;
   isFree?: boolean;
+  addonRules?: any[];
 }
 
 interface SpotItem {
@@ -161,6 +167,11 @@ interface CampsiteDetail {
     description?: string;
     price: number;
     unit?: string;
+    category?: string;
+    images?: string[];
+    photos?: string[];
+    photoUrl?: string;
+    stock?: number | null;
   }>;
   maps?: any[];
   mapMarkers?: any[];
@@ -431,6 +442,8 @@ export function SpotRedirectClient() {
   const [isTicketOpen, setIsTicketOpen] = useState(false);
   const [isTour360Only, setIsTour360Only] = useState(false);
   const [selectedSpotType, setSelectedSpotType] = useState<string>('Semua');
+  const [detailPackage, setDetailPackage] = useState<PricingPackageItem | null>(null);
+  const [detailAddon, setDetailAddon] = useState<any | null>(null);
 
   const formatDateDisplay = (dateStr?: string) => {
     if (!dateStr) return '-';
@@ -704,6 +717,56 @@ export function SpotRedirectClient() {
 
     return list.sort((a, b) => getScore(a.category) - getScore(b.category));
   }, [activeSpot, campsite]);
+
+  // Helper untuk mendapatkan URL gambar paket (sesuai logika aplikasi Flutter)
+  const getPackageImageUrl = (pkg?: PricingPackageItem | null): string => {
+    if (!pkg) return '';
+    // 1. Gambar eksplisit paket
+    if (Array.isArray(pkg.images) && pkg.images.length > 0 && pkg.images[0]?.trim()) {
+      return resolveAssetUrl(pkg.images[0].trim());
+    }
+    if (Array.isArray(pkg.photos) && pkg.photos.length > 0 && pkg.photos[0]?.trim()) {
+      return resolveAssetUrl(pkg.photos[0].trim());
+    }
+    if (pkg.photoUrl?.trim()) {
+      return resolveAssetUrl(pkg.photoUrl.trim());
+    }
+    // 2. Jika paket tenda, ambil dari addon tenda terkait
+    if (pkg.tentPackageAddonId && Array.isArray(campsite?.addons)) {
+      const tentAddon = campsite.addons.find((a) => a.id === pkg.tentPackageAddonId);
+      if (tentAddon) {
+        if (Array.isArray(tentAddon.images) && tentAddon.images.length > 0 && tentAddon.images[0]?.trim()) {
+          return resolveAssetUrl(tentAddon.images[0].trim());
+        }
+        if (Array.isArray(tentAddon.photos) && tentAddon.photos.length > 0 && tentAddon.photos[0]?.trim()) {
+          return resolveAssetUrl(tentAddon.photos[0].trim());
+        }
+        if (tentAddon.photoUrl?.trim()) {
+          return resolveAssetUrl(tentAddon.photoUrl.trim());
+        }
+      }
+    }
+    // 3. Fallback ke foto pertama spot
+    if (spotPhotos.length > 0 && spotPhotos[0]?.url) {
+      return resolveAssetUrl(spotPhotos[0].url);
+    }
+    return '';
+  };
+
+  // Helper untuk mendapatkan URL gambar perlengkapan/addon
+  const getAddonImageUrl = (addon: any): string => {
+    if (!addon) return '';
+    if (Array.isArray(addon.images) && addon.images.length > 0 && addon.images[0]?.trim()) {
+      return resolveAssetUrl(addon.images[0].trim());
+    }
+    if (Array.isArray(addon.photos) && addon.photos.length > 0 && addon.photos[0]?.trim()) {
+      return resolveAssetUrl(addon.photos[0].trim());
+    }
+    if (addon.photoUrl && typeof addon.photoUrl === 'string' && addon.photoUrl.trim()) {
+      return resolveAssetUrl(addon.photoUrl.trim());
+    }
+    return '';
+  };
 
   // Primary cover photo of campsite property
   const campsiteCoverPhoto = useMemo(() => {
@@ -2136,43 +2199,89 @@ export function SpotRedirectClient() {
                             .replace(/&nbsp;/g, ' ')
                             .trim()
                         : null;
+                      const pkgImg = getPackageImageUrl(pkg);
+                      const isTentIncluded = !!pkg.tentPackageAddonId;
 
                       return (
                         <div
                           key={pkg.id}
                           onClick={() => setSelectedPackageId(pkg.id || null)}
-                          className={`p-4 rounded-3xl border-2 transition-all cursor-pointer space-y-3 relative group ${
+                          className={`p-4 rounded-3xl border-2 transition-all cursor-pointer flex flex-col justify-between gap-3 relative group ${
                             isSelected
                               ? 'border-brand-blue bg-brand-blue/5 shadow-md ring-2 ring-brand-blue/20'
                               : 'border-border bg-surface hover:border-brand-blue/40 hover:bg-surface-variant/40'
                           }`}
                         >
-                          <div className="flex items-start justify-between gap-2">
-                            <div>
-                              <h4 className="font-bold text-sm text-foreground group-hover:text-brand-blue transition-colors">
-                                {pkg.name}
-                              </h4>
-                            </div>
-                            <div
-                              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                                isSelected
-                                  ? 'border-brand-blue bg-brand-blue text-white'
-                                  : 'border-border bg-white'
-                              }`}
-                            >
-                              {isSelected && (
-                                <Check size={12} strokeWidth={3} />
+                          <div className="flex items-start gap-3.5">
+                            {/* Package Image / Thumbnail */}
+                            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-surface-variant shrink-0 relative border border-border/70">
+                              {pkgImg ? (
+                                <img
+                                  src={pkgImg}
+                                  alt={pkg.name}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-brand-blue bg-brand-blue/8">
+                                  <Tent size={28} />
+                                </div>
                               )}
+                              {Array.isArray(pkg.images) &&
+                                pkg.images.length > 1 && (
+                                  <span className="absolute bottom-1 right-1 bg-black/60 backdrop-blur-xs text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md">
+                                    +{pkg.images.length}
+                                  </span>
+                                )}
+                            </div>
+
+                            {/* Package Info */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2">
+                                <h4 className="font-bold text-sm text-foreground group-hover:text-brand-blue transition-colors">
+                                  {pkg.name}
+                                </h4>
+                                <div
+                                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all shrink-0 ${
+                                    isSelected
+                                      ? 'border-brand-blue bg-brand-blue text-white'
+                                      : 'border-border bg-white'
+                                  }`}
+                                >
+                                  {isSelected && (
+                                    <Check size={12} strokeWidth={3} />
+                                  )}
+                                </div>
+                              </div>
+
+                              {isTentIncluded && (
+                                <span className="inline-block text-[10px] font-bold text-brand-blue bg-brand-blue/10 px-2 py-0.5 rounded-full border border-brand-blue/20 mt-1">
+                                  Termasuk Tenda
+                                </span>
+                              )}
+
+                              {cleanDesc ? (
+                                <p className="text-xs text-foreground/80 leading-relaxed line-clamp-2 mt-1.5">
+                                  {cleanDesc}
+                                </p>
+                              ) : null}
+
+                              <div className="pt-2">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDetailPackage(pkg);
+                                  }}
+                                  className="text-[11px] font-bold text-brand-blue hover:text-brand-blue/80 hover:underline flex items-center gap-1 cursor-pointer"
+                                >
+                                  <span>Lihat Detail Paket</span>
+                                  <ChevronRight size={12} />
+                                </button>
+                              </div>
                             </div>
                           </div>
 
-                          {cleanDesc ? (
-                            <p className="text-xs text-foreground/80 leading-relaxed">
-                              {cleanDesc}
-                            </p>
-                          ) : null}
-
-                          <div className="flex items-baseline justify-between pt-2 border-t border-border/80 text-xs">
+                          <div className="flex items-baseline justify-between pt-2.5 border-t border-border/80 text-xs">
                             <div>
                               <span className="text-base font-extrabold text-brand-blue">
                                 {rupiah(pkgPrice)}
@@ -2231,10 +2340,18 @@ export function SpotRedirectClient() {
                         : `/ ${unitDisplay} / malam`
                       : `/ ${unitDisplay}`;
 
+                    const addonImg = getAddonImageUrl(addon);
+                    const cleanAddonDesc = addon.description
+                      ? addon.description
+                          .replace(/<[^>]+>/g, '')
+                          .replace(/&nbsp;/g, ' ')
+                          .trim()
+                      : null;
+
                     return (
                       <div
                         key={addon.id}
-                        className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
+                        className={`p-3 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
                           isTentDisabled
                             ? 'border-border/60 bg-surface/30 opacity-75'
                             : qty > 0
@@ -2242,34 +2359,64 @@ export function SpotRedirectClient() {
                               : 'border-border bg-surface hover:bg-surface-variant/40'
                         }`}
                       >
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <p className="font-bold text-foreground text-xs sm:text-[13px] truncate">
-                              {addon.name}
-                            </p>
-                            {isIncludedInPkg && (
-                              <span className="text-[9px] font-bold text-brand-blue bg-brand-blue/10 px-1.5 py-0.5 rounded-full">
-                                Termasuk di Paket
-                              </span>
-                            )}
-                            {isTent && isTentPackage && !isIncludedInPkg && (
-                              <span className="text-[9px] font-semibold text-foreground-muted bg-surface px-1.5 py-0.5 rounded-full border border-border">
-                                Paket sudah ada tenda
-                              </span>
-                            )}
-                            {isTent && !isTentPackage && (
-                              <span className="text-[9px] font-semibold text-foreground-muted bg-white px-1.5 py-0.5 rounded-full border border-border">
-                                Maks. {kavlingCount} tenda ({kavlingCount}{' '}
-                                kavling)
-                              </span>
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          {/* Addon Image Thumbnail */}
+                          <div
+                            onClick={() => setDetailAddon(addon)}
+                            className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden bg-surface-variant shrink-0 border border-border/70 relative cursor-pointer hover:opacity-85 transition-opacity group"
+                          >
+                            {addonImg ? (
+                              <img
+                                src={addonImg}
+                                alt={addon.name}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-brand-blue/70 bg-brand-blue/5">
+                                <Package size={22} />
+                              </div>
                             )}
                           </div>
-                          <p className="text-xs font-extrabold text-brand-blue mt-1">
-                            +{rupiah(addon.price)}{' '}
-                            <span className="text-[10px] font-medium text-foreground-muted">
-                              {priceSuffix}
-                            </span>
-                          </p>
+
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <p
+                                onClick={() => setDetailAddon(addon)}
+                                className="font-bold text-foreground text-xs sm:text-[13px] truncate cursor-pointer hover:text-brand-blue transition-colors"
+                              >
+                                {addon.name}
+                              </p>
+                              {isIncludedInPkg && (
+                                <span className="text-[9px] font-bold text-brand-blue bg-brand-blue/10 px-1.5 py-0.5 rounded-full">
+                                  Termasuk di Paket
+                                </span>
+                              )}
+                              {isTent && isTentPackage && !isIncludedInPkg && (
+                                <span className="text-[9px] font-semibold text-foreground-muted bg-surface px-1.5 py-0.5 rounded-full border border-border">
+                                  Paket sudah ada tenda
+                                </span>
+                              )}
+                              {isTent && !isTentPackage && (
+                                <span className="text-[9px] font-semibold text-foreground-muted bg-white px-1.5 py-0.5 rounded-full border border-border">
+                                  Maks. {kavlingCount} tenda ({kavlingCount}{' '}
+                                  kavling)
+                                </span>
+                              )}
+                            </div>
+
+                            {cleanAddonDesc ? (
+                              <p className="text-[11px] text-foreground-muted truncate mt-0.5">
+                                {cleanAddonDesc}
+                              </p>
+                            ) : null}
+
+                            <p className="text-xs font-extrabold text-brand-blue mt-1">
+                              +{rupiah(addon.price)}{' '}
+                              <span className="text-[10px] font-medium text-foreground-muted">
+                                {priceSuffix}
+                              </span>
+                            </p>
+                          </div>
                         </div>
 
                         {isIncludedInPkg ? (
@@ -2889,18 +3036,33 @@ export function SpotRedirectClient() {
                           onClick={() =>
                             setIsPackageDropdownOpen(!isPackageDropdownOpen)
                           }
-                          className="w-full p-2.5 rounded-2xl border border-border hover:border-brand-blue bg-white hover:bg-surface/50 text-left flex items-center justify-between transition-all cursor-pointer shadow-2xs group"
+                          className="w-full p-2 rounded-2xl border border-border hover:border-brand-blue bg-white hover:bg-surface/50 text-left flex items-center justify-between transition-all cursor-pointer shadow-2xs group"
                         >
-                          <div className="min-w-0 pr-2">
-                            <span className="font-extrabold text-xs text-foreground block truncate group-hover:text-brand-blue transition-colors">
-                              {selectedPackage?.name || 'Pilih Paket'}
-                            </span>
-                            <span className="text-[11px] font-bold text-brand-blue block mt-0.5">
-                              {rupiah(spotPricePerNight)}{' '}
-                              <span className="text-[10px] text-foreground-muted font-normal">
-                                / malam · Maks. {effectiveMaxCapacity} Tamu
+                          <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                            <div className="w-10 h-10 rounded-xl overflow-hidden bg-surface-variant shrink-0 border border-border/70 relative">
+                              {getPackageImageUrl(selectedPackage) ? (
+                                <img
+                                  src={getPackageImageUrl(selectedPackage)}
+                                  alt={selectedPackage?.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-brand-blue bg-brand-blue/8">
+                                  <Tent size={18} />
+                                </div>
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <span className="font-extrabold text-xs text-foreground block truncate group-hover:text-brand-blue transition-colors">
+                                {selectedPackage?.name || 'Pilih Paket'}
                               </span>
-                            </span>
+                              <span className="text-[11px] font-bold text-brand-blue block mt-0.5">
+                                {rupiah(spotPricePerNight)}{' '}
+                                <span className="text-[10px] text-foreground-muted font-normal">
+                                  / malam · Maks. {effectiveMaxCapacity} Tamu
+                                </span>
+                              </span>
+                            </div>
                           </div>
                           <ChevronDown
                             size={16}
@@ -2933,6 +3095,7 @@ export function SpotRedirectClient() {
                                   pkg.baseCapacity ||
                                   activeSpot.maxCapacity ||
                                   4;
+                                const pkgImg = getPackageImageUrl(pkg);
 
                                 return (
                                   <button
@@ -2942,27 +3105,42 @@ export function SpotRedirectClient() {
                                       setSelectedPackageId(pkg.id || null);
                                       setIsPackageDropdownOpen(false);
                                     }}
-                                    className={`w-full p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between ${
+                                    className={`w-full p-2 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between ${
                                       isSelected
                                         ? 'border-brand-blue bg-brand-blue/5 text-foreground'
                                         : 'border-transparent hover:bg-surface/80 text-foreground'
                                     }`}
                                   >
-                                    <div className="min-w-0 pr-2">
-                                      <div className="flex items-center gap-1.5">
-                                        <span className="font-bold text-xs block truncate">
-                                          {pkg.name}
-                                        </span>
-                                        {isSelected && (
-                                          <CheckCircle2
-                                            size={13}
-                                            className="text-brand-blue shrink-0"
+                                    <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                                      <div className="w-9 h-9 rounded-lg overflow-hidden bg-surface-variant shrink-0 border border-border/70 relative">
+                                        {pkgImg ? (
+                                          <img
+                                            src={pkgImg}
+                                            alt={pkg.name}
+                                            className="w-full h-full object-cover"
                                           />
+                                        ) : (
+                                          <div className="w-full h-full flex items-center justify-center text-brand-blue bg-brand-blue/8">
+                                            <Tent size={16} />
+                                          </div>
                                         )}
                                       </div>
-                                      <span className="text-[10.5px] text-foreground-muted block mt-0.5">
-                                        Maks. {pkgCap} Tamu
-                                      </span>
+                                      <div className="min-w-0">
+                                        <div className="flex items-center gap-1.5">
+                                          <span className="font-bold text-xs block truncate">
+                                            {pkg.name}
+                                          </span>
+                                          {isSelected && (
+                                            <CheckCircle2
+                                              size={13}
+                                              className="text-brand-blue shrink-0"
+                                            />
+                                          )}
+                                        </div>
+                                        <span className="text-[10px] text-foreground-muted block mt-0.5">
+                                          Maks. {pkgCap} Tamu
+                                        </span>
+                                      </div>
                                     </div>
                                     <span className="font-extrabold text-xs text-brand-blue shrink-0 whitespace-nowrap">
                                       {rupiah(pkgPrice)}
@@ -3450,6 +3628,298 @@ export function SpotRedirectClient() {
       />
 
       {/* ════════════════════════════════════════════════════════════════════════
+          PACKAGE DETAIL MODAL
+      ════════════════════════════════════════════════════════════════════════ */}
+      {detailPackage && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white text-foreground rounded-3xl border border-border w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-5 border-b border-border sticky top-0 bg-white/95 backdrop-blur-sm z-10">
+              <div className="min-w-0 pr-3">
+                <h3 className="font-extrabold text-base sm:text-lg text-foreground truncate">
+                  Detail Paket: {detailPackage.name}
+                </h3>
+                <p className="text-xs text-foreground-muted truncate">
+                  {activeSpot.name} · {campsite.name}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDetailPackage(null)}
+                className="p-2 rounded-full hover:bg-surface text-foreground-muted hover:text-foreground cursor-pointer shrink-0"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 space-y-5 flex-1">
+              {/* Image Preview */}
+              <div className="rounded-2xl overflow-hidden border border-border bg-surface-variant aspect-video relative">
+                {getPackageImageUrl(detailPackage) ? (
+                  <img
+                    src={getPackageImageUrl(detailPackage)}
+                    alt={detailPackage.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-brand-blue bg-brand-blue/5">
+                    <Tent size={48} />
+                  </div>
+                )}
+                {Array.isArray(detailPackage.images) &&
+                  detailPackage.images.length > 1 && (
+                    <span className="absolute bottom-3 right-3 bg-black/70 text-white text-xs font-bold px-2.5 py-1 rounded-lg backdrop-blur-xs">
+                      {detailPackage.images.length} Foto
+                    </span>
+                  )}
+              </div>
+
+              {/* Price & Capacity Summary */}
+              <div className="flex items-center justify-between p-4 rounded-2xl bg-surface border border-border">
+                <div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted block">
+                    Tarif Paket
+                  </span>
+                  <span className="text-xl font-extrabold text-brand-blue">
+                    {rupiah(
+                      detailPackage.flatRateMode && detailPackage.flatRate
+                        ? Number(detailPackage.flatRate)
+                        : Number(detailPackage.weekdayRate) || spotPricePerNight,
+                    )}
+                  </span>
+                  <span className="text-xs text-foreground-muted"> / malam</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted block">
+                    Kapasitas
+                  </span>
+                  <span className="text-sm font-bold text-foreground">
+                    Maks.{' '}
+                    {detailPackage.maxOccupancy ||
+                      detailPackage.baseCapacity ||
+                      activeSpot.maxCapacity}{' '}
+                    Tamu
+                  </span>
+                </div>
+              </div>
+
+              {/* Description */}
+              {detailPackage.description && (
+                <div className="space-y-1.5">
+                  <h4 className="font-bold text-sm text-foreground">
+                    Deskripsi Paket
+                  </h4>
+                  <p className="text-xs text-foreground/80 leading-relaxed whitespace-pre-line">
+                    {detailPackage.description
+                      .replace(/<[^>]+>/g, '')
+                      .replace(/&nbsp;/g, ' ')
+                      .trim()}
+                  </p>
+                </div>
+              )}
+
+              {/* Inclusions / Perlengkapan Termasuk */}
+              {((detailPackage.addonRules &&
+                detailPackage.addonRules.length > 0) ||
+                detailPackage.tentPackageAddonId) && (
+                <div className="space-y-2.5">
+                  <h4 className="font-bold text-sm text-foreground flex items-center gap-1.5">
+                    <CheckCircle2 size={16} className="text-brand-blue" />
+                    <span>Fasilitas & Perlengkapan Termasuk:</span>
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {detailPackage.tentPackageAddonId && (
+                      <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-brand-blue/5 border border-brand-blue/20 text-xs">
+                        <Tent size={16} className="text-brand-blue shrink-0" />
+                        <span className="font-bold text-brand-blue">
+                          Tenda Fisik & Pemasangan
+                        </span>
+                      </div>
+                    )}
+                    {Array.isArray(detailPackage.addonRules) &&
+                      detailPackage.addonRules.map((rule: any, rIdx: number) => {
+                        const addonObj = campsite.addons?.find(
+                          (a) => a.id === rule.addonId,
+                        );
+                        const aImg = addonObj ? getAddonImageUrl(addonObj) : '';
+                        const name = addonObj?.name || 'Perlengkapan';
+                        const qty = rule.quantity || 1;
+                        return (
+                          <div
+                            key={rIdx}
+                            className="flex items-center gap-2.5 p-2 rounded-xl bg-surface border border-border text-xs"
+                          >
+                            <div className="w-8 h-8 rounded-lg overflow-hidden bg-surface-variant shrink-0 border border-border/60 relative">
+                              {aImg ? (
+                                <img
+                                  src={aImg}
+                                  alt={name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-brand-blue bg-brand-blue/5">
+                                  <Package size={14} />
+                                </div>
+                              )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <span className="font-semibold text-foreground truncate block">
+                                {name}
+                              </span>
+                              <span className="text-[10px] text-foreground-muted">
+                                {qty} {addonObj?.unit || 'unit'} · Gratis
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-border bg-surface/50 flex items-center justify-end gap-3 sticky bottom-0">
+              <button
+                type="button"
+                onClick={() => setDetailPackage(null)}
+                className="px-4 py-2.5 rounded-xl border border-border text-xs font-bold text-foreground hover:bg-surface cursor-pointer"
+              >
+                Tutup
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedPackageId(detailPackage.id || null);
+                  setDetailPackage(null);
+                }}
+                className="px-6 py-2.5 rounded-xl bg-brand-blue hover:bg-brand-blue/90 text-white text-xs font-extrabold shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <Check size={14} strokeWidth={3} />
+                <span>Pilih Paket Ini</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════════════
+          ADDON DETAIL MODAL
+      ════════════════════════════════════════════════════════════════════════ */}
+      {detailAddon && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white text-foreground rounded-3xl border border-border w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-5 border-b border-border sticky top-0 bg-white/95 backdrop-blur-sm z-10">
+              <div className="min-w-0 pr-3">
+                <h3 className="font-extrabold text-base text-foreground truncate max-w-[280px]">
+                  {detailAddon.name}
+                </h3>
+                <span className="text-[11px] font-semibold text-brand-blue uppercase tracking-wider">
+                  {detailAddon.category || 'Perlengkapan'}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDetailAddon(null)}
+                className="p-2 rounded-full hover:bg-surface text-foreground-muted hover:text-foreground cursor-pointer shrink-0"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 space-y-4 flex-1">
+              {/* Image Preview */}
+              <div className="rounded-2xl overflow-hidden border border-border bg-surface-variant aspect-4/3 relative">
+                {getAddonImageUrl(detailAddon) ? (
+                  <img
+                    src={getAddonImageUrl(detailAddon)}
+                    alt={detailAddon.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-brand-blue bg-brand-blue/5">
+                    <Package size={48} />
+                  </div>
+                )}
+              </div>
+
+              {/* Price & Unit */}
+              <div className="p-4 rounded-2xl bg-surface border border-border flex items-baseline justify-between">
+                <div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted block">
+                    Harga Sewa
+                  </span>
+                  <span className="text-xl font-extrabold text-brand-blue">
+                    {rupiah(detailAddon.price)}
+                  </span>
+                  <span className="text-xs text-foreground-muted">
+                    {' '}/ {detailAddon.unit || 'unit'}
+                  </span>
+                </div>
+                {detailAddon.stock !== null && detailAddon.stock !== undefined && (
+                  <span className="text-xs font-semibold text-foreground-muted bg-white px-2.5 py-1 rounded-full border border-border">
+                    Stok: {detailAddon.stock}
+                  </span>
+                )}
+              </div>
+
+              {/* Description */}
+              {detailAddon.description && (
+                <div className="space-y-1.5">
+                  <h4 className="font-bold text-xs uppercase tracking-wider text-foreground-muted">
+                    Deskripsi & Keterangan
+                  </h4>
+                  <p className="text-xs text-foreground/80 leading-relaxed whitespace-pre-line">
+                    {detailAddon.description
+                      .replace(/<[^>]+>/g, '')
+                      .replace(/&nbsp;/g, ' ')
+                      .trim()}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-border bg-surface/50 flex items-center justify-between gap-3 sticky bottom-0">
+              <span className="text-xs font-bold text-foreground">
+                Jumlah:{' '}
+                <span className="text-brand-blue font-extrabold">
+                  {selectedAddons[detailAddon.id] || 0}
+                </span>
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={!selectedAddons[detailAddon.id]}
+                  onClick={() => handleAddonQty(detailAddon.id, -1)}
+                  className="w-8 h-8 rounded-full border border-border bg-white flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                >
+                  <Minus size={14} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleAddonQty(detailAddon.id, 1)}
+                  className="w-8 h-8 rounded-full border border-border bg-white flex items-center justify-center text-foreground hover:bg-surface cursor-pointer"
+                >
+                  <Plus size={14} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDetailAddon(null)}
+                  className="ml-2 px-4 py-2 rounded-xl bg-brand-blue hover:bg-brand-blue/90 text-white text-xs font-bold cursor-pointer"
+                >
+                  Selesai
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════════════
           8. MOBILE BOOKING DRAWER / SHEET
       ════════════════════════════════════════════════════════════════════════ */}
       {isMobileBookingOpen && (
@@ -3494,18 +3964,33 @@ export function SpotRedirectClient() {
                           !isMobilePackageDropdownOpen,
                         )
                       }
-                      className="w-full p-3 rounded-2xl border border-border hover:border-brand-blue bg-white text-left flex items-center justify-between transition-all cursor-pointer shadow-2xs group"
+                      className="w-full p-2.5 rounded-2xl border border-border hover:border-brand-blue bg-white text-left flex items-center justify-between transition-all cursor-pointer shadow-2xs group"
                     >
-                      <div className="min-w-0 pr-2">
-                        <span className="font-extrabold text-xs text-foreground block truncate group-hover:text-brand-blue transition-colors">
-                          {selectedPackage?.name || 'Pilih Paket'}
-                        </span>
-                        <span className="text-[11.5px] font-bold text-brand-blue block mt-0.5">
-                          {rupiah(spotPricePerNight)}{' '}
-                          <span className="text-[10.5px] text-foreground-muted font-normal">
-                            / malam · Maks. {effectiveMaxCapacity} Tamu
+                      <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                        <div className="w-10 h-10 rounded-xl overflow-hidden bg-surface-variant shrink-0 border border-border/70 relative">
+                          {getPackageImageUrl(selectedPackage) ? (
+                            <img
+                              src={getPackageImageUrl(selectedPackage)}
+                              alt={selectedPackage?.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-brand-blue bg-brand-blue/8">
+                              <Tent size={18} />
+                            </div>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <span className="font-extrabold text-xs text-foreground block truncate group-hover:text-brand-blue transition-colors">
+                            {selectedPackage?.name || 'Pilih Paket'}
                           </span>
-                        </span>
+                          <span className="text-[11.5px] font-bold text-brand-blue block mt-0.5">
+                            {rupiah(spotPricePerNight)}{' '}
+                            <span className="text-[10.5px] text-foreground-muted font-normal">
+                              / malam · Maks. {effectiveMaxCapacity} Tamu
+                            </span>
+                          </span>
+                        </div>
                       </div>
                       <ChevronDown
                         size={18}
@@ -3537,6 +4022,7 @@ export function SpotRedirectClient() {
                               pkg.baseCapacity ||
                               activeSpot.maxCapacity ||
                               4;
+                            const pkgImg = getPackageImageUrl(pkg);
 
                             return (
                               <button
@@ -3546,27 +4032,42 @@ export function SpotRedirectClient() {
                                   setSelectedPackageId(pkg.id || null);
                                   setIsMobilePackageDropdownOpen(false);
                                 }}
-                                className={`w-full p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between ${
+                                className={`w-full p-2 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between ${
                                   isSelected
                                     ? 'border-brand-blue bg-brand-blue/5 text-foreground'
                                     : 'border-transparent hover:bg-surface/80 text-foreground'
                                 }`}
                               >
-                                <div className="min-w-0 pr-2">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="font-bold text-xs block truncate">
-                                      {pkg.name}
-                                    </span>
-                                    {isSelected && (
-                                      <CheckCircle2
-                                        size={13}
-                                        className="text-brand-blue shrink-0"
+                                <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                                  <div className="w-9 h-9 rounded-lg overflow-hidden bg-surface-variant shrink-0 border border-border/70 relative">
+                                    {pkgImg ? (
+                                      <img
+                                        src={pkgImg}
+                                        alt={pkg.name}
+                                        className="w-full h-full object-cover"
                                       />
+                                    ) : (
+                                      <div className="w-full h-full flex items-center justify-center text-brand-blue bg-brand-blue/8">
+                                        <Tent size={16} />
+                                      </div>
                                     )}
                                   </div>
-                                  <span className="text-[11px] text-foreground-muted block mt-0.5">
-                                    Maks. {pkgCap} Tamu
-                                  </span>
+                                  <div className="min-w-0">
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="font-bold text-xs block truncate">
+                                        {pkg.name}
+                                      </span>
+                                      {isSelected && (
+                                        <CheckCircle2
+                                          size={13}
+                                          className="text-brand-blue shrink-0"
+                                        />
+                                      )}
+                                    </div>
+                                    <span className="text-[10px] text-foreground-muted block mt-0.5">
+                                      Maks. {pkgCap} Tamu
+                                    </span>
+                                  </div>
                                 </div>
                                 <span className="font-extrabold text-xs text-brand-blue shrink-0 whitespace-nowrap">
                                   {rupiah(pkgPrice)}
@@ -3670,20 +4171,36 @@ export function SpotRedirectClient() {
                         : `/ ${unitDisplay} / malam`
                       : `/ ${unitDisplay}`;
 
+                    const addonImg = getAddonImageUrl(addon);
+
                     return (
                       <div
                         key={addon.id}
-                        className={`p-2.5 rounded-2xl border transition-all flex items-center justify-between gap-2 ${
+                        className={`p-2.5 rounded-2xl border transition-all flex items-center justify-between gap-2.5 ${
                           isTentDisabled
                             ? 'border-border/60 bg-surface/20 opacity-70'
                             : 'border-border bg-surface/40'
                         }`}
                       >
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <p className="font-semibold text-foreground text-[11.5px] truncate">
-                              {addon.name}
-                            </p>
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                          <div className="w-11 h-11 rounded-xl overflow-hidden bg-surface-variant shrink-0 border border-border/70 relative">
+                            {addonImg ? (
+                              <img
+                                src={addonImg}
+                                alt={addon.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-brand-blue/70 bg-brand-blue/5">
+                                <Package size={16} />
+                              </div>
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <p className="font-semibold text-foreground text-[11.5px] truncate">
+                                {addon.name}
+                              </p>
                             {isIncludedInPkg && (
                               <span className="text-[9px] font-bold text-brand-blue bg-brand-blue/10 px-1.5 py-0.5 rounded-full">
                                 Termasuk di Paket
@@ -3708,6 +4225,7 @@ export function SpotRedirectClient() {
                             </span>
                           </p>
                         </div>
+                      </div>
 
                         {isIncludedInPkg ? (
                           <div className="text-[10px] font-bold text-brand-blue shrink-0 px-2 py-1 bg-brand-blue/10 rounded-full border border-brand-blue/20">
