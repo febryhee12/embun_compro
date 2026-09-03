@@ -898,37 +898,58 @@ export function CampsiteLandingClient() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {reviews.map((rev) => (
-                <div
-                  key={rev.id}
-                  className="p-5 rounded-3xl bg-white border border-border space-y-2.5"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-full bg-brand-blue/10 text-brand-blue font-bold text-xs flex items-center justify-center">
-                        {rev.guestName.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <span className="font-bold text-xs text-foreground block">
-                          {rev.guestName}
-                        </span>
-                        {rev.spotName && (
-                          <span className="text-[10px] text-foreground-muted">
-                            Menginap di {rev.spotName}
+              {reviews.map((rev: any, idx: number) => {
+                const displayName =
+                  rev.maskedAuthorName ||
+                  rev.authorName ||
+                  rev.guestName ||
+                  rev.userName ||
+                  rev.user?.name ||
+                  'Tamu Embun';
+                const avatarChar = displayName.charAt(0).toUpperCase();
+
+                return (
+                  <div
+                    key={rev.id || idx}
+                    className="p-5 rounded-3xl bg-white border border-border space-y-2.5"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-full bg-brand-blue/10 text-brand-blue font-bold text-xs flex items-center justify-center overflow-hidden">
+                          {rev.authorPhotoUrl || rev.guestAvatar ? (
+                            <img
+                              src={resolveAssetUrl(rev.authorPhotoUrl || rev.guestAvatar)}
+                              alt={displayName}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            avatarChar
+                          )}
+                        </div>
+                        <div>
+                          <span className="font-bold text-xs text-foreground block">
+                            {displayName}
                           </span>
-                        )}
+                          {(rev.spotName || rev.blockName) && (
+                            <span className="text-[10px] text-foreground-muted">
+                              Menginap di {rev.spotName || rev.blockName}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 text-amber-500 font-bold text-xs">
+                        <Star size={12} className="fill-amber-500" />
+                        <span>{Number(rev.rating || 5).toFixed(1)}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 text-amber-500 font-bold text-xs">
-                      <Star size={12} className="fill-amber-500" />
-                      <span>{Number(rev.rating).toFixed(1)}</span>
-                    </div>
+                    {(rev.comment || rev.content || rev.review) && (
+                      <p className="text-xs text-foreground/80 leading-relaxed italic">
+                        &ldquo;{(rev.comment || rev.content || rev.review || '').trim()}&rdquo;
+                      </p>
+                    )}
                   </div>
-                  <p className="text-xs text-foreground/80 leading-relaxed italic">
-                    &ldquo;{rev.comment}&rdquo;
-                  </p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
         )}
