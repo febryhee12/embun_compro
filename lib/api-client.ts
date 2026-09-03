@@ -290,13 +290,12 @@ export async function updateGuestProfile(payload: {
 }
 
 /**
- * Buka halaman pembayaran Xendit di tab/window baru.
- * Backend mengembalikan `snapRedirectUrl` = Xendit Invoice URL.
- * `snapToken` = Xendit Invoice ID (dipakai untuk sync-status).
+ * Buka halaman pembayaran Xendit.
+ * Menggunakan direct navigation (window.location.href) agar tidak diblokir oleh popup blocker di Safari/Chrome.
  */
 export function initiateXenditPayment(xenditInvoiceUrl: string): void {
-  if (typeof window === 'undefined') return;
-  window.open(xenditInvoiceUrl, '_blank', 'noopener,noreferrer');
+  if (typeof window === 'undefined' || !xenditInvoiceUrl) return;
+  window.location.href = xenditInvoiceUrl;
 }
 
 export interface QuoteAddonItem {

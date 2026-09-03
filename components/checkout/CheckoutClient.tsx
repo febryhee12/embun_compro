@@ -34,6 +34,7 @@ import {
   rupiah,
   ApiError,
 } from '@/lib/api-client';
+import { GuestAuthModal } from '@/components/explore/GuestAuthModal';
 
 interface CheckoutDraft {
   campsite: {
@@ -111,6 +112,8 @@ export function CheckoutClient() {
   // Submission state
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any | null>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -120,6 +123,7 @@ export function CheckoutClient() {
     const user = getGuestUser();
 
     if (user) {
+      setCurrentUser(user);
       setFullName(user.fullName || '');
       setPhone(user.phone || '');
       setEmail(user.email || '');
@@ -202,25 +206,31 @@ export function CheckoutClient() {
 
     setSubmitting(true);
 
+    // Cek token autentikasi tamu
+    const token = getGuestToken();
+    if (!token) {
+      setError('Silakan masuk terlebih dahulu untuk melanjutkan pembayaran.');
+      setIsAuthOpen(true);
+      setSubmitting(false);
+      return;
+    }
+
     try {
       // Simpan pembaruan nama, phone & alamat ke session dan profile backend
-      const currentUser = getGuestUser() || {};
+      const currentUserData = getGuestUser() || {};
       const updatedUser = {
-        ...currentUser,
+        ...currentUserData,
         fullName: fullName.trim(),
         phone: phone.trim(),
-        email: email.trim() || currentUser.email,
+        email: email.trim() || currentUserData.email,
         address: address.trim(),
       };
-      const token = getGuestToken();
-      if (token) {
-        setGuestSession(token, updatedUser);
-        void updateGuestProfile({
-          fullName: fullName.trim(),
-          phone: phone.trim(),
-          address: address.trim(),
-        }).catch(() => {});
-      }
+      setGuestSession(token, updatedUser);
+      void updateGuestProfile({
+        fullName: fullName.trim(),
+        phone: phone.trim(),
+        address: address.trim(),
+      }).catch(() => {});
 
       const addons = Object.entries(draft.selectedAddons)
         .filter(([, qty]) => qty > 0)
@@ -262,18 +272,20 @@ export function CheckoutClient() {
 
       // Hapus draft checkout dari session
       sessionStorage.removeItem('embun_checkout_draft');
+      sessionStorage.setItem('embun_last_order_id', createdOrder.id);
 
-      // Buka Xendit di tab baru
+      // Best effort sync status sebelum navigasi
+      void syncOrderStatus(createdOrder.id).catch(() => {});
+
+      // Arahkan browser LANGSUNG ke halaman pembayaran aman Xendit
       initiateXenditPayment(xenditPaymentUrl);
-
-      // Best effort sync & redirect ke halaman detail pesanan
-      await syncOrderStatus(createdOrder.id).catch(() => {});
-      router.push(`/orders/detail?id=${createdOrder.id}`);
     } catch (err: any) {
       console.error('Checkout error:', err);
       if (err instanceof ApiError && err.status === 401) {
         clearGuestSession();
+        setCurrentUser(null);
         setError('Sesi login telah berakhir. Silakan masuk kembali.');
+        setIsAuthOpen(true);
       } else {
         setError(err.message || 'Gagal memproses pesanan.');
       }
@@ -307,9 +319,34 @@ export function CheckoutClient() {
               Tinjau & Konfirmasi Pemesanan
             </h1>
           </div>
-          <div className="flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-3 py-1 rounded-full font-semibold">
-            <ShieldCheck size={14} />
-            <span className="hidden sm:inline">Pemesanan Terlindungi</span>
+          <div className="flex items-center gap-2.5">
+            {currentUser ? (
+              <button
+                type="button"
+                onClick={() => setIsAuthOpen(true)}
+                className="flex items-center gap-2 text-xs bg-surface border border-border px-3 py-1.5 rounded-full hover:bg-surface-variant transition-colors cursor-pointer"
+                title="Profil Pemesan"
+              >
+                <div className="w-5 h-5 rounded-full bg-brand-blue text-white flex items-center justify-center font-bold text-[10px]">
+                  {currentUser.fullName?.[0]?.toUpperCase() || 'T'}
+                </div>
+                <span className="font-semibold text-foreground max-w-[120px] truncate hidden sm:inline">
+                  {currentUser.fullName || 'Tamu'}
+                </span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsAuthOpen(true)}
+                className="px-3 py-1.5 rounded-full bg-brand-blue/10 hover:bg-brand-blue/20 text-brand-blue text-xs font-bold transition-colors cursor-pointer"
+              >
+                Masuk / Akun
+              </button>
+            )}
+            <div className="flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-3 py-1 rounded-full font-semibold">
+              <ShieldCheck size={14} />
+              <span className="hidden sm:inline">Pemesanan Terlindungi</span>
+            </div>
           </div>
         </div>
       </header>
@@ -532,7 +569,13 @@ export function CheckoutClient() {
             </div>
 
             {/* Tombol Konfirmasi Final */}
-            <div className="pt-2">
+            <div className="pt-2 space-y-2.5">
+              {error && (
+                <div className="p-3.5 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2 animate-in fade-in duration-200">
+                  <AlertCircle size={16} className="shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
               <button
                 type="button"
                 onClick={handleConfirmAndPay}
@@ -682,6 +725,31 @@ export function CheckoutClient() {
           </div>
         </div>
       </main>
+
+      {/* Guest Authentication Modal */}
+      {isAuthOpen && (
+        <GuestAuthModal
+          isOpen={isAuthOpen}
+          onClose={() => setIsAuthOpen(false)}
+          currentUser={currentUser}
+          fromCheckout={true}
+          onSuccess={(user) => {
+            setCurrentUser(user);
+            if (user) {
+              setFullName((prev) => prev || user.fullName || '');
+              setPhone((prev) => prev || user.phone || '');
+              setEmail((prev) => prev || user.email || '');
+              setAddress((prev) => prev || user.address || '');
+            }
+            setIsAuthOpen(false);
+            setError(null);
+          }}
+          onLogout={() => {
+            setCurrentUser(null);
+            clearGuestSession();
+          }}
+        />
+      )}
     </div>
   );
 }
