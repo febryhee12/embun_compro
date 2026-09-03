@@ -38,13 +38,21 @@ export function ExploreClient() {
 
   const handleSelectSpot = (spot: SpotData) => {
     const is360 =
-      (spot as any).isTour360Only || spot.tentType === 'Tur 360°';
+      (spot as any).isTour360Only ||
+      spot.tentType === 'Tur 360°' ||
+      selectedCategory === '360' ||
+      (Array.isArray(spot.panoramaPhotos) && spot.panoramaPhotos.length > 0) ||
+      !!(spot as any).panoramaImageUrl ||
+      (Array.isArray((spot.campsite as any)?.panoramaSpots) &&
+        (spot.campsite as any).panoramaSpots.length > 0);
+
     if (is360) {
       setSelected360Spot(spot);
       return;
     }
     window.location.href = `/spot/${spot.shareCode || spot.id}`;
   };
+
 
   // 1. Initial Data Fetch
   useEffect(() => {

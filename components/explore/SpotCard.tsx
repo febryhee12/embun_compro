@@ -239,12 +239,23 @@ export function SpotCard({
               Embun Plus
             </span>
           ) : isTour360Mode || has360 ? (
-            <span className="px-2.5 py-0.5 rounded-full text-[9.5px] font-bold bg-brand-lime text-black border border-brand-lime/60 shadow-none flex items-center gap-1">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (onSelectSpot) {
+                  onSelectSpot({ ...(spot as any), isTour360Only: true });
+                }
+              }}
+              className="px-2.5 py-0.5 rounded-full text-[9.5px] font-bold bg-brand-lime text-black border border-brand-lime/60 shadow-none flex items-center gap-1 hover:scale-105 transition-transform cursor-pointer"
+            >
               <Compass size={10} />
               Tur 360°
-            </span>
+            </button>
           ) : null}
         </div>
+
 
         {/* Prev / Next Arrows on Hover */}
         {validPhotos.length > 1 && isHovered && (
