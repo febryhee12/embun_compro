@@ -3039,7 +3039,11 @@ export function SpotRedirectClient() {
           </div>
 
           {/* Modal Content Body */}
-          <div className="flex-1 relative overflow-hidden bg-black/95 flex items-center justify-center p-4">
+          <div
+            className={`flex-1 relative overflow-hidden bg-black flex items-center justify-center ${
+              galleryTab === '360' ? 'p-0' : 'p-4'
+            }`}
+          >
             {galleryTab === 'photos' && (
               <div className="relative w-full h-full flex flex-col items-center justify-center">
                 <div className="relative max-w-5xl max-h-[75vh] w-full h-full flex items-center justify-center">
@@ -3113,9 +3117,9 @@ export function SpotRedirectClient() {
             )}
 
             {galleryTab === '360' && (
-              <div className="relative w-full h-full flex flex-col items-center justify-center text-center p-6 bg-neutral-900 rounded-2xl">
+              <div className="relative w-full h-full flex flex-col items-center justify-center text-center bg-black">
                 {panoramaList.length === 0 ? (
-                  <div className="max-w-md space-y-3">
+                  <div className="max-w-md space-y-3 p-6">
                     <Compass size={48} className="mx-auto text-brand-lime animate-pulse" />
                     <h3 className="text-white font-bold text-base">
                       Tur 360° Segera Hadir
@@ -3134,16 +3138,16 @@ export function SpotRedirectClient() {
                 ) : (
                   <>
                     {panoramaList.length > 1 && (
-                      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex gap-2 bg-black/60 backdrop-blur-md p-1.5 rounded-full border border-white/10">
+                      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex gap-2 bg-black/60 backdrop-blur-md p-1.5 rounded-full border border-white/10 max-w-[90vw] overflow-x-auto no-scrollbar">
                         {panoramaList.map((pano, pIdx) => (
                           <button
                             key={pano.id}
                             type="button"
                             onClick={() => setActivePanoramaIdx(pIdx)}
-                            className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                            className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                               activePanoramaIdx === pIdx
-                                ? 'bg-brand-lime text-black'
-                                : 'text-white/80 hover:text-white'
+                                ? 'bg-brand-lime text-black shadow-sm'
+                                : 'text-white/80 hover:text-white hover:bg-white/10'
                             }`}
                           >
                             {pano.label || `Area ${pIdx + 1}`}
@@ -3154,10 +3158,10 @@ export function SpotRedirectClient() {
 
                     <div
                       ref={panoramaContainerRef}
-                      className="w-full h-full rounded-2xl overflow-hidden shadow-2xl"
+                      className="w-full h-full"
                     />
 
-                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-xs font-semibold text-white/90 flex items-center gap-2 pointer-events-none shadow-2xl">
+                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-xs font-semibold text-white/90 flex items-center gap-2 pointer-events-none shadow-2xl z-20">
                       <RotateCw
                         size={14}
                         className="text-brand-lime animate-spin"

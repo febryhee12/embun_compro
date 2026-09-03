@@ -143,3 +143,13 @@ select:focus-visible,
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Pannellum 360 viewer resets - ensure clean edge-to-edge view without blue focus ring */
+.pnlm-container,
+.pnlm-container:focus,
+.pnlm-container:focus-visible {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
