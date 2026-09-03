@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import {
+  User,
   Tent,
   Users,
   BedDouble,
@@ -898,9 +899,15 @@ export function SpotRedirectClient() {
             };
           });
 
+          // Ensure URL has ?pano=360 so it never reuses non-CORS <img> cached entry in Incognito/Mobile
+          const rawPanoUrl = resolveAssetUrl(pano.imageUrl);
+          const safePanoUrl = rawPanoUrl
+            ? (rawPanoUrl.includes('?') ? `${rawPanoUrl}&pano=360` : `${rawPanoUrl}?pano=360`)
+            : '';
+
           scenesConfig[pano.id] = {
             type: 'equirectangular',
-            panorama: resolveAssetUrl(pano.imageUrl),
+            panorama: safePanoUrl,
             yaw: pano.yaw !== undefined ? Number(pano.yaw) : 0,
             pitch: pano.pitch !== undefined ? Number(pano.pitch) : 0,
             hotSpots: pannellumHotSpots,
@@ -1461,16 +1468,31 @@ export function SpotRedirectClient() {
               onClick={() => setIsAuthOpen(true)}
               className="flex items-center gap-2 border border-border rounded-full py-1.5 px-3 hover:shadow-sm transition-all bg-white text-xs font-semibold text-foreground cursor-pointer"
             >
-              <div className="w-6 h-6 rounded-full bg-brand-blue text-white flex items-center justify-center font-bold text-[11px] overflow-hidden">
-                {currentUser?.fullName
-                  ? currentUser.fullName.charAt(0).toUpperCase()
-                  : 'G'}
-              </div>
-              <span className="hidden sm:inline">
-                {currentUser?.fullName
-                  ? currentUser.fullName.split(' ')[0]
-                  : 'Masuk'}
-              </span>
+              {currentUser ? (
+                <>
+                  <div className="w-6 h-6 rounded-full bg-brand-blue text-white flex items-center justify-center font-bold text-[11px] overflow-hidden">
+                    {currentUser?.avatarUrl || currentUser?.photoUrl ? (
+                      <img
+                        src={resolveAssetUrl(
+                          currentUser.avatarUrl || currentUser.photoUrl,
+                        )}
+                        alt="Avatar"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      currentUser.fullName?.charAt(0).toUpperCase() || <User size={12} />
+                    )}
+                  </div>
+                  <span>
+                    {currentUser.fullName?.split(' ')[0] || 'Akun'}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <User size={15} className="text-foreground-muted" />
+                  <span>Masuk</span>
+                </>
+              )}
             </button>
           </div>
         </div>

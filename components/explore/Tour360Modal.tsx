@@ -182,9 +182,15 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
             };
           });
 
+          // Ensure URL has ?pano=360 so it never reuses non-CORS <img> cached entry in Incognito/Mobile
+          const rawPanoUrl = resolveAssetUrl(pano.imageUrl);
+          const safePanoUrl = rawPanoUrl
+            ? (rawPanoUrl.includes('?') ? `${rawPanoUrl}&pano=360` : `${rawPanoUrl}?pano=360`)
+            : '';
+
           scenesConfig[pano.id] = {
             type: 'equirectangular',
-            panorama: resolveAssetUrl(pano.imageUrl),
+            panorama: safePanoUrl,
             yaw: pano.yaw !== undefined ? Number(pano.yaw) : 0,
             pitch: pano.pitch !== undefined ? Number(pano.pitch) : 0,
             hotSpots: pannellumHotSpots,

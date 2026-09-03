@@ -16,7 +16,6 @@ export const CATEGORIES: CategoryItem[] = [
   { id: 'Motocamp', label: 'Motocamp' },
   { id: 'Bikecamp', label: 'Bikecamp' },
   { id: 'Ground', label: 'Ground' },
-  { id: '360', label: 'Tur 360°' },
 ];
 
 interface CategoryFilterBarProps {
