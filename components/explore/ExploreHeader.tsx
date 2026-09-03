@@ -143,25 +143,37 @@ export function ExploreHeader({
             <button
               type="button"
               onClick={onOpenAuth}
-              className="flex items-center gap-2.5 border border-border rounded-full p-1.5 pl-3 hover:shadow-md transition-all bg-white cursor-pointer"
+              className="flex items-center gap-2 border border-border rounded-full py-1.5 px-3 hover:shadow-md transition-all bg-white cursor-pointer text-xs font-semibold text-foreground"
               aria-label="Menu Pengguna"
             >
-              <Menu size={15} className="text-foreground-muted" />
-              <div className="w-8 h-8 rounded-full bg-surface text-brand-blue flex items-center justify-center border border-border font-bold text-xs overflow-hidden">
-                {currentUser?.avatarUrl || currentUser?.photoUrl ? (
-                  <img
-                    src={resolveAssetUrl(
-                      currentUser.avatarUrl || currentUser.photoUrl,
+              {currentUser ? (
+                <>
+                  <Menu size={15} className="text-foreground-muted" />
+                  <div className="w-6 h-6 rounded-full bg-surface text-brand-blue flex items-center justify-center border border-border font-bold text-xs overflow-hidden">
+                    {currentUser?.avatarUrl || currentUser?.photoUrl ? (
+                      <img
+                        src={resolveAssetUrl(
+                          currentUser.avatarUrl || currentUser.photoUrl,
+                        )}
+                        alt="Avatar"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : currentUser?.fullName ? (
+                      currentUser.fullName.charAt(0).toUpperCase()
+                    ) : (
+                      <User size={14} />
                     )}
-                    alt="Avatar"
-                    className="w-full h-full object-cover"
-                  />
-                ) : currentUser?.fullName ? (
-                  currentUser.fullName.charAt(0).toUpperCase()
-                ) : (
-                  <User size={16} />
-                )}
-              </div>
+                  </div>
+                  <span className="hidden sm:inline">
+                    {currentUser?.fullName?.split(' ')[0] || 'Akun'}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <User size={15} className="text-foreground-muted" />
+                  <span>Masuk</span>
+                </>
+              )}
             </button>
           </div>
         </div>

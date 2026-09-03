@@ -65,11 +65,13 @@ export function getPhotoCategoryScore(category?: string): number {
   ) {
     return 99;
   }
-  // Kamar Utama / Tenda adalah prioritas utama (skor 1)
+  // Kamar Utama / Tenda / Gambar Utama adalah prioritas utama (skor 1)
   if (
     clean.includes('utama') ||
+    clean.includes('kamar') ||
     clean.includes('tenda') ||
-    clean.includes('kamar')
+    clean.includes('main') ||
+    clean.includes('room')
   ) {
     return 1;
   }
