@@ -224,6 +224,20 @@ export async function syncOrderStatus(orderId: string) {
   return res.json();
 }
 
+/** `POST /api/orders/:id/cancel` — batalkan pesanan pending oleh tamu untuk melepas kuncian tanggal. */
+export async function cancelGuestOrder(orderId: string, reason?: string) {
+  const res = await fetch(`${API_BASE_URL}/orders/${orderId}/cancel`, {
+    method: 'POST',
+    headers: guestAuthHeaders(),
+    body: JSON.stringify({ reason: reason || 'Dibatalkan oleh pemesan' }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Gagal membatalkan pesanan.');
+  }
+  return res.json();
+}
+
 /** `GET /api/orders` — the guest's own order history. */
 export async function fetchGuestOrders() {
   const res = await fetch(`${API_BASE_URL}/orders`, {

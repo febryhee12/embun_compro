@@ -33,6 +33,8 @@ import {
   resolveAssetUrl,
   rupiah,
   ApiError,
+  fetchGuestOrders,
+  cancelGuestOrder,
 } from '@/lib/api-client';
 import { GuestAuthModal } from '@/components/explore/GuestAuthModal';
 
@@ -114,6 +116,8 @@ export function CheckoutClient() {
   const [error, setError] = useState<string | null>(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<any | null>(null);
+  const [existingPendingOrder, setExistingPendingOrder] = useState<any | null>(null);
+  const [cancellingOldOrder, setCancellingOldOrder] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -128,6 +132,20 @@ export function CheckoutClient() {
       setPhone(user.phone || '');
       setEmail(user.email || '');
       setAddress(user.address || '');
+    }
+
+    // Cek apakah ada pesanan pending terakhir di sesi ini
+    const lastOrderId = sessionStorage.getItem('embun_last_order_id');
+    if (lastOrderId && token) {
+      void fetchGuestOrders()
+        .then((res) => {
+          const orders = Array.isArray(res) ? res : res?.rows || [];
+          const matched = orders.find((o: any) => o.id === lastOrderId && o.status === 'PENDING');
+          if (matched) {
+            setExistingPendingOrder(matched);
+          }
+        })
+        .catch(() => {});
     }
 
     // Ambil data draft dari sessionStorage
@@ -287,9 +305,74 @@ export function CheckoutClient() {
         setError('Sesi login telah berakhir. Silakan masuk kembali.');
         setIsAuthOpen(true);
       } else {
-        setError(err.message || 'Gagal memproses pesanan.');
+        const msg = err.message || 'Gagal memproses pesanan.';
+        setError(msg);
+
+        // Jika terjadi conflict karena tanggal/kavling sudah dibooking (biasanya oleh order pending tamu sendiri)
+        if (
+          msg.includes('dibooking') ||
+          msg.includes('SpotUnavailable') ||
+          err?.status === 409
+        ) {
+          void fetchGuestOrders()
+            .then((res) => {
+              const orders = Array.isArray(res) ? res : res?.rows || [];
+              const pending = orders.find(
+                (o: any) =>
+                  o.status === 'PENDING' &&
+                  (o.campsite?.id === draft.campsite.id ||
+                    o.campsiteId === draft.campsite.id),
+              );
+              if (pending) {
+                setExistingPendingOrder(pending);
+              }
+            })
+            .catch(() => {});
+        }
       }
       setSubmitting(false);
+    }
+  };
+
+  // Bayar pesanan lama yang masih pending langsung ke Xendit
+  const handlePayExistingOrder = async () => {
+    if (!existingPendingOrder?.id) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const paymentInit = await initiateOrderPayment(existingPendingOrder.id);
+      const url =
+        paymentInit?.snapRedirectUrl ||
+        paymentInit?.redirectUrl ||
+        paymentInit?.invoiceUrl;
+      if (!url) throw new Error('Gagal mendapatkan URL pembayaran Xendit.');
+      sessionStorage.removeItem('embun_checkout_draft');
+      initiateXenditPayment(url);
+    } catch (e: any) {
+      setError(e.message || 'Gagal melanjutkan pembayaran pesanan.');
+      setSubmitting(false);
+    }
+  };
+
+  // Batalkan pesanan lama untuk melepaskan kuncian kavling, lalu buat baru
+  const handleCancelAndRetry = async () => {
+    if (!existingPendingOrder?.id) return;
+    setCancellingOldOrder(true);
+    setError(null);
+    try {
+      await cancelGuestOrder(
+        existingPendingOrder.id,
+        'Dibatalkan untuk membuat pemesanan ulang',
+      );
+      setExistingPendingOrder(null);
+      setCancellingOldOrder(false);
+      // Beri sedikit jeda agar database melepaskan baris ketersediaan sebelum dicoba kembali
+      setTimeout(() => {
+        void handleConfirmAndPay();
+      }, 700);
+    } catch (e: any) {
+      setError(e.message || 'Gagal membatalkan pesanan lama.');
+      setCancellingOldOrder(false);
     }
   };
 
@@ -569,8 +652,50 @@ export function CheckoutClient() {
             </div>
 
             {/* Tombol Konfirmasi Final */}
-            <div className="pt-2 space-y-2.5">
-              {error && (
+            <div className="pt-2 space-y-3">
+              {existingPendingOrder && (
+                <div className="p-4 rounded-2xl bg-amber-50/90 border border-amber-200/90 text-amber-950 space-y-3 animate-in fade-in duration-200">
+                  <div className="flex items-start gap-2.5">
+                    <AlertCircle size={18} className="text-amber-600 shrink-0 mt-0.5" />
+                    <div className="text-xs space-y-1">
+                      <p className="font-bold text-amber-900">
+                        Kavling ini sedang Anda booking pada pesanan sebelumnya (#{existingPendingOrder.id.slice(0, 8).toUpperCase()})
+                      </p>
+                      <p className="text-amber-800/90 text-[11px] leading-relaxed">
+                        Sistem sedang menahan kavling ini selama 15 menit untuk Anda. Anda dapat langsung melanjutkan pembayaran pesanan ini, atau batalkan pesanan lama untuk membuat baru.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-amber-200/60">
+                    <button
+                      type="button"
+                      onClick={handlePayExistingOrder}
+                      disabled={submitting}
+                      className="px-4 py-2 rounded-xl bg-brand-blue text-white font-bold text-xs shadow-xs hover:bg-brand-blue-hover transition-colors flex items-center gap-1.5 cursor-pointer"
+                    >
+                      {submitting ? <Loader2 size={14} className="animate-spin" /> : <CreditCard size={14} />}
+                      <span>Lanjutkan Bayar Sekarang</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCancelAndRetry}
+                      disabled={cancellingOldOrder}
+                      className="px-3 py-2 rounded-xl bg-white border border-amber-300 text-amber-900 font-semibold text-xs hover:bg-amber-100 transition-colors flex items-center gap-1.5 cursor-pointer"
+                    >
+                      {cancellingOldOrder && <Loader2 size={14} className="animate-spin" />}
+                      <span>Batalkan Pesanan Lama & Buat Baru</span>
+                    </button>
+                    <Link
+                      href={`/orders/detail?id=${existingPendingOrder.id}`}
+                      className="px-3 py-2 rounded-xl text-neutral-600 font-semibold text-xs hover:underline"
+                    >
+                      Lihat Rincian
+                    </Link>
+                  </div>
+                </div>
+              )}
+
+              {error && !existingPendingOrder && (
                 <div className="p-3.5 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2 animate-in fade-in duration-200">
                   <AlertCircle size={16} className="shrink-0" />
                   <span>{error}</span>
