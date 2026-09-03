@@ -1476,7 +1476,7 @@ export function SpotRedirectClient() {
   }
 
   return (
-    <div className="min-h-screen bg-white text-foreground selection:bg-brand-lime selection:text-black flex flex-col pb-24 lg:pb-12">
+    <div className="min-h-screen bg-white text-foreground selection:bg-brand-lime selection:text-black flex flex-col">
       {/* Mobile Smart App Banner: Memungkinkan tamu langsung membuka aplikasi jika ada di HP */}
       <div className="md:hidden bg-slate-950 text-white px-4 py-2 flex items-center justify-between text-xs border-b border-white/10 sticky top-0 z-50">
         <div className="flex items-center gap-2">
@@ -2974,6 +2974,27 @@ export function SpotRedirectClient() {
           </div>
         </div>
       </main>
+ 
+       {/* ── FOOTER KHAS EMBUN EXPLORE ── */}
+       <footer className="border-t border-border bg-surface py-8 px-4 sm:px-8 text-xs text-foreground-muted mt-auto pb-28 lg:pb-8">
+         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+           <div className="flex items-center gap-2">
+             <span className="font-black text-lg text-brand-blue tracking-tight">embun</span>
+             <span>© 2026 PT Alam Kelana Digital. Hak Cipta Dilindungi.</span>
+           </div>
+           <div className="flex items-center gap-6">
+             <a href="/kebijakan-privasi" className="hover:underline">
+               Privasi
+             </a>
+             <a href="/syarat-ketentuan" className="hover:underline">
+               Syarat & Ketentuan
+             </a>
+             <a href="/mitra" className="hover:underline">
+               Mitra Camp
+             </a>
+           </div>
+         </div>
+       </footer>
 
       {/* ════════════════════════════════════════════════════════════════════════
           5. MOBILE STICKY BOTTOM BAR
