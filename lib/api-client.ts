@@ -66,6 +66,8 @@ export function getStoredGuestProfile(): any | null {
   }
 }
 
+export const getGuestUser = getStoredGuestProfile;
+
 // ── Live Backend API Fetchers ────────────────────────────────────────────────
 
 export async function fetchActiveCampsites() {
@@ -192,6 +194,19 @@ export async function initiateOrderPayment(orderId: string) {
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.message || 'Gagal memulai pembayaran.');
+  }
+  return res.json();
+}
+
+/** `POST /api/orders/:id/pay-settlement` — creates Xendit invoice for DP remaining balance. */
+export async function initiateSettlementPayment(orderId: string) {
+  const res = await fetch(`${API_BASE_URL}/orders/${orderId}/pay-settlement`, {
+    method: 'POST',
+    headers: guestAuthHeaders(),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Gagal memulai pelunasan tagihan.');
   }
   return res.json();
 }

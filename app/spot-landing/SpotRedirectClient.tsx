@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   User,
   Tent,
@@ -339,6 +340,7 @@ function loadPannellum(): Promise<any> {
 }
 
 export function SpotRedirectClient() {
+  const router = useRouter();
   const [campsite, setCampsite] = useState<CampsiteDetail | null>(null);
   const [activeSpot, setActiveSpot] = useState<SpotItem | null>(null);
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(
@@ -1255,8 +1257,8 @@ export function SpotRedirectClient() {
     });
   };
 
-  // Order Submission Flow
-  const handleProceedBooking = async () => {
+  // Order Submission Flow -> Navigasi ke Full Page Checkout Review (Airbnb Style)
+  const handleProceedBooking = () => {
     if (!currentUser) {
       setIsAuthOpen(true);
       return;
@@ -1272,121 +1274,61 @@ export function SpotRedirectClient() {
     }
 
     if (!getGuestToken()) {
-      // Stale/invalid local profile with no real session token - force
-      // re-auth instead of attempting an order that will 401.
       clearGuestSession();
       setCurrentUser(null);
       setIsAuthOpen(true);
       return;
     }
 
+    const activeAddonsList = Object.entries(selectedAddons)
+      .filter(([, qty]) => qty > 0)
+      .map(([id, qty]) => {
+        const a = availableAddons.find((x) => x.id === id);
+        return { id, name: a?.name || 'Addon', price: a?.price || 0, qty };
+      });
+
+    const draft = {
+      campsite: {
+        id: campsite.id,
+        name: campsite.name,
+        address: campsite.address,
+        city: campsite.city,
+        photoUrl: spotPhotos[0]?.url || campsite.photos?.[0]?.url,
+        googleMapsUrl: campsite.googleMapsUrl,
+        checkInTime: campsite.checkInTime,
+        checkOutTime: campsite.checkOutTime,
+      },
+      spot: {
+        id: activeSpot.id,
+        name: activeSpot.name,
+        tentType: activeSpot.tentType,
+      },
+      selectedPackage: {
+        id: selectedPackage.id,
+        name: selectedPackage.name,
+        price: spotPricePerNight,
+      },
+      checkInDate,
+      checkOutDate,
+      nights,
+      guestCount,
+      paymentScheme,
+      spotPricePerNight,
+      selectedAddons,
+      activeAddonsList,
+      addonsTotal: addonTotal,
+      totalServiceAndTaxFee,
+      grandTotal,
+      paymentAmountToPay,
+    };
+
     try {
-      setSubmittingOrder(true);
-      setOrderError(null);
-
-      const addons = Object.entries(selectedAddons)
-        .filter(([, qty]) => qty > 0)
-        .map(([addonId, quantity]) => ({ addonId, quantity }));
-
-      const orderPayload = {
-        campsiteId: campsite.id,
-        paymentMethod: 'TRANSFER' as const,
-        isDownPayment: paymentScheme === 'DP_50',
-        items: [
-          {
-            blockId: activeSpot.id,
-            pricingPackageId: selectedPackage.id,
-            checkIn: checkInDate,
-            checkOut: checkOutDate,
-            adultCount: guestCount,
-            addons,
-          },
-        ],
-      };
-
-      // 1. Create the real, server-authoritative Order (PENDING).
-      const createdOrder = await createRealOrder(orderPayload);
-      if (!createdOrder?.id) {
-        throw new Error('Gagal membuat pesanan.');
-      }
-
-      // 2. Initiate Xendit payment — backend returns the Xendit Invoice URL.
-      const paymentInit = await initiateOrderPayment(createdOrder.id);
-      if (!paymentInit?.snapRedirectUrl) {
-        throw new Error('Gagal mendapatkan URL pembayaran Xendit.');
-      }
-
-      const activeAddonsList = Object.entries(selectedAddons)
-        .filter(([, qty]) => qty > 0)
-        .map(([id, qty]) => {
-          const a = availableAddons.find((x) => x.id === id);
-          return { name: a?.name || 'Addon', price: a?.price || 0, qty };
-        });
-
-      const ticketPayload = {
-        orderId: createdOrder.id,
-        campsite: {
-          name: campsite.name,
-          address: campsite.address,
-          city: campsite.city,
-          photoUrl: spotPhotos[0]?.url || campsite.photos?.[0]?.url,
-          googleMapsUrl: campsite.googleMapsUrl,
-          checkInTime: campsite.checkInTime,
-          checkOutTime: campsite.checkOutTime,
-        },
-        spot: {
-          name: activeSpot.name,
-          tentType: activeSpot.tentType,
-          packageName: selectedPackage?.name,
-        },
-        guest: {
-          fullName: currentUser.fullName || 'Tamu Embun',
-          phone: currentUser.phone || '08123456789',
-          email: currentUser.email,
-        },
-        checkInDate,
-        checkOutDate,
-        nights,
-        guestCount,
-        paymentScheme,
-        spotPrice: spotPricePerNight,
-        addons: activeAddonsList,
-        serviceFee: totalServiceAndTaxFee,
-        grandTotal: Number(createdOrder.totalAmount) || grandTotal,
-        paidAmount: paymentAmountToPay,
-        remainingBalance:
-          paymentScheme === 'DP_50'
-            ? (Number(createdOrder.totalAmount) || grandTotal) -
-              paymentAmountToPay
-            : 0,
-      };
-
-      // 3. Tampilkan e-tiket terlebih dahulu, lalu buka halaman Xendit.
-      // Order sudah ada (PENDING), pembayaran bisa dilanjutkan kapan saja
-      // dari halaman "Pesanan Saya" jika tab Xendit ditutup.
-      setCompletedOrderData(ticketPayload);
+      sessionStorage.setItem('embun_checkout_draft', JSON.stringify(draft));
       setIsMobileBookingOpen(false);
-      setIsTicketOpen(true);
-
-      // Buka Xendit invoice di tab baru agar tamu bisa bayar.
-      initiateXenditPayment(paymentInit.snapRedirectUrl);
-      // Best-effort sync status; webhook Xendit yang bersifat autoritatif.
-      await syncOrderStatus(createdOrder.id).catch(() => {});
-    } catch (err: any) {
-      console.error('Booking error:', err);
-      if (err instanceof ApiError && err.status === 401) {
-        clearGuestSession();
-        setCurrentUser(null);
-        setIsAuthOpen(true);
-        setOrderError('Sesi Anda telah berakhir. Silakan masuk kembali.');
-        return;
-      }
-      setOrderError(
-        err.message ||
-          'Gagal menghubungkan ke payment gateway. Anda dapat memesan via aplikasi.',
-      );
-    } finally {
-      setSubmittingOrder(false);
+      router.push('/checkout');
+    } catch (e) {
+      console.error('Failed to save checkout draft:', e);
+      setOrderError('Gagal membuka halaman checkout. Silakan coba lagi.');
     }
   };
 
@@ -2958,15 +2900,10 @@ export function SpotRedirectClient() {
                 <div className="space-y-2.5 pt-1">
                   <button
                     type="button"
-                    disabled={submittingOrder}
                     onClick={handleProceedBooking}
-                    className="w-full py-3.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-[0.99]"
+                    className="w-full py-3.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
                   >
-                    <span>
-                      {submittingOrder
-                        ? 'Memproses Pesanan...'
-                        : `Pesan Sekarang · ${rupiah(paymentAmountToPay)}`}
-                    </span>
+                    <span>{`Lanjut Pemesanan · ${rupiah(paymentAmountToPay)}`}</span>
                   </button>
                 </div>
               </div>
@@ -3588,15 +3525,10 @@ export function SpotRedirectClient() {
             <div className="space-y-2.5 pt-2">
               <button
                 type="button"
-                disabled={submittingOrder}
                 onClick={handleProceedBooking}
-                className="w-full py-3.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                className="w-full py-3.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
               >
-                <span>
-                  {submittingOrder
-                    ? 'Memproses Pesanan...'
-                    : `Pesan Sekarang · ${rupiah(paymentAmountToPay)}`}
-                </span>
+                <span>{`Lanjut Pemesanan · ${rupiah(paymentAmountToPay)}`}</span>
               </button>
 
               {/* Direct App Store & Google Play Features Box */}
