@@ -408,7 +408,7 @@ export function SpotRedirectClient() {
   const [isAddonsExpanded, setIsAddonsExpanded] = useState(false);
   const [isMobileBookingOpen, setIsMobileBookingOpen] = useState(false);
   const [guestCount, setGuestCount] = useState(2);
-  const [paymentScheme, setPaymentScheme] = useState<'DP_50' | 'FULL'>('DP_50');
+  const [paymentScheme, setPaymentScheme] = useState<'DP_50' | 'FULL'>('FULL');
   const [selectedAddons, setSelectedAddons] = useState<Record<string, number>>(
     {},
   );

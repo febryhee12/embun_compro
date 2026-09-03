@@ -409,55 +409,33 @@ export function CheckoutClient() {
               </div>
             </div>
 
-            {/* 3. Pilihan Skema Pembayaran */}
+            {/* 3. Skema Pembayaran */}
             <div className="bg-white rounded-3xl border border-border p-6 shadow-2xs space-y-4">
-              <h2 className="text-base font-extrabold text-foreground">Pilihan Pembayaran</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-extrabold text-foreground">Skema Pembayaran</h2>
+                <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
+                  isDP
+                    ? 'text-amber-800 bg-amber-100/80 border border-amber-200'
+                    : 'text-brand-blue bg-brand-blue/8 border border-brand-blue/20'
+                }`}>
+                  {isDP ? 'Uang Muka (DP 50%)' : 'Bayar Lunas'}
+                </span>
+              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                {/* Bayar Penuh */}
-                <button
-                  type="button"
-                  onClick={() => setPaymentScheme('FULL')}
-                  className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-2 ${
-                    !isDP
-                      ? 'border-brand-blue bg-brand-blue/5 shadow-2xs ring-1 ring-brand-blue'
-                      : 'border-border bg-white hover:border-neutral-300'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-foreground">Bayar Lunas</span>
-                    {!isDP && <CheckCircle2 size={16} className="text-brand-blue" />}
-                  </div>
-                  <div>
-                    <p className="text-base font-black text-brand-blue">
-                      {rupiah(draft.grandTotal)}
-                    </p>
-                  </div>
-                </button>
-
-                {/* DP 50% */}
-                <button
-                  type="button"
-                  onClick={() => setPaymentScheme('DP_50')}
-                  className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-2 ${
-                    isDP
-                      ? 'border-amber-500 bg-amber-50/70 shadow-2xs ring-1 ring-amber-500'
-                      : 'border-border bg-white hover:border-neutral-300'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-amber-900">Uang Muka (DP 50%)</span>
-                    {isDP && <CheckCircle2 size={16} className="text-amber-600" />}
-                  </div>
-                  <div>
-                    <p className="text-base font-black text-amber-800">
-                      {rupiah(dpAmount + draft.totalServiceAndTaxFee)}
-                    </p>
-                    <span className="text-[10.5px] text-amber-800/80">
-                      Sisa {rupiah(remainingBalance)} dilunasi H-1
-                    </span>
-                  </div>
-                </button>
+              <div className="p-4 rounded-2xl bg-surface/50 border border-border/70 flex items-center justify-between">
+                <div>
+                  <span className="font-bold text-xs text-foreground block">
+                    {isDP ? 'Uang Muka (DP 50%)' : 'Pembayaran Penuh (Lunas)'}
+                  </span>
+                  <span className="text-[11px] text-foreground-muted">
+                    {isDP
+                      ? `Sisa ${rupiah(remainingBalance)} wajib dilunasi paling lambat H-1`
+                      : 'Lunas langsung tanpa sisa tagihan'}
+                  </span>
+                </div>
+                <span className="text-base font-black text-brand-blue">
+                  {rupiah(currentPayable)}
+                </span>
               </div>
 
               {isDP && (
@@ -495,8 +473,8 @@ export function CheckoutClient() {
                 <li className="flex items-start gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-brand-blue shrink-0 mt-1.5" />
                   <span>
-                    <strong>Pembayaran Resmi:</strong> Seluruh pembayaran hanya dilakukan melalui
-                    sistem resmi Embun (Xendit). Tidak ada pembayaran di luar aplikasi.
+                    <strong>Pembayaran Resmi:</strong> Seluruh transaksi diproses melalui jalur
+                    pembayaran resmi dan terenkripsi. Tidak ada transaksi di luar sistem Embun.
                   </span>
                 </li>
               </ul>
@@ -529,12 +507,12 @@ export function CheckoutClient() {
                 )}
                 <span>
                   {submitting
-                    ? 'Menghubungkan ke Xendit...'
-                    : `Konfirmasi & Bayar via Xendit · ${rupiah(currentPayable)}`}
+                    ? 'Memproses Pembayaran...'
+                    : `Konfirmasi & Bayar · ${rupiah(currentPayable)}`}
                 </span>
               </button>
               <p className="text-[11px] text-center text-foreground-muted mt-2">
-                Halaman pembayaran aman Xendit akan terbuka otomatis setelah konfirmasi.
+                Halaman pembayaran aman akan terbuka otomatis setelah konfirmasi.
               </p>
             </div>
           </div>
@@ -649,7 +627,7 @@ export function CheckoutClient() {
               {/* Secure guarantee */}
               <div className="pt-3 border-t border-border/60 flex items-center gap-2 text-[11px] text-foreground-muted">
                 <ShieldCheck size={16} className="text-emerald-600 shrink-0" />
-                <span>Transaksi dienkripsi dan diproses resmi oleh Xendit</span>
+                <span>Transaksi terenkripsi dengan standar keamanan pembayaran digital</span>
               </div>
             </div>
           </div>
