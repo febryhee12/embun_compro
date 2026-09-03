@@ -190,12 +190,14 @@ export function SpotCard({
   return (
     <a
       href={targetUrl}
-      target="_blank"
-      rel="noopener noreferrer"
       onClick={(e) => {
         if ((e.target as HTMLElement).closest('button')) {
           e.preventDefault();
           return;
+        }
+        if (onSelectSpot) {
+          e.preventDefault();
+          onSelectSpot(spot);
         }
       }}
       onMouseEnter={() => setIsHovered(true)}

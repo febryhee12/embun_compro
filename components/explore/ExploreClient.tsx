@@ -14,6 +14,7 @@ import {
 } from '@/components/explore/CategoryFilterBar';
 import { SpotCard, SpotData } from '@/components/explore/SpotCard';
 import { GuestAuthModal } from '@/components/explore/GuestAuthModal';
+import { Tour360Modal } from '@/components/explore/Tour360Modal';
 import {
   Tent,
   Star,
@@ -33,8 +34,15 @@ export function ExploreClient() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+  const [selected360Spot, setSelected360Spot] = useState<SpotData | null>(null);
 
   const handleSelectSpot = (spot: SpotData) => {
+    const is360 =
+      (spot as any).isTour360Only || spot.tentType === 'Tur 360°';
+    if (is360) {
+      setSelected360Spot(spot);
+      return;
+    }
     window.location.href = `/spot/${spot.shareCode || spot.id}`;
   };
 
@@ -775,6 +783,15 @@ export function ExploreClient() {
           onLogout={() => setCurrentUser(null)}
         />
       )}
+
+      {/* ═══ 6. MODAL TUR 360° INTERAKTIF (TETAP DI HALAMAN EXPLORE) ═══ */}
+      {selected360Spot && (
+        <Tour360Modal
+          spot={selected360Spot}
+          onClose={() => setSelected360Spot(null)}
+        />
+      )}
     </div>
   );
 }
+
