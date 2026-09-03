@@ -231,6 +231,7 @@ function CampsiteLandingClientInner() {
 
   // Reviews
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
+  const [showReviewsModal, setShowReviewsModal] = useState(false);
 
   // Filter spot tipe
   const [selectedSpotType, setSelectedSpotType] = useState<string>('Semua');
@@ -263,7 +264,7 @@ function CampsiteLandingClientInner() {
 
     const loadReviews = async (cid: string) => {
       try {
-        const res = await fetch(`${API_BASE}/public/reviews/campsite/${cid}?limit=8`);
+        const res = await fetch(`${API_BASE}/public/reviews/campsite/${cid}?limit=50`);
         if (res.ok) {
           const data = await res.json();
           setReviews(data.items || []);
@@ -970,17 +971,29 @@ function CampsiteLandingClientInner() {
         {/* ULASAN TAMU */}
         {reviews.length > 0 && (
           <section className="space-y-4">
-            <div>
-              <h2 className="font-extrabold text-xl text-foreground">
-                Ulasan Tamu di {campsite.name}
-              </h2>
-              <p className="text-xs text-foreground-muted mt-0.5">
-                Pengalaman nyata dari pengunjung terverifikasi
-              </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="font-extrabold text-xl text-foreground">
+                  Ulasan Tamu di {campsite.name}
+                </h2>
+                <p className="text-xs text-foreground-muted mt-0.5">
+                  Pengalaman nyata dari pengunjung terverifikasi
+                </p>
+              </div>
+              {reviews.length > 2 && (
+                <button
+                  type="button"
+                  onClick={() => setShowReviewsModal(true)}
+                  className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold text-brand-blue hover:underline cursor-pointer"
+                >
+                  <span>Semua Ulasan ({reviews.length})</span>
+                  <span>→</span>
+                </button>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {reviews.map((rev: any, idx: number) => {
+              {reviews.slice(0, 2).map((rev: any, idx: number) => {
                 const displayName =
                   rev.maskedAuthorName ||
                   rev.authorName ||
@@ -989,50 +1002,82 @@ function CampsiteLandingClientInner() {
                   rev.user?.name ||
                   'Tamu Embun';
                 const avatarChar = displayName.charAt(0).toUpperCase();
+                const reviewText =
+                  rev.message || rev.comment || rev.content || rev.review || '';
 
                 return (
                   <div
                     key={rev.id || idx}
-                    className="p-5 rounded-3xl bg-white border border-border space-y-2.5"
+                    className="p-5 rounded-3xl bg-white border border-border space-y-2.5 flex flex-col justify-between"
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-brand-blue/10 text-brand-blue font-bold text-xs flex items-center justify-center overflow-hidden">
-                          {rev.authorPhotoUrl || rev.guestAvatar ? (
-                            <img
-                              src={resolveAssetUrl(rev.authorPhotoUrl || rev.guestAvatar)}
-                              alt={displayName}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            avatarChar
-                          )}
-                        </div>
-                        <div>
-                          <span className="font-bold text-xs text-foreground block">
-                            {displayName}
-                          </span>
-                          {(rev.spotName || rev.blockName) && (
-                            <span className="text-[10px] text-foreground-muted">
-                              Menginap di {rev.spotName || rev.blockName}
+                    <div className="space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-full bg-brand-blue/10 text-brand-blue font-bold text-xs flex items-center justify-center overflow-hidden shrink-0">
+                            {rev.authorPhotoUrl || rev.guestAvatar ? (
+                              <img
+                                src={resolveAssetUrl(rev.authorPhotoUrl || rev.guestAvatar)}
+                                alt={displayName}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              avatarChar
+                            )}
+                          </div>
+                          <div>
+                            <span className="font-bold text-xs text-foreground block">
+                              {displayName}
                             </span>
-                          )}
+                            <span className="text-[10px] text-foreground-muted">
+                              {rev.createdAt
+                                ? new Date(rev.createdAt).toLocaleDateString('id-ID', {
+                                    month: 'short',
+                                    year: 'numeric',
+                                  })
+                                : 'Pengunjung Terverifikasi'}
+                              {(rev.spotName || rev.blockName) && ` · ${rev.spotName || rev.blockName}`}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 text-amber-500 font-bold text-xs bg-surface px-2 py-0.5 rounded-full border border-border shrink-0">
+                          <Star size={11} className="fill-amber-500" />
+                          <span>{Number(rev.rating || 5).toFixed(1)}</span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 text-amber-500 font-bold text-xs">
-                        <Star size={12} className="fill-amber-500" />
-                        <span>{Number(rev.rating || 5).toFixed(1)}</span>
-                      </div>
+
+                      {reviewText && (
+                        <p className="text-xs sm:text-sm text-foreground/85 leading-relaxed italic">
+                          &ldquo;{reviewText.trim()}&rdquo;
+                        </p>
+                      )}
+
+                      {rev.photoUrl && (
+                        <div className="w-16 h-16 rounded-xl overflow-hidden border border-border">
+                          <img
+                            src={resolveAssetUrl(rev.photoUrl)}
+                            alt="Foto ulasan"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
                     </div>
-                    {(rev.comment || rev.content || rev.review) && (
-                      <p className="text-xs text-foreground/80 leading-relaxed italic">
-                        &ldquo;{(rev.comment || rev.content || rev.review || '').trim()}&rdquo;
-                      </p>
-                    )}
                   </div>
                 );
               })}
             </div>
+
+            {reviews.length > 2 && (
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowReviewsModal(true)}
+                  className="px-5 py-2.5 rounded-full border border-border bg-white hover:bg-surface text-foreground font-bold text-xs shadow-2xs hover:shadow-xs transition-all cursor-pointer inline-flex items-center gap-1.5"
+                >
+                  <span>Lihat Semua {reviews.length} Ulasan Tamu</span>
+                  <span className="text-foreground-muted">→</span>
+                </button>
+              </div>
+            )}
           </section>
         )}
       </main>
@@ -1144,6 +1189,100 @@ function CampsiteLandingClientInner() {
               alt="Denah Kawasan Lengkap"
               className="max-h-full max-w-full object-contain rounded-2xl"
             />
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL SEMUA ULASAN TAMU ── */}
+      {showReviewsModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-2xl bg-white text-foreground rounded-t-3xl sm:rounded-3xl shadow-2xl border border-border max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Header Modal */}
+            <div className="p-5 border-b border-border flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <Star size={18} className="fill-amber-500 text-amber-500" />
+                <h3 className="font-bold text-base text-foreground">
+                  Semua Ulasan Tamu ({reviews.length})
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowReviewsModal(false)}
+                className="p-2 rounded-full hover:bg-surface text-foreground-muted hover:text-foreground transition-colors cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Content List */}
+            <div className="p-6 overflow-y-auto space-y-5 divide-y divide-border/60">
+              {reviews.map((rev: any, idx: number) => {
+                const displayName =
+                  rev.maskedAuthorName ||
+                  rev.authorName ||
+                  rev.guestName ||
+                  rev.userName ||
+                  rev.user?.name ||
+                  'Tamu Embun';
+                const avatarChar = displayName.charAt(0).toUpperCase();
+                const reviewText =
+                  rev.message || rev.comment || rev.content || rev.review || '';
+
+                return (
+                  <div key={rev.id || idx} className="pt-4 first:pt-0 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-full bg-brand-blue/10 text-brand-blue font-bold text-xs flex items-center justify-center overflow-hidden shrink-0">
+                          {rev.authorPhotoUrl || rev.guestAvatar ? (
+                            <img
+                              src={resolveAssetUrl(rev.authorPhotoUrl || rev.guestAvatar)}
+                              alt={displayName}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            avatarChar
+                          )}
+                        </div>
+                        <div>
+                          <span className="font-bold text-xs text-foreground block">
+                            {displayName}
+                          </span>
+                          <span className="text-[10px] text-foreground-muted">
+                            {rev.createdAt
+                              ? new Date(rev.createdAt).toLocaleDateString('id-ID', {
+                                  month: 'long',
+                                  year: 'numeric',
+                                })
+                              : 'Pengunjung Terverifikasi'}
+                            {(rev.spotName || rev.blockName) && ` · ${rev.spotName || rev.blockName}`}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 text-amber-500 font-bold text-xs bg-surface px-2.5 py-1 rounded-full border border-border shrink-0">
+                        <Star size={11} className="fill-amber-500" />
+                        <span>{Number(rev.rating || 5).toFixed(1)}</span>
+                      </div>
+                    </div>
+
+                    {reviewText && (
+                      <p className="text-xs sm:text-sm text-foreground/85 leading-relaxed italic">
+                        &ldquo;{reviewText.trim()}&rdquo;
+                      </p>
+                    )}
+
+                    {rev.photoUrl && (
+                      <div className="w-24 h-24 rounded-2xl overflow-hidden border border-border">
+                        <img
+                          src={resolveAssetUrl(rev.photoUrl)}
+                          alt="Foto ulasan"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
