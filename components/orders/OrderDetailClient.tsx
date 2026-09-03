@@ -20,8 +20,9 @@ import {
   ExternalLink,
   MessageCircle,
   AlertCircle,
-  Sparkles,
   ShieldCheck,
+  XCircle,
+  Clock3,
 } from 'lucide-react';
 import {
   fetchGuestOrder,
@@ -77,7 +78,7 @@ function getOrderBadge(order: any) {
   if (order.status === 'EXPIRED') {
     return {
       label: 'Kedaluwarsa',
-      className: 'bg-neutral-100 text-neutral-500 border-neutral-200',
+      className: 'bg-neutral-100 text-neutral-600 border-neutral-300',
       isDP: false,
     };
   }
@@ -252,9 +253,14 @@ export function OrderDetailClient() {
         )
       : 1;
 
+  const isPaid = order?.status === 'PAID' || order?.status === 'COMPLETE';
+  const isPending = order?.status === 'PENDING';
+  const isExpired = order?.status === 'EXPIRED';
+  const isCancelled = order?.status === 'CANCELLED';
+
   const isDP = order?.isDownPayment;
   const remainingBalance = Number(order?.remainingBalance) || 0;
-  const isUnsettledDP = isDP && (!order?.settledAt || remainingBalance > 0);
+  const isUnsettledDP = isPaid && isDP && (!order?.settledAt || remainingBalance > 0);
 
   return (
     <div className="min-h-screen bg-[#fafafa] text-foreground">
@@ -318,69 +324,152 @@ export function OrderDetailClient() {
             )}
 
             {/* ════════════════════════════════════════════════════════════════
-                1. KODE BOOKING & QR CODE CHECK-IN (AIRBNB STYLE PASS)
+                1. KARTU STATUS HERO
+                - HANYA TAMPILKAN TIKET RESMI & QR CODE SCAN JIKA ORDER SUDAH LUNAS / TERBAYAR (PAID/COMPLETE)
             ════════════════════════════════════════════════════════════════ */}
-            <div className="bg-white rounded-3xl border border-border p-6 shadow-2xs">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-                <div className="space-y-2 text-center sm:text-left flex-1">
-                  <div className="flex items-center justify-center sm:justify-start gap-1.5 text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-full w-fit mx-auto sm:mx-0">
-                    <ShieldCheck size={14} />
-                    <span className="text-[10.5px] uppercase font-bold tracking-wider">
-                      Tiket Resmi Terkonfirmasi
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="text-[11px] uppercase font-bold tracking-wider text-foreground-muted block">
-                      Kode Booking
-                    </span>
-                    <div className="flex items-center justify-center sm:justify-start gap-2 mt-0.5">
-                      <span className="text-2xl sm:text-3xl font-black text-brand-blue tracking-wider font-mono">
-                        {shortCode}
+            {isPaid ? (
+              /* KARTU TIKET RESMI TERKONFIRMASI (HANYA UNTUK YANG SUDAH BAYAR) */
+              <div className="bg-white rounded-3xl border border-border p-6 shadow-2xs">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+                  <div className="space-y-2 text-center sm:text-left flex-1">
+                    <div className="flex items-center justify-center sm:justify-start gap-1.5 text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-full w-fit mx-auto sm:mx-0">
+                      <ShieldCheck size={14} />
+                      <span className="text-[10.5px] uppercase font-bold tracking-wider">
+                        Tiket Resmi Terkonfirmasi
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => handleCopyCode(shortCode)}
-                        className="p-1.5 rounded-xl border border-border bg-white hover:bg-surface text-foreground-muted hover:text-foreground cursor-pointer transition-colors"
-                        title="Salin Kode"
-                      >
-                        {copied ? (
-                          <Check size={16} className="text-emerald-600" />
-                        ) : (
-                          <Copy size={16} />
-                        )}
-                      </button>
                     </div>
+
+                    <div>
+                      <span className="text-[11px] uppercase font-bold tracking-wider text-foreground-muted block">
+                        Kode Booking
+                      </span>
+                      <div className="flex items-center justify-center sm:justify-start gap-2 mt-0.5">
+                        <span className="text-2xl sm:text-3xl font-black text-brand-blue tracking-wider font-mono">
+                          {shortCode}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyCode(shortCode)}
+                          className="p-1.5 rounded-xl border border-border bg-white hover:bg-surface text-foreground-muted hover:text-foreground cursor-pointer transition-colors"
+                          title="Salin Kode"
+                        >
+                          {copied ? (
+                            <Check size={16} className="text-emerald-600" />
+                          ) : (
+                            <Copy size={16} />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    <p className="text-[11px] text-foreground-muted font-mono break-all pt-1">
+                      No. Transaksi: <span className="text-foreground">{order.id}</span>
+                    </p>
                   </div>
 
-                  <p className="text-[11px] text-foreground-muted font-mono break-all pt-1">
-                    No. Transaksi: <span className="text-foreground">{order.id}</span>
+                  {/* QR Code Container Check-in */}
+                  <div className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-white border border-border shadow-xs shrink-0">
+                    <div className="w-32 h-32 bg-surface flex items-center justify-center rounded-xl p-2 border border-border/50">
+                      <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
+                          order.id,
+                        )}`}
+                        alt="QR Code Check-in"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <span className="text-[10px] font-bold text-foreground-muted flex items-center gap-1">
+                      <QrCode size={12} className="text-brand-blue" />
+                      Scan untuk Check-in
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : isExpired ? (
+              /* KARTU STATUS KEDALUWARSA (TIDAK ADA TIKET & TIDAK ADA QR CHECK-IN) */
+              <div className="bg-neutral-50 rounded-3xl border border-neutral-300/80 p-6 shadow-2xs space-y-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-1.5 text-neutral-700 bg-neutral-200/70 border border-neutral-300 px-2.5 py-1 rounded-full w-fit">
+                      <Clock3 size={14} />
+                      <span className="text-[10.5px] uppercase font-bold tracking-wider">
+                        Batas Waktu Pembayaran Berakhir
+                      </span>
+                    </div>
+                    <h2 className="text-lg font-extrabold text-foreground">
+                      Pesanan Ini Telah Kedaluwarsa
+                    </h2>
+                    <p className="text-xs text-foreground-muted max-w-md leading-relaxed">
+                      Batas waktu pembayaran untuk transaksi ini telah habis. Kuota unit penginapan telah
+                      dilepaskan kembali dan <strong>tiket tidak berlaku untuk check-in</strong>.
+                    </p>
+                  </div>
+
+                  <Link
+                    href="/explore"
+                    className="px-5 py-2.5 rounded-full bg-brand-blue text-white text-xs font-bold shadow-xs hover:bg-brand-blue-hover transition-all shrink-0"
+                  >
+                    Pesan Ulang di Explore
+                  </Link>
+                </div>
+                <div className="p-3 rounded-2xl bg-white border border-neutral-200 text-neutral-600 text-[11px] font-mono">
+                  No. Transaksi: {order.id} · Kedaluwarsa pada {order.paymentExpiresAt ? formatDateDisplay(order.paymentExpiresAt) : '-'}
+                </div>
+              </div>
+            ) : isCancelled ? (
+              /* KARTU STATUS DIBATALKAN */
+              <div className="bg-red-50/70 rounded-3xl border border-red-200 p-6 shadow-2xs space-y-4">
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-red-700 bg-red-100/80 border border-red-200 px-2.5 py-1 rounded-full w-fit">
+                    <XCircle size={14} />
+                    <span className="text-[10.5px] uppercase font-bold tracking-wider">
+                      Pesanan Dibatalkan
+                    </span>
+                  </div>
+                  <h2 className="text-lg font-extrabold text-red-950">
+                    Pemesanan Ini Telah Dibatalkan
+                  </h2>
+                  <p className="text-xs text-red-800/80 max-w-md leading-relaxed">
+                    Pesanan ini tidak dapat digunakan untuk menginap di campsite.
+                  </p>
+                </div>
+              </div>
+            ) : isPending ? (
+              /* KARTU STATUS MENUNGGU PEMBAYARAN */
+              <div className="bg-amber-50/70 rounded-3xl border border-amber-200/90 p-6 shadow-2xs space-y-4">
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-amber-800 bg-amber-100/80 border border-amber-200 px-2.5 py-1 rounded-full w-fit">
+                    <Clock size={14} />
+                    <span className="text-[10.5px] uppercase font-bold tracking-wider">
+                      Menunggu Pembayaran
+                    </span>
+                  </div>
+                  <h2 className="text-lg font-extrabold text-amber-950">
+                    Selesaikan Pembayaran via Xendit
+                  </h2>
+                  <p className="text-xs text-amber-900/80 max-w-md leading-relaxed">
+                    Silakan selesaikan pembayaran sebelum batas waktu berakhir untuk menerbitkan <strong>E-Tiket & QR Code Check-in resmi</strong>.
                   </p>
                 </div>
 
-                {/* QR Code Container */}
-                <div className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-white border border-border shadow-xs shrink-0">
-                  <div className="w-32 h-32 bg-surface flex items-center justify-center rounded-xl p-2 border border-border/50">
-                    <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
-                        order.id,
-                      )}`}
-                      alt="QR Code Check-in"
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                  <span className="text-[10px] font-bold text-foreground-muted flex items-center gap-1">
-                    <QrCode size={12} className="text-brand-blue" />
-                    Scan untuk Check-in
-                  </span>
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={handlePayNow}
+                    disabled={paying}
+                    className="w-full sm:w-auto py-3 px-6 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                  >
+                    {paying ? <Loader2 size={15} className="animate-spin" /> : <CreditCard size={15} />}
+                    <span>{paying ? 'Menghubungkan ke Xendit...' : `Bayar Sekarang · ${rupiah(order.totalAmount)}`}</span>
+                  </button>
                 </div>
               </div>
-            </div>
+            ) : null}
 
             {/* ════════════════════════════════════════════════════════════════
-                2. CARD KHUSUS SKEMA DP (JIKA PESANAN DP)
+                2. CARD KHUSUS SKEMA DP (HANYA JIKA PESANAN AKTIF / SUDAH DIBAYAR)
             ════════════════════════════════════════════════════════════════ */}
-            {isDP && (
+            {isPaid && isDP && (
               <div className="bg-amber-50/70 border border-amber-200/90 rounded-3xl p-6 space-y-4">
                 <div className="flex items-center justify-between border-b border-amber-200/60 pb-3">
                   <div className="flex items-center gap-2">
@@ -620,7 +709,7 @@ export function OrderDetailClient() {
                   </span>
                 </div>
 
-                {isDP && (
+                {isPaid && isDP && (
                   <div className="pt-2 border-t border-border/60 space-y-1.5 text-xs">
                     <div className="flex justify-between text-emerald-700 font-medium">
                       <span>Sudah Dibayar (DP Online)</span>
@@ -639,24 +728,6 @@ export function OrderDetailClient() {
                 6. TOMBOL AKSI: BAYAR / SINKRONKAN
             ════════════════════════════════════════════════════════════════ */}
             <div className="space-y-3 pt-2">
-              {order.status === 'PENDING' && (
-                <button
-                  type="button"
-                  onClick={handlePayNow}
-                  disabled={paying}
-                  className="w-full py-4 px-6 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
-                >
-                  {paying ? (
-                    <Loader2 size={16} className="animate-spin" />
-                  ) : (
-                    <CreditCard size={16} />
-                  )}
-                  <span>
-                    {paying ? 'Membuka Pembayaran...' : `Bayar Sekarang · ${rupiah(order.totalAmount)}`}
-                  </span>
-                </button>
-              )}
-
               <button
                 type="button"
                 onClick={handleSync}
