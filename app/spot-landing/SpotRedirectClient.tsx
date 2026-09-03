@@ -349,6 +349,9 @@ export function SpotRedirectClient() {
   );
   const [serverQuote, setServerQuote] = useState<any | null>(null);
   const [quoteLoading, setQuoteLoading] = useState(false);
+  const [isPackageDropdownOpen, setIsPackageDropdownOpen] = useState(false);
+  const [isMobilePackageDropdownOpen, setIsMobilePackageDropdownOpen] =
+    useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -2803,45 +2806,107 @@ export function SpotRedirectClient() {
                   )}
                 </div>
 
-                {/* Package Selector (Sidebar) */}
+                {/* Package Selector Dropdown (Sidebar) */}
                 {Array.isArray(activeSpot.pricingPackages) &&
                   activeSpot.pricingPackages.length > 1 && (
-                    <div className="space-y-1.5">
+                    <div className="space-y-1.5 relative">
                       <label className="text-[11px] font-bold text-foreground flex items-center justify-between">
                         <span>Pilihan Paket</span>
                         <span className="text-[10px] font-semibold text-brand-blue truncate max-w-[140px]">
                           {selectedPackage?.name}
                         </span>
                       </label>
-                      <div className="grid grid-cols-2 gap-1.5 text-xs">
-                        {activeSpot.pricingPackages.map((pkg) => {
-                          const isSelected =
-                            (selectedPackage?.id ||
-                              activeSpot.pricingPackages?.[0]?.id) === pkg.id;
-                          const pkgPrice =
-                            pkg.flatRateMode && pkg.flatRate
-                              ? Number(pkg.flatRate)
-                              : Number(pkg.weekdayRate) || 0;
-                          return (
-                            <button
-                              key={pkg.id}
-                              type="button"
-                              onClick={() => setSelectedPackageId(pkg.id || null)}
-                              className={`p-2 rounded-2xl border text-left transition-all cursor-pointer ${
-                                isSelected
-                                  ? 'border-brand-blue bg-brand-blue/5 ring-1 ring-brand-blue'
-                                  : 'border-border bg-surface/50 hover:bg-surface'
-                              }`}
-                            >
-                              <span className="font-bold text-foreground block truncate text-[11px]">
-                                {pkg.name}
+
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setIsPackageDropdownOpen(!isPackageDropdownOpen)
+                          }
+                          className="w-full p-2.5 rounded-2xl border border-border hover:border-brand-blue bg-white hover:bg-surface/50 text-left flex items-center justify-between transition-all cursor-pointer shadow-2xs group"
+                        >
+                          <div className="min-w-0 pr-2">
+                            <span className="font-extrabold text-xs text-foreground block truncate group-hover:text-brand-blue transition-colors">
+                              {selectedPackage?.name || 'Pilih Paket'}
+                            </span>
+                            <span className="text-[11px] font-bold text-brand-blue block mt-0.5">
+                              {rupiah(spotPricePerNight)}{' '}
+                              <span className="text-[10px] text-foreground-muted font-normal">
+                                / malam · Maks. {effectiveMaxCapacity} Tamu
                               </span>
-                              <span className="font-extrabold text-brand-blue block text-[10.5px] mt-0.5">
-                                {rupiah(pkgPrice)}
-                              </span>
-                            </button>
-                          );
-                        })}
+                            </span>
+                          </div>
+                          <ChevronDown
+                            size={16}
+                            className={`text-foreground-muted transition-transform shrink-0 ${
+                              isPackageDropdownOpen
+                                ? 'rotate-180 text-brand-blue'
+                                : ''
+                            }`}
+                          />
+                        </button>
+
+                        {isPackageDropdownOpen && (
+                          <>
+                            <div
+                              className="fixed inset-0 z-20"
+                              onClick={() => setIsPackageDropdownOpen(false)}
+                            />
+                            <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-border rounded-2xl shadow-xl z-30 p-1.5 space-y-1 max-h-64 overflow-y-auto">
+                              {activeSpot.pricingPackages.map((pkg) => {
+                                const isSelected =
+                                  (selectedPackage?.id ||
+                                    activeSpot.pricingPackages?.[0]?.id) ===
+                                  pkg.id;
+                                const pkgPrice =
+                                  pkg.flatRateMode && pkg.flatRate
+                                    ? Number(pkg.flatRate)
+                                    : Number(pkg.weekdayRate) || 0;
+                                const pkgCap =
+                                  pkg.maxOccupancy ||
+                                  pkg.baseCapacity ||
+                                  activeSpot.maxCapacity ||
+                                  4;
+
+                                return (
+                                  <button
+                                    key={pkg.id}
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedPackageId(pkg.id || null);
+                                      setIsPackageDropdownOpen(false);
+                                    }}
+                                    className={`w-full p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between ${
+                                      isSelected
+                                        ? 'border-brand-blue bg-brand-blue/5 text-foreground'
+                                        : 'border-transparent hover:bg-surface/80 text-foreground'
+                                    }`}
+                                  >
+                                    <div className="min-w-0 pr-2">
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="font-bold text-xs block truncate">
+                                          {pkg.name}
+                                        </span>
+                                        {isSelected && (
+                                          <CheckCircle2
+                                            size={13}
+                                            className="text-brand-blue shrink-0"
+                                          />
+                                        )}
+                                      </div>
+                                      <span className="text-[10.5px] text-foreground-muted block mt-0.5">
+                                        Maks. {pkgCap} Tamu
+                                      </span>
+                                    </div>
+                                    <span className="font-extrabold text-xs text-brand-blue shrink-0 whitespace-nowrap">
+                                      {rupiah(pkgPrice)}
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   )}
@@ -3344,42 +3409,108 @@ export function SpotRedirectClient() {
               </button>
             </div>
 
-            {/* Package Selector (Mobile Drawer) */}
+            {/* Package Selector Dropdown (Mobile Drawer) */}
             {Array.isArray(activeSpot.pricingPackages) &&
               activeSpot.pricingPackages.length > 1 && (
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-foreground block">
-                    Pilihan Paket
+                <div className="space-y-1.5 relative">
+                  <label className="text-xs font-bold text-foreground flex items-center justify-between">
+                    <span>Pilihan Paket</span>
+                    <span className="text-[11px] font-semibold text-brand-blue truncate max-w-[140px]">
+                      {selectedPackage?.name}
+                    </span>
                   </label>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    {activeSpot.pricingPackages.map((pkg) => {
-                      const isSelected =
-                        (selectedPackage?.id ||
-                          activeSpot.pricingPackages?.[0]?.id) === pkg.id;
-                      const pkgPrice =
-                        pkg.flatRateMode && pkg.flatRate
-                          ? Number(pkg.flatRate)
-                          : Number(pkg.weekdayRate) || 0;
-                      return (
-                        <button
-                          key={pkg.id}
-                          type="button"
-                          onClick={() => setSelectedPackageId(pkg.id || null)}
-                          className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
-                            isSelected
-                              ? 'border-brand-blue bg-brand-blue/5 ring-1 ring-brand-blue'
-                              : 'border-border bg-surface/50 hover:bg-surface'
-                          }`}
-                        >
-                          <span className="font-bold text-foreground block truncate text-xs">
-                            {pkg.name}
+
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setIsMobilePackageDropdownOpen(
+                          !isMobilePackageDropdownOpen,
+                        )
+                      }
+                      className="w-full p-3 rounded-2xl border border-border hover:border-brand-blue bg-white text-left flex items-center justify-between transition-all cursor-pointer shadow-2xs group"
+                    >
+                      <div className="min-w-0 pr-2">
+                        <span className="font-extrabold text-xs text-foreground block truncate group-hover:text-brand-blue transition-colors">
+                          {selectedPackage?.name || 'Pilih Paket'}
+                        </span>
+                        <span className="text-[11.5px] font-bold text-brand-blue block mt-0.5">
+                          {rupiah(spotPricePerNight)}{' '}
+                          <span className="text-[10.5px] text-foreground-muted font-normal">
+                            / malam · Maks. {effectiveMaxCapacity} Tamu
                           </span>
-                          <span className="font-extrabold text-brand-blue block text-[11px] mt-0.5">
-                            {rupiah(pkgPrice)}
-                          </span>
-                        </button>
-                      );
-                    })}
+                        </span>
+                      </div>
+                      <ChevronDown
+                        size={18}
+                        className={`text-foreground-muted transition-transform shrink-0 ${
+                          isMobilePackageDropdownOpen
+                            ? 'rotate-180 text-brand-blue'
+                            : ''
+                        }`}
+                      />
+                    </button>
+
+                    {isMobilePackageDropdownOpen && (
+                      <>
+                        <div
+                          className="fixed inset-0 z-20"
+                          onClick={() => setIsMobilePackageDropdownOpen(false)}
+                        />
+                        <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-border rounded-2xl shadow-xl z-30 p-1.5 space-y-1 max-h-60 overflow-y-auto">
+                          {activeSpot.pricingPackages.map((pkg) => {
+                            const isSelected =
+                              (selectedPackage?.id ||
+                                activeSpot.pricingPackages?.[0]?.id) === pkg.id;
+                            const pkgPrice =
+                              pkg.flatRateMode && pkg.flatRate
+                                ? Number(pkg.flatRate)
+                                : Number(pkg.weekdayRate) || 0;
+                            const pkgCap =
+                              pkg.maxOccupancy ||
+                              pkg.baseCapacity ||
+                              activeSpot.maxCapacity ||
+                              4;
+
+                            return (
+                              <button
+                                key={pkg.id}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedPackageId(pkg.id || null);
+                                  setIsMobilePackageDropdownOpen(false);
+                                }}
+                                className={`w-full p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between ${
+                                  isSelected
+                                    ? 'border-brand-blue bg-brand-blue/5 text-foreground'
+                                    : 'border-transparent hover:bg-surface/80 text-foreground'
+                                }`}
+                              >
+                                <div className="min-w-0 pr-2">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="font-bold text-xs block truncate">
+                                      {pkg.name}
+                                    </span>
+                                    {isSelected && (
+                                      <CheckCircle2
+                                        size={13}
+                                        className="text-brand-blue shrink-0"
+                                      />
+                                    )}
+                                  </div>
+                                  <span className="text-[11px] text-foreground-muted block mt-0.5">
+                                    Maks. {pkgCap} Tamu
+                                  </span>
+                                </div>
+                                <span className="font-extrabold text-xs text-brand-blue shrink-0 whitespace-nowrap">
+                                  {rupiah(pkgPrice)}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               )}
