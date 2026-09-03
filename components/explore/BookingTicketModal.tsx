@@ -169,16 +169,16 @@ export function BookingTicketModal({
             </div>
 
             {/* Simulated QR Code Box */}
-            <div className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-white border border-border shadow-xs shrink-0">
-              <div className="w-28 h-28 bg-surface-variant flex items-center justify-center rounded-xl p-2">
+            <div className="flex flex-col items-center gap-2 p-3.5 rounded-2xl bg-white border border-border shadow-xs shrink-0 self-center sm:self-auto">
+              <div className="w-36 h-36 sm:w-40 sm:h-40 bg-surface-variant flex items-center justify-center rounded-xl p-2.5 border border-border/50">
                 <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(orderData.orderId)}`}
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(orderData.orderId)}`}
                   alt="QR Code Check-in"
                   className="w-full h-full object-contain"
                 />
               </div>
-              <span className="text-[9.5px] font-bold text-foreground-muted flex items-center gap-1">
-                <QrCode size={11} className="text-brand-blue" />
+              <span className="text-[10px] font-bold text-foreground-muted flex items-center gap-1.5">
+                <QrCode size={12} className="text-brand-blue" />
                 Scan Check-In
               </span>
             </div>

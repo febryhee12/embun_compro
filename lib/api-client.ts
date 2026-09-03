@@ -236,6 +236,19 @@ export async function syncOrderStatus(orderId: string) {
   return res.json();
 }
 
+/** `POST /api/orders/:id/resend-ticket` — kirim ulang e-tiket HTML ke email tamu. */
+export async function resendTicketEmail(orderId: string) {
+  const res = await fetch(`${API_BASE_URL}/orders/${orderId}/resend-ticket`, {
+    method: 'POST',
+    headers: guestAuthHeaders(),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Gagal mengirim ulang e-tiket.');
+  }
+  return res.json();
+}
+
 /** `POST /api/orders/:id/cancel` — batalkan pesanan pending oleh tamu untuk melepas kuncian tanggal. */
 export async function cancelGuestOrder(orderId: string, reason?: string) {
   const res = await fetch(`${API_BASE_URL}/orders/${orderId}/cancel`, {

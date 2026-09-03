@@ -23,12 +23,14 @@ import {
   ShieldCheck,
   XCircle,
   Clock3,
+  Mail,
 } from 'lucide-react';
 import {
   fetchGuestOrder,
   initiateOrderPayment,
   initiateSettlementPayment,
   syncOrderStatus,
+  resendTicketEmail,
   initiateXenditPayment,
   getGuestToken,
   clearGuestSession,
@@ -137,6 +139,8 @@ export function OrderDetailClient() {
   const [paying, setPaying] = useState(false);
   const [settling, setSettling] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [resendingTicket, setResendingTicket] = useState(false);
+  const [ticketSentNotice, setTicketSentNotice] = useState<string | null>(null);
 
   const load = React.useCallback(async () => {
     if (!orderId) return;
@@ -148,7 +152,14 @@ export function OrderDetailClient() {
     try {
       setLoading(true);
       setError(null);
-      const data = await fetchGuestOrder(orderId);
+      let data = await fetchGuestOrder(orderId);
+      // Bila pesanan masih PENDING (misalnya baru kembali dari redirect Xendit), lakukan auto-sync sekali
+      if (data?.status === 'PENDING') {
+        const syncRes = await syncOrderStatus(orderId).catch(() => null);
+        if (syncRes && (syncRes.status === 'PAID' || syncRes.status === 'COMPLETE')) {
+          data = await fetchGuestOrder(orderId).catch(() => data);
+        }
+      }
       setOrder(data);
     } catch (err: any) {
       if (err instanceof ApiError && err.status === 401) {
@@ -161,6 +172,25 @@ export function OrderDetailClient() {
       setLoading(false);
     }
   }, [orderId]);
+
+  const handleResendTicket = async () => {
+    if (!orderId) return;
+    setResendingTicket(true);
+    setTicketSentNotice(null);
+    try {
+      const res = await resendTicketEmail(orderId);
+      if (res?.emailSent) {
+        setTicketSentNotice('E-Tiket resmi telah berhasil dikirimkan ke email Anda!');
+      } else {
+        setTicketSentNotice('Permintaan pengiriman e-tiket telah diproses ke sistem.');
+      }
+      setTimeout(() => setTicketSentNotice(null), 6000);
+    } catch (err: any) {
+      setError(err.message || 'Gagal mengirim ulang e-tiket.');
+    } finally {
+      setResendingTicket(false);
+    }
+  };
 
   useEffect(() => {
     void load();
@@ -365,21 +395,44 @@ export function OrderDetailClient() {
                     <p className="text-[11px] text-foreground-muted font-mono break-all pt-1">
                       No. Transaksi: <span className="text-foreground">{order.id}</span>
                     </p>
+
+                    {/* Tombol Kirim E-Tiket ke Email */}
+                    <div className="pt-3 flex flex-wrap items-center gap-2.5">
+                      <button
+                        type="button"
+                        onClick={handleResendTicket}
+                        disabled={resendingTicket}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-brand-blue/10 hover:bg-brand-blue/20 text-brand-blue text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+                        title="Kirim E-Tiket HTML resmi ke alamat email akun Anda"
+                      >
+                        {resendingTicket ? (
+                          <Loader2 size={14} className="animate-spin" />
+                        ) : (
+                          <Mail size={14} />
+                        )}
+                        <span>Kirim E-Tiket ke Email</span>
+                      </button>
+                      {ticketSentNotice && (
+                        <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl animate-in fade-in">
+                          {ticketSentNotice}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
-                  {/* QR Code Container Check-in */}
-                  <div className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-white border border-border shadow-xs shrink-0">
-                    <div className="w-32 h-32 bg-surface flex items-center justify-center rounded-xl p-2 border border-border/50">
+                  {/* QR Code Container Check-in (Perbesar agar mudah discan) */}
+                  <div className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white border border-border shadow-xs shrink-0 self-center sm:self-auto">
+                    <div className="w-44 h-44 sm:w-48 sm:h-48 bg-surface flex items-center justify-center rounded-2xl p-2.5 border border-border/60">
                       <img
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(
                           order.id,
                         )}`}
                         alt="QR Code Check-in"
                         className="w-full h-full object-contain"
                       />
                     </div>
-                    <span className="text-[10px] font-bold text-foreground-muted flex items-center gap-1">
-                      <QrCode size={12} className="text-brand-blue" />
+                    <span className="text-[11px] font-bold text-foreground-muted flex items-center gap-1.5">
+                      <QrCode size={13} className="text-brand-blue" />
                       Scan untuk Check-in
                     </span>
                   </div>
