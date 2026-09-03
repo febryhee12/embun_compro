@@ -587,21 +587,31 @@ export function CheckoutClient() {
                   Rincian Harga
                 </h4>
 
-                <div className="flex justify-between">
-                  <span className="text-foreground-muted">
-                    {draft.selectedPackage.name} ({rupiah(draft.spotPricePerNight)} × {draft.nights} malam)
-                  </span>
-                  <span className="font-semibold text-foreground">
+                <div className="flex justify-between items-start gap-4">
+                  <div className="min-w-0 pr-2">
+                    <span className="text-foreground-muted block leading-snug">
+                      {draft.selectedPackage.name}
+                    </span>
+                    <span className="text-[11px] text-foreground-muted/70 block mt-0.5">
+                      {rupiah(draft.spotPricePerNight)} × {draft.nights} malam
+                    </span>
+                  </div>
+                  <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right pt-0.5">
                     {rupiah(draft.spotPricePerNight * draft.nights)}
                   </span>
                 </div>
 
                 {draft.extraPersonInfo && draft.extraPersonInfo.amount > 0 && (
-                  <div className="flex justify-between pt-1 border-t border-border/50">
-                    <span className="text-foreground-muted">
-                      Tamu Tambahan ({draft.extraPersonInfo.count} orang × {rupiah(draft.extraPersonInfo.unitPrice)} × {draft.nights} malam)
-                    </span>
-                    <span className="font-semibold text-foreground">
+                  <div className="flex justify-between items-start gap-4 pt-1 border-t border-border/50">
+                    <div className="min-w-0 pr-2">
+                      <span className="text-foreground-muted block leading-snug">
+                        Tamu Tambahan
+                      </span>
+                      <span className="text-[11px] text-foreground-muted/70 block mt-0.5">
+                        {draft.extraPersonInfo.count} orang × {rupiah(draft.extraPersonInfo.unitPrice)} × {draft.nights} malam
+                      </span>
+                    </div>
+                    <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right pt-0.5">
                       +{rupiah(draft.extraPersonInfo.amount)}
                     </span>
                   </div>
@@ -613,11 +623,11 @@ export function CheckoutClient() {
                       Perlengkapan Tambahan:
                     </span>
                     {draft.activeAddonsList.map((addon) => (
-                      <div key={addon.id} className="flex justify-between text-[11.5px] pl-2">
-                        <span className="text-foreground-muted">
+                      <div key={addon.id} className="flex justify-between items-center gap-3 text-[11.5px] pl-2">
+                        <span className="text-foreground-muted truncate">
                           {addon.name} × {addon.qty}
                         </span>
-                        <span className="font-medium text-foreground">
+                        <span className="font-medium text-foreground shrink-0 whitespace-nowrap text-right">
                           {rupiah(addon.price * addon.qty)}
                         </span>
                       </div>
@@ -625,10 +635,10 @@ export function CheckoutClient() {
                   </div>
                 )}
 
-                <div className="flex justify-between pt-1 border-t border-border/50">
+                <div className="flex justify-between items-center gap-4 pt-1 border-t border-border/50">
                   <span className="text-foreground-muted">Biaya Layanan & Pajak</span>
-                  <span className="font-semibold text-foreground">
-                    {rupiah(draft.totalServiceAndTaxFee)}
+                  <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right">
+                    +{rupiah(draft.totalServiceAndTaxFee)}
                   </span>
                 </div>
 

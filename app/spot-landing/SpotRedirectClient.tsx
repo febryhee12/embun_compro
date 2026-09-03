@@ -2910,47 +2910,56 @@ export function SpotRedirectClient() {
                 </div>
 
                 {/* Price Calculation Breakdown */}
-                <div className="space-y-2 pt-2 border-t border-border text-xs">
-                  <div className="flex justify-between text-foreground-muted">
-                    <span>
-                      {selectedPackage?.name || 'Sewa'} (
-                      {rupiah(spotPricePerNight)} x {nights} malam)
-                    </span>
-                    <span className="font-semibold text-foreground">
+                <div className="space-y-2.5 pt-2 border-t border-border text-xs">
+                  <div className="flex justify-between items-start gap-4">
+                    <div className="min-w-0 pr-2">
+                      <span className="text-foreground-muted block leading-snug">
+                        {selectedPackage?.name || 'Sewa Spot'}
+                      </span>
+                      <span className="text-[11px] text-foreground-muted/70 block mt-0.5">
+                        {rupiah(spotPricePerNight)} × {nights} malam
+                      </span>
+                    </div>
+                    <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right pt-0.5">
                       {rupiah(spotPricePerNight * nights)}
                     </span>
                   </div>
 
                   {extraPersonInfo && extraPersonInfo.amount > 0 && (
-                    <div className="flex justify-between text-foreground-muted">
-                      <span>
-                        Tamu Tambahan ({extraPersonInfo.count} orang × {rupiah(extraPersonInfo.unitPrice)} × {nights} malam)
-                      </span>
-                      <span className="font-semibold text-foreground">
+                    <div className="flex justify-between items-start gap-4 pt-1 border-t border-border/50">
+                      <div className="min-w-0 pr-2">
+                        <span className="text-foreground-muted block leading-snug">
+                          Tamu Tambahan
+                        </span>
+                        <span className="text-[11px] text-foreground-muted/70 block mt-0.5">
+                          {extraPersonInfo.count} orang × {rupiah(extraPersonInfo.unitPrice)} × {nights} malam
+                        </span>
+                      </div>
+                      <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right pt-0.5">
                         +{rupiah(extraPersonInfo.amount)}
                       </span>
                     </div>
                   )}
 
                   {addonTotal > 0 && (
-                    <div className="flex justify-between text-foreground-muted">
-                      <span>Perlengkapan Tambahan</span>
-                      <span className="font-semibold text-foreground">
+                    <div className="flex justify-between items-center gap-4 pt-1 border-t border-border/50">
+                      <span className="text-foreground-muted">Perlengkapan Tambahan</span>
+                      <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right">
                         +{rupiah(addonTotal)}
                       </span>
                     </div>
                   )}
 
-                  <div className="flex justify-between text-foreground-muted">
-                    <span>Biaya Layanan & Pajak</span>
-                    <span className="font-semibold text-foreground">
+                  <div className="flex justify-between items-center gap-4 pt-1 border-t border-border/50">
+                    <span className="text-foreground-muted">Biaya Layanan & Pajak</span>
+                    <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right">
                       +{rupiah(totalServiceAndTaxFee)}
                     </span>
                   </div>
 
                   <div className="flex justify-between items-baseline pt-2 border-t border-border font-bold text-sm text-foreground">
                     <span>Total Tagihan</span>
-                    <span className="text-base text-brand-blue font-extrabold">
+                    <span className="text-base text-brand-blue font-extrabold shrink-0 whitespace-nowrap">
                       {rupiah(grandTotal)}
                     </span>
                   </div>
@@ -3542,45 +3551,56 @@ export function SpotRedirectClient() {
             )}
 
             {/* Price Calculation Breakdown */}
-            <div className="space-y-2 pt-2 border-t border-border text-xs">
-              <div className="flex justify-between text-foreground-muted">
-                <span>
-                  {selectedPackage?.name || 'Sewa'} ({rupiah(spotPricePerNight)}{' '}
-                  x {nights} malam)
-                </span>
-                <span className="font-semibold text-foreground">
+            <div className="space-y-2.5 pt-2 border-t border-border text-xs">
+              <div className="flex justify-between items-start gap-4">
+                <div className="min-w-0 pr-2">
+                  <span className="text-foreground-muted block leading-snug">
+                    {selectedPackage?.name || 'Sewa Spot'}
+                  </span>
+                  <span className="text-[11px] text-foreground-muted/70 block mt-0.5">
+                    {rupiah(spotPricePerNight)} × {nights} malam
+                  </span>
+                </div>
+                <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right pt-0.5">
                   {rupiah(spotPricePerNight * nights)}
                 </span>
               </div>
 
               {extraPersonInfo && extraPersonInfo.amount > 0 && (
-                <div className="flex justify-between text-foreground-muted">
-                  <span>
-                    Tamu Tambahan ({extraPersonInfo.count} orang × {rupiah(extraPersonInfo.unitPrice)} × {nights} malam)
-                  </span>
-                  <span className="font-semibold text-foreground">
+                <div className="flex justify-between items-start gap-4 pt-1 border-t border-border/50">
+                  <div className="min-w-0 pr-2">
+                    <span className="text-foreground-muted block leading-snug">
+                      Tamu Tambahan
+                    </span>
+                    <span className="text-[11px] text-foreground-muted/70 block mt-0.5">
+                      {extraPersonInfo.count} orang × {rupiah(extraPersonInfo.unitPrice)} × {nights} malam
+                    </span>
+                  </div>
+                  <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right pt-0.5">
                     +{rupiah(extraPersonInfo.amount)}
                   </span>
                 </div>
               )}
 
               {addonTotal > 0 && (
-                <div className="flex justify-between text-foreground-muted">
-                  <span>Perlengkapan Tambahan</span>
-                  <span className="font-semibold text-foreground">
+                <div className="flex justify-between items-center gap-4 pt-1 border-t border-border/50">
+                  <span className="text-foreground-muted">Perlengkapan Tambahan</span>
+                  <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right">
                     +{rupiah(addonTotal)}
                   </span>
                 </div>
               )}
 
-              <div className="flex justify-between text-foreground-muted">
-                <span>Biaya Layanan & Pajak</span>
-                <span className="font-semibold text-emerald-600">Gratis</span>
+              <div className="flex justify-between items-center gap-4 pt-1 border-t border-border/50">
+                <span className="text-foreground-muted">Biaya Layanan & Pajak</span>
+                <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right">
+                  +{rupiah(totalServiceAndTaxFee)}
+                </span>
               </div>
 
               <div className="flex justify-between items-baseline pt-2 border-t border-border font-bold text-sm text-foreground">
                 <span>Total Tagihan</span>
-                <span className="text-base text-brand-blue font-extrabold">
+                <span className="text-base text-brand-blue font-extrabold shrink-0 whitespace-nowrap">
                   {rupiah(grandTotal)}
                 </span>
               </div>
