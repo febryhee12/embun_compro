@@ -14,10 +14,118 @@ import {
   User,
   ArrowUp,
   ShieldCheck,
+  Wifi,
+  Bath,
+  Droplets,
+  Zap,
+  Flame,
+  Car,
+  MoonStar,
+  Coffee,
+  Waves,
+  BriefcaseMedical,
+  Store,
+  Mountain,
+  Trees,
+  Tent,
+  CheckCircle2,
 } from 'lucide-react';
 import { SpotCard, type SpotData } from '@/components/explore/SpotCard';
 import { GuestAuthModal } from '@/components/explore/GuestAuthModal';
 import { getStoredGuestProfile } from '@/lib/api-client';
+
+function getFacilityIcon(name?: string, id?: string) {
+  const lower = (name || id || '').toLowerCase();
+  const iconClass = 'text-foreground shrink-0';
+  if (lower.includes('wifi') || lower.includes('sinyal'))
+    return <Wifi size={18} className={iconClass} />;
+  if (
+    lower.includes('toilet') ||
+    lower.includes('kamar mandi') ||
+    lower.includes('bath') ||
+    lower.includes('cuci')
+  )
+    return <Bath size={18} className={iconClass} />;
+  if (
+    lower.includes('water heater') ||
+    lower.includes('pemanas') ||
+    lower.includes('air')
+  )
+    return <Droplets size={18} className={iconClass} />;
+  if (
+    lower.includes('listrik') ||
+    lower.includes('colokan') ||
+    lower.includes('power') ||
+    lower.includes('zap')
+  )
+    return <Zap size={18} className={iconClass} />;
+  if (
+    lower.includes('api') ||
+    lower.includes('bonfire') ||
+    lower.includes('bbq') ||
+    lower.includes('flame')
+  )
+    return <Flame size={18} className={iconClass} />;
+  if (
+    lower.includes('parkir') ||
+    lower.includes('car') ||
+    lower.includes('parking')
+  )
+    return <Car size={18} className={iconClass} />;
+  if (
+    lower.includes('mushola') ||
+    lower.includes('prayer') ||
+    lower.includes('moon')
+  )
+    return <MoonStar size={18} className={iconClass} />;
+  if (
+    lower.includes('cafe') ||
+    lower.includes('resto') ||
+    lower.includes('coffee')
+  )
+    return <Coffee size={18} className={iconClass} />;
+  if (
+    lower.includes('kolam') ||
+    lower.includes('pool') ||
+    lower.includes('danau') ||
+    lower.includes('sungai') ||
+    lower.includes('waves')
+  )
+    return <Waves size={18} className={iconClass} />;
+  if (
+    lower.includes('keamanan') ||
+    lower.includes('security') ||
+    lower.includes('pos')
+  )
+    return <ShieldCheck size={18} className={iconClass} />;
+  if (
+    lower.includes('p3k') ||
+    lower.includes('first aid') ||
+    lower.includes('medis')
+  )
+    return <BriefcaseMedical size={18} className={iconClass} />;
+  if (
+    lower.includes('warung') ||
+    lower.includes('toko') ||
+    lower.includes('store')
+  )
+    return <Store size={18} className={iconClass} />;
+  if (lower.includes('gunung') || lower.includes('bukit'))
+    return <Mountain size={18} className={iconClass} />;
+  if (
+    lower.includes('hutan') ||
+    lower.includes('pohon') ||
+    lower.includes('rumput')
+  )
+    return <Trees size={18} className={iconClass} />;
+  if (
+    lower.includes('tenda') ||
+    lower.includes('tent') ||
+    lower.includes('ground')
+  )
+    return <Tent size={18} className={iconClass} />;
+  return <CheckCircle2 size={18} className={iconClass} />;
+}
 
 interface PhotoItem {
   id?: string;
@@ -774,22 +882,26 @@ function CampsiteLandingClientInner() {
           </div>
         </section>
 
-        {/* FASILITAS KAWASAN — CLEAN MINIMAL PILLS */}
+        {/* FASILITAS UTAMA PROPERTI (SESUAI DESAIN EMBUN EXPLORE) */}
         {Array.isArray(campsite.facilities) && campsite.facilities.length > 0 && (
           <section className="space-y-4">
             <h2 className="font-extrabold text-xl text-foreground">
-              Fasilitas Kawasan
+              Fasilitas Utama Properti
             </h2>
-            <div className="flex flex-wrap gap-2.5 text-xs sm:text-sm">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-xs sm:text-sm text-foreground">
               {campsite.facilities.map((fac: any, idx: number) => {
-                const facName = typeof fac === 'string' ? fac : fac.name || 'Fasilitas';
+                const facName =
+                  typeof fac === 'string' ? fac : fac.name || 'Fasilitas';
+                const facIcon =
+                  typeof fac === 'object' ? fac.icon : null;
                 return (
-                  <span
+                  <div
                     key={fac.id || idx}
-                    className="px-3.5 py-2 rounded-xl bg-surface border border-border text-foreground font-medium"
+                    className="flex items-center gap-3 p-3.5 rounded-2xl bg-surface/70 border border-border/80 shadow-2xs hover:bg-surface transition-colors"
                   >
-                    {facName}
-                  </span>
+                    {getFacilityIcon(facName, facIcon || fac.id)}
+                    <span className="font-medium truncate">{facName}</span>
+                  </div>
                 );
               })}
             </div>
