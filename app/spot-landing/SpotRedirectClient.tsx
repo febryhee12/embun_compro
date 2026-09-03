@@ -63,6 +63,7 @@ import {
   resolveAssetUrl,
   rupiah,
   ApiError,
+  fetchPricingQuote,
 } from '@/lib/api-client';
 import { BookingCalendarModal } from '@/components/explore/BookingCalendarModal';
 import { GuestAuthModal } from '@/components/explore/GuestAuthModal';
@@ -346,6 +347,8 @@ export function SpotRedirectClient() {
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(
     null,
   );
+  const [serverQuote, setServerQuote] = useState<any | null>(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -1217,16 +1220,106 @@ export function SpotRedirectClient() {
     return base + tax;
   }, [platformFee]);
 
+  // Hubungkan dengan Authoritative Pricing Engine (/api/public/quote)
+  useEffect(() => {
+    if (
+      !campsite?.id ||
+      !activeSpot?.id ||
+      !selectedPackage?.id ||
+      !checkInDate ||
+      !checkOutDate
+    ) {
+      setServerQuote(null);
+      return;
+    }
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        setQuoteLoading(true);
+        const addonsPayload = Object.entries(selectedAddons)
+          .filter(([, qty]) => qty > 0)
+          .map(([addonId, quantity]) => ({ addonId, quantity }));
+
+        const quote = await fetchPricingQuote({
+          campsiteId: campsite.id,
+          blockId: activeSpot.id,
+          pricingPackageId: selectedPackage.id as string,
+          checkIn: checkInDate,
+          checkOut: checkOutDate,
+          adultCount: guestCount,
+          addons: addonsPayload,
+        });
+        if (!cancelled) {
+          setServerQuote(quote);
+        }
+      } catch (err) {
+        console.warn('[SpotRedirectClient] Gagal memuat server quote:', err);
+      } finally {
+        if (!cancelled) setQuoteLoading(false);
+      }
+    }, 120);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [
+    campsite?.id,
+    activeSpot?.id,
+    selectedPackage?.id,
+    checkInDate,
+    checkOutDate,
+    guestCount,
+    selectedAddons,
+  ]);
+
+  // Biaya Orang Tambahan (Extra Person) berdasarkan kuota paket
+  const extraPersonInfo = useMemo(() => {
+    if (serverQuote?.lines) {
+      const extraLine = serverQuote.lines.find(
+        (l: any) => l.code === 'EXTRA_PERSON',
+      );
+      if (extraLine) {
+        return {
+          count:
+            serverQuote.extraPersons ||
+            Math.max(1, Math.round(extraLine.quantity / nights)),
+          unitPrice: extraLine.unitPrice,
+          amount: extraLine.amount,
+        };
+      }
+    }
+    // Fallback perhitungan lokal bila serverQuote belum kembali
+    const baseCap = selectedPackage?.baseCapacity ?? 1;
+    const extraCount = Math.max(0, guestCount - baseCap);
+    const extraFee = Number(selectedPackage?.extraPersonFee ?? 0);
+    if (extraCount > 0 && extraFee > 0) {
+      return {
+        count: extraCount,
+        unitPrice: extraFee,
+        amount: extraFee * extraCount * nights,
+      };
+    }
+    return null;
+  }, [serverQuote, selectedPackage, guestCount, nights]);
+
+  // Subtotal sewa kavling + orang tambahan + perlengkapan
+  const rentalSubtotal = useMemo(() => {
+    if (serverQuote?.total != null) {
+      return serverQuote.total;
+    }
+    const extraAmount = extraPersonInfo?.amount || 0;
+    return spotPricePerNight * nights + extraAmount + addonTotal;
+  }, [serverQuote, extraPersonInfo, spotPricePerNight, nights, addonTotal]);
+
   const grandTotal = useMemo(() => {
-    return spotPricePerNight * nights + addonTotal + totalServiceAndTaxFee;
-  }, [spotPricePerNight, nights, addonTotal, totalServiceAndTaxFee]);
+    return rentalSubtotal + totalServiceAndTaxFee;
+  }, [rentalSubtotal, totalServiceAndTaxFee]);
 
   const dp50Total = useMemo(() => {
-    const rentalHalf = Math.round(
-      (spotPricePerNight * nights + addonTotal) * 0.5,
-    );
+    const rentalHalf = Math.round(rentalSubtotal * 0.5);
     return rentalHalf + totalServiceAndTaxFee;
-  }, [spotPricePerNight, nights, addonTotal, totalServiceAndTaxFee]);
+  }, [rentalSubtotal, totalServiceAndTaxFee]);
 
   const paymentAmountToPay = paymentScheme === 'DP_50' ? dp50Total : grandTotal;
 
@@ -1312,6 +1405,9 @@ export function SpotRedirectClient() {
       checkOutDate,
       nights,
       guestCount,
+      extraPersonInfo,
+      serverQuote,
+      rentalSubtotal,
       paymentScheme,
       spotPricePerNight,
       selectedAddons,
@@ -1319,6 +1415,7 @@ export function SpotRedirectClient() {
       addonsTotal: addonTotal,
       totalServiceAndTaxFee,
       grandTotal,
+      dp50Total,
       paymentAmountToPay,
     };
 
@@ -2824,6 +2921,17 @@ export function SpotRedirectClient() {
                     </span>
                   </div>
 
+                  {extraPersonInfo && extraPersonInfo.amount > 0 && (
+                    <div className="flex justify-between text-foreground-muted">
+                      <span>
+                        Tamu Tambahan ({extraPersonInfo.count} orang × {rupiah(extraPersonInfo.unitPrice)} × {nights} malam)
+                      </span>
+                      <span className="font-semibold text-foreground">
+                        +{rupiah(extraPersonInfo.amount)}
+                      </span>
+                    </div>
+                  )}
+
                   {addonTotal > 0 && (
                     <div className="flex justify-between text-foreground-muted">
                       <span>Perlengkapan Tambahan</span>
@@ -3444,6 +3552,17 @@ export function SpotRedirectClient() {
                   {rupiah(spotPricePerNight * nights)}
                 </span>
               </div>
+
+              {extraPersonInfo && extraPersonInfo.amount > 0 && (
+                <div className="flex justify-between text-foreground-muted">
+                  <span>
+                    Tamu Tambahan ({extraPersonInfo.count} orang × {rupiah(extraPersonInfo.unitPrice)} × {nights} malam)
+                  </span>
+                  <span className="font-semibold text-foreground">
+                    +{rupiah(extraPersonInfo.amount)}
+                  </span>
+                </div>
+              )}
 
               {addonTotal > 0 && (
                 <div className="flex justify-between text-foreground-muted">

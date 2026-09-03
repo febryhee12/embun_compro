@@ -67,6 +67,12 @@ interface CheckoutDraft {
   totalServiceAndTaxFee: number;
   grandTotal: number;
   paymentAmountToPay: number;
+  extraPersonInfo?: {
+    count: number;
+    unitPrice: number;
+    amount: number;
+  } | null;
+  serverQuote?: any;
 }
 
 function formatDateDisplay(dateStr?: string) {
@@ -581,6 +587,17 @@ export function CheckoutClient() {
                     {rupiah(draft.spotPricePerNight * draft.nights)}
                   </span>
                 </div>
+
+                {draft.extraPersonInfo && draft.extraPersonInfo.amount > 0 && (
+                  <div className="flex justify-between pt-1 border-t border-border/50">
+                    <span className="text-foreground-muted">
+                      Tamu Tambahan ({draft.extraPersonInfo.count} orang × {rupiah(draft.extraPersonInfo.unitPrice)} × {draft.nights} malam)
+                    </span>
+                    <span className="font-semibold text-foreground">
+                      +{rupiah(draft.extraPersonInfo.amount)}
+                    </span>
+                  </div>
+                )}
 
                 {draft.activeAddonsList.length > 0 && (
                   <div className="space-y-1.5 pt-1 border-t border-border/50">

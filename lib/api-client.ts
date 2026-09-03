@@ -298,3 +298,36 @@ export function initiateXenditPayment(xenditInvoiceUrl: string): void {
   if (typeof window === 'undefined') return;
   window.open(xenditInvoiceUrl, '_blank', 'noopener,noreferrer');
 }
+
+export interface QuoteAddonItem {
+  addonId: string;
+  quantity: number;
+}
+
+export interface QuotePayload {
+  campsiteId: string;
+  blockId: string;
+  pricingPackageId: string;
+  checkIn: string; // YYYY-MM-DD
+  checkOut: string; // YYYY-MM-DD
+  adultCount: number;
+  addons?: QuoteAddonItem[];
+}
+
+/** `POST /api/public/quote` — Authoritative quote calculation from pricing engine. */
+export async function fetchPricingQuote(payload: QuotePayload) {
+  const res = await fetch(`${API_BASE_URL}/public/quote`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      ...payload,
+      addons: payload.addons || [],
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new ApiError(err.message || 'Gagal menghitung tarif.', res.status);
+  }
+  return res.json();
+}
+
