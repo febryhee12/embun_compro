@@ -1,8 +1,17 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Loader2, Tent, ChevronRight, Calendar, Sparkles } from 'lucide-react';
+import {
+  ArrowLeft,
+  Loader2,
+  Tent,
+  ChevronRight,
+  Calendar,
+  LogIn,
+  RefreshCw,
+  AlertCircle,
+} from 'lucide-react';
 import {
   getGuestToken,
   clearGuestSession,
@@ -11,6 +20,7 @@ import {
   rupiah,
   ApiError,
 } from '@/lib/api-client';
+import { GuestAuthModal } from '@/components/explore/GuestAuthModal';
 
 function getOrderBadge(order: any) {
   if (order.status === 'PAID') {
@@ -99,30 +109,49 @@ export function OrdersClient() {
   const [loading, setLoading] = useState(true);
   const [authRequired, setAuthRequired] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
 
-  useEffect(() => {
-    if (!getGuestToken()) {
+  const load = useCallback(async () => {
+    const token = getGuestToken();
+    if (!token) {
       setAuthRequired(true);
       setLoading(false);
       return;
     }
-    const load = async () => {
-      try {
-        const data = await fetchGuestOrders();
-        setOrders(Array.isArray(data) ? data : []);
-      } catch (err: any) {
-        if (err instanceof ApiError && err.status === 401) {
-          clearGuestSession();
-          setAuthRequired(true);
-        } else {
-          setError(err.message || 'Gagal memuat riwayat pesanan.');
-        }
-      } finally {
-        setLoading(false);
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await fetchGuestOrders();
+      setOrders(Array.isArray(data) ? data : []);
+      setAuthRequired(false);
+    } catch (err: any) {
+      const status = err?.status || (err instanceof ApiError ? err.status : 0);
+      const msg = String(err?.message || '');
+      if (
+        status === 401 ||
+        msg.includes('401') ||
+        msg.toLowerCase().includes('unauthorized') ||
+        msg.toLowerCase().includes('jwt')
+      ) {
+        clearGuestSession();
+        setAuthRequired(true);
+      } else {
+        setError(err?.message || 'Gagal memuat riwayat pesanan.');
       }
-    };
-    void load();
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const handleLoginSuccess = () => {
+    setIsAuthOpen(false);
+    setAuthRequired(false);
+    void load();
+  };
 
   return (
     <div className="min-h-screen bg-[#fafafa] text-foreground">
@@ -155,26 +184,50 @@ export function OrdersClient() {
             <p className="text-xs font-semibold">Memuat riwayat pesanan...</p>
           </div>
         ) : authRequired ? (
-          <div className="text-center py-20 bg-white rounded-3xl border border-border p-8 space-y-4 shadow-2xs max-w-md mx-auto">
+          <div className="text-center py-20 bg-white rounded-3xl border border-border p-8 space-y-5 shadow-2xs max-w-md mx-auto">
             <div className="w-14 h-14 mx-auto rounded-2xl bg-brand-blue/10 flex items-center justify-center text-brand-blue">
               <Tent size={26} />
             </div>
             <div className="space-y-1">
               <h3 className="font-bold text-base text-foreground">Masuk ke Akun Anda</h3>
               <p className="text-xs text-foreground-muted leading-relaxed">
-                Silakan masuk untuk melihat daftar pemesanan dan tiket penginapan Anda.
+                Sesi masuk Anda telah berakhir atau belum aktif. Silakan masuk untuk melihat daftar pemesanan dan tiket penginapan Anda.
               </p>
             </div>
-            <Link
-              href="/explore"
-              className="inline-flex items-center justify-center w-full py-3 rounded-full bg-brand-blue text-white text-xs font-bold shadow-md hover:bg-brand-blue-hover transition-all"
+            <button
+              type="button"
+              onClick={() => setIsAuthOpen(true)}
+              className="inline-flex items-center justify-center gap-2 w-full py-3.5 rounded-full bg-brand-blue text-white text-xs font-bold shadow-md hover:bg-brand-blue-hover transition-all cursor-pointer"
             >
-              Ke Halaman Explore
-            </Link>
+              <LogIn size={15} />
+              <span>Masuk Sekarang</span>
+            </button>
+            <div>
+              <Link
+                href="/explore"
+                className="text-xs font-semibold text-foreground-muted hover:text-foreground transition-colors"
+              >
+                Kembali ke Explore
+              </Link>
+            </div>
           </div>
         ) : error ? (
-          <div className="p-6 text-center bg-red-50 rounded-3xl border border-red-200 text-red-700 text-sm max-w-md mx-auto">
-            {error}
+          <div className="p-8 text-center bg-white rounded-3xl border border-border text-foreground text-sm max-w-md mx-auto space-y-4 shadow-2xs">
+            <div className="w-12 h-12 mx-auto rounded-full bg-red-50 text-red-600 flex items-center justify-center">
+              <AlertCircle size={22} />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-bold text-sm text-foreground">Gagal Memuat Riwayat</h3>
+              <p className="text-xs text-foreground-muted">{error}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => void load()}
+              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-brand-blue text-white text-xs font-bold hover:bg-brand-blue-hover transition-all cursor-pointer shadow-xs"
+            >
+              <RefreshCw size={13} />
+              <span>Coba Lagi</span>
+            </button>
           </div>
         ) : orders.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-3xl border border-border p-8 space-y-4 shadow-2xs max-w-md mx-auto">
@@ -285,6 +338,13 @@ export function OrdersClient() {
           </div>
         )}
       </main>
+
+      {/* Guest Auth Modal langsung di Pesanan Saya */}
+      <GuestAuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        onSuccess={handleLoginSuccess}
+      />
     </div>
   );
 }

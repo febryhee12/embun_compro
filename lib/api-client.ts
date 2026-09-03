@@ -230,7 +230,10 @@ export async function fetchGuestOrders() {
     headers: guestAuthHeaders(),
     cache: 'no-store',
   });
-  if (!res.ok) throw new Error('Gagal memuat riwayat pesanan.');
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new ApiError(err.message || 'Gagal memuat riwayat pesanan.', res.status);
+  }
   return res.json();
 }
 
@@ -242,7 +245,7 @@ export async function fetchGuestOrder(orderId: string) {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || 'Gagal memuat detail pesanan.');
+    throw new ApiError(err.message || 'Gagal memuat detail pesanan.', res.status);
   }
   return res.json();
 }
