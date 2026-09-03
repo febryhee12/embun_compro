@@ -2880,11 +2880,8 @@ export function SpotRedirectClient() {
                       <span className="block text-[11px] font-bold text-foreground">
                         Bayar Lunas
                       </span>
-                      <span className="block text-xs font-extrabold text-foreground mt-0.5">
+                      <span className="block text-xs font-extrabold text-brand-blue mt-0.5">
                         {rupiah(grandTotal)}
-                      </span>
-                      <span className="block text-[9.5px] text-emerald-600 font-semibold mt-0.5">
-                        Lunas langsung
                       </span>
                     </button>
                   </div>
@@ -3505,11 +3502,8 @@ export function SpotRedirectClient() {
                   <span className="block text-xs font-bold text-foreground">
                     Bayar Lunas
                   </span>
-                  <span className="block text-xs font-extrabold text-foreground mt-0.5">
+                  <span className="block text-xs font-extrabold text-brand-blue mt-0.5">
                     {rupiah(grandTotal)}
-                  </span>
-                  <span className="block text-[10px] text-emerald-600 font-semibold mt-0.5">
-                    Lunas langsung
                   </span>
                 </button>
               </div>

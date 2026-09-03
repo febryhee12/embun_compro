@@ -426,9 +426,6 @@ export function CheckoutClient() {
                     <p className="text-base font-black text-brand-blue">
                       {rupiah(draft.grandTotal)}
                     </p>
-                    <span className="text-[10.5px] text-foreground-muted">
-                      Lunas langsung di awal
-                    </span>
                   </div>
                 </button>
 
