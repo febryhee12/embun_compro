@@ -1211,15 +1211,6 @@ function CampsiteLandingClientInner() {
             <a href="/mitra" className="hover:underline">
               Mitra Camp
             </a>
-            <button
-              type="button"
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="w-9 h-9 rounded-full bg-brand-lime text-black flex items-center justify-center shadow-md hover:scale-105 transition-transform cursor-pointer"
-              title="Kembali ke atas"
-              aria-label="Kembali ke atas"
-            >
-              <ArrowUp size={16} />
-            </button>
           </div>
         </div>
       </footer>
