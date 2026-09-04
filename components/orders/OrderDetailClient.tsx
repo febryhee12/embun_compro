@@ -36,7 +36,7 @@ import {
   initiateOrderPayment,
   initiateSettlementPayment,
   syncOrderStatus,
-  initiateXenditPayment,
+  initiatePayment,
   getGuestToken,
   clearGuestSession,
   getStoredGuestProfile,
@@ -288,7 +288,7 @@ export function OrderDetailClient() {
       setLoading(true);
       setError(null);
       let data = await fetchGuestOrder(orderId, payToken);
-      // Bila pesanan masih PENDING (misalnya baru kembali dari redirect Xendit), lakukan auto-sync sekali
+      // Bila pesanan masih PENDING (misalnya baru kembali dari redirect pembayaran), lakukan auto-sync sekali
       if (data?.status === 'PENDING') {
         const syncRes = await syncOrderStatus(orderId).catch(() => null);
         if (syncRes && (syncRes.status === 'PAID' || syncRes.status === 'COMPLETE')) {
@@ -330,14 +330,14 @@ export function OrderDetailClient() {
     setPaying(true);
     try {
       const paymentInit = await initiateOrderPayment(orderId);
-      const xenditPaymentUrl =
+      const paymentUrl =
         paymentInit?.snapRedirectUrl ||
         paymentInit?.redirectUrl ||
         paymentInit?.invoiceUrl;
-      if (!xenditPaymentUrl) {
-        throw new Error('Gagal mendapatkan URL pembayaran Xendit.');
+      if (!paymentUrl) {
+        throw new Error('Gagal mendapatkan URL pembayaran.');
       }
-      initiateXenditPayment(xenditPaymentUrl);
+      initiatePayment(paymentUrl);
       await syncOrderStatus(orderId).catch(() => {});
       await load();
     } catch (err: any) {
@@ -359,11 +359,11 @@ export function OrderDetailClient() {
     setSettling(true);
     try {
       const res = await initiateSettlementPayment(orderId, payToken);
-      const xenditUrl = res?.invoiceUrl || res?.snapRedirectUrl || res?.redirectUrl;
-      if (!xenditUrl) {
-        throw new Error('Gagal membuat invoice pelunasan Xendit.');
+      const paymentUrl = res?.invoiceUrl || res?.snapRedirectUrl || res?.redirectUrl;
+      if (!paymentUrl) {
+        throw new Error('Gagal membuat invoice pelunasan.');
       }
-      initiateXenditPayment(xenditUrl);
+      initiatePayment(paymentUrl);
       await load();
     } catch (err: any) {
       setError(err.message || 'Gagal memproses pelunasan DP.');
@@ -823,7 +823,7 @@ export function OrderDetailClient() {
                         </span>
                       </div>
                       <h2 className="text-lg font-extrabold text-amber-950">
-                        Selesaikan Pembayaran via Xendit
+                        Selesaikan Pembayaran
                       </h2>
                       <p className="text-xs text-amber-900/80 max-w-md leading-relaxed">
                         Silakan selesaikan pembayaran sebelum batas waktu berakhir untuk menerbitkan <strong>E-Tiket & QR Code Check-in resmi</strong>.
@@ -845,7 +845,7 @@ export function OrderDetailClient() {
                         className="w-full sm:w-auto py-3 px-6 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
                       >
                         {paying ? <Loader2 size={15} className="animate-spin" /> : <CreditCard size={15} />}
-                        <span>{paying ? 'Menghubungkan ke Xendit...' : `Bayar Sekarang · ${rupiah(order.totalAmount)}`}</span>
+                        <span>{paying ? 'Menghubungkan ke Pembayaran...' : `Bayar Sekarang · ${rupiah(order.totalAmount)}`}</span>
                       </button>
                     </div>
                   </div>
@@ -1292,7 +1292,7 @@ export function OrderDetailClient() {
                         className="w-full py-3 px-6 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
                       >
                         {paying ? <Loader2 size={15} className="animate-spin" /> : <CreditCard size={15} />}
-                        <span>{paying ? 'Menghubungkan ke Xendit...' : `Bayar Sekarang · ${rupiah(order.totalAmount)}`}</span>
+                        <span>{paying ? 'Menghubungkan ke Pembayaran...' : `Bayar Sekarang · ${rupiah(order.totalAmount)}`}</span>
                       </button>
                     </div>
                   )}

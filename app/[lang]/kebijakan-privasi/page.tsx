@@ -136,8 +136,8 @@ export default async function KebijakanPrivasiPage({
                 of that reservation.
               </p>
               <p>
-                Embun also shares necessary transaction data with Xendit as
-                the payment gateway provider, to process your payments securely.
+                Embun also shares necessary transaction data with licensed
+                payment gateway partners, to process your payments securely.
               </p>
               <p>
                 Embun does not sell or rent your personal data to third parties
@@ -265,8 +265,9 @@ export default async function KebijakanPrivasiPage({
               </p>
               <p>
                 Embun juga membagikan data transaksi yang diperlukan kepada
-                Xendit selaku penyedia layanan payment gateway, untuk
-                memproses pembayaran Anda secara aman.
+                mitra penyedia gerbang pembayaran (payment gateway) resmi yang
+                berlisensi Bank Indonesia, untuk memproses pembayaran Anda
+                secara aman.
               </p>
               <p>
                 Embun tidak menjual atau menyewakan data pribadi Anda kepada

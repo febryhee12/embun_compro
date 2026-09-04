@@ -60,7 +60,6 @@ import {
   createRealOrder,
   initiateOrderPayment,
   syncOrderStatus,
-  initiateXenditPayment,
   resolveAssetUrl,
   rupiah,
   ApiError,

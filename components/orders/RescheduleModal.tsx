@@ -16,7 +16,7 @@ import {
 import {
   fetchRescheduleQuote,
   submitRescheduleOrder,
-  initiateXenditPayment,
+  initiatePayment,
   rupiah,
   type RescheduleQuote,
 } from '@/lib/api-client';
@@ -146,9 +146,9 @@ export function RescheduleModal({
     try {
       const res = await submitRescheduleOrder(order.id, checkInStr, checkOutStr);
 
-      // Skenario A: Perlu bayar selisih tarif via Xendit
+      // Skenario A: Perlu bayar selisih tarif via Payment Gateway
       if (res.requiresPayment && res.invoiceUrl) {
-        initiateXenditPayment(res.invoiceUrl);
+        initiatePayment(res.invoiceUrl);
         return;
       }
 

@@ -24,7 +24,7 @@ import {
 import {
   createRealOrder,
   initiateOrderPayment,
-  initiateXenditPayment,
+  initiatePayment,
   syncOrderStatus,
   getGuestToken,
   getGuestUser,
@@ -283,7 +283,7 @@ export function CheckoutClient() {
         throw new Error('Gagal membuat pesanan di server.');
       }
 
-      // 2. Inisiasi pembayaran Xendit dengan redirect langsung kembali ke website
+      // 2. Inisiasi pembayaran dengan redirect langsung kembali ke website
       const returnUrl =
         typeof window !== 'undefined'
           ? `${window.location.origin}/orders/detail?id=${createdOrder.id}`
@@ -291,13 +291,13 @@ export function CheckoutClient() {
       const paymentInit = await initiateOrderPayment(createdOrder.id, {
         returnUrl,
       });
-      const xenditPaymentUrl =
+      const paymentUrl =
         paymentInit?.snapRedirectUrl ||
         paymentInit?.redirectUrl ||
         paymentInit?.invoiceUrl;
 
-      if (!xenditPaymentUrl) {
-        throw new Error('Gagal mendapatkan URL invoice pembayaran Xendit.');
+      if (!paymentUrl) {
+        throw new Error('Gagal mendapatkan URL pembayaran.');
       }
 
       // Hapus draft checkout dari session
@@ -307,8 +307,8 @@ export function CheckoutClient() {
       // Best effort sync status sebelum navigasi
       void syncOrderStatus(createdOrder.id).catch(() => {});
 
-      // Arahkan browser LANGSUNG ke halaman pembayaran aman Xendit
-      initiateXenditPayment(xenditPaymentUrl);
+      // Arahkan browser LANGSUNG ke halaman pembayaran aman
+      initiatePayment(paymentUrl);
     } catch (err: any) {
       console.error('Checkout error:', err);
       if (err instanceof ApiError && err.status === 401) {
@@ -353,7 +353,7 @@ export function CheckoutClient() {
     }
   };
 
-  // Bayar pesanan lama yang masih pending langsung ke Xendit
+  // Bayar pesanan lama yang masih pending langsung ke payment gateway
   const handlePayExistingOrder = async () => {
     if (!existingPendingOrder?.id) return;
     setSubmitting(true);
@@ -370,9 +370,9 @@ export function CheckoutClient() {
         paymentInit?.snapRedirectUrl ||
         paymentInit?.redirectUrl ||
         paymentInit?.invoiceUrl;
-      if (!url) throw new Error('Gagal mendapatkan URL pembayaran Xendit.');
+      if (!url) throw new Error('Gagal mendapatkan URL pembayaran.');
       sessionStorage.removeItem('embun_checkout_draft');
-      initiateXenditPayment(url);
+      initiatePayment(url);
     } catch (e: any) {
       setError(e.message || 'Gagal melanjutkan pembayaran pesanan.');
       setSubmitting(false);

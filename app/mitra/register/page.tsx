@@ -1079,7 +1079,7 @@ export default function MitraRegisterPage() {
                     </div>
                   </div>
 
-                  {/* Status Banner with Left Accent Bar (Xendit Style) */}
+                  {/* Status Banner with Left Accent Bar */}
                   <div className={`flex gap-3.5 p-5 rounded-2xl border ${
                     result.status === 'NEEDS_REVISION'
                       ? 'bg-amber-50/70 border-amber-200/80'
@@ -1620,7 +1620,7 @@ export default function MitraRegisterPage() {
                     </div>
                   )}
 
-                  {/* ── TAB 2 / DEFAULT: RINCIAN DATA LENGKAP (XENDIT KYC CLEAN PREVIEW) ─ */}
+                  {/* ── TAB 2 / DEFAULT: RINCIAN DATA LENGKAP (KYC CLEAN PREVIEW) ─ */}
                   {(result.status !== 'NEEDS_REVISION' || statusTab === 'details') && (
                     <div className="space-y-8 pt-2">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">

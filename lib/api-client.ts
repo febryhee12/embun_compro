@@ -220,7 +220,7 @@ export async function initiateOrderPayment(
   return res.json();
 }
 
-/** `POST /api/orders/:id/pay-settlement` — creates Xendit invoice for DP remaining balance. */
+/** `POST /api/orders/:id/pay-settlement` — creates payment invoice for DP remaining balance. */
 export async function initiateSettlementPayment(
   orderId: string,
   payToken?: string | null,
@@ -269,7 +269,7 @@ export async function syncSettlementStatus(
   return res.json();
 }
 
-/** `POST /api/orders/:id/sync-status` — re-checks the Xendit/Midtrans status manually. */
+/** `POST /api/orders/:id/sync-status` — re-checks the payment gateway status manually. */
 export async function syncOrderStatus(orderId: string) {
   const res = await fetch(`${API_BASE_URL}/orders/${orderId}/sync-status`, {
     method: 'POST',
@@ -474,13 +474,17 @@ export async function updateGuestProfile(payload: {
 }
 
 /**
- * Buka halaman pembayaran Xendit.
+ * Buka halaman pembayaran DOKU Checkout / Payment Gateway.
  * Menggunakan direct navigation (window.location.href) agar tidak diblokir oleh popup blocker di Safari/Chrome.
  */
-export function initiateXenditPayment(xenditInvoiceUrl: string): void {
-  if (typeof window === 'undefined' || !xenditInvoiceUrl) return;
-  window.location.href = xenditInvoiceUrl;
+export function initiateDokuPayment(paymentUrl: string): void {
+  if (typeof window === 'undefined' || !paymentUrl) return;
+  window.location.href = paymentUrl;
 }
+
+/** Alias untuk backward compatibility */
+export const initiateXenditPayment = initiateDokuPayment;
+export const initiatePayment = initiateDokuPayment;
 
 export interface QuoteAddonItem {
   addonId: string;
