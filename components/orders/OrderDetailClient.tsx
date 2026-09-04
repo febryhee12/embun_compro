@@ -49,6 +49,7 @@ import { ExploreHeader } from '@/components/explore/ExploreHeader';
 import { ExploreFooter } from '@/components/explore/ExploreFooter';
 import { GuestAuthModal } from '@/components/explore/GuestAuthModal';
 import { CompleteProfileModal } from '@/components/explore/CompleteProfileModal';
+import { InvoiceModal, InvoiceDocument } from '@/components/orders/InvoiceModal';
 
 function getOrderBadge(order: any) {
   if (order.status === 'PAID') {
@@ -148,6 +149,7 @@ export function OrderDetailClient() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [isCompleteProfileOpen, setIsCompleteProfileOpen] = useState(false);
+  const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
 
   useEffect(() => {
     setCurrentUser(getStoredGuestProfile());
@@ -404,7 +406,7 @@ export function OrderDetailClient() {
         />
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-8 py-8 sm:py-10 flex-1 w-full print:p-0 print:max-w-full">
+      <main className="max-w-7xl mx-auto px-4 sm:px-8 py-8 sm:py-10 flex-1 w-full print:hidden">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-28 gap-3 text-foreground-muted">
             <Loader2 size={26} className="animate-spin text-brand-blue" />
@@ -462,28 +464,6 @@ export function OrderDetailClient() {
           </div>
         ) : order ? (
           <div className="space-y-6">
-            {/* Kop Invoice Khusus Mode Cetak / PDF */}
-            <div className="hidden print:flex items-center justify-between border-b-2 border-neutral-900 pb-4 mb-4">
-              <div className="flex items-center gap-3">
-                <img
-                  src="/images/logo/logo_blue.svg"
-                  alt="Embun Logo"
-                  className="h-9 w-auto object-contain"
-                />
-              </div>
-              <div className="text-right space-y-0.5">
-                <h2 className="text-lg font-black text-neutral-900 tracking-wider uppercase">
-                  Invoice Pemesanan
-                </h2>
-                <p className="text-[11px] text-neutral-600 font-mono">
-                  Kode: <strong className="text-neutral-900">{shortCode}</strong> · ID: {order.id}
-                </p>
-                <p className="text-[10px] text-neutral-500">
-                  Diterbitkan oleh embun.app · PT Embun Aplikasi Pratama
-                </p>
-              </div>
-            </div>
-
             {/* Navigasi Breadcrumb */}
             <div className="print:hidden">
               <Link
@@ -516,9 +496,9 @@ export function OrderDetailClient() {
               <div className="flex items-center gap-2.5 flex-wrap print:hidden">
                 <button
                   type="button"
-                  onClick={() => window.print()}
+                  onClick={() => setIsInvoiceOpen(true)}
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-border hover:border-brand-blue hover:text-brand-blue bg-white text-xs font-bold text-foreground transition-all cursor-pointer shadow-2xs hover:bg-brand-blue/5"
-                  title="Cetak atau simpan invoice pemesanan sebagai PDF"
+                  title="Lihat atau cetak invoice resmi seperti aplikasi Flutter"
                 >
                   <Printer size={14} className="text-brand-blue" />
                   <span>Cetak Invoice</span>
@@ -1099,7 +1079,7 @@ export function OrderDetailClient() {
                   <div className="pt-3 border-t border-border/60 print:hidden">
                     <button
                       type="button"
-                      onClick={() => window.print()}
+                      onClick={() => setIsInvoiceOpen(true)}
                       className="w-full py-3 px-4 rounded-full border border-border bg-white hover:bg-surface text-brand-blue font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs hover:border-brand-blue"
                     >
                       <Printer size={15} />
@@ -1204,6 +1184,32 @@ export function OrderDetailClient() {
           setIsCompleteProfileOpen(false);
         }}
       />
+
+      {/* ═══ DOKUMEN INVOICE RESMI KHUSUS CETAK BROWSER / PDF (100% SESUAI FLUTTER INVOICE_PDF_SERVICE) ═══ */}
+      {order && (
+        <div className="hidden print:block p-0 m-0 w-full">
+          <InvoiceDocument
+            order={order}
+            booking={booking}
+            addonLines={addonLines}
+            nights={nights}
+            shortCode={shortCode}
+          />
+        </div>
+      )}
+
+      {/* Modal Dialog Preview & Cetak Invoice Resmi */}
+      {order && (
+        <InvoiceModal
+          isOpen={isInvoiceOpen}
+          onClose={() => setIsInvoiceOpen(false)}
+          order={order}
+          booking={booking}
+          addonLines={addonLines}
+          nights={nights}
+          shortCode={shortCode}
+        />
+      )}
     </div>
   );
 }
