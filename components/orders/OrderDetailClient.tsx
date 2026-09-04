@@ -558,21 +558,9 @@ export function OrderDetailClient() {
 
             {/* Header Judul Halaman & Status / Cetak Invoice */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-border/70">
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
-                    Detail Pesanan
-                  </h1>
-                  {shortCode && (
-                    <span className="font-mono text-xs font-bold text-neutral-700 bg-neutral-100 px-2.5 py-0.5 rounded-md border border-neutral-200">
-                      {shortCode}
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-foreground-muted">
-                  No. Transaksi: <span className="font-mono text-foreground font-semibold">{order.id}</span>
-                </p>
-              </div>
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
+                Detail Pesanan
+              </h1>
 
               <div className="flex items-center gap-2.5 flex-wrap print:hidden">
                 <button
@@ -731,6 +719,9 @@ export function OrderDetailClient() {
                         Pesanan ini tidak dapat digunakan untuk menginap di campsite.
                       </p>
                     </div>
+                    <div className="p-3 rounded-2xl bg-white/90 border border-red-200 text-red-700 text-[11px] font-mono">
+                      No. Transaksi: <span className="font-semibold">{order.id}</span>
+                    </div>
                   </div>
                 ) : isPending ? (
                   /* KARTU STATUS MENUNGGU PEMBAYARAN */
@@ -748,6 +739,13 @@ export function OrderDetailClient() {
                       <p className="text-xs text-amber-900/80 max-w-md leading-relaxed">
                         Silakan selesaikan pembayaran sebelum batas waktu berakhir untuk menerbitkan <strong>E-Tiket & QR Code Check-in resmi</strong>.
                       </p>
+                    </div>
+
+                    <div className="p-3 rounded-2xl bg-white/90 border border-amber-200 text-amber-900 text-[11px] font-mono flex items-center justify-between flex-wrap gap-2">
+                      <span>No. Transaksi: <span className="font-semibold">{order.id}</span></span>
+                      {order.paymentExpiresAt && (
+                        <span className="text-amber-700 font-sans">Batas: {formatDateDisplay(order.paymentExpiresAt)}</span>
+                      )}
                     </div>
 
                     <div className="pt-2">
