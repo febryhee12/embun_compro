@@ -24,7 +24,7 @@ export function computeRefundPolicy(
   checkInDateStr?: string,
   nonRefundable = false,
 ): RefundPolicyInfo {
-  if (nonRefundable || !checkInDateStr) {
+  if (nonRefundable) {
     return {
       refundable: false,
       summaryLabel: 'Non-Refundable',
@@ -33,6 +33,37 @@ export function computeRefundPolicy(
         'Pesanan ini tidak dapat dibatalkan atau dikembalikan dananya setelah pembayaran berhasil.',
       freeCancelUntilDate: null,
       tiers: [],
+    };
+  }
+
+  if (!checkInDateStr) {
+    return {
+      refundable: true,
+      summaryLabel: 'Kebijakan Refund & Pembatalan',
+      headerTitle: 'Kebijakan Refund & Pembatalan',
+      headerSubtitle:
+        'Pengajuan pembatalan pemesanan tunduk pada jadwal ketentuan pengembalian dana berikut.',
+      freeCancelUntilDate: null,
+      tiers: [
+        {
+          label: 'Lebih dari 7 hari sebelum check-in',
+          percent: '100%',
+          percentNum: 100,
+          isAvailable: true,
+        },
+        {
+          label: '3 – 7 hari sebelum check-in',
+          percent: '50%',
+          percentNum: 50,
+          isAvailable: true,
+        },
+        {
+          label: 'Kurang dari 3 hari sebelum check-in',
+          percent: '0%',
+          percentNum: 0,
+          isAvailable: true,
+        },
+      ],
     };
   }
 

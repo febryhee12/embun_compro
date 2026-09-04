@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -39,7 +39,7 @@ const MONTH_NAMES = [
 const DAY_NAMES = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
 
 function formatIndoDate(dateStr?: string): string {
-  if (!dateStr) return "-";
+  if (!dateStr) return "Pilih tanggal";
   try {
     const [y, m, d] = dateStr.split("-").map(Number);
     const date = new Date(y, m - 1, d);
@@ -74,7 +74,7 @@ export function BookingCalendarModal({
   const bookedSet = useMemo(() => new Set(bookedDates || []), [bookedDates]);
 
   // Temporary selection states
-  const [tempIn, setTempIn] = useState<string>(checkInDate || todayStr);
+  const [tempIn, setTempIn] = useState<string>(checkInDate || "");
   const [tempOut, setTempOut] = useState<string>(checkOutDate || "");
   const [activeStep, setActiveStep] = useState<"checkIn" | "checkOut">("checkIn");
   const [hoveredDate, setHoveredDate] = useState<string | null>(null);
@@ -115,6 +115,21 @@ export function BookingCalendarModal({
     }
     return new Date();
   });
+
+  // Sync state when modal is opened or external props change
+  useEffect(() => {
+    if (isOpen) {
+      setTempIn(checkInDate || "");
+      setTempOut(checkOutDate || "");
+      setActiveStep(checkInDate && !checkOutDate ? "checkOut" : "checkIn");
+      if (checkInDate) {
+        const [y, m] = checkInDate.split("-").map(Number);
+        setViewDate(new Date(y, m - 1, 1));
+      } else {
+        setViewDate(new Date());
+      }
+    }
+  }, [isOpen, checkInDate, checkOutDate]);
 
   // Calculate current and next visible months
   const month1 = useMemo(
@@ -188,21 +203,12 @@ export function BookingCalendarModal({
     if (tempIn && tempOut) {
       onSelectDates(tempIn, tempOut);
       onClose();
-    } else if (tempIn) {
-      // Auto set 1 night if checkOut is not selected
-      const d = new Date(tempIn);
-      d.setDate(d.getDate() + 1);
-      const nextDayStr = d.toISOString().split("T")[0];
-      onSelectDates(tempIn, nextDayStr);
-      onClose();
     }
   };
 
   const handleReset = () => {
-    setTempIn(todayStr);
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    setTempOut(d.toISOString().split("T")[0]);
+    setTempIn("");
+    setTempOut("");
     setActiveStep("checkIn");
   };
 
@@ -378,7 +384,7 @@ export function BookingCalendarModal({
                 Check-In
               </span>
               <span className="text-xs font-bold whitespace-nowrap">
-                {formatIndoDate(tempIn)}
+                {tempIn ? formatIndoDate(tempIn) : "Pilih Tanggal"}
               </span>
             </button>
 

@@ -474,8 +474,8 @@ export function SpotRedirectClient() {
     return d.toISOString().split('T')[0];
   }, []);
 
-  const [checkInDate, setCheckInDate] = useState(todayStr);
-  const [checkOutDate, setCheckOutDate] = useState(tomorrowStr);
+  const [checkInDate, setCheckInDate] = useState('');
+  const [checkOutDate, setCheckOutDate] = useState('');
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isAddonsExpanded, setIsAddonsExpanded] = useState(false);
   const [isMobileBookingOpen, setIsMobileBookingOpen] = useState(false);
@@ -499,7 +499,7 @@ export function SpotRedirectClient() {
   const [bookedDates, setBookedDates] = useState<string[]>([]);
 
   const formatDateDisplay = (dateStr?: string) => {
-    if (!dateStr) return '-';
+    if (!dateStr) return 'Pilih tanggal';
     try {
       const [y, m, d] = dateStr.split('-').map(Number);
       const date = new Date(y, m - 1, d);
@@ -724,14 +724,15 @@ export function SpotRedirectClient() {
 
   // Sync check-in & check-out cross-validation
   const nights = useMemo(() => {
+    if (!checkInDate || !checkOutDate) return 0;
     try {
       const inD = new Date(checkInDate);
       const outD = new Date(checkOutDate);
       const diffTime = outD.getTime() - inD.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      return diffDays > 0 ? diffDays : 1;
+      return diffDays > 0 ? diffDays : 0;
     } catch {
-      return 1;
+      return 0;
     }
   }, [checkInDate, checkOutDate]);
 
@@ -1555,6 +1556,11 @@ export function SpotRedirectClient() {
 
   // Order Submission Flow -> Navigasi ke Full Page Checkout Review (Airbnb Style)
   const handleProceedBooking = () => {
+    if (!checkInDate || !checkOutDate) {
+      setIsCalendarOpen(true);
+      return;
+    }
+
     if (!currentUser) {
       setIsAuthOpen(true);
       return;
@@ -2550,9 +2556,14 @@ export function SpotRedirectClient() {
                   Pilih Tanggal Menginap
                 </h3>
                 <p className="text-xs text-foreground-muted">
-                  {nights} Malam di {campsite.name} (
-                  {formatDateDisplay(checkInDate)} s/d{' '}
-                  {formatDateDisplay(checkOutDate)})
+                  {checkInDate && checkOutDate ? (
+                    <>
+                      {nights} Malam di {campsite.name} ({formatDateDisplay(checkInDate)} s/d{' '}
+                      {formatDateDisplay(checkOutDate)})
+                    </>
+                  ) : (
+                    `Pilih tanggal kedatangan dan kepulangan di ${campsite.name}`
+                  )}
                 </p>
               </div>
 
@@ -2567,7 +2578,7 @@ export function SpotRedirectClient() {
                       <Calendar size={13} className="text-brand-blue" />
                       <span>Check-In</span>
                     </span>
-                    <div className="font-bold text-sm sm:text-base text-foreground group-hover:text-brand-blue transition-colors">
+                    <div className={`font-bold text-sm sm:text-base group-hover:text-brand-blue transition-colors ${checkInDate ? 'text-foreground' : 'text-foreground-muted'}`}>
                       {formatDateDisplay(checkInDate)}
                     </div>
                   </div>
@@ -2577,7 +2588,7 @@ export function SpotRedirectClient() {
                       <Calendar size={13} className="text-brand-blue" />
                       <span>Check-Out</span>
                     </span>
-                    <div className="font-bold text-sm sm:text-base text-foreground group-hover:text-brand-blue transition-colors">
+                    <div className={`font-bold text-sm sm:text-base group-hover:text-brand-blue transition-colors ${checkOutDate ? 'text-foreground' : 'text-foreground-muted'}`}>
                       {formatDateDisplay(checkOutDate)}
                     </div>
                   </div>
@@ -2586,11 +2597,16 @@ export function SpotRedirectClient() {
                 <div className="flex items-center justify-between pt-3 border-t border-border/80 text-xs">
                   <span className="font-semibold text-foreground flex items-center gap-1.5">
                     <Clock size={13} className="text-brand-blue" />
-                    Durasi:{' '}
-                    <strong className="text-brand-blue">{nights} Malam</strong>
+                    {nights > 0 ? (
+                      <>
+                        Durasi: <strong className="text-brand-blue">{nights} Malam</strong>
+                      </>
+                    ) : (
+                      <span className="text-foreground-muted">Pilih tanggal menginap</span>
+                    )}
                   </span>
                   <span className="text-xs font-bold text-brand-blue group-hover:underline flex items-center gap-1">
-                    Pilih / Ubah Tanggal →
+                    {checkInDate && checkOutDate ? 'Ubah Tanggal →' : 'Pilih Tanggal →'}
                   </span>
                 </div>
               </div>
@@ -3295,7 +3311,13 @@ export function SpotRedirectClient() {
                       <span className="block text-[9px] font-bold uppercase tracking-wider text-foreground-muted">
                         Check-In
                       </span>
-                      <span className="font-bold text-foreground group-hover:text-brand-blue text-xs block mt-0.5 transition-colors">
+                      <span
+                        className={`font-bold text-xs block mt-0.5 transition-colors ${
+                          checkInDate
+                            ? 'text-foreground group-hover:text-brand-blue'
+                            : 'text-foreground-muted'
+                        }`}
+                      >
                         {formatDateDisplay(checkInDate)}
                       </span>
                     </div>
@@ -3303,7 +3325,13 @@ export function SpotRedirectClient() {
                       <span className="block text-[9px] font-bold uppercase tracking-wider text-foreground-muted">
                         Check-Out
                       </span>
-                      <span className="font-bold text-foreground group-hover:text-brand-blue text-xs block mt-0.5 transition-colors">
+                      <span
+                        className={`font-bold text-xs block mt-0.5 transition-colors ${
+                          checkOutDate
+                            ? 'text-foreground group-hover:text-brand-blue'
+                            : 'text-foreground-muted'
+                        }`}
+                      >
                         {formatDateDisplay(checkOutDate)}
                       </span>
                     </div>
@@ -3348,99 +3376,121 @@ export function SpotRedirectClient() {
                 </div>
 
                 {/* Price Calculation Breakdown */}
-                <div className="space-y-2.5 pt-2 border-t border-border text-xs">
-                  <div className="flex justify-between items-start gap-4">
-                    <div className="min-w-0 pr-2">
-                      <span className="text-foreground-muted block leading-snug">
-                        {selectedPackage?.name || 'Sewa Spot'}
-                      </span>
-                      <span className="text-[11px] text-foreground-muted/70 block mt-0.5">
-                        {rupiah(spotPricePerNight)} × {nights} malam
-                      </span>
-                    </div>
-                    <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right pt-0.5">
-                      {rupiah(spotPricePerNight * nights)}
-                    </span>
-                  </div>
-
-                  {extraPersonInfo && extraPersonInfo.amount > 0 && (
-                    <div className="flex justify-between items-start gap-4 pt-1 border-t border-border/50">
-                      <div className="min-w-0 pr-2">
-                        <span className="text-foreground-muted block leading-snug">
-                          Tamu Tambahan
-                        </span>
-                        <span className="text-[11px] text-foreground-muted/70 block mt-0.5">
-                          {extraPersonInfo.count} orang × {rupiah(extraPersonInfo.unitPrice)} × {nights} malam
+                {checkInDate && checkOutDate ? (
+                  <>
+                    <div className="space-y-2.5 pt-2 border-t border-border text-xs">
+                      <div className="flex justify-between items-start gap-4">
+                        <div className="min-w-0 pr-2">
+                          <span className="text-foreground-muted block leading-snug">
+                            {selectedPackage?.name || 'Sewa Spot'}
+                          </span>
+                          <span className="text-[11px] text-foreground-muted/70 block mt-0.5">
+                            {rupiah(spotPricePerNight)} × {nights} malam
+                          </span>
+                        </div>
+                        <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right pt-0.5">
+                          {rupiah(spotPricePerNight * nights)}
                         </span>
                       </div>
-                      <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right pt-0.5">
-                        +{rupiah(extraPersonInfo.amount)}
+
+                      {extraPersonInfo && extraPersonInfo.amount > 0 && (
+                        <div className="flex justify-between items-start gap-4 pt-1 border-t border-border/50">
+                          <div className="min-w-0 pr-2">
+                            <span className="text-foreground-muted block leading-snug">
+                              Tamu Tambahan
+                            </span>
+                            <span className="text-[11px] text-foreground-muted/70 block mt-0.5">
+                              {extraPersonInfo.count} orang × {rupiah(extraPersonInfo.unitPrice)} × {nights} malam
+                            </span>
+                          </div>
+                          <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right pt-0.5">
+                            +{rupiah(extraPersonInfo.amount)}
+                          </span>
+                        </div>
+                      )}
+
+                      {addonTotal > 0 && (
+                        <div className="flex justify-between items-center gap-4 pt-1 border-t border-border/50">
+                          <span className="text-foreground-muted">Perlengkapan Tambahan</span>
+                          <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right">
+                            +{rupiah(addonTotal)}
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="flex justify-between items-center gap-4 pt-1 border-t border-border/50">
+                        <span className="text-foreground-muted">Biaya Layanan & Pajak</span>
+                        <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right">
+                          +{rupiah(totalServiceAndTaxFee)}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between items-baseline pt-2 border-t border-border font-bold text-sm text-foreground">
+                        <span>Total Tagihan</span>
+                        <span className="text-base text-brand-blue font-extrabold shrink-0 whitespace-nowrap">
+                          {rupiah(grandTotal)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Payment Scheme Choice */}
+                    <div className="space-y-1.5">
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setPaymentScheme('DP_50')}
+                          className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                            paymentScheme === 'DP_50'
+                              ? 'border-brand-blue bg-brand-blue/5 ring-2 ring-brand-blue/20'
+                              : 'border-border bg-surface/50 hover:bg-surface'
+                          }`}
+                        >
+                          <span className="block text-[11px] font-bold text-foreground">
+                            DP 50%
+                          </span>
+                          <span className="block text-xs font-extrabold text-brand-blue mt-0.5">
+                            {rupiah(dp50Total)}
+                          </span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setPaymentScheme('FULL')}
+                          className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                            paymentScheme === 'FULL'
+                              ? 'border-brand-blue bg-brand-blue/5 ring-2 ring-brand-blue/20'
+                              : 'border-border bg-surface/50 hover:bg-surface'
+                          }`}
+                        >
+                          <span className="block text-[11px] font-bold text-foreground">
+                            Bayar Lunas
+                          </span>
+                          <span className="block text-xs font-extrabold text-brand-blue mt-0.5">
+                            {rupiah(grandTotal)}
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="pt-2 border-t border-border space-y-2.5 text-xs">
+                    <div className="flex justify-between items-baseline">
+                      <span className="text-foreground-muted">Tarif Sewa</span>
+                      <span className="font-bold text-foreground">
+                        {rupiah(spotPricePerNight)}{' '}
+                        <span className="text-[11px] font-normal text-foreground-muted">
+                          / malam
+                        </span>
                       </span>
                     </div>
-                  )}
-
-                  {addonTotal > 0 && (
-                    <div className="flex justify-between items-center gap-4 pt-1 border-t border-border/50">
-                      <span className="text-foreground-muted">Perlengkapan Tambahan</span>
-                      <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right">
-                        +{rupiah(addonTotal)}
+                    <div className="p-3 rounded-2xl bg-surface/70 border border-border/80 text-[11.5px] text-foreground-muted leading-relaxed flex items-start gap-2">
+                      <Info size={15} className="text-brand-blue shrink-0 mt-0.5" />
+                      <span>
+                        Pilih tanggal check-in & check-out untuk melihat rincian biaya lengkap.
                       </span>
                     </div>
-                  )}
-
-                  <div className="flex justify-between items-center gap-4 pt-1 border-t border-border/50">
-                    <span className="text-foreground-muted">Biaya Layanan & Pajak</span>
-                    <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right">
-                      +{rupiah(totalServiceAndTaxFee)}
-                    </span>
                   </div>
-
-                  <div className="flex justify-between items-baseline pt-2 border-t border-border font-bold text-sm text-foreground">
-                    <span>Total Tagihan</span>
-                    <span className="text-base text-brand-blue font-extrabold shrink-0 whitespace-nowrap">
-                      {rupiah(grandTotal)}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Payment Scheme Choice */}
-                <div className="space-y-1.5">
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setPaymentScheme('DP_50')}
-                      className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
-                        paymentScheme === 'DP_50'
-                          ? 'border-brand-blue bg-brand-blue/5 ring-2 ring-brand-blue/20'
-                          : 'border-border bg-surface/50 hover:bg-surface'
-                      }`}
-                    >
-                      <span className="block text-[11px] font-bold text-foreground">
-                        DP 50%
-                      </span>
-                      <span className="block text-xs font-extrabold text-brand-blue mt-0.5">
-                        {rupiah(dp50Total)}
-                      </span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setPaymentScheme('FULL')}
-                      className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
-                        paymentScheme === 'FULL'
-                          ? 'border-brand-blue bg-brand-blue/5 ring-2 ring-brand-blue/20'
-                          : 'border-border bg-surface/50 hover:bg-surface'
-                      }`}
-                    >
-                      <span className="block text-[11px] font-bold text-foreground">
-                        Bayar Lunas
-                      </span>
-                      <span className="block text-xs font-extrabold text-brand-blue mt-0.5">
-                        {rupiah(grandTotal)}
-                      </span>
-                    </button>
-                  </div>
-                </div>
+                )}
 
                 {orderError && (
                   <div className="p-2.5 rounded-2xl bg-red-50 border border-red-200 text-red-600 text-xs font-semibold">
@@ -3454,13 +3504,24 @@ export function SpotRedirectClient() {
                     checkInDate={checkInDate}
                     onClick={() => setShowCancellationModal(true)}
                   />
-                  <button
-                    type="button"
-                    onClick={handleProceedBooking}
-                    className="w-full py-3.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
-                  >
-                    <span>{`Lanjut Pemesanan · ${rupiah(paymentAmountToPay)}`}</span>
-                  </button>
+                  {checkInDate && checkOutDate ? (
+                    <button
+                      type="button"
+                      onClick={handleProceedBooking}
+                      className="w-full py-3.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                    >
+                      <span>{`Lanjut Pemesanan · ${rupiah(paymentAmountToPay)}`}</span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setIsCalendarOpen(true)}
+                      className="w-full py-3.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                    >
+                      <Calendar size={15} />
+                      <span>Pilih Tanggal Menginap</span>
+                    </button>
+                  )}
                   <p className="text-[11px] text-center text-foreground-muted">
                     Tunduk pada{' '}
                     <button
@@ -3512,29 +3573,42 @@ export function SpotRedirectClient() {
               onClick={() => setIsCalendarOpen(true)}
               className="cursor-pointer group"
             >
-            <span className="text-base font-extrabold text-foreground">
-              {rupiah(spotPricePerNight)}
-            </span>
-            <span className="text-xs text-foreground-muted"> / malam</span>
-            <p className="text-[10.5px] text-brand-blue font-bold group-hover:underline flex items-center gap-1">
-              <span>{nights} Malam</span>
-              <span>
-                ({formatDateDisplay(checkInDate)} -{' '}
-                {formatDateDisplay(checkOutDate)})
+              <span className="text-base font-extrabold text-foreground">
+                {rupiah(spotPricePerNight)}
               </span>
-            </p>
-          </div>
+              <span className="text-xs text-foreground-muted"> / malam</span>
+              {checkInDate && checkOutDate ? (
+                <p className="text-[10.5px] text-brand-blue font-bold group-hover:underline flex items-center gap-1">
+                  <span>{nights} Malam</span>
+                  <span>
+                    ({formatDateDisplay(checkInDate)} -{' '}
+                    {formatDateDisplay(checkOutDate)})
+                  </span>
+                </p>
+              ) : (
+                <p className="text-[10.5px] text-brand-blue font-bold group-hover:underline flex items-center gap-1">
+                  <span>Pilih tanggal menginap</span>
+                  <ArrowRight size={11} />
+                </p>
+              )}
+            </div>
 
-          <button
-            type="button"
-            onClick={() => setIsMobileBookingOpen(true)}
-            className="px-6 py-3 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-xs font-bold shadow-md cursor-pointer flex items-center gap-1.5 transition-all"
-          >
-            <span>Pesan</span>
-            <ArrowRight size={14} />
-          </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (checkInDate && checkOutDate) {
+                  setIsMobileBookingOpen(true);
+                } else {
+                  setIsCalendarOpen(true);
+                }
+              }}
+              className="px-6 py-3 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-xs font-bold shadow-md cursor-pointer flex items-center gap-1.5 transition-all"
+            >
+              <span>{checkInDate && checkOutDate ? 'Pesan' : 'Pilih Tanggal'}</span>
+              <ArrowRight size={14} />
+            </button>
+          </div>
         </div>
-      </div>
       )}
 
       {/* ════════════════════════════════════════════════════════════════════════
@@ -4239,7 +4313,11 @@ export function SpotRedirectClient() {
                   <span className="block text-[9.5px] font-bold uppercase tracking-wider text-foreground-muted">
                     Check-In
                   </span>
-                  <span className="font-bold text-foreground text-xs block mt-0.5">
+                  <span
+                    className={`font-bold text-xs block mt-0.5 ${
+                      checkInDate ? 'text-foreground' : 'text-foreground-muted'
+                    }`}
+                  >
                     {formatDateDisplay(checkInDate)}
                   </span>
                 </div>
@@ -4247,7 +4325,11 @@ export function SpotRedirectClient() {
                   <span className="block text-[9.5px] font-bold uppercase tracking-wider text-foreground-muted">
                     Check-Out
                   </span>
-                  <span className="font-bold text-foreground text-xs block mt-0.5">
+                  <span
+                    className={`font-bold text-xs block mt-0.5 ${
+                      checkOutDate ? 'text-foreground' : 'text-foreground-muted'
+                    }`}
+                  >
                     {formatDateDisplay(checkOutDate)}
                   </span>
                 </div>
@@ -4413,102 +4495,124 @@ export function SpotRedirectClient() {
             )}
 
             {/* Price Calculation Breakdown */}
-            <div className="space-y-2.5 pt-2 border-t border-border text-xs">
-              <div className="flex justify-between items-start gap-4">
-                <div className="min-w-0 pr-2">
-                  <span className="text-foreground-muted block leading-snug">
-                    {selectedPackage?.name || 'Sewa Spot'}
-                  </span>
-                  <span className="text-[11px] text-foreground-muted/70 block mt-0.5">
-                    {rupiah(spotPricePerNight)} × {nights} malam
-                  </span>
-                </div>
-                <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right pt-0.5">
-                  {rupiah(spotPricePerNight * nights)}
-                </span>
-              </div>
-
-              {extraPersonInfo && extraPersonInfo.amount > 0 && (
-                <div className="flex justify-between items-start gap-4 pt-1 border-t border-border/50">
-                  <div className="min-w-0 pr-2">
-                    <span className="text-foreground-muted block leading-snug">
-                      Tamu Tambahan
-                    </span>
-                    <span className="text-[11px] text-foreground-muted/70 block mt-0.5">
-                      {extraPersonInfo.count} orang × {rupiah(extraPersonInfo.unitPrice)} × {nights} malam
+            {checkInDate && checkOutDate ? (
+              <>
+                <div className="space-y-2.5 pt-2 border-t border-border text-xs">
+                  <div className="flex justify-between items-start gap-4">
+                    <div className="min-w-0 pr-2">
+                      <span className="text-foreground-muted block leading-snug">
+                        {selectedPackage?.name || 'Sewa Spot'}
+                      </span>
+                      <span className="text-[11px] text-foreground-muted/70 block mt-0.5">
+                        {rupiah(spotPricePerNight)} × {nights} malam
+                      </span>
+                    </div>
+                    <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right pt-0.5">
+                      {rupiah(spotPricePerNight * nights)}
                     </span>
                   </div>
-                  <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right pt-0.5">
-                    +{rupiah(extraPersonInfo.amount)}
+
+                  {extraPersonInfo && extraPersonInfo.amount > 0 && (
+                    <div className="flex justify-between items-start gap-4 pt-1 border-t border-border/50">
+                      <div className="min-w-0 pr-2">
+                        <span className="text-foreground-muted block leading-snug">
+                          Tamu Tambahan
+                        </span>
+                        <span className="text-[11px] text-foreground-muted/70 block mt-0.5">
+                          {extraPersonInfo.count} orang × {rupiah(extraPersonInfo.unitPrice)} × {nights} malam
+                        </span>
+                      </div>
+                      <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right pt-0.5">
+                        +{rupiah(extraPersonInfo.amount)}
+                      </span>
+                    </div>
+                  )}
+
+                  {addonTotal > 0 && (
+                    <div className="flex justify-between items-center gap-4 pt-1 border-t border-border/50">
+                      <span className="text-foreground-muted">Perlengkapan Tambahan</span>
+                      <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right">
+                        +{rupiah(addonTotal)}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center gap-4 pt-1 border-t border-border/50">
+                    <span className="text-foreground-muted">Biaya Layanan & Pajak</span>
+                    <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right">
+                      +{rupiah(totalServiceAndTaxFee)}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-baseline pt-2 border-t border-border font-bold text-sm text-foreground">
+                    <span>Total Tagihan</span>
+                    <span className="text-base text-brand-blue font-extrabold shrink-0 whitespace-nowrap">
+                      {rupiah(grandTotal)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Payment Scheme Choice */}
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-foreground block">
+                    Pilihan Pembayaran
+                  </label>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setPaymentScheme('DP_50')}
+                      className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                        paymentScheme === 'DP_50'
+                          ? 'border-brand-blue bg-brand-blue/5 ring-2 ring-brand-blue/20'
+                          : 'border-border bg-surface/50 hover:bg-surface'
+                      }`}
+                    >
+                      <span className="block text-xs font-bold text-foreground">
+                        DP 50%
+                      </span>
+                      <span className="block text-xs font-extrabold text-brand-blue mt-0.5">
+                        {rupiah(dp50Total)}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setPaymentScheme('FULL')}
+                      className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                        paymentScheme === 'FULL'
+                          ? 'border-brand-blue bg-brand-blue/5 ring-2 ring-brand-blue/20'
+                          : 'border-border bg-surface/50 hover:bg-surface'
+                      }`}
+                    >
+                      <span className="block text-xs font-bold text-foreground">
+                        Bayar Lunas
+                      </span>
+                      <span className="block text-xs font-extrabold text-brand-blue mt-0.5">
+                        {rupiah(grandTotal)}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="pt-2 border-t border-border space-y-2.5 text-xs">
+                <div className="flex justify-between items-baseline">
+                  <span className="text-foreground-muted">Tarif Sewa</span>
+                  <span className="font-bold text-foreground">
+                    {rupiah(spotPricePerNight)}{' '}
+                    <span className="text-[11px] font-normal text-foreground-muted">
+                      / malam
+                    </span>
                   </span>
                 </div>
-              )}
-
-              {addonTotal > 0 && (
-                <div className="flex justify-between items-center gap-4 pt-1 border-t border-border/50">
-                  <span className="text-foreground-muted">Perlengkapan Tambahan</span>
-                  <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right">
-                    +{rupiah(addonTotal)}
+                <div className="p-3 rounded-2xl bg-surface/70 border border-border/80 text-[11.5px] text-foreground-muted leading-relaxed flex items-start gap-2">
+                  <Info size={15} className="text-brand-blue shrink-0 mt-0.5" />
+                  <span>
+                    Pilih tanggal check-in & check-out untuk melihat rincian biaya lengkap.
                   </span>
                 </div>
-              )}
-
-              <div className="flex justify-between items-center gap-4 pt-1 border-t border-border/50">
-                <span className="text-foreground-muted">Biaya Layanan & Pajak</span>
-                <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right">
-                  +{rupiah(totalServiceAndTaxFee)}
-                </span>
               </div>
-
-              <div className="flex justify-between items-baseline pt-2 border-t border-border font-bold text-sm text-foreground">
-                <span>Total Tagihan</span>
-                <span className="text-base text-brand-blue font-extrabold shrink-0 whitespace-nowrap">
-                  {rupiah(grandTotal)}
-                </span>
-              </div>
-            </div>
-
-            {/* Payment Scheme Choice */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-foreground block">
-                Pilihan Pembayaran
-              </label>
-              <div className="grid grid-cols-2 gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setPaymentScheme('DP_50')}
-                  className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
-                    paymentScheme === 'DP_50'
-                      ? 'border-brand-blue bg-brand-blue/5 ring-2 ring-brand-blue/20'
-                      : 'border-border bg-surface/50 hover:bg-surface'
-                  }`}
-                >
-                  <span className="block text-xs font-bold text-foreground">
-                    DP 50%
-                  </span>
-                  <span className="block text-xs font-extrabold text-brand-blue mt-0.5">
-                    {rupiah(dp50Total)}
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setPaymentScheme('FULL')}
-                  className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
-                    paymentScheme === 'FULL'
-                      ? 'border-brand-blue bg-brand-blue/5 ring-2 ring-brand-blue/20'
-                      : 'border-border bg-surface/50 hover:bg-surface'
-                  }`}
-                >
-                  <span className="block text-xs font-bold text-foreground">
-                    Bayar Lunas
-                  </span>
-                  <span className="block text-xs font-extrabold text-brand-blue mt-0.5">
-                    {rupiah(grandTotal)}
-                  </span>
-                </button>
-              </div>
-            </div>
+            )}
 
             {orderError && (
               <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-red-600 text-xs font-semibold">
@@ -4522,13 +4626,24 @@ export function SpotRedirectClient() {
                 checkInDate={checkInDate}
                 onClick={() => setShowCancellationModal(true)}
               />
-              <button
-                type="button"
-                onClick={handleProceedBooking}
-                className="w-full py-3.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
-              >
-                <span>{`Lanjut Pemesanan · ${rupiah(paymentAmountToPay)}`}</span>
-              </button>
+              {checkInDate && checkOutDate ? (
+                <button
+                  type="button"
+                  onClick={handleProceedBooking}
+                  className="w-full py-3.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                >
+                  <span>{`Lanjut Pemesanan · ${rupiah(paymentAmountToPay)}`}</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setIsCalendarOpen(true)}
+                  className="w-full py-3.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                >
+                  <Calendar size={15} />
+                  <span>Pilih Tanggal Menginap</span>
+                </button>
+              )}
               <p className="text-[11px] text-center text-foreground-muted">
                 Tunduk pada{' '}
                 <button
