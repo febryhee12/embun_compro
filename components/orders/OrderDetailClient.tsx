@@ -36,7 +36,6 @@ import {
   initiateOrderPayment,
   initiateSettlementPayment,
   syncOrderStatus,
-  resendTicketEmail,
   initiateXenditPayment,
   getGuestToken,
   clearGuestSession,
@@ -170,8 +169,6 @@ export function OrderDetailClient() {
   const [paying, setPaying] = useState(false);
   const [settling, setSettling] = useState(false);
   const [syncing, setSyncing] = useState(false);
-  const [resendingTicket, setResendingTicket] = useState(false);
-  const [ticketSentNotice, setTicketSentNotice] = useState<string | null>(null);
 
   const load = React.useCallback(async () => {
     if (!orderId) return;
@@ -203,25 +200,6 @@ export function OrderDetailClient() {
       setLoading(false);
     }
   }, [orderId]);
-
-  const handleResendTicket = async () => {
-    if (!orderId) return;
-    setResendingTicket(true);
-    setTicketSentNotice(null);
-    try {
-      const res = await resendTicketEmail(orderId);
-      if (res?.emailSent) {
-        setTicketSentNotice('E-Tiket resmi telah berhasil dikirimkan ke email Anda!');
-      } else {
-        setTicketSentNotice('Permintaan pengiriman e-tiket telah diproses ke sistem.');
-      }
-      setTimeout(() => setTicketSentNotice(null), 6000);
-    } catch (err: any) {
-      setError(err.message || 'Gagal mengirim ulang e-tiket.');
-    } finally {
-      setResendingTicket(false);
-    }
-  };
 
   useEffect(() => {
     void load();
@@ -566,29 +544,6 @@ export function OrderDetailClient() {
                         <p className="text-[11px] text-foreground-muted font-mono break-all pt-1">
                           No. Transaksi: <span className="text-foreground">{order.id}</span>
                         </p>
-
-                        {/* Tombol Kirim E-Tiket ke Email */}
-                        <div className="pt-3 flex flex-wrap items-center gap-2.5 print:hidden">
-                          <button
-                            type="button"
-                            onClick={handleResendTicket}
-                            disabled={resendingTicket}
-                            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-brand-blue/10 hover:bg-brand-blue/20 text-brand-blue text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
-                            title="Kirim E-Tiket HTML resmi ke alamat email akun Anda"
-                          >
-                            {resendingTicket ? (
-                              <Loader2 size={14} className="animate-spin" />
-                            ) : (
-                              <Mail size={14} />
-                            )}
-                            <span>Kirim E-Tiket ke Email</span>
-                          </button>
-                          {ticketSentNotice && (
-                            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl animate-in fade-in">
-                              {ticketSentNotice}
-                            </span>
-                          )}
-                        </div>
                       </div>
 
                       {/* QR Code Container Check-in */}
