@@ -370,12 +370,12 @@ export function ExploreClient() {
       />
 
       {/* ═══ 3. MAIN CATALOG CONTENT ═══ */}
-      <main className="max-w-7xl mx-auto w-full px-4 sm:px-8 py-8 flex-1 space-y-16">
+      <main className="max-w-[2520px] mx-auto w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 flex-1 space-y-16">
         {loading ? (
           /* Loading Skeletons */
           <div className="space-y-6">
             <div className="w-48 h-6 bg-surface rounded-lg animate-pulse" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
               {[...Array(8)].map((_, i) => (
                 <div key={i} className="space-y-3">
                   <div className="aspect-square bg-surface rounded-2xl animate-pulse" />
@@ -440,7 +440,7 @@ export function ExploreClient() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-7">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6 sm:gap-7">
                 {filteredSpots.map((spot) => (
                   <SpotCard
                     key={spot.id}
@@ -470,7 +470,7 @@ export function ExploreClient() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-7">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6 sm:gap-7">
                   {embunPlusSpots.map((spot) => (
                     <SpotCard
                       key={`plus-${spot.id}`}
@@ -498,7 +498,7 @@ export function ExploreClient() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-7">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6 sm:gap-7">
                   {nearbySpots.map((spot) => (
                     <SpotCard
                       key={`near-${spot.id}`}
@@ -526,7 +526,7 @@ export function ExploreClient() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
                   {campsites.map((camp) => {
                     const coverPhoto = getCampsiteCoverPhoto(camp);
                     const spotCount = Array.isArray(camp.blocks)
@@ -609,7 +609,7 @@ export function ExploreClient() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-7">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6 sm:gap-7">
                   {otherSpots.map((spot) => (
                     <SpotCard
                       key={`other-${spot.id}`}

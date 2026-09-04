@@ -67,7 +67,7 @@ export function CategoryFilterBar({
           : 'max-md:-translate-y-full max-md:opacity-0 max-md:pointer-events-none'
       } md:translate-y-0 md:opacity-100 md:pointer-events-auto`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-8">
+      <div className="max-w-[2520px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16">
         <div
           className="flex items-center gap-2 sm:gap-2.5 overflow-x-auto no-scrollbar py-0.5"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
