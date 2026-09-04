@@ -1620,7 +1620,7 @@ export function SpotRedirectClient() {
   const handleOpenApp = () => {
     if (!activeSpot || !campsite) return;
     const token = activeSpot.shareCode || activeSpot.id;
-    const customUri = `embun://spot/${token}`;
+    const customUri = `embun://spot/${token}?blockId=${token}`;
     const fallbackUrl =
       typeof navigator !== 'undefined' &&
       /android/i.test(navigator.userAgent || '')
@@ -1673,20 +1673,24 @@ export function SpotRedirectClient() {
   return (
     <div className="min-h-screen bg-white text-foreground selection:bg-brand-lime selection:text-black flex flex-col">
       {/* Mobile Smart App Banner: Memungkinkan tamu langsung membuka aplikasi jika ada di HP */}
-      <div className="md:hidden bg-slate-950 text-white px-4 py-2 flex items-center justify-between text-xs border-b border-white/10 sticky top-0 z-50">
-        <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded bg-brand-blue flex items-center justify-center font-black text-white text-[10px]">
-            E
+      <div className="md:hidden bg-slate-950 text-white px-4 py-2.5 flex items-center justify-between text-xs border-b border-white/10 sticky top-0 z-50">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-white p-1.5 flex items-center justify-center shadow-xs shrink-0">
+            <img
+              src="/images/logo/logogram_blue.svg"
+              alt="Embun"
+              className="w-full h-full object-contain"
+            />
           </div>
           <div>
-            <p className="font-bold text-[11px] leading-tight">Aplikasi Embun</p>
-            <p className="text-[9.5px] text-white/70">Buka langsung di aplikasi</p>
+            <p className="font-bold text-xs sm:text-sm leading-tight text-white">Aplikasi Embun</p>
+            <p className="text-[11px] text-white/75 leading-normal mt-0.5">Buka langsung di aplikasi</p>
           </div>
         </div>
         <button
           type="button"
           onClick={handleOpenApp}
-          className="px-3 py-1 rounded-full bg-brand-lime text-black font-bold text-[10.5px] active:scale-95 transition-transform cursor-pointer shadow-xs"
+          className="px-4 py-2 rounded-full bg-brand-lime hover:bg-brand-lime/90 text-black font-bold text-xs active:scale-95 transition-all cursor-pointer shadow-xs shrink-0"
         >
           Buka di App
         </button>

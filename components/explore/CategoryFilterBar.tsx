@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 export interface CategoryItem {
   id: string;
@@ -27,8 +27,46 @@ export function CategoryFilterBar({
   selectedCategory,
   onSelectCategory,
 }: CategoryFilterBarProps) {
+  const [isVisibleMobile, setIsVisibleMobile] = useState(true);
+  const [isAtTop, setIsAtTop] = useState(true);
+
+  useEffect(() => {
+    let lastScrollY = typeof window !== 'undefined' ? window.scrollY : 0;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      if (currentScrollY <= 20) {
+        setIsAtTop(true);
+        setIsVisibleMobile(true);
+      } else {
+        setIsAtTop(false);
+        // Scroll UP -> muncul di mobile
+        if (currentScrollY < lastScrollY - 6) {
+          setIsVisibleMobile(true);
+        }
+        // Scroll DOWN -> sembunyikan di mobile
+        else if (currentScrollY > lastScrollY + 6) {
+          setIsVisibleMobile(false);
+        }
+      }
+      lastScrollY = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <div className="w-full border-b border-border bg-white/95 backdrop-blur-md sticky top-16 sm:top-20 z-30 py-3 shadow-xs">
+    <div
+      className={`w-full border-b border-border bg-white/95 backdrop-blur-md sticky top-[var(--explore-header-height,130px)] md:top-20 z-30 py-3 shadow-xs transition-all duration-300 ease-in-out ${
+        isAtTop
+          ? 'translate-y-0 opacity-100'
+          : isVisibleMobile
+          ? 'max-md:translate-y-0 max-md:opacity-100 max-md:pointer-events-auto'
+          : 'max-md:-translate-y-full max-md:opacity-0 max-md:pointer-events-none'
+      } md:translate-y-0 md:opacity-100 md:pointer-events-auto`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-8">
         <div
           className="flex items-center gap-2 sm:gap-2.5 overflow-x-auto no-scrollbar py-0.5"

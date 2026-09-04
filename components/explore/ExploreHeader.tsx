@@ -77,9 +77,30 @@ export function ExploreHeader({
     );
   };
 
+  const headerRef = React.useRef<HTMLElement>(null);
+
+  React.useEffect(() => {
+    const updateHeaderHeight = () => {
+      if (headerRef.current && typeof document !== 'undefined') {
+        const height = headerRef.current.offsetHeight;
+        document.documentElement.style.setProperty(
+          '--explore-header-height',
+          `${height}px`,
+        );
+      }
+    };
+
+    updateHeaderHeight();
+    window.addEventListener('resize', updateHeaderHeight);
+    return () => window.removeEventListener('resize', updateHeaderHeight);
+  }, []);
+
   return (
     <>
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-border transition-all">
+      <header
+        ref={headerRef}
+        className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-border transition-all"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between gap-4">
           {/* Left: Official Brand Logo SVG */}
           <Link href="/explore" className="flex items-center gap-2.5 shrink-0 group">
