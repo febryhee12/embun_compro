@@ -38,6 +38,8 @@ import {
   cancelGuestOrder,
 } from '@/lib/api-client';
 import { GuestAuthModal } from '@/components/explore/GuestAuthModal';
+import { ExploreHeader } from '@/components/explore/ExploreHeader';
+import { ExploreFooter } from '@/components/explore/ExploreFooter';
 import {
   CancellationPolicyModal,
   CancellationPolicyBannerButton,
@@ -215,10 +217,12 @@ export function CheckoutClient() {
       setError('Mohon lengkapi nama lengkap pemesan sesuai identitas.');
       return;
     }
-    if (!phone.trim() || phone.length < 8) {
+    const rawPhoneDigits = phone.replace(/\D/g, '');
+    if (!rawPhoneDigits || rawPhoneDigits.length < 8) {
       setError('Mohon lengkapi nomor WhatsApp yang aktif untuk konfirmasi & tiket.');
       return;
     }
+    const cleanPhone = `08${rawPhoneDigits.startsWith('8') ? rawPhoneDigits.slice(1) : rawPhoneDigits}`;
     if (!address.trim()) {
       setError('Mohon lengkapi alamat atau kota asal pemesan.');
       return;
@@ -245,14 +249,14 @@ export function CheckoutClient() {
       const updatedUser = {
         ...currentUserData,
         fullName: fullName.trim(),
-        phone: phone.trim(),
+        phone: cleanPhone,
         email: email.trim() || currentUserData.email,
         address: address.trim(),
       };
       setGuestSession(token, updatedUser);
       void updateGuestProfile({
         fullName: fullName.trim(),
-        phone: phone.trim(),
+        phone: cleanPhone,
         address: address.trim(),
       }).catch(() => {});
 
@@ -410,10 +414,18 @@ export function CheckoutClient() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fafafa] text-foreground">
-      {/* Header Sticky */}
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-border/70">
-        <div className="max-w-6xl mx-auto px-4 sm:px-8 h-16 flex items-center justify-between">
+    <div className="min-h-screen bg-[#fafafa] text-foreground flex flex-col justify-between">
+      {/* ═══ HEADER ATAS (LOGO RESMI EMBUN EXPLORE & MENU AKUN, TANPA SEARCH) ═══ */}
+      <ExploreHeader
+        onOpenAuth={() => setIsAuthOpen(true)}
+        currentUser={currentUser}
+        showSearch={false}
+        showUserMenu={true}
+      />
+
+      <main className="max-w-6xl mx-auto w-full px-4 sm:px-8 py-8 lg:py-10 flex-1">
+        {/* Title Bar & Back Button */}
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -421,45 +433,18 @@ export function CheckoutClient() {
               className="p-2 -ml-2 rounded-full hover:bg-surface text-foreground transition-colors cursor-pointer"
               aria-label="Kembali"
             >
-              <ArrowLeft size={20} className="stroke-[2.2]" />
+              <ArrowLeft size={22} className="stroke-[2.2]" />
             </button>
-            <h1 className="font-bold text-base text-foreground tracking-tight">
+            <h1 className="font-extrabold text-xl sm:text-2xl text-foreground tracking-tight">
               Tinjau & Konfirmasi Pemesanan
             </h1>
           </div>
-          <div className="flex items-center gap-2.5">
-            {currentUser ? (
-              <button
-                type="button"
-                onClick={() => setIsAuthOpen(true)}
-                className="flex items-center gap-2 text-xs bg-surface border border-border px-3 py-1.5 rounded-full hover:bg-surface-variant transition-colors cursor-pointer"
-                title="Profil Pemesan"
-              >
-                <div className="w-5 h-5 rounded-full bg-brand-blue text-white flex items-center justify-center font-bold text-[10px]">
-                  {currentUser.fullName?.[0]?.toUpperCase() || 'T'}
-                </div>
-                <span className="font-semibold text-foreground max-w-[120px] truncate hidden sm:inline">
-                  {currentUser.fullName || 'Tamu'}
-                </span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setIsAuthOpen(true)}
-                className="px-3 py-1.5 rounded-full bg-brand-blue/10 hover:bg-brand-blue/20 text-brand-blue text-xs font-bold transition-colors cursor-pointer"
-              >
-                Masuk / Akun
-              </button>
-            )}
-            <div className="flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-3 py-1 rounded-full font-semibold">
-              <ShieldCheck size={14} />
-              <span className="hidden sm:inline">Pemesanan Terlindungi</span>
-            </div>
+          <div className="flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-3 py-1.5 rounded-full font-semibold">
+            <ShieldCheck size={15} />
+            <span>Pemesanan Terlindungi</span>
           </div>
         </div>
-      </header>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8 lg:py-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
           {/* ════════════════════════════════════════════════════════════════
               KOLOM KIRI: FORM & DATA PEMESANAN (AIRBNB STYLE)
@@ -529,13 +514,24 @@ export function CheckoutClient() {
                     <label className="block font-semibold text-foreground mb-1 text-[11px]">
                       Nomor WhatsApp / HP *
                     </label>
-                    <input
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="08123456789"
-                      className="w-full px-4 py-3 rounded-2xl border border-border focus:border-brand-blue focus:outline-hidden text-sm bg-surface/40 transition-colors"
-                    />
+                    <div className="relative flex items-center">
+                      <div className="absolute left-3.5 flex items-center gap-1 text-xs font-bold text-foreground pointer-events-none select-none border-r border-border pr-2.5 py-1">
+                        <span>🇮🇩</span>
+                        <span>+62</span>
+                      </div>
+                      <input
+                        type="tel"
+                        value={phone ? phone.replace(/^(\+62|62|0)/, '') : ''}
+                        onChange={(e) => {
+                          let val = e.target.value.replace(/\D/g, '');
+                          if (val.startsWith('62')) val = val.slice(2);
+                          while (val.startsWith('0')) val = val.slice(1);
+                          setPhone(val ? `08${val.startsWith('8') ? val.slice(1) : val}` : '');
+                        }}
+                        placeholder="81234567890"
+                        className="w-full pl-20 pr-4 py-3 rounded-2xl border border-border focus:border-brand-blue focus:outline-hidden text-sm bg-surface/40 transition-colors font-mono"
+                      />
+                    </div>
                   </div>
                   <div>
                     <label className="block font-semibold text-foreground mb-1 text-[11px]">
@@ -907,6 +903,9 @@ export function CheckoutClient() {
           </div>
         </div>
       </main>
+
+      {/* Footer Explore */}
+      <ExploreFooter />
 
       {/* Guest Authentication Modal */}
       {isAuthOpen && (
