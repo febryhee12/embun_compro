@@ -375,6 +375,7 @@ export function SpotRedirectClient() {
     useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAppBannerDismissed, setIsAppBannerDismissed] = useState(false);
 
   const [platformFee, setPlatformFee] = useState({
     adminFeeFlat: 4000,
@@ -1717,34 +1718,46 @@ export function SpotRedirectClient() {
   return (
     <div className="min-h-screen bg-white text-foreground selection:bg-brand-lime selection:text-black flex flex-col">
       {/* Mobile Smart App Banner: Memungkinkan tamu langsung membuka aplikasi jika ada di HP */}
-      <div className="md:hidden bg-slate-950 text-white px-4 py-2.5 flex items-center justify-between text-xs border-b border-white/10 sticky top-0 z-50">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-white p-1.5 flex items-center justify-center shadow-xs shrink-0">
-            <img
-              src="/images/logo/logogram_blue.svg"
-              alt="Embun"
-              className="w-full h-full object-contain"
-            />
+      {!isAppBannerDismissed && (
+        <div className="md:hidden bg-slate-950 text-white px-4 py-2.5 flex items-center justify-between text-xs border-b border-white/10 relative z-30">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-white p-1.5 flex items-center justify-center shadow-xs shrink-0">
+              <img
+                src="/images/logo/logogram_blue.svg"
+                alt="Embun"
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <div>
+              <p className="font-bold text-xs sm:text-sm leading-tight text-white">Aplikasi Embun</p>
+              <p className="text-[11px] text-white/75 leading-normal mt-0.5">Buka langsung di aplikasi</p>
+            </div>
           </div>
-          <div>
-            <p className="font-bold text-xs sm:text-sm leading-tight text-white">Aplikasi Embun</p>
-            <p className="text-[11px] text-white/75 leading-normal mt-0.5">Buka langsung di aplikasi</p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleOpenApp}
+              className="px-4 py-2 rounded-full bg-brand-lime hover:bg-brand-lime/90 text-black font-bold text-xs active:scale-95 transition-all cursor-pointer shadow-xs shrink-0"
+            >
+              Buka di App
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsAppBannerDismissed(true)}
+              className="p-1.5 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              title="Tutup banner"
+            >
+              <X size={15} />
+            </button>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={handleOpenApp}
-          className="px-4 py-2 rounded-full bg-brand-lime hover:bg-brand-lime/90 text-black font-bold text-xs active:scale-95 transition-all cursor-pointer shadow-xs shrink-0"
-        >
-          Buka di App
-        </button>
-      </div>
+      )}
 
       {/* ════════════════════════════════════════════════════════════════════════
           1. AIRBNB TOP NAVBAR
       ════════════════════════════════════════════════════════════════════════ */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-border transition-all">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 h-16 sm:h-20 flex items-center justify-between gap-2.5 sm:gap-4">
           {/* Logo & Explore Badge */}
           <div className="flex items-center gap-3">
             <a
@@ -1755,7 +1768,7 @@ export function SpotRedirectClient() {
               <img
                 src="/images/logo/primary_blue.svg"
                 alt="Embun"
-                className="h-7 w-auto object-contain transition-transform group-hover:scale-102"
+                className="h-6 sm:h-7 w-auto object-contain transition-transform group-hover:scale-102"
               />
               <span className="text-[10px] uppercase font-black tracking-wider px-2 py-0.5 rounded-full bg-brand-lime text-black border border-brand-lime/80 shadow-2xs">
                 Explore
@@ -1773,11 +1786,11 @@ export function SpotRedirectClient() {
           </div>
 
           {/* Top Right Action buttons */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5 sm:gap-2.5">
             <button
               type="button"
               onClick={handleOpenApp}
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-lime hover:bg-brand-lime/90 text-black text-xs font-bold transition-all cursor-pointer shadow-2xs"
+              className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-brand-lime hover:bg-brand-lime/90 text-black text-[11px] sm:text-xs font-bold transition-all cursor-pointer shadow-2xs shrink-0"
               title="Buka langsung di Aplikasi Embun"
             >
               <Smartphone size={13} />
