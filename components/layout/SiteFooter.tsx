@@ -166,7 +166,7 @@ export function SiteFooter() {
               ? 'All rights reserved.'
               : 'Seluruh hak cipta dilindungi.'}
           </p>
-          <p className="text-xs text-foreground-muted">
+          <p className="text-xs text-foreground-muted md:pr-16">
             Jakarta, Indonesia
           </p>
         </div>
