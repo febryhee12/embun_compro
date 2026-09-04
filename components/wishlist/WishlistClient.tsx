@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Heart } from 'lucide-react';
@@ -8,6 +8,7 @@ import {
   getStoredGuestProfile,
   getGuestToken,
   fetchGuestWishlist,
+  fetchActiveCampsites,
   removeFromWishlist,
   resolveAssetUrl,
   WishlistItemView,
@@ -17,20 +18,50 @@ import {
 import { ExploreHeader } from '@/components/explore/ExploreHeader';
 import { ExploreFooter } from '@/components/explore/ExploreFooter';
 import { GuestAuthModal } from '@/components/explore/GuestAuthModal';
+import { getPhotoCategoryScore } from '@/components/explore/SpotCard';
 
 export function WishlistClient() {
   const router = useRouter();
   const [items, setItems] = useState<WishlistItemView[]>([]);
+  const [campsites, setCampsites] = useState<any[]>([]);
+  const [failedUrls, setFailedUrls] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [authRequired, setAuthRequired] = useState(false);
   const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [removingIds, setRemovingIds] = useState<Set<string>>(new Set());
 
-  const loadWishlist = async () => {
+  // Block & Campsite lookup maps for resolving full photo lists with categories
+  const { blocksMap, campsitesMap } = useMemo(() => {
+    const bMap = new Map<string, any>();
+    const cMap = new Map<string, any>();
+
+    campsites.forEach((c) => {
+      if (c?.id) cMap.set(String(c.id).trim().toLowerCase(), c);
+      if (c?.slug) cMap.set(String(c.slug).trim().toLowerCase(), c);
+
+      if (Array.isArray(c?.blocks)) {
+        c.blocks.forEach((b: any) => {
+          if (b?.id) bMap.set(String(b.id).trim().toLowerCase(), { ...b, parentCampsite: c });
+          if (b?.shareCode) bMap.set(String(b.shareCode).trim().toLowerCase(), { ...b, parentCampsite: c });
+        });
+      }
+    });
+
+    return { blocksMap: bMap, campsitesMap: cMap };
+  }, [campsites]);
+
+  const loadData = async () => {
     const token = getGuestToken();
     const user = getStoredGuestProfile();
     setCurrentUser(user);
+
+    // Fetch active campsites catalog in parallel to enrich photos & metadata
+    void fetchActiveCampsites()
+      .then((data) => {
+        if (Array.isArray(data)) setCampsites(data);
+      })
+      .catch(() => {});
 
     if (!token) {
       setAuthRequired(true);
@@ -54,7 +85,7 @@ export function WishlistClient() {
   };
 
   useEffect(() => {
-    void loadWishlist();
+    void loadData();
   }, []);
 
   const handleRemove = async (e: React.MouseEvent, item: WishlistItemView) => {
@@ -92,12 +123,90 @@ export function WishlistClient() {
     }
   };
 
-  const formatItemPhoto = (item: WishlistItemView): string => {
-    const photo =
-      item.block?.coverPhotoUrl ||
-      item.campsite?.coverPhotoUrl ||
-      '';
-    return photo ? resolveAssetUrl(photo) : '/images/image_form.png';
+  /**
+   * Resolve primary photo prioritizing Kamar Utama / Tenda over toilet/bathroom
+   * with seamless cascade to next best photo or campsite landscape.
+   */
+  const getItemPhoto = (item: WishlistItemView): string => {
+    // 1. If it's a spot/block, check catalog block photos with category priority
+    if (item.blockId) {
+      const bKey = String(item.blockId).trim().toLowerCase();
+      const catalogBlock = blocksMap.get(bKey);
+      if (catalogBlock) {
+        const candidatePhotos: Array<{ url: string; score: number }> = [];
+
+        if (Array.isArray(catalogBlock.photos)) {
+          catalogBlock.photos.forEach((p: any) => {
+            const resolved = p?.url ? resolveAssetUrl(p.url) : '';
+            if (resolved && !failedUrls.has(resolved) && !failedUrls.has(p.url)) {
+              candidatePhotos.push({
+                url: resolved,
+                score: getPhotoCategoryScore(p.category),
+              });
+            }
+          });
+        }
+
+        if (candidatePhotos.length === 0 && Array.isArray(catalogBlock.images)) {
+          catalogBlock.images.forEach((img: string) => {
+            const resolved = img ? resolveAssetUrl(img) : '';
+            if (resolved && !failedUrls.has(resolved) && !failedUrls.has(img)) {
+              candidatePhotos.push({ url: resolved, score: 50 });
+            }
+          });
+        }
+
+        // Filter out Kamar Mandi / Toilet (score 99) if any other photo exists
+        const nonToilet = candidatePhotos.filter((p) => p.score < 99);
+        const pool = nonToilet.length > 0 ? nonToilet : candidatePhotos;
+        if (pool.length > 0) {
+          pool.sort((a, b) => a.score - b.score);
+          return pool[0].url;
+        }
+      }
+    }
+
+    // 2. Block coverPhotoUrl from API payload
+    if (item.block?.coverPhotoUrl) {
+      const resolved = resolveAssetUrl(item.block.coverPhotoUrl);
+      if (!failedUrls.has(resolved) && !failedUrls.has(item.block.coverPhotoUrl)) {
+        return resolved;
+      }
+    }
+
+    // 3. Campsite catalog photos
+    const cKey = String(item.campsiteId || item.campsite?.id || '').trim().toLowerCase();
+    const catalogCampsite = campsitesMap.get(cKey);
+    if (catalogCampsite && Array.isArray(catalogCampsite.photos)) {
+      const campPhotos = catalogCampsite.photos
+        .map((p: any) => ({
+          url: p?.url ? resolveAssetUrl(p.url) : '',
+          rawUrl: p?.url,
+          category: p?.category || '',
+        }))
+        .filter((p: any) => p.url && !failedUrls.has(p.url) && !failedUrls.has(p.rawUrl));
+
+      const home = campPhotos.find(
+        (p: any) => p.category === 'home' || p.category === 'cover' || p.category === 'main',
+      );
+      if (home) return home.url;
+
+      const view = campPhotos.find((p: any) => p.category.includes('view'));
+      if (view) return view.url;
+
+      if (campPhotos.length > 0) return campPhotos[0].url;
+    }
+
+    // 4. Campsite coverPhotoUrl from API payload
+    if (item.campsite?.coverPhotoUrl) {
+      const resolved = resolveAssetUrl(item.campsite.coverPhotoUrl);
+      if (!failedUrls.has(resolved) && !failedUrls.has(item.campsite.coverPhotoUrl)) {
+        return resolved;
+      }
+    }
+
+    // 5. Verified high-resolution landscape campsite cover photo
+    return 'https://media-staging.embun.app/campsites/51f7987e-2632-4bfa-bfc6-302c782bb81d/1348dba5-1a61-4274-b0e8-d17ba2540a15.jpg';
   };
 
   return (
@@ -186,7 +295,7 @@ export function WishlistClient() {
         {!loading && !authRequired && items.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8">
             {items.map((item) => {
-              const photoUrl = formatItemPhoto(item);
+              const photoUrl = getItemPhoto(item);
               const title = item.block?.name || item.campsite?.name || 'Spot Camping';
               const location = [item.campsite?.city, item.campsite?.province]
                 .filter(Boolean)
@@ -204,8 +313,8 @@ export function WishlistClient() {
                       src={photoUrl}
                       alt={title}
                       className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/images/image_form.png';
+                      onError={() => {
+                        setFailedUrls((prev) => new Set(prev).add(photoUrl));
                       }}
                     />
 
@@ -250,7 +359,7 @@ export function WishlistClient() {
         onClose={() => setIsAuthOpen(false)}
         onSuccess={() => {
           setIsAuthOpen(false);
-          void loadWishlist();
+          void loadData();
         }}
         currentUser={currentUser}
         onLogout={() => {

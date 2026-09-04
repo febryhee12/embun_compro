@@ -13,7 +13,17 @@ export function resolveAssetUrl(raw?: string): string {
   ) {
     return trimmed;
   }
-  const cleanPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+  const cleanKey = trimmed.replace(/^\/+/, '');
+  if (
+    cleanKey.startsWith('campsites/') ||
+    cleanKey.startsWith('blocks/') ||
+    cleanKey.startsWith('photos/') ||
+    cleanKey.startsWith('panoramas/') ||
+    cleanKey.startsWith('partners/')
+  ) {
+    return `https://media-staging.embun.app/${cleanKey}`;
+  }
+  const cleanPath = `/${cleanKey}`;
   const host = API_BASE_URL.replace(/\/api\/?$/, '');
   return `${host}${cleanPath}`;
 }
