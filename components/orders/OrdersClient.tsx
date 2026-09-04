@@ -40,47 +40,48 @@ function getOrderBadge(order: any) {
       return {
         label: 'DP 50%',
         sublabel: `Sisa ${rupiah(order.remainingBalance || 0)}`,
-        className: 'bg-amber-50 text-amber-800 border-amber-300',
+        className: 'bg-neutral-100 text-neutral-800 border-neutral-200/80',
+        sublabelClass: 'text-neutral-600 bg-neutral-50 border-neutral-200/80',
       };
     }
     return {
       label: 'Lunas',
-      className: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      className: 'bg-neutral-100 text-neutral-800 border-neutral-200/80',
     };
   }
   if (order.status === 'PENDING') {
     return {
       label: 'Menunggu Bayar',
-      className: 'bg-amber-50 text-amber-700 border-amber-200',
+      className: 'bg-neutral-100 text-neutral-800 border-neutral-200/80',
     };
   }
   if (order.status === 'COMPLETE') {
     return {
       label: 'Selesai',
-      className: 'bg-neutral-100 text-neutral-700 border-neutral-300',
+      className: 'bg-neutral-100 text-neutral-700 border-neutral-200/80',
     };
   }
   if (order.status === 'CANCELLED') {
     return {
       label: 'Dibatalkan',
-      className: 'bg-red-50 text-red-700 border-red-200',
+      className: 'bg-neutral-100 text-neutral-500 border-neutral-200/80',
     };
   }
   if (order.status === 'EXPIRED') {
     return {
       label: 'Kedaluwarsa',
-      className: 'bg-neutral-100 text-neutral-500 border-neutral-200',
+      className: 'bg-neutral-100 text-neutral-500 border-neutral-200/80',
     };
   }
   if (order.status === 'REFUNDED') {
     return {
       label: 'Direfund',
-      className: 'bg-blue-50 text-blue-700 border-blue-200',
+      className: 'bg-neutral-100 text-neutral-600 border-neutral-200/80',
     };
   }
   return {
     label: order.status || 'Draft',
-    className: 'bg-neutral-100 text-neutral-600 border-neutral-200',
+    className: 'bg-neutral-100 text-neutral-600 border-neutral-200/80',
   };
 }
 
@@ -229,7 +230,6 @@ export function OrdersClient() {
       count: orders.length,
       description: 'Semua riwayat pemesanan penginapan Anda',
       icon: ListOrdered,
-      badgeColor: 'bg-surface text-foreground',
     },
     {
       id: 'pengajuan' as TabType,
@@ -238,7 +238,6 @@ export function OrdersClient() {
       count: pengajuanOrders.length,
       description: 'Pesanan menunggu pembayaran atau sisa pelunasan DP',
       icon: Clock,
-      badgeColor: pengajuanOrders.length > 0 ? 'bg-amber-100 text-amber-800' : 'bg-surface text-foreground-muted',
     },
     {
       id: 'menuju_checkin' as TabType,
@@ -247,7 +246,6 @@ export function OrdersClient() {
       count: upcomingOrders.length,
       description: 'Reservasi aktif yang siap untuk keberangkatan',
       icon: Tent,
-      badgeColor: upcomingOrders.length > 0 ? 'bg-emerald-100 text-emerald-800 font-black' : 'bg-surface text-foreground-muted',
     },
     {
       id: 'selesai' as TabType,
@@ -256,7 +254,6 @@ export function OrdersClient() {
       count: doneOrders.length,
       description: 'Pesanan yang telah selesai, direfund, atau dibatalkan',
       icon: CheckCircle2,
-      badgeColor: 'bg-surface text-foreground-muted',
     },
   ], [orders.length, pengajuanOrders.length, upcomingOrders.length, doneOrders.length]);
 
@@ -387,10 +384,10 @@ export function OrdersClient() {
                   >
                     <span>{item.shortLabel}</span>
                     <span
-                      className={`px-1.5 py-0.2 rounded-full text-[10.5px] font-black ${
+                      className={`px-2 py-0.5 rounded-full text-[10.5px] font-bold ${
                         isActive
                           ? 'bg-white/20 text-white'
-                          : item.badgeColor
+                          : 'bg-surface text-foreground-muted border border-border/60'
                       }`}
                     >
                       {item.count}
@@ -435,10 +432,10 @@ export function OrdersClient() {
                               <span className="truncate">{item.label}</span>
                             </div>
                             <span
-                              className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                              className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
                                 isActive
                                   ? 'bg-white/20 text-white'
-                                  : item.badgeColor
+                                  : 'bg-surface text-foreground-muted border border-border/60'
                               }`}
                             >
                               {item.count}
@@ -553,16 +550,16 @@ export function OrdersClient() {
                             {/* Order Info */}
                             <div className="min-w-0 space-y-1.5">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-mono text-[11px] font-bold text-brand-blue tracking-wide bg-brand-blue/8 px-2.5 py-0.5 rounded-md border border-brand-blue/15">
+                                <span className="font-mono text-[11px] font-semibold text-neutral-600 tracking-wide bg-neutral-100/80 px-2.5 py-0.5 rounded-md border border-neutral-200/80">
                                   {shortCode}
                                 </span>
                                 <span
-                                  className={`px-2.5 py-0.5 rounded-full text-[10.5px] font-bold tracking-wide border shrink-0 ${badge.className}`}
+                                  className={`px-2.5 py-0.5 rounded-full text-[10.5px] font-medium tracking-wide border shrink-0 ${badge.className}`}
                                 >
                                   {badge.label}
                                 </span>
                                 {badge.sublabel && (
-                                  <span className="text-[11px] font-semibold text-amber-700 bg-amber-50/70 px-2 py-0.5 rounded-md border border-amber-200">
+                                  <span className="text-[10.5px] font-medium text-neutral-600 bg-neutral-50 px-2.5 py-0.5 rounded-md border border-neutral-200/80">
                                     {badge.sublabel}
                                   </span>
                                 )}

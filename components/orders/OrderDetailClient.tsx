@@ -47,54 +47,54 @@ function getOrderBadge(order: any) {
     if (isUnsettled) {
       return {
         label: 'DP 50% (Belum Lunas)',
-        className: 'bg-amber-50 text-amber-800 border-amber-300',
+        className: 'bg-neutral-100 text-neutral-800 border-neutral-200/80',
         isDP: true,
       };
     }
     return {
       label: 'Lunas',
-      className: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      className: 'bg-neutral-100 text-neutral-800 border-neutral-200/80',
       isDP: false,
     };
   }
   if (order.status === 'PENDING') {
     return {
       label: 'Menunggu Pembayaran',
-      className: 'bg-amber-50 text-amber-700 border-amber-200',
+      className: 'bg-neutral-100 text-neutral-800 border-neutral-200/80',
       isDP: false,
     };
   }
   if (order.status === 'COMPLETE') {
     return {
       label: 'Selesai',
-      className: 'bg-neutral-100 text-neutral-700 border-neutral-300',
+      className: 'bg-neutral-100 text-neutral-700 border-neutral-200/80',
       isDP: false,
     };
   }
   if (order.status === 'CANCELLED') {
     return {
       label: 'Dibatalkan',
-      className: 'bg-red-50 text-red-700 border-red-200',
+      className: 'bg-neutral-100 text-neutral-500 border-neutral-200/80',
       isDP: false,
     };
   }
   if (order.status === 'EXPIRED') {
     return {
       label: 'Kedaluwarsa',
-      className: 'bg-neutral-100 text-neutral-600 border-neutral-300',
+      className: 'bg-neutral-100 text-neutral-500 border-neutral-200/80',
       isDP: false,
     };
   }
   if (order.status === 'REFUNDED') {
     return {
       label: 'Direfund',
-      className: 'bg-blue-50 text-blue-700 border-blue-200',
+      className: 'bg-neutral-100 text-neutral-600 border-neutral-200/80',
       isDP: false,
     };
   }
   return {
     label: order.status || 'Draft',
-    className: 'bg-neutral-100 text-neutral-600 border-neutral-200',
+    className: 'bg-neutral-100 text-neutral-600 border-neutral-200/80',
     isDP: false,
   };
 }
