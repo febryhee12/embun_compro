@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Loader2, Phone, User, MapPin, Sparkles, X } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 import { updateGuestProfile, setGuestSession, getGuestToken } from '@/lib/api-client';
 
 interface CompleteProfileModalProps {
@@ -99,32 +99,24 @@ export function CompleteProfileModal({
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
       <div className="w-full max-w-lg bg-white text-foreground rounded-t-3xl sm:rounded-3xl shadow-2xl border border-border overflow-hidden flex flex-col p-6 sm:p-8 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
         {/* Header Bar */}
-        <div className="flex items-center justify-between pb-3 border-b border-border/70">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-brand-lime text-black flex items-center justify-center font-bold text-xs shadow-2xs">
-              <Sparkles size={14} />
-            </div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-brand-blue">
-              Langkah Terakhir
-            </span>
-          </div>
+        <div className="flex items-center justify-end pb-1">
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-surface text-foreground-muted hover:text-foreground transition-colors cursor-pointer"
+            className="p-2 -mr-2 -mt-1 rounded-full hover:bg-surface text-foreground-muted hover:text-foreground transition-colors cursor-pointer"
             aria-label="Tutup"
           >
-            <X size={18} />
+            <X size={20} />
           </button>
         </div>
 
         {/* Introduction */}
-        <div className="py-5 space-y-1.5">
+        <div className="pb-4 space-y-1">
           <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
             Lengkapi Profil Anda
           </h2>
           <p className="text-xs sm:text-sm text-foreground-muted leading-relaxed">
-            Data ini diperlukan oleh pengelola campsite untuk mengonfirmasi reservasi, mengirimkan e-tiket, serta memandu proses check-in Anda.
+            Data ini diperlukan oleh pengelola campsite untuk mengonfirmasi reservasi dan memandu proses check-in Anda.
           </p>
         </div>
 
@@ -138,9 +130,8 @@ export function CompleteProfileModal({
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Full Name */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-              <User size={13} className="text-brand-blue" />
-              <span>Nama Lengkap</span>
+            <label className="text-xs font-bold text-foreground">
+              Nama Lengkap
             </label>
             <input
               type="text"
@@ -150,16 +141,12 @@ export function CompleteProfileModal({
               required
               className="w-full px-4 py-3 rounded-2xl border border-border bg-surface/30 focus:bg-white text-sm text-foreground outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all"
             />
-            <p className="text-[11px] text-foreground-muted">
-              Sesuai dengan kartu identitas (KTP/SIM/Paspor).
-            </p>
           </div>
 
           {/* WhatsApp Phone */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-              <Phone size={13} className="text-emerald-600" />
-              <span>Nomor WhatsApp Aktif</span>
+            <label className="text-xs font-bold text-foreground">
+              Nomor WhatsApp / HP
             </label>
             <div className="relative flex items-center">
               <div className="absolute left-3.5 flex items-center gap-1 text-xs font-bold text-foreground pointer-events-none select-none border-r border-border pr-2.5 py-1">
@@ -180,28 +167,21 @@ export function CompleteProfileModal({
                 className="w-full pl-20 pr-4 py-3 rounded-2xl border border-border bg-surface/30 focus:bg-white text-sm text-foreground outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all font-mono"
               />
             </div>
-            <p className="text-[11px] text-foreground-muted">
-              E-tiket dan kode akses campsite akan dikirimkan ke nomor WhatsApp ini.
-            </p>
           </div>
 
           {/* Address */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-              <MapPin size={13} className="text-brand-blue" />
-              <span>Alamat Domisili / Asal Kota</span>
+            <label className="text-xs font-bold text-foreground">
+              Alamat / Kota Asal
             </label>
             <textarea
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              placeholder="Contoh: Jl. Sukajadi No. 12, Kota Bandung, Jawa Barat"
+              placeholder="Contoh: Jl. Sukajadi No. 12, Kota Bandung"
               rows={2}
               required
               className="w-full px-4 py-3 rounded-2xl border border-border bg-surface/30 focus:bg-white text-sm text-foreground outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all resize-none"
             />
-            <p className="text-[11px] text-foreground-muted">
-              Kota asal tempat tinggal Anda untuk data registrasi tamu.
-            </p>
           </div>
 
           {/* Action Buttons */}
