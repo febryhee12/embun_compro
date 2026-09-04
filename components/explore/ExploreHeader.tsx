@@ -14,6 +14,7 @@ interface ExploreHeaderProps {
   selectedCity?: string;
   onSelectCity?: (city: string) => void;
   availableCities?: string[];
+  showUserMenu?: boolean;
 }
 
 export function ExploreHeader({
@@ -25,6 +26,7 @@ export function ExploreHeader({
   selectedCity = '',
   onSelectCity = () => {},
   availableCities,
+  showUserMenu = true,
 }: ExploreHeaderProps) {
   const [isCityModalOpen, setIsCityModalOpen] = useState(false);
   const [citySearchQuery, setCitySearchQuery] = useState('');
@@ -166,55 +168,59 @@ export function ExploreHeader({
           )}
 
           {/* Right: User Avatar Menu & Wishlist */}
-          <div className="flex items-center gap-2.5 shrink-0">
-            <Link
-              href="/wishlist"
-              className="p-2 rounded-full border border-border hover:bg-surface text-foreground transition-colors cursor-pointer flex items-center justify-center"
-              title="Wishlist Saya"
-              aria-label="Wishlist Saya"
-            >
-              <Heart size={16} className="text-foreground" />
-            </Link>
+          {showUserMenu ? (
+            <div className="flex items-center gap-2.5 shrink-0">
+              <Link
+                href="/wishlist"
+                className="p-2 rounded-full border border-border hover:bg-surface text-foreground transition-colors cursor-pointer flex items-center justify-center"
+                title="Wishlist Saya"
+                aria-label="Wishlist Saya"
+              >
+                <Heart size={16} className="text-foreground" />
+              </Link>
 
-            <button
-              type="button"
-              onClick={onOpenAuth}
-              className="flex items-center gap-2 border border-border rounded-full py-1.5 px-3 hover:shadow-md transition-all bg-white cursor-pointer text-xs font-semibold text-foreground"
-              aria-label="Menu Pengguna"
-            >
-              {currentUser ? (
-                <>
-                  <Menu size={15} className="text-foreground-muted" />
-                  <div className="w-6 h-6 rounded-full bg-[#c2410c] text-white flex items-center justify-center border border-brand-lime/80 font-bold text-xs overflow-hidden shrink-0 shadow-2xs">
-                    {currentUser?.avatarUrl || currentUser?.photoUrl ? (
-                      <img
-                        src={resolveAssetUrl(
-                          currentUser.avatarUrl || currentUser.photoUrl,
-                        )}
-                        alt="Avatar"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-white font-black text-xs select-none">
-                        {(currentUser?.fullName || 'Tamu')
-                          .trim()
-                          .charAt(0)
-                          .toUpperCase()}
-                      </span>
-                    )}
-                  </div>
-                  <span className="hidden sm:inline">
-                    {currentUser?.fullName?.split(' ')[0] || 'Akun'}
-                  </span>
-                </>
-              ) : (
-                <>
-                  <User size={15} className="text-foreground-muted" />
-                  <span>Masuk</span>
-                </>
-              )}
-            </button>
-          </div>
+              <button
+                type="button"
+                onClick={onOpenAuth}
+                className="flex items-center gap-2 border border-border rounded-full py-1.5 px-3 hover:shadow-md transition-all bg-white cursor-pointer text-xs font-semibold text-foreground"
+                aria-label="Menu Pengguna"
+              >
+                {currentUser ? (
+                  <>
+                    <Menu size={15} className="text-foreground-muted" />
+                    <div className="w-6 h-6 rounded-full bg-[#c2410c] text-white flex items-center justify-center border border-brand-lime/80 font-bold text-xs overflow-hidden shrink-0 shadow-2xs">
+                      {currentUser?.avatarUrl || currentUser?.photoUrl ? (
+                        <img
+                          src={resolveAssetUrl(
+                            currentUser.avatarUrl || currentUser.photoUrl,
+                          )}
+                          alt="Avatar"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-white font-black text-xs select-none">
+                          {(currentUser?.fullName || 'Tamu')
+                            .trim()
+                            .charAt(0)
+                            .toUpperCase()}
+                        </span>
+                      )}
+                    </div>
+                    <span className="hidden sm:inline">
+                      {currentUser?.fullName?.split(' ')[0] || 'Akun'}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <User size={15} className="text-foreground-muted" />
+                    <span>Masuk</span>
+                  </>
+                )}
+              </button>
+            </div>
+          ) : (
+            <div className="shrink-0" />
+          )}
         </div>
 
         {/* Mobile Search Bar (under logo) */}

@@ -12,6 +12,7 @@ import {
   Mail,
   AlertCircle,
   ShieldCheck,
+  ArrowLeft,
 } from 'lucide-react';
 import {
   getStoredGuestProfile,
@@ -191,6 +192,7 @@ export function ProfileClient() {
       {/* ═══ HEADER ATAS (LOGO RESMI EMBUN EXPLORE & MENU AKUN, TANPA LOKASI) ═══ */}
       <ExploreHeader
         showSearch={false}
+        showUserMenu={false}
         currentUser={profile}
         onOpenAuth={() => setIsAuthOpen(true)}
       />
@@ -236,6 +238,16 @@ export function ProfileClient() {
           <div className="space-y-6">
             {/* Header Judul Halaman */}
             <div className="border-b border-border/70 pb-5">
+              <Link
+                href="/explore"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-white hover:bg-surface text-xs font-semibold text-foreground transition-all shadow-2xs hover:shadow-xs group mb-3.5 cursor-pointer"
+              >
+                <ArrowLeft
+                  size={13}
+                  className="text-foreground-muted group-hover:text-brand-blue group-hover:-translate-x-0.5 transition-transform"
+                />
+                <span>Kembali ke Beranda</span>
+              </Link>
               <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
                 Profil Saya
               </h1>

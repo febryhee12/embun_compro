@@ -522,6 +522,7 @@ export function OrderDetailClient() {
       <div className="print:hidden">
         <ExploreHeader
           showSearch={false}
+          showUserMenu={false}
           currentUser={currentUser}
           onOpenAuth={() => setIsAuthOpen(true)}
         />

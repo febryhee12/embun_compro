@@ -10,6 +10,7 @@ import {
   LogIn,
   RefreshCw,
   AlertCircle,
+  ArrowLeft,
 } from 'lucide-react';
 import {
   getGuestToken,
@@ -264,6 +265,7 @@ export function OrdersClient() {
       {/* ═══ HEADER ATAS (LOGO RESMI EMBUN EXPLORE & MENU AKUN, TANPA LOKASI) ═══ */}
       <ExploreHeader
         showSearch={false}
+        showUserMenu={false}
         currentUser={currentUser}
         onOpenAuth={() => setIsAuthOpen(true)}
       />
@@ -324,32 +326,20 @@ export function OrdersClient() {
               <span>Coba Lagi</span>
             </button>
           </div>
-        ) : orders.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-3xl border border-border p-8 space-y-4 shadow-2xs max-w-md mx-auto my-12">
-            <div className="w-16 h-16 mx-auto rounded-2xl bg-surface flex items-center justify-center p-3.5 border border-border">
-              <img
-                src="/images/logo/logogram_blue.svg"
-                alt="Embun"
-                className="w-full h-full object-contain opacity-40 grayscale"
-              />
-            </div>
-            <div className="space-y-1">
-              <h3 className="font-bold text-base text-foreground">Belum Ada Pesanan</h3>
-              <p className="text-xs text-foreground-muted leading-relaxed">
-                Temukan tempat camping & glamping terbaik untuk liburan akhir pekan Anda.
-              </p>
-            </div>
-            <Link
-              href="/explore"
-              className="inline-flex items-center justify-center w-full py-3 rounded-full bg-brand-blue text-white text-xs font-bold shadow-md hover:bg-brand-blue-hover transition-all"
-            >
-              Cari Penginapan Sekarang
-            </Link>
-          </div>
         ) : (
           <div className="space-y-6">
             {/* Header Judul Halaman */}
             <div className="border-b border-border/70 pb-5">
+              <Link
+                href="/explore"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-white hover:bg-surface text-xs font-semibold text-foreground transition-all shadow-2xs hover:shadow-xs group mb-3.5 cursor-pointer"
+              >
+                <ArrowLeft
+                  size={13}
+                  className="text-foreground-muted group-hover:text-brand-blue group-hover:-translate-x-0.5 transition-transform"
+                />
+                <span>Kembali ke Beranda</span>
+              </Link>
               <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
                 Pesanan Saya
               </h1>
