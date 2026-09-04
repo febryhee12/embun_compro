@@ -579,19 +579,42 @@ export function OrderDetailClient() {
 
                       {/* QR Code Container Check-in */}
                       <div className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white border border-border shadow-xs shrink-0 self-center sm:self-auto">
-                        <div className="w-44 h-44 sm:w-48 sm:h-48 bg-surface flex items-center justify-center rounded-2xl p-2.5 border border-border/60">
-                          <img
-                            src={`https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(
-                              order.id,
-                            )}`}
-                            alt="QR Code Check-in"
-                            className="w-full h-full object-contain"
-                          />
+                        <div className="w-44 h-44 sm:w-48 sm:h-48 bg-surface flex items-center justify-center rounded-2xl p-2.5 border border-border/60 relative overflow-hidden">
+                          {isUnsettledDP ? (
+                            <>
+                              <img
+                                src={`https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(
+                                  order.id,
+                                )}`}
+                                alt="QR Code Check-in"
+                                className="w-full h-full object-contain filter blur-md opacity-30 select-none pointer-events-none scale-105"
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center p-3">
+                                <span className="px-4 py-1.5 rounded-full bg-white/95 border border-neutral-200/90 text-neutral-600 text-xs font-semibold shadow-2xs backdrop-blur-xs tracking-wide select-none">
+                                  Belum Aktif
+                                </span>
+                              </div>
+                            </>
+                          ) : (
+                            <img
+                              src={`https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(
+                                order.id,
+                              )}`}
+                              alt="QR Code Check-in"
+                              className="w-full h-full object-contain"
+                            />
+                          )}
                         </div>
-                        <span className="text-[11px] font-bold text-foreground-muted flex items-center gap-1.5">
-                          <QrCode size={13} className="text-brand-blue" />
-                          Scan untuk Check-in
-                        </span>
+                        {isUnsettledDP ? (
+                          <span className="text-[11px] font-medium text-foreground-muted text-center select-none">
+                            Aktif setelah pelunasan
+                          </span>
+                        ) : (
+                          <span className="text-[11px] font-bold text-foreground-muted flex items-center gap-1.5">
+                            <QrCode size={13} className="text-brand-blue" />
+                            Scan untuk Check-in
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
