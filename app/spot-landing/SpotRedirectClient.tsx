@@ -406,6 +406,7 @@ export function SpotRedirectClient() {
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [reviewAggregate, setReviewAggregate] =
     useState<ReviewAggregate | null>(null);
+  const [showReviewsModal, setShowReviewsModal] = useState(false);
 
   // Gallery & 360 Lightbox state
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
@@ -2175,21 +2176,16 @@ export function SpotRedirectClient() {
           <div className="lg:col-span-7 xl:col-span-8 space-y-10">
             {/* Spot Overview Card */}
             <div className="pb-6 border-b border-border space-y-3">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h2 className="text-xl font-bold text-foreground">
-                    Kavling & Unit di {campsite.name}
-                  </h2>
-                  <p className="text-xs text-foreground-muted mt-1">
-                    Maks. {effectiveMaxCapacity} Tamu{' '}
-                    {activeSpot.tentType
-                      ? `· Ground ${activeSpot.tentType}`
-                      : ''}
-                  </p>
-                </div>
-                <div className="w-12 h-12 rounded-2xl bg-brand-blue/10 border border-brand-blue/30 text-brand-blue flex items-center justify-center font-bold text-sm shrink-0">
-                  <Tent size={24} />
-                </div>
+              <div>
+                <h2 className="text-xl font-bold text-foreground">
+                  Kavling & Unit di {campsite.name}
+                </h2>
+                <p className="text-xs text-foreground-muted mt-1">
+                  Maks. {effectiveMaxCapacity} Tamu{' '}
+                  {activeSpot.tentType
+                    ? `· Ground ${activeSpot.tentType}`
+                    : ''}
+                </p>
               </div>
             </div>
 
@@ -2765,7 +2761,7 @@ export function SpotRedirectClient() {
                         href={`/campsite/${campsite.slug || campsite.id}`}
                         className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-blue/10 hover:bg-brand-blue/20 text-brand-blue text-xs font-bold transition-all border border-brand-blue/20 cursor-pointer shadow-2xs"
                       >
-                        <span>Lihat Profil Lengkap & Semua Spot di {campsite.name} ({campsiteSpots.length} Unit)</span>
+                        <span>Lihat Semua Spot di {campsite.name}</span>
                         <ArrowRight size={13} />
                       </a>
                     </div>
@@ -2837,6 +2833,25 @@ export function SpotRedirectClient() {
                       Kecilkan volume musik dan suara demi kenyamanan bersama.
                     </p>
                   </div>
+
+                  <div className="sm:col-span-2 p-4 rounded-2xl bg-surface border border-border space-y-1.5">
+                    <h5 className="font-bold text-foreground flex items-center gap-1.5">
+                      <ShieldCheck size={13} className="text-brand-blue" />
+                      <span>Kebijakan Pembatalan & Refund</span>
+                    </h5>
+                    <p className="text-xs text-foreground-muted leading-relaxed">
+                      Pengajuan pembatalan reservasi atau pengembalian dana tunduk pada syarat dan tenggat waktu resmi dari pengelola campsite.{' '}
+                      <a
+                        href="/kebijakan-refund"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-brand-blue font-bold hover:underline inline-flex items-center gap-1"
+                      >
+                        <span>Pelajari Kebijakan Refund & Pembatalan Embun</span>
+                        <span>&rarr;</span>
+                      </a>
+                    </p>
+                  </div>
                 </div>
 
                 {/* Parsed Rules from CMS */}
@@ -2869,69 +2884,92 @@ export function SpotRedirectClient() {
                       : 'Ulasan Tamu'}
                   </h3>
                 </div>
+                {reviews.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowReviewsModal(true)}
+                    className="text-xs font-bold text-brand-blue hover:underline cursor-pointer"
+                  >
+                    Lihat Semua ({reviewAggregate?.ratingCount || reviews.length})
+                  </button>
+                )}
               </div>
 
               {reviews.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {reviews.map((rev) => (
-                    <div
-                      key={rev.id}
-                      className="p-4 rounded-3xl bg-surface border border-border space-y-3 shadow-2xs"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-9 h-9 rounded-full bg-brand-blue/10 border border-border flex items-center justify-center font-bold text-xs text-brand-blue overflow-hidden">
-                            {rev.authorPhotoUrl ? (
-                              <img
-                                src={resolveAssetUrl(rev.authorPhotoUrl)}
-                                alt={rev.maskedAuthorName || 'Tamu'}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              (rev.maskedAuthorName || 'Tamu')
-                                .charAt(0)
-                                .toUpperCase()
-                            )}
-                          </div>
-                          <div>
-                            <h4 className="font-bold text-xs text-foreground">
-                              {rev.maskedAuthorName || 'Tamu Embun'}
-                            </h4>
-                            <span className="text-[10px] text-foreground-muted">
-                              {new Date(rev.createdAt).toLocaleDateString(
-                                'id-ID',
-                                {
-                                  month: 'long',
-                                  year: 'numeric',
-                                },
+                <div className="space-y-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {reviews.slice(0, 4).map((rev) => (
+                      <div
+                        key={rev.id}
+                        className="p-5 rounded-3xl bg-surface border border-border space-y-3 shadow-2xs"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-9 h-9 rounded-full bg-brand-blue/10 border border-border flex items-center justify-center font-bold text-xs text-brand-blue overflow-hidden shrink-0">
+                              {rev.authorPhotoUrl ? (
+                                <img
+                                  src={resolveAssetUrl(rev.authorPhotoUrl)}
+                                  alt={rev.maskedAuthorName || 'Tamu'}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                (rev.maskedAuthorName || 'Tamu')
+                                  .charAt(0)
+                                  .toUpperCase()
                               )}
-                            </span>
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-xs text-foreground">
+                                {rev.maskedAuthorName || 'Tamu Embun'}
+                              </h4>
+                              <span className="text-[10px] text-foreground-muted">
+                                {new Date(rev.createdAt).toLocaleDateString(
+                                  'id-ID',
+                                  {
+                                    month: 'long',
+                                    year: 'numeric',
+                                  },
+                                )}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 bg-white px-2 py-1 rounded-full border border-border text-[11px] font-bold text-foreground">
+                            <Star
+                              size={11}
+                              className="fill-amber-500 text-amber-500"
+                            />
+                            <span>{rev.rating}</span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-1 bg-white px-2 py-1 rounded-full border border-border text-[11px] font-bold text-foreground">
-                          <Star
-                            size={11}
-                            className="fill-amber-500 text-amber-500"
-                          />
-                          <span>{rev.rating}</span>
-                        </div>
+
+                        <p className="text-xs text-foreground/90 leading-relaxed">
+                          "{rev.message}"
+                        </p>
+
+                        {rev.photoUrl && (
+                          <div className="w-20 h-20 rounded-xl overflow-hidden border border-border">
+                            <img
+                              src={resolveAssetUrl(rev.photoUrl)}
+                              alt="Foto ulasan"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
                       </div>
+                    ))}
+                  </div>
 
-                      <p className="text-xs text-foreground/90 leading-relaxed">
-                        "{rev.message}"
-                      </p>
-
-                      {rev.photoUrl && (
-                        <div className="w-20 h-20 rounded-xl overflow-hidden border border-border">
-                          <img
-                            src={resolveAssetUrl(rev.photoUrl)}
-                            alt="Foto ulasan"
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      )}
+                  {reviews.length > 2 && (
+                    <div className="pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowReviewsModal(true)}
+                        className="px-5 py-2.5 rounded-2xl border border-border bg-white hover:bg-surface text-xs font-bold text-foreground transition-all cursor-pointer shadow-2xs hover:shadow-xs"
+                      >
+                        Tampilkan semua {reviewAggregate?.ratingCount || reviews.length} ulasan
+                      </button>
                     </div>
-                  ))}
+                  )}
                 </div>
               ) : (
                 <div className="p-6 rounded-3xl bg-surface border border-border text-center space-y-2">
@@ -3413,6 +3451,17 @@ export function SpotRedirectClient() {
                   >
                     <span>{`Lanjut Pemesanan · ${rupiah(paymentAmountToPay)}`}</span>
                   </button>
+                  <p className="text-[11px] text-center text-foreground-muted">
+                    Tunduk pada{' '}
+                    <a
+                      href="/kebijakan-refund"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-brand-blue font-semibold hover:underline"
+                    >
+                      Kebijakan Refund & Pembatalan
+                    </a>
+                  </p>
                 </div>
               </div>
             )}
@@ -3433,6 +3482,9 @@ export function SpotRedirectClient() {
              </a>
              <a href="/syarat-ketentuan" className="hover:underline">
                Syarat & Ketentuan
+             </a>
+             <a href="/kebijakan-refund" className="hover:underline">
+               Kebijakan Refund
              </a>
              <a href="/mitra" className="hover:underline">
                Mitra Camp
@@ -4464,6 +4516,17 @@ export function SpotRedirectClient() {
               >
                 <span>{`Lanjut Pemesanan · ${rupiah(paymentAmountToPay)}`}</span>
               </button>
+              <p className="text-[11px] text-center text-foreground-muted">
+                Tunduk pada{' '}
+                <a
+                  href="/kebijakan-refund"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-brand-blue font-semibold hover:underline"
+                >
+                  Kebijakan Refund & Pembatalan
+                </a>
+              </p>
 
               {/* Direct App Store & Google Play Features Box */}
               <div className="pt-3 border-t border-border space-y-2">
@@ -4553,6 +4616,99 @@ export function SpotRedirectClient() {
         onClose={() => setIsTicketOpen(false)}
         orderData={completedOrderData}
       />
+
+      {/* ════════════════════════════════════════════════════════════════════════
+          11. AIRBNB-STYLE GUEST REVIEWS MODAL
+      ════════════════════════════════════════════════════════════════════════ */}
+      {showReviewsModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-2xl bg-white text-foreground rounded-t-3xl sm:rounded-3xl shadow-2xl border border-border max-h-[90vh] sm:max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Header Modal */}
+            <div className="p-5 sm:p-6 border-b border-border flex items-center justify-between bg-surface/30">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <Star size={18} className="fill-amber-500 text-amber-500" />
+                  <h3 className="font-bold text-lg text-foreground">
+                    {reviewAggregate && reviewAggregate.ratingCount > 0
+                      ? `${reviewAggregate.ratingAvg.toFixed(1)} · ${reviewAggregate.ratingCount} Ulasan Tamu`
+                      : `Semua Ulasan Tamu (${reviews.length})`}
+                  </h3>
+                </div>
+                <p className="text-xs text-foreground-muted">
+                  Ulasan autentik dari tamu yang telah menginap di {campsite?.name || 'Embun'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowReviewsModal(false)}
+                className="p-2 rounded-full hover:bg-surface text-foreground-muted hover:text-foreground transition-colors cursor-pointer shrink-0"
+                aria-label="Tutup ulasan"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Content List */}
+            <div className="p-6 overflow-y-auto space-y-6 divide-y divide-border/60">
+              {reviews.map((rev, idx) => {
+                const displayName = rev.maskedAuthorName || 'Tamu Embun';
+                const avatarChar = displayName.charAt(0).toUpperCase();
+
+                return (
+                  <div key={rev.id || idx} className="pt-6 first:pt-0 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-brand-blue/10 border border-border flex items-center justify-center font-bold text-sm text-brand-blue overflow-hidden shrink-0">
+                          {rev.authorPhotoUrl ? (
+                            <img
+                              src={resolveAssetUrl(rev.authorPhotoUrl)}
+                              alt={displayName}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            avatarChar
+                          )}
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-xs sm:text-sm text-foreground">
+                            {displayName}
+                          </h4>
+                          <p className="text-[11px] text-foreground-muted">
+                            {rev.createdAt
+                              ? new Date(rev.createdAt).toLocaleDateString('id-ID', {
+                                  month: 'long',
+                                  year: 'numeric',
+                                })
+                              : 'Pengunjung Terverifikasi'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 bg-surface px-2.5 py-1 rounded-full border border-border text-xs font-bold text-foreground shrink-0">
+                        <Star size={11} className="fill-amber-500 text-amber-500" />
+                        <span>{rev.rating || 5}</span>
+                      </div>
+                    </div>
+
+                    <p className="text-xs sm:text-sm text-foreground/90 leading-relaxed">
+                      "{rev.message}"
+                    </p>
+
+                    {rev.photoUrl && (
+                      <div className="w-24 h-24 rounded-2xl overflow-hidden border border-border mt-2">
+                        <img
+                          src={resolveAssetUrl(rev.photoUrl)}
+                          alt="Foto ulasan"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -980,7 +980,7 @@ function CampsiteLandingClientInner() {
             <h2 className="font-extrabold text-xl text-foreground">
               Aturan & Kebijakan Kawasan
             </h2>
-            <div className="p-6 rounded-3xl bg-white border border-border space-y-3 text-xs sm:text-sm">
+            <div className="p-6 rounded-3xl bg-white border border-border space-y-4 text-xs sm:text-sm">
               <h3 className="font-bold text-sm sm:text-base text-foreground flex items-center gap-2">
                 <ShieldCheck size={16} className="text-emerald-600" />
                 <span>Tata Tertib Menginap</span>
@@ -992,6 +992,20 @@ function CampsiteLandingClientInner() {
                   </li>
                 ))}
               </ul>
+              <div className="pt-3 border-t border-border/70 text-xs text-foreground-muted flex items-center gap-1.5">
+                <ShieldCheck size={14} className="text-brand-blue shrink-0" />
+                <span>
+                  Ketentuan pembatalan pesanan atau refund selengkapnya dapat dilihat di{' '}
+                  <a
+                    href="/kebijakan-refund"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-brand-blue font-bold hover:underline"
+                  >
+                    Kebijakan Refund & Pembatalan Embun &rarr;
+                  </a>
+                </span>
+              </div>
             </div>
           </section>
         )}
@@ -1250,6 +1264,9 @@ function CampsiteLandingClientInner() {
             </a>
             <a href="/syarat-ketentuan" className="hover:underline">
               Syarat & Ketentuan
+            </a>
+            <a href="/kebijakan-refund" className="hover:underline">
+              Kebijakan Refund
             </a>
             <a href="/mitra" className="hover:underline">
               Mitra Camp

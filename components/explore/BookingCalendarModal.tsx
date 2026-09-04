@@ -296,69 +296,68 @@ export function BookingCalendarModal({
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
       <div className="bg-white text-foreground rounded-3xl shadow-2xl border border-border max-w-3xl w-full overflow-hidden flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200">
         {/* Modal Top Header */}
-        <div className="p-5 sm:p-6 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface/30">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-brand-lime text-black border border-brand-lime/80 shadow-2xs">
-                {nightsCount > 0 ? `${nightsCount} Malam` : "Pilih Tanggal"}
-              </span>
-              <h3 className="font-bold text-base sm:text-lg text-foreground tracking-tight">
-                {tempIn && tempOut
-                  ? `${formatIndoDate(tempIn)} — ${formatIndoDate(tempOut)}`
-                  : "Atur Jadwal Menginap"}
-              </h3>
-            </div>
-            <p className="text-xs text-foreground-muted">
-              {spotName
-                ? `Pilih tanggal check-in & check-out untuk ${spotName}`
-                : "Klik tanggal kedatangan lalu klik tanggal kepulangan Anda"}
-            </p>
-          </div>
-
-          {/* Quick Date Indicator Tabs */}
-          <div className="flex items-center gap-2">
-            <div className="flex items-center border border-border rounded-2xl p-1 bg-white shadow-2xs text-xs divide-x divide-border">
-              <button
-                type="button"
-                onClick={() => setActiveStep("checkIn")}
-                className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer font-semibold flex flex-col text-left ${
-                  activeStep === "checkIn"
-                    ? "bg-brand-blue text-white shadow-xs"
-                    : "text-foreground hover:bg-surface"
-                }`}
-              >
-                <span className="text-[9px] uppercase tracking-wider opacity-80">
-                  Check-In
+        <div className="p-4 sm:p-6 border-b border-border space-y-4 bg-surface/30">
+          <div className="flex items-start justify-between gap-3">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-brand-lime text-black border border-brand-lime/80 shadow-2xs">
+                  {nightsCount > 0 ? `${nightsCount} Malam` : "Pilih Tanggal"}
                 </span>
-                <span className="text-xs font-bold whitespace-nowrap">
-                  {formatIndoDate(tempIn)}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveStep("checkOut")}
-                className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer font-semibold flex flex-col text-left ${
-                  activeStep === "checkOut"
-                    ? "bg-brand-blue text-white shadow-xs"
-                    : "text-foreground hover:bg-surface"
-                }`}
-              >
-                <span className="text-[9px] uppercase tracking-wider opacity-80">
-                  Check-Out
-                </span>
-                <span className="text-xs font-bold whitespace-nowrap">
-                  {tempOut ? formatIndoDate(tempOut) : "Pilih Tanggal"}
-                </span>
-              </button>
+                <h3 className="font-bold text-base sm:text-lg text-foreground tracking-tight">
+                  Atur Jadwal Menginap
+                </h3>
+              </div>
+              <p className="text-xs text-foreground-muted">
+                {spotName
+                  ? `Pilih tanggal check-in & check-out untuk ${spotName}`
+                  : "Klik tanggal kedatangan lalu klik tanggal kepulangan Anda"}
+              </p>
             </div>
 
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-surface text-foreground-muted hover:text-foreground transition-colors cursor-pointer"
+              className="p-2 rounded-full hover:bg-surface text-foreground-muted hover:text-foreground transition-colors cursor-pointer shrink-0 -mr-1"
+              aria-label="Tutup Kalender"
             >
-              <X size={18} />
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* Quick Date Indicator Tabs */}
+          <div className="grid grid-cols-2 border border-border rounded-2xl p-1 bg-white shadow-2xs text-xs divide-x divide-border">
+            <button
+              type="button"
+              onClick={() => setActiveStep("checkIn")}
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl transition-all cursor-pointer font-semibold flex flex-col text-left ${
+                activeStep === "checkIn"
+                  ? "bg-brand-blue text-white shadow-xs"
+                  : "text-foreground hover:bg-surface"
+              }`}
+            >
+              <span className="text-[9px] uppercase tracking-wider opacity-80">
+                Check-In
+              </span>
+              <span className="text-xs font-bold whitespace-nowrap">
+                {formatIndoDate(tempIn)}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveStep("checkOut")}
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl transition-all cursor-pointer font-semibold flex flex-col text-left ${
+                activeStep === "checkOut"
+                  ? "bg-brand-blue text-white shadow-xs"
+                  : "text-foreground hover:bg-surface"
+              }`}
+            >
+              <span className="text-[9px] uppercase tracking-wider opacity-80">
+                Check-Out
+              </span>
+              <span className="text-xs font-bold whitespace-nowrap">
+                {tempOut ? formatIndoDate(tempOut) : "Pilih Tanggal"}
+              </span>
             </button>
           </div>
         </div>
@@ -414,31 +413,31 @@ export function BookingCalendarModal({
         </div>
 
         {/* Modal Bottom Footer */}
-        <div className="p-4 sm:p-5 border-t border-border bg-surface/40 flex items-center justify-between gap-4 mt-auto">
+        <div className="p-4 sm:p-5 border-t border-border bg-surface/40 flex items-center justify-between gap-2 sm:gap-4 mt-auto">
           <button
             type="button"
             onClick={handleReset}
-            className="flex items-center gap-1.5 text-xs font-semibold text-foreground-muted hover:text-brand-blue cursor-pointer underline transition-colors"
+            className="flex items-center gap-1.5 text-xs font-semibold text-foreground-muted hover:text-brand-blue cursor-pointer underline transition-colors shrink-0"
           >
             <RotateCcw size={13} />
             <span>Reset Tanggal</span>
           </button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-2xl border border-border hover:bg-surface text-xs font-semibold text-foreground transition-all cursor-pointer"
+              className="px-3.5 sm:px-4 py-2 rounded-2xl border border-border hover:bg-surface text-xs font-semibold text-foreground transition-all cursor-pointer"
             >
               Batal
             </button>
             <button
               type="button"
               onClick={handleApply}
-              className="px-5 py-2.5 rounded-2xl bg-brand-blue text-white text-xs font-bold hover:bg-brand-blue-hover shadow-md transition-all flex items-center gap-2 cursor-pointer"
+              className="px-4 sm:px-5 py-2.5 rounded-2xl bg-brand-blue text-white text-xs font-bold hover:bg-brand-blue-hover shadow-md transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
             >
               <Check size={14} />
-              <span>Simpan & Terapkan ({nightsCount || 1} Malam)</span>
+              <span>Simpan ({nightsCount || 1} Malam)</span>
             </button>
           </div>
         </div>

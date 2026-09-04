@@ -644,6 +644,19 @@ export function CheckoutClient() {
                 <li className="flex items-start gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-brand-blue shrink-0 mt-1.5" />
                   <span>
+                    <strong>Kebijakan Pembatalan & Refund:</strong> Pengajuan pembatalan atau pengembalian dana tunduk pada syarat dan tenggat waktu resmi di{' '}
+                    <Link
+                      href="/kebijakan-refund"
+                      target="_blank"
+                      className="text-brand-blue font-semibold hover:underline"
+                    >
+                      Kebijakan Refund & Pembatalan Embun
+                    </Link>.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-brand-blue shrink-0 mt-1.5" />
+                  <span>
                     <strong>Pembayaran Resmi:</strong> Seluruh transaksi diproses melalui jalur
                     pembayaran resmi dan terenkripsi. Tidak ada transaksi di luar sistem Embun.
                   </span>
@@ -658,7 +671,16 @@ export function CheckoutClient() {
                     onChange={(e) => setAgreed(e.target.checked)}
                     className="w-4 h-4 rounded text-brand-blue border-border focus:ring-brand-blue"
                   />
-                  <span>Saya telah membaca dan menyetujui seluruh aturan di atas</span>
+                  <span>
+                    Saya telah membaca dan menyetujui seluruh aturan di atas serta{' '}
+                    <Link
+                      href="/kebijakan-refund"
+                      target="_blank"
+                      className="text-brand-blue underline hover:text-brand-blue-hover"
+                    >
+                      Kebijakan Refund & Pembatalan
+                    </Link>
+                  </span>
                 </label>
               </div>
             </div>
