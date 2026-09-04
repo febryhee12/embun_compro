@@ -9,8 +9,8 @@ import {
   getGuestToken,
   fetchGuestWishlist,
   fetchActiveCampsites,
+  addToWishlist,
   removeFromWishlist,
-  resolveAssetUrl,
   WishlistItemView,
   ApiError,
   clearGuestSession,
@@ -18,20 +18,22 @@ import {
 import { ExploreHeader } from '@/components/explore/ExploreHeader';
 import { ExploreFooter } from '@/components/explore/ExploreFooter';
 import { GuestAuthModal } from '@/components/explore/GuestAuthModal';
-import { getPhotoCategoryScore } from '@/components/explore/SpotCard';
+import { WishlistCard } from '@/components/wishlist/WishlistCard';
 
 export function WishlistClient() {
   const router = useRouter();
   const [items, setItems] = useState<WishlistItemView[]>([]);
   const [campsites, setCampsites] = useState<any[]>([]);
-  const [failedUrls, setFailedUrls] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [authRequired, setAuthRequired] = useState(false);
   const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [removingIds, setRemovingIds] = useState<Set<string>>(new Set());
 
-  // Block & Campsite lookup maps for resolving full photo lists with categories
+  // Track items un-wishlisted in the current session so they don't vanish immediately
+  const [unwishlistedIds, setUnwishlistedIds] = useState<Set<string>>(new Set());
+  const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
+
+  // Block & Campsite lookup maps for resolving full photo lists with categories & pricing
   const { blocksMap, campsitesMap } = useMemo(() => {
     const bMap = new Map<string, any>();
     const cMap = new Map<string, any>();
@@ -88,30 +90,54 @@ export function WishlistClient() {
     void loadData();
   }, []);
 
-  const handleRemove = async (e: React.MouseEvent, item: WishlistItemView) => {
+  const handleToggleWishlist = async (e: React.MouseEvent, item: WishlistItemView) => {
     e.stopPropagation();
     e.preventDefault();
 
     const itemId = item.id;
-    if (removingIds.has(itemId)) return;
+    if (togglingIds.has(itemId)) return;
 
-    setRemovingIds((prev) => new Set(prev).add(itemId));
+    const isCurrentlyUnwishlisted = unwishlistedIds.has(itemId);
+    setTogglingIds((prev) => new Set(prev).add(itemId));
 
-    // Optimistic UI removal
-    const previousItems = [...items];
-    setItems((prev) => prev.filter((it) => it.id !== itemId));
-
-    try {
-      await removeFromWishlist(item.campsiteId, item.blockId);
-    } catch {
-      // Revert if error
-      setItems(previousItems);
-    } finally {
-      setRemovingIds((prev) => {
+    if (isCurrentlyUnwishlisted) {
+      // Re-add to wishlist (optimistic)
+      setUnwishlistedIds((prev) => {
         const next = new Set(prev);
         next.delete(itemId);
         return next;
       });
+      try {
+        await addToWishlist(item.campsiteId, item.blockId);
+      } catch {
+        // Revert on error
+        setUnwishlistedIds((prev) => new Set(prev).add(itemId));
+      } finally {
+        setTogglingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(itemId);
+          return next;
+        });
+      }
+    } else {
+      // Unwishlist: card stays in place, heart turns unselected
+      setUnwishlistedIds((prev) => new Set(prev).add(itemId));
+      try {
+        await removeFromWishlist(item.campsiteId, item.blockId);
+      } catch {
+        // Revert on error
+        setUnwishlistedIds((prev) => {
+          const next = new Set(prev);
+          next.delete(itemId);
+          return next;
+        });
+      } finally {
+        setTogglingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(itemId);
+          return next;
+        });
+      }
     }
   };
 
@@ -123,91 +149,7 @@ export function WishlistClient() {
     }
   };
 
-  /**
-   * Resolve primary photo prioritizing Kamar Utama / Tenda over toilet/bathroom
-   * with seamless cascade to next best photo or campsite landscape.
-   */
-  const getItemPhoto = (item: WishlistItemView): string => {
-    // 1. If it's a spot/block, check catalog block photos with category priority
-    if (item.blockId) {
-      const bKey = String(item.blockId).trim().toLowerCase();
-      const catalogBlock = blocksMap.get(bKey);
-      if (catalogBlock) {
-        const candidatePhotos: Array<{ url: string; score: number }> = [];
-
-        if (Array.isArray(catalogBlock.photos)) {
-          catalogBlock.photos.forEach((p: any) => {
-            const resolved = p?.url ? resolveAssetUrl(p.url) : '';
-            if (resolved && !failedUrls.has(resolved) && !failedUrls.has(p.url)) {
-              candidatePhotos.push({
-                url: resolved,
-                score: getPhotoCategoryScore(p.category),
-              });
-            }
-          });
-        }
-
-        if (candidatePhotos.length === 0 && Array.isArray(catalogBlock.images)) {
-          catalogBlock.images.forEach((img: string) => {
-            const resolved = img ? resolveAssetUrl(img) : '';
-            if (resolved && !failedUrls.has(resolved) && !failedUrls.has(img)) {
-              candidatePhotos.push({ url: resolved, score: 50 });
-            }
-          });
-        }
-
-        // Filter out Kamar Mandi / Toilet (score 99) if any other photo exists
-        const nonToilet = candidatePhotos.filter((p) => p.score < 99);
-        const pool = nonToilet.length > 0 ? nonToilet : candidatePhotos;
-        if (pool.length > 0) {
-          pool.sort((a, b) => a.score - b.score);
-          return pool[0].url;
-        }
-      }
-    }
-
-    // 2. Block coverPhotoUrl from API payload
-    if (item.block?.coverPhotoUrl) {
-      const resolved = resolveAssetUrl(item.block.coverPhotoUrl);
-      if (!failedUrls.has(resolved) && !failedUrls.has(item.block.coverPhotoUrl)) {
-        return resolved;
-      }
-    }
-
-    // 3. Campsite catalog photos
-    const cKey = String(item.campsiteId || item.campsite?.id || '').trim().toLowerCase();
-    const catalogCampsite = campsitesMap.get(cKey);
-    if (catalogCampsite && Array.isArray(catalogCampsite.photos)) {
-      const campPhotos = catalogCampsite.photos
-        .map((p: any) => ({
-          url: p?.url ? resolveAssetUrl(p.url) : '',
-          rawUrl: p?.url,
-          category: p?.category || '',
-        }))
-        .filter((p: any) => p.url && !failedUrls.has(p.url) && !failedUrls.has(p.rawUrl));
-
-      const home = campPhotos.find(
-        (p: any) => p.category === 'home' || p.category === 'cover' || p.category === 'main',
-      );
-      if (home) return home.url;
-
-      const view = campPhotos.find((p: any) => p.category.includes('view'));
-      if (view) return view.url;
-
-      if (campPhotos.length > 0) return campPhotos[0].url;
-    }
-
-    // 4. Campsite coverPhotoUrl from API payload
-    if (item.campsite?.coverPhotoUrl) {
-      const resolved = resolveAssetUrl(item.campsite.coverPhotoUrl);
-      if (!failedUrls.has(resolved) && !failedUrls.has(item.campsite.coverPhotoUrl)) {
-        return resolved;
-      }
-    }
-
-    // 5. Verified high-resolution landscape campsite cover photo
-    return 'https://media-staging.embun.app/campsites/51f7987e-2632-4bfa-bfc6-302c782bb81d/1348dba5-1a61-4274-b0e8-d17ba2540a15.jpg';
-  };
+  const activeCount = items.filter((it) => !unwishlistedIds.has(it.id)).length;
 
   return (
     <div className="min-h-screen bg-white text-foreground flex flex-col selection:bg-brand-lime selection:text-black">
@@ -225,8 +167,8 @@ export function WishlistClient() {
             Wishlist
           </h1>
           <p className="text-xs sm:text-sm text-foreground-muted mt-1">
-            {items.length > 0
-              ? `${items.length} spot & penginapan favorit yang Anda simpan`
+            {activeCount > 0
+              ? `${activeCount} spot & penginapan favorit yang Anda simpan`
               : 'Spot camping dan akomodasi favorit Anda'}
           </p>
         </div>
@@ -291,60 +233,47 @@ export function WishlistClient() {
           </div>
         )}
 
-        {/* Wishlist Grid (Clean Airbnb Minimalist style) */}
+        {/* Unwishlisted Notice / Undo Banner */}
+        {!loading && !authRequired && unwishlistedIds.size > 0 && (
+          <div className="mb-6 px-4 py-3 rounded-2xl bg-neutral-50 border border-neutral-200/80 flex items-center justify-between text-xs text-foreground animate-in fade-in duration-200">
+            <span className="text-neutral-600">
+              {unwishlistedIds.size} spot dihapus dari wishlist dan akan hilang saat Anda memuat ulang halaman.
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                unwishlistedIds.forEach((id) => {
+                  const it = items.find((x) => x.id === id);
+                  if (it) void addToWishlist(it.campsiteId, it.blockId);
+                });
+                setUnwishlistedIds(new Set());
+              }}
+              className="font-bold text-brand-blue hover:underline cursor-pointer ml-3 shrink-0"
+            >
+              Batalkan Semua
+            </button>
+          </div>
+        )}
+
+        {/* Wishlist Grid with Carousels & Home-style Pricing */}
         {!loading && !authRequired && items.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8">
             {items.map((item) => {
-              const photoUrl = getItemPhoto(item);
-              const title = item.block?.name || item.campsite?.name || 'Spot Camping';
-              const location = [item.campsite?.city, item.campsite?.province]
-                .filter(Boolean)
-                .join(', ') || item.campsite?.name || 'Indonesia';
+              const bKey = item.blockId ? String(item.blockId).trim().toLowerCase() : '';
+              const cKey = String(item.campsiteId || item.campsite?.id || '').trim().toLowerCase();
+              const catalogBlock = bKey ? blocksMap.get(bKey) : null;
+              const catalogCampsite = campsitesMap.get(cKey) || catalogBlock?.parentCampsite;
 
               return (
-                <div
+                <WishlistCard
                   key={item.id}
-                  onClick={() => handleCardClick(item)}
-                  className="group relative flex flex-col cursor-pointer select-none"
-                >
-                  {/* Photo Container */}
-                  <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-surface mb-3 shadow-2xs">
-                    <img
-                      src={photoUrl}
-                      alt={title}
-                      className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
-                      onError={() => {
-                        setFailedUrls((prev) => new Set(prev).add(photoUrl));
-                      }}
-                    />
-
-                    {/* Floating Heart Button (Top Right) */}
-                    <button
-                      type="button"
-                      onClick={(e) => handleRemove(e, item)}
-                      title="Hapus dari Wishlist"
-                      className="absolute top-3 right-3 p-2 rounded-full bg-white/80 hover:bg-white backdrop-blur-xs text-red-500 shadow-xs active:scale-90 transition-all cursor-pointer z-10"
-                    >
-                      <Heart size={18} className="fill-red-500 text-red-500" />
-                    </button>
-                  </div>
-
-                  {/* Clean Typography */}
-                  <div className="space-y-0.5">
-                    <h3 className="font-bold text-sm sm:text-base text-foreground truncate group-hover:text-brand-blue transition-colors">
-                      {title}
-                    </h3>
-                    <p className="text-xs text-foreground-muted truncate">
-                      {item.block ? `${item.campsite?.name} · ${location}` : location}
-                    </p>
-
-                    {!item.available && (
-                      <p className="text-[11px] text-amber-600 font-medium pt-1">
-                        Saat ini tidak tersedia
-                      </p>
-                    )}
-                  </div>
-                </div>
+                  item={item}
+                  catalogBlock={catalogBlock}
+                  catalogCampsite={catalogCampsite}
+                  isUnwishlisted={unwishlistedIds.has(item.id)}
+                  onToggleWishlist={handleToggleWishlist}
+                  onClickCard={handleCardClick}
+                />
               );
             })}
           </div>
@@ -367,6 +296,7 @@ export function WishlistClient() {
           setCurrentUser(null);
           setAuthRequired(true);
           setItems([]);
+          setUnwishlistedIds(new Set());
         }}
       />
     </div>
