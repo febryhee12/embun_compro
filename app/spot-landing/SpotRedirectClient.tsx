@@ -1954,7 +1954,7 @@ export function SpotRedirectClient() {
           1. AIRBNB TOP NAVBAR
       ════════════════════════════════════════════════════════════════════════ */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-border transition-all">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 h-16 sm:h-20 flex items-center justify-between gap-2.5 sm:gap-4">
+        <div className="max-w-[2520px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 h-16 sm:h-20 flex items-center justify-between gap-2.5 sm:gap-4">
           {/* Logo & Explore Badge */}
           <div className="flex items-center gap-3">
             <a
@@ -2049,7 +2049,7 @@ export function SpotRedirectClient() {
       {/* ════════════════════════════════════════════════════════════════════════
           2. MAIN CONTENT CONTAINER
       ════════════════════════════════════════════════════════════════════════ */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-8 pt-6 pb-12 w-full space-y-8">
+      <main className="max-w-[2520px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 pt-6 pb-12 w-full space-y-8">
         {/* Title & Metadata Header */}
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
@@ -3760,13 +3760,13 @@ export function SpotRedirectClient() {
       </main>
  
        {/* ── FOOTER KHAS EMBUN EXPLORE ── */}
-       <footer className="border-t border-border bg-surface py-8 px-4 sm:px-8 text-xs text-foreground-muted mt-auto pb-28 lg:pb-8">
-         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+       <footer className="border-t border-border bg-surface py-8 sm:py-10 text-xs text-foreground-muted mt-auto pb-28 lg:pb-8">
+         <div className="max-w-[2520px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 flex flex-col sm:flex-row items-center justify-between gap-4">
            <div className="flex items-center gap-2">
              <span className="font-black text-lg text-brand-blue tracking-tight">embun</span>
              <span>© 2026 PT Alam Kelana Digital. Hak Cipta Dilindungi.</span>
            </div>
-           <div className="flex items-center gap-6">
+           <div className="flex items-center gap-6 pr-0 sm:pr-16 lg:pr-20">
              <a href="/id/kebijakan-privasi/" className="hover:underline">
                Privasi
              </a>

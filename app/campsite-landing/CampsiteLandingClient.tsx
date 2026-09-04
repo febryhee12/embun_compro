@@ -777,7 +777,7 @@ function CampsiteLandingClientInner() {
 
       {/* ── 1. HEADER KHAS EMBUN EXPLORE (SESUAI GAMBAR 1) ── */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-border transition-all">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between gap-4">
+        <div className="max-w-[2520px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 h-20 flex items-center justify-between gap-4">
           {/* Logo Embun + Badge EXPLORE */}
           <div className="flex items-center gap-3">
             <a
@@ -900,7 +900,7 @@ function CampsiteLandingClientInner() {
 
         {/* Campsite details at bottom of hero */}
         <div className="absolute bottom-0 inset-x-0 pb-8 sm:pb-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-8 text-white space-y-2">
+          <div className="max-w-[2520px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 text-white space-y-2">
             <div className="flex items-center gap-1.5 text-xs sm:text-sm text-white/90">
               <MapPin size={14} className="text-brand-lime shrink-0" />
               <span>
@@ -929,7 +929,7 @@ function CampsiteLandingClientInner() {
 
       {/* ── 3. CLEAN SUBTLE METADATA STRIP (NO BIG ICONS) ── */}
       <div className="bg-surface/60 border-b border-border py-4">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs sm:text-sm text-foreground-muted">
+        <div className="max-w-[2520px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs sm:text-sm text-foreground-muted">
           <div>
             <span className="text-foreground font-bold">{allSpots.length} Unit Spot</span> Tersedia
           </div>
@@ -949,7 +949,7 @@ function CampsiteLandingClientInner() {
       </div>
 
       {/* ── 4. MAIN CONTENT CONTAINER ── */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-8 py-10 space-y-14 flex-1 w-full">
+      <main className="max-w-[2520px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-10 space-y-14 flex-1 w-full">
         {/* TENTANG KAWASAN */}
         <section className="space-y-3">
           <h2 className="font-extrabold text-xl text-foreground">
@@ -1097,7 +1097,7 @@ function CampsiteLandingClientInner() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
               {filteredSpots.map((spot) => {
                 const spotData: SpotData = {
                   id: spot.id,
@@ -1290,13 +1290,13 @@ function CampsiteLandingClientInner() {
       </main>
 
       {/* ── 5. FOOTER KHAS EMBUN EXPLORE (SESUAI GAMBAR 2) ── */}
-      <footer className="border-t border-border bg-surface py-8 px-4 sm:px-8 text-xs text-foreground-muted mt-auto relative">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <footer className="border-t border-border bg-surface py-8 sm:py-10 text-xs text-foreground-muted mt-auto relative">
+        <div className="max-w-[2520px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="font-black text-lg text-brand-blue tracking-tight">embun</span>
             <span>© 2026 PT Alam Kelana Digital. Hak Cipta Dilindungi.</span>
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-6 pr-0 sm:pr-16 lg:pr-20">
             <a href="/id/kebijakan-privasi/" className="hover:underline">
               Privasi
             </a>

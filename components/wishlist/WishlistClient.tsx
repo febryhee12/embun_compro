@@ -180,7 +180,7 @@ export function WishlistClient() {
         showUserMenu={false}
       />
 
-      <main className="max-w-7xl mx-auto w-full px-4 sm:px-8 py-8 sm:py-10 flex-1">
+      <main className="max-w-[2520px] mx-auto w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-10 flex-1">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-28 gap-3 text-foreground-muted">
             <div className="w-7 h-7 border-2 border-brand-blue border-t-transparent rounded-full animate-spin" />
@@ -302,7 +302,7 @@ export function WishlistClient() {
                   </div>
                 ) : (
                   /* Wishlist Grid with Carousels & Home-style Pricing */
-                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
                     {items.map((item) => {
                       const bKey = item.blockId ? String(item.blockId).trim().toLowerCase() : '';
                       const cKey = String(item.campsiteId || item.campsite?.id || '').trim().toLowerCase();
