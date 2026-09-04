@@ -688,7 +688,7 @@ export function CheckoutClient() {
                   <span>
                     Saya telah membaca dan menyetujui seluruh aturan di atas serta{' '}
                     <Link
-                      href="/kebijakan-refund"
+                      href="/id/kebijakan-refund/"
                       target="_blank"
                       className="text-brand-blue underline hover:text-brand-blue-hover"
                     >

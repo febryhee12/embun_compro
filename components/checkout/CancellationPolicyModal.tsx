@@ -220,7 +220,7 @@ export function CancellationPolicyModal({
 
           <div className="pt-3 border-t border-border/70">
             <a
-              href="/kebijakan-refund"
+              href="/id/kebijakan-refund/"
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs text-brand-blue font-bold hover:underline inline-flex items-center gap-1"

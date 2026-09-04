@@ -16,13 +16,13 @@ export function ExploreFooter() {
           <span>© {currentYear} PT Alam Kelana Digital. Hak Cipta Dilindungi.</span>
         </div>
         <div className="flex items-center gap-4">
-          <Link href="/kebijakan-privasi" className="hover:underline hover:text-foreground transition-colors">
+          <Link href="/id/kebijakan-privasi/" className="hover:underline hover:text-foreground transition-colors">
             Privasi
           </Link>
-          <Link href="/syarat-ketentuan" className="hover:underline hover:text-foreground transition-colors">
+          <Link href="/id/syarat-ketentuan/" className="hover:underline hover:text-foreground transition-colors">
             Syarat & Ketentuan
           </Link>
-          <Link href="/mitra" className="hover:underline hover:text-foreground transition-colors">
+          <Link href="/id/mitra/" className="hover:underline hover:text-foreground transition-colors">
             Mitra Camp
           </Link>
         </div>

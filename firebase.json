@@ -51,6 +51,26 @@
           "source": "/en/spot/:id*",
           "destination": "/spot/:id*",
           "type": 301
+        },
+        {
+          "source": "/kebijakan-refund",
+          "destination": "/id/kebijakan-refund/",
+          "type": 301
+        },
+        {
+          "source": "/syarat-ketentuan",
+          "destination": "/id/syarat-ketentuan/",
+          "type": 301
+        },
+        {
+          "source": "/mitra",
+          "destination": "/id/mitra/",
+          "type": 301
+        },
+        {
+          "source": "/kebijakan-privasi",
+          "destination": "/id/kebijakan-privasi/",
+          "type": 301
         }
       ],
       "rewrites": [
