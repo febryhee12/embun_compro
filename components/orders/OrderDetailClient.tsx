@@ -974,8 +974,8 @@ export function OrderDetailClient() {
                 )}
               </div>
 
-              {/* ── KOLOM KANAN (SIDEBAR STICKY: INVOICE & BANTUAN) ── */}
-              <aside className="lg:col-span-5 xl:col-span-4 space-y-6 lg:sticky lg:top-24 lg:self-start">
+              {/* ── KOLOM KANAN (SIDEBAR: INVOICE & BANTUAN) ── */}
+              <aside className="lg:col-span-5 xl:col-span-4 space-y-6">
                 {/* ════════════════════════════════════════════════════════════════
                     8. RINCIAN BIAYA & INVOICE
                 ════════════════════════════════════════════════════════════════ */}
