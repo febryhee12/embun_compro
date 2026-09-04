@@ -109,33 +109,30 @@ export function InvoiceDocument({
       ? channelStr
       : 'Virtual Account';
 
-  // Subtotal sewa akomodasi pokok (sesuai invoice_pdf_service.dart di flutter)
-  const accommodationLine = Array.isArray(booking?.breakdown?.lines)
-    ? booking.breakdown.lines.find((l: any) => l.code === 'PACKAGE' || l.code === 'SPOT')
-    : null;
-
-  const totalAddons = addonLines.reduce((s, a) => s + (a.amount || 0), 0);
-
-  const baseRental = accommodationLine
-    ? Number(accommodationLine.amount) || 0
-    : totalAddons > 0 && booking?.totalAmount
-    ? Math.max(0, booking.totalAmount - totalAddons)
-    : booking?.totalAmount ||
-      Math.max(
-        0,
-        order.totalAmount -
-          (order.guestServiceFee || 0) -
-          (order.guestAdminFee || 0) -
-          (order.guestTaxFee || 0) -
-          totalAddons,
-      );
-
-  const fullRental = isUnsettledDp
-    ? (Number(order.downPaymentAmount) || 0) + remainingBalance
-    : baseRental + totalAddons;
+  // Hitung total sewa akomodasi pokok (sesuai invoice_pdf_service.dart di flutter)
+  const serviceFees =
+    (Number(order.guestAdminFee) || 0) +
+    (Number(order.guestServiceFee) || 0) +
+    (Number(order.guestTaxFee) || 0);
 
   const promoDiscount =
     (Number(order.promoRentalDiscount) || 0) + (Number(order.promoFeeDiscount) || 0);
+
+  // Total harga sewa (akomodasi + add-on berbayar) sebelum biaya layanan/admin
+  const fullRental = isUnsettledDp
+    ? (Number(order.downPaymentAmount) || 0) + remainingBalance
+    : Math.max(0, (Number(order.totalAmount) || 0) - serviceFees + promoDiscount);
+
+  // Hanya add-on berbayar (amount > 0) yang merupakan tagihan terpisah di invoice.
+  // Add-on bawaan paket (amount = 0) sudah termasuk dalam harga paket/kavling di atas.
+  const paidAddonLines = addonLines.filter((a) => (Number(a.amount) || 0) > 0);
+  const totalPaidAddons = paidAddonLines.reduce(
+    (s, a) => s + (Number(a.amount) || 0),
+    0,
+  );
+
+  // Subtotal sewa spot/unit akomodasi
+  const baseRental = Math.max(0, fullRental - totalPaidAddons);
 
   return (
     <div className="bg-white mx-auto p-8 sm:p-10 rounded-2xl border border-neutral-200/80 shadow-md max-w-[780px] text-neutral-900 text-xs font-sans print:shadow-none print:border-none print:p-0 print:max-w-none print:m-0">
@@ -252,8 +249,8 @@ export function InvoiceDocument({
               </td>
             </tr>
 
-            {/* Baris Item Layanan Tambahan (Add-on) jika ada */}
-            {addonLines.map((addon, idx) => (
+            {/* Baris Item Layanan Tambahan (Hanya yang berbayar ekstra) */}
+            {paidAddonLines.map((addon, idx) => (
               <tr key={idx} className="bg-neutral-50/50">
                 <td className="py-2.5 px-3 font-medium text-neutral-900">
                   {addon.name}
@@ -263,7 +260,7 @@ export function InvoiceDocument({
                 </td>
                 <td className="py-2.5 px-2 text-center text-neutral-700">
                   {addon.quantity}
-                  {addon.perNight ? ` × ${nights} mlm` : ''}
+                  {addon.perNight ? ` × ${nights} malam` : ''}
                 </td>
                 <td className="py-2.5 px-3 text-neutral-400 text-center">-</td>
                 <td className="py-2.5 px-3 text-neutral-400 text-center">-</td>

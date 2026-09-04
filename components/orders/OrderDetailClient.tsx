@@ -339,9 +339,14 @@ export function OrderDetailClient() {
     if (list.length === 0 && Array.isArray(booking?.breakdown?.lines)) {
       for (const l of booking.breakdown.lines) {
         if (l.code === 'ADDON') {
-          const qty = Number(l.quantity) || 1;
+          const qty =
+            Number(l.quantity) ||
+            Number(l.effectiveQuantity) ||
+            Number(l.includedQuantity) ||
+            1;
           const total = Number(l.amount) || 0;
-          const uPrice = Number(l.unitPrice) || (total ? total / qty : 0);
+          const uPrice =
+            Number(l.unitPrice) || (total && qty ? total / qty : 0);
           list.push({
             name: l.label || 'Layanan Tambahan',
             quantity: qty,
@@ -371,6 +376,34 @@ export function OrderDetailClient() {
 
     return list;
   }, [order, booking]);
+
+  const serviceFees =
+    (Number(order?.guestAdminFee) || 0) +
+    (Number(order?.guestServiceFee) || 0) +
+    (Number(order?.guestTaxFee) || 0);
+
+  const promoDiscount =
+    (Number(order?.promoRentalDiscount) || 0) +
+    (Number(order?.promoFeeDiscount) || 0);
+
+  const fullRental =
+    isDP && isUnsettledDP
+      ? (Number(order?.downPaymentAmount) || 0) + remainingBalance
+      : Math.max(
+          0,
+          (Number(order?.totalAmount) || 0) - serviceFees + promoDiscount,
+        );
+
+  const paidAddonLines = React.useMemo(
+    () => addonLines.filter((a) => (Number(a.amount) || 0) > 0),
+    [addonLines],
+  );
+  const totalPaidAddons = paidAddonLines.reduce(
+    (s, a) => s + (Number(a.amount) || 0),
+    0,
+  );
+
+  const baseRental = Math.max(0, fullRental - totalPaidAddons);
 
   return (
     <div className="min-h-screen bg-[#fafafa] text-foreground flex flex-col justify-between print:bg-white">
@@ -841,31 +874,48 @@ export function OrderDetailClient() {
                     <div className="flex items-center justify-between border-b border-border/70 pb-3">
                       <h4 className="font-bold text-xs text-foreground uppercase tracking-wider flex items-center gap-2">
                         <PackageCheck size={16} className="text-brand-blue" />
-                        <span>Layanan Tambahan (Add-on)</span>
+                        <span>Fasilitas & Layanan Tambahan (Add-on)</span>
                       </h4>
                       <span className="text-[11px] font-semibold text-neutral-600 bg-neutral-100 px-2.5 py-0.5 rounded-full border border-neutral-200">
-                        {addonLines.length} Layanan
+                        {addonLines.length} Item
                       </span>
                     </div>
 
                     <div className="divide-y divide-border/60">
-                      {addonLines.map((item, idx) => (
-                        <div
-                          key={idx}
-                          className="py-3 flex items-start justify-between gap-4 first:pt-0 last:pb-0 text-xs"
-                        >
-                          <div className="space-y-0.5 min-w-0">
-                            <p className="font-bold text-foreground text-sm">{item.name}</p>
-                            <p className="text-[11px] text-foreground-muted">
-                              {item.quantity} × {rupiah(item.unitPrice)}
-                              {item.perNight ? ` · ${nights} malam` : ''}
-                            </p>
+                      {addonLines.map((item, idx) => {
+                        const isFree = (Number(item.amount) || 0) === 0;
+                        return (
+                          <div
+                            key={idx}
+                            className="py-3 flex items-start justify-between gap-4 first:pt-0 last:pb-0 text-xs"
+                          >
+                            <div className="space-y-0.5 min-w-0">
+                              <p className="font-bold text-foreground text-sm">{item.name}</p>
+                              <p className="text-[11px] text-foreground-muted">
+                                {isFree ? (
+                                  <span className="text-emerald-700 font-medium">
+                                    Sudah termasuk dalam paket
+                                  </span>
+                                ) : (
+                                  <>
+                                    {item.quantity} × {rupiah(item.unitPrice)}
+                                    {item.perNight ? ` · ${nights} malam` : ''}
+                                  </>
+                                )}
+                              </p>
+                            </div>
+                            <div className="font-bold text-foreground text-sm shrink-0">
+                              {isFree ? (
+                                <span className="text-emerald-700 text-[11px] font-semibold bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 rounded-full">
+                                  Gratis
+                                </span>
+                              ) : (
+                                rupiah(item.amount)
+                              )}
+                            </div>
                           </div>
-                          <div className="font-bold text-foreground text-sm shrink-0">
-                            {rupiah(item.amount)}
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -944,32 +994,16 @@ export function OrderDetailClient() {
                         Sewa {booking?.block?.name || 'Unit'} ({nights} malam)
                       </span>
                       <span className="font-semibold text-foreground">
-                        {rupiah(
-                          addonLines.length > 0 && booking?.totalAmount
-                            ? Math.max(
-                                0,
-                                booking.totalAmount -
-                                  addonLines.reduce((s, a) => s + a.amount, 0),
-                              )
-                            : booking?.totalAmount ||
-                                Math.max(
-                                  0,
-                                  order.totalAmount -
-                                    (order.guestServiceFee || 0) -
-                                    (order.guestAdminFee || 0) -
-                                    (order.guestTaxFee || 0) -
-                                    addonLines.reduce((s, a) => s + a.amount, 0),
-                                ),
-                        )}
+                        {rupiah(baseRental)}
                       </span>
                     </div>
 
-                    {/* Rincian Item Add-on */}
-                    {addonLines.map((addon, idx) => (
+                    {/* Rincian Item Add-on Berbayar */}
+                    {paidAddonLines.map((addon, idx) => (
                       <div key={idx} className="flex justify-between text-xs">
                         <span className="text-foreground-muted">
                           {addon.name} ({addon.quantity}x
-                          {addon.perNight ? ` · ${nights} mlm` : ''})
+                          {addon.perNight ? ` · ${nights} malam` : ''})
                         </span>
                         <span className="font-semibold text-foreground">
                           {rupiah(addon.amount)}
