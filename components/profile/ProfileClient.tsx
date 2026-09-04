@@ -235,23 +235,13 @@ export function ProfileClient() {
         ) : (
           <div className="space-y-6">
             {/* Header Judul Halaman */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/70 pb-5">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
-                  Profil Saya
-                </h1>
-                <p className="text-xs sm:text-sm text-foreground-muted mt-0.5">
-                  Kelola data diri, kontak WhatsApp, dan preferensi akun Anda di Embun.
-                </p>
-              </div>
-              <Link
-                href="/orders"
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-blue hover:text-brand-blue-hover transition-colors shrink-0"
-              >
-                <ListOrdered size={14} />
-                <span>Lihat Pesanan Saya</span>
-                <ArrowRight size={14} />
-              </Link>
+            <div className="border-b border-border/70 pb-5">
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
+                Profil Saya
+              </h1>
+              <p className="text-xs sm:text-sm text-foreground-muted mt-0.5">
+                Kelola data diri, kontak WhatsApp, dan preferensi akun Anda di Embun.
+              </p>
             </div>
 
             {/* Navigasi Tab Horizontal (Mobile & Tablet) */}

@@ -15,7 +15,6 @@ import {
   ListOrdered,
   HelpCircle,
   MessageCircle,
-  ArrowRight,
   Mail,
 } from 'lucide-react';
 import {
@@ -349,22 +348,13 @@ export function OrdersClient() {
         ) : (
           <div className="space-y-6">
             {/* Header Judul Halaman */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/70 pb-5">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
-                  Pesanan Saya
-                </h1>
-                <p className="text-xs sm:text-sm text-foreground-muted mt-0.5">
-                  Pantau status pengajuan, jadwal check-in, dan riwayat reservasi Anda.
-                </p>
-              </div>
-              <Link
-                href="/explore"
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-blue hover:text-brand-blue-hover transition-colors shrink-0"
-              >
-                <span>Jelajahi Spot Lain</span>
-                <ArrowRight size={14} />
-              </Link>
+            <div className="border-b border-border/70 pb-5">
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
+                Pesanan Saya
+              </h1>
+              <p className="text-xs sm:text-sm text-foreground-muted mt-0.5">
+                Pantau status pengajuan, jadwal check-in, dan riwayat reservasi Anda.
+              </p>
             </div>
 
             {/* Navigasi Tab Horizontal (Mobile & Tablet) */}
