@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import { SpotCard, type SpotData } from '@/components/explore/SpotCard';
 import { GuestAuthModal } from '@/components/explore/GuestAuthModal';
+import { ReviewsModal } from '@/components/reviews/ReviewsModal';
 import {
   getStoredGuestProfile,
   getGuestToken,
@@ -1149,7 +1150,7 @@ function CampsiteLandingClientInner() {
                   Pengalaman nyata dari pengunjung terverifikasi
                 </p>
               </div>
-              {reviews.length > 2 && (
+              {reviews.length > 0 && (
                 <button
                   type="button"
                   onClick={() => setShowReviewsModal(true)}
@@ -1235,7 +1236,7 @@ function CampsiteLandingClientInner() {
               })}
             </div>
 
-            {reviews.length > 2 && (
+            {reviews.length > 0 && (
               <div className="pt-2">
                 <button
                   type="button"
@@ -1363,99 +1364,13 @@ function CampsiteLandingClientInner() {
         </div>
       )}
 
-      {/* ── MODAL SEMUA ULASAN TAMU ── */}
-      {showReviewsModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-2xl bg-white text-foreground rounded-t-3xl sm:rounded-3xl shadow-2xl border border-border max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
-            {/* Header Modal */}
-            <div className="p-5 border-b border-border flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <Star size={18} className="fill-amber-500 text-amber-500" />
-                <h3 className="font-bold text-base text-foreground">
-                  Semua Ulasan Tamu ({reviews.length})
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowReviewsModal(false)}
-                className="p-2 rounded-full hover:bg-surface text-foreground-muted hover:text-foreground transition-colors cursor-pointer"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            {/* Content List */}
-            <div className="p-6 overflow-y-auto space-y-5 divide-y divide-border/60">
-              {reviews.map((rev: any, idx: number) => {
-                const displayName =
-                  rev.maskedAuthorName ||
-                  rev.authorName ||
-                  rev.guestName ||
-                  rev.userName ||
-                  rev.user?.name ||
-                  'Tamu Embun';
-                const avatarChar = displayName.charAt(0).toUpperCase();
-                const reviewText =
-                  rev.message || rev.comment || rev.content || rev.review || '';
-
-                return (
-                  <div key={rev.id || idx} className="pt-4 first:pt-0 space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-full bg-brand-blue/10 text-brand-blue font-bold text-xs flex items-center justify-center overflow-hidden shrink-0">
-                          {rev.authorPhotoUrl || rev.guestAvatar ? (
-                            <img
-                              src={resolveAssetUrl(rev.authorPhotoUrl || rev.guestAvatar)}
-                              alt={displayName}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            avatarChar
-                          )}
-                        </div>
-                        <div>
-                          <span className="font-bold text-xs text-foreground block">
-                            {displayName}
-                          </span>
-                          <span className="text-[10px] text-foreground-muted">
-                            {rev.createdAt
-                              ? new Date(rev.createdAt).toLocaleDateString('id-ID', {
-                                  month: 'long',
-                                  year: 'numeric',
-                                })
-                              : 'Pengunjung Terverifikasi'}
-                            {(rev.spotName || rev.blockName) && ` · ${rev.spotName || rev.blockName}`}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1 text-amber-500 font-bold text-xs bg-surface px-2.5 py-1 rounded-full border border-border shrink-0">
-                        <Star size={11} className="fill-amber-500" />
-                        <span>{Number(rev.rating || 5).toFixed(1)}</span>
-                      </div>
-                    </div>
-
-                    {reviewText && (
-                      <p className="text-xs sm:text-sm text-foreground/85 leading-relaxed italic">
-                        &ldquo;{reviewText.trim()}&rdquo;
-                      </p>
-                    )}
-
-                    {rev.photoUrl && (
-                      <div className="w-24 h-24 rounded-2xl overflow-hidden border border-border">
-                        <img
-                          src={resolveAssetUrl(rev.photoUrl)}
-                          alt="Foto ulasan"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ── MODAL SEMUA ULASAN TAMU (AIRBNB STYLE) ── */}
+      <ReviewsModal
+        isOpen={showReviewsModal}
+        onClose={() => setShowReviewsModal(false)}
+        reviews={reviews}
+        targetName={campsite?.name || 'Kawasan Campsite'}
+      />
     </div>
   );
 }

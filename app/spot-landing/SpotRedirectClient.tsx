@@ -77,6 +77,7 @@ import {
   CancellationPolicyModal,
   CancellationPolicyBannerButton,
 } from '@/components/checkout/CancellationPolicyModal';
+import { ReviewsModal } from '@/components/reviews/ReviewsModal';
 
 const APP_STORE_HREF = 'https://apps.apple.com/app/embun';
 const GOOGLE_PLAY_HREF =
@@ -2981,7 +2982,7 @@ export function SpotRedirectClient() {
                     ))}
                   </div>
 
-                  {reviews.length > 2 && (
+                  {reviews.length > 0 && (
                     <div className="pt-2">
                       <button
                         type="button"
@@ -4745,97 +4746,19 @@ export function SpotRedirectClient() {
       />
 
       {/* ════════════════════════════════════════════════════════════════════════
-          11. AIRBNB-STYLE GUEST REVIEWS MODAL
+          11. AIRBNB-STYLE GUEST REVIEWS MODAL (EMBUN DESIGN)
       ════════════════════════════════════════════════════════════════════════ */}
-      {showReviewsModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-2xl bg-white text-foreground rounded-t-3xl sm:rounded-3xl shadow-2xl border border-border max-h-[90vh] sm:max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
-            {/* Header Modal */}
-            <div className="p-5 sm:p-6 border-b border-border flex items-center justify-between bg-surface/30">
-              <div className="space-y-0.5">
-                <div className="flex items-center gap-2">
-                  <Star size={18} className="fill-amber-500 text-amber-500" />
-                  <h3 className="font-bold text-lg text-foreground">
-                    {reviewAggregate && reviewAggregate.ratingCount > 0
-                      ? `${reviewAggregate.ratingAvg.toFixed(1)} · ${reviewAggregate.ratingCount} Ulasan Tamu`
-                      : `Semua Ulasan Tamu (${reviews.length})`}
-                  </h3>
-                </div>
-                <p className="text-xs text-foreground-muted">
-                  Ulasan autentik dari tamu yang telah menginap di {campsite?.name || 'Embun'}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowReviewsModal(false)}
-                className="p-2 rounded-full hover:bg-surface text-foreground-muted hover:text-foreground transition-colors cursor-pointer shrink-0"
-                aria-label="Tutup ulasan"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            {/* Content List */}
-            <div className="p-6 overflow-y-auto space-y-6 divide-y divide-border/60">
-              {reviews.map((rev, idx) => {
-                const displayName = rev.maskedAuthorName || 'Tamu Embun';
-                const avatarChar = displayName.charAt(0).toUpperCase();
-
-                return (
-                  <div key={rev.id || idx} className="pt-6 first:pt-0 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-brand-blue/10 border border-border flex items-center justify-center font-bold text-sm text-brand-blue overflow-hidden shrink-0">
-                          {rev.authorPhotoUrl ? (
-                            <img
-                              src={resolveAssetUrl(rev.authorPhotoUrl)}
-                              alt={displayName}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            avatarChar
-                          )}
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-xs sm:text-sm text-foreground">
-                            {displayName}
-                          </h4>
-                          <p className="text-[11px] text-foreground-muted">
-                            {rev.createdAt
-                              ? new Date(rev.createdAt).toLocaleDateString('id-ID', {
-                                  month: 'long',
-                                  year: 'numeric',
-                                })
-                              : 'Pengunjung Terverifikasi'}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1 bg-surface px-2.5 py-1 rounded-full border border-border text-xs font-bold text-foreground shrink-0">
-                        <Star size={11} className="fill-amber-500 text-amber-500" />
-                        <span>{rev.rating || 5}</span>
-                      </div>
-                    </div>
-
-                    <p className="text-xs sm:text-sm text-foreground/90 leading-relaxed">
-                      "{rev.message}"
-                    </p>
-
-                    {rev.photoUrl && (
-                      <div className="w-24 h-24 rounded-2xl overflow-hidden border border-border mt-2">
-                        <img
-                          src={resolveAssetUrl(rev.photoUrl)}
-                          alt="Foto ulasan"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
+      <ReviewsModal
+        isOpen={showReviewsModal}
+        onClose={() => setShowReviewsModal(false)}
+        reviews={reviews}
+        targetName={
+          activeSpot?.name
+            ? `${activeSpot.name}${campsite?.name ? ` · ${campsite.name}` : ''}`
+            : campsite?.name || 'Embun'
+        }
+        aggregate={reviewAggregate}
+      />
 
       {/* Cancellation & Refund Policy Modal */}
       <CancellationPolicyModal
