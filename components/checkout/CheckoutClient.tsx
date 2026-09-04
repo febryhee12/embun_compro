@@ -19,6 +19,7 @@ import {
   Receipt,
   Info,
   FileText,
+  ChevronRight,
 } from 'lucide-react';
 import {
   createRealOrder,
@@ -37,6 +38,10 @@ import {
   cancelGuestOrder,
 } from '@/lib/api-client';
 import { GuestAuthModal } from '@/components/explore/GuestAuthModal';
+import {
+  CancellationPolicyModal,
+  CancellationPolicyBannerButton,
+} from '@/components/checkout/CancellationPolicyModal';
 
 interface CheckoutDraft {
   campsite: {
@@ -118,6 +123,7 @@ export function CheckoutClient() {
   const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [existingPendingOrder, setExistingPendingOrder] = useState<any | null>(null);
   const [cancellingOldOrder, setCancellingOldOrder] = useState(false);
+  const [showCancellationModal, setShowCancellationModal] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -488,6 +494,13 @@ export function CheckoutClient() {
                   </p>
                 </div>
               </div>
+
+              <div className="pt-1">
+                <CancellationPolicyBannerButton
+                  checkInDate={draft.checkInDate}
+                  onClick={() => setShowCancellationModal(true)}
+                />
+              </div>
             </div>
 
             {/* 2. Data Pemesan */}
@@ -644,14 +657,15 @@ export function CheckoutClient() {
                 <li className="flex items-start gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-brand-blue shrink-0 mt-1.5" />
                   <span>
-                    <strong>Kebijakan Pembatalan & Refund:</strong> Pengajuan pembatalan atau pengembalian dana tunduk pada syarat dan tenggat waktu resmi di{' '}
-                    <Link
-                      href="/kebijakan-refund"
-                      target="_blank"
-                      className="text-brand-blue font-semibold hover:underline"
+                    <strong>Kebijakan Pembatalan & Refund:</strong> Pengajuan pembatalan atau pengembalian dana tunduk pada syarat dan tenggat waktu resmi.{' '}
+                    <button
+                      type="button"
+                      onClick={() => setShowCancellationModal(true)}
+                      className="text-brand-blue font-bold hover:underline inline-flex items-center gap-0.5 cursor-pointer"
                     >
-                      Kebijakan Refund & Pembatalan Embun
-                    </Link>.
+                      <span>Lihat Rincian Batas Waktu Refund</span>
+                      <ChevronRight size={13} />
+                    </button>
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
@@ -789,8 +803,17 @@ export function CheckoutClient() {
                   <p className="text-xs text-foreground-muted truncate">
                     {draft.selectedPackage.name} · {draft.campsite.city || draft.campsite.address}
                   </p>
+                  <p className="text-[11px] text-foreground-muted">
+                    {formatDateDisplay(draft.checkInDate)} – {formatDateDisplay(draft.checkOutDate)} · {draft.nights} Malam · {draft.guestCount} Tamu
+                  </p>
                 </div>
               </div>
+
+              {/* Cancellation Policy Banner (Matches Image 3) */}
+              <CancellationPolicyBannerButton
+                checkInDate={draft.checkInDate}
+                onClick={() => setShowCancellationModal(true)}
+              />
 
               {/* Rincian Harga */}
               <div className="space-y-3 text-xs">
@@ -909,6 +932,13 @@ export function CheckoutClient() {
           }}
         />
       )}
+
+      {/* Modal Kebijakan Pembatalan (Airbnb / Embun App Style) */}
+      <CancellationPolicyModal
+        isOpen={showCancellationModal}
+        onClose={() => setShowCancellationModal(false)}
+        checkInDate={draft?.checkInDate}
+      />
     </div>
   );
 }

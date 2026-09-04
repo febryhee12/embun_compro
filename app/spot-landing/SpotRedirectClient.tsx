@@ -73,6 +73,10 @@ import {
 import { BookingCalendarModal } from '@/components/explore/BookingCalendarModal';
 import { GuestAuthModal } from '@/components/explore/GuestAuthModal';
 import { BookingTicketModal } from '@/components/explore/BookingTicketModal';
+import {
+  CancellationPolicyModal,
+  CancellationPolicyBannerButton,
+} from '@/components/checkout/CancellationPolicyModal';
 
 const APP_STORE_HREF = 'https://apps.apple.com/app/embun';
 const GOOGLE_PLAY_HREF =
@@ -407,6 +411,7 @@ export function SpotRedirectClient() {
   const [reviewAggregate, setReviewAggregate] =
     useState<ReviewAggregate | null>(null);
   const [showReviewsModal, setShowReviewsModal] = useState(false);
+  const [showCancellationModal, setShowCancellationModal] = useState(false);
 
   // Gallery & 360 Lightbox state
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
@@ -2834,23 +2839,24 @@ export function SpotRedirectClient() {
                     </p>
                   </div>
 
-                  <div className="sm:col-span-2 p-4 rounded-2xl bg-surface border border-border space-y-1.5">
-                    <h5 className="font-bold text-foreground flex items-center gap-1.5">
-                      <ShieldCheck size={13} className="text-brand-blue" />
-                      <span>Kebijakan Pembatalan & Refund</span>
-                    </h5>
-                    <p className="text-xs text-foreground-muted leading-relaxed">
-                      Pengajuan pembatalan reservasi atau pengembalian dana tunduk pada syarat dan tenggat waktu resmi dari pengelola campsite.{' '}
-                      <a
-                        href="/kebijakan-refund"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-brand-blue font-bold hover:underline inline-flex items-center gap-1"
+                  <div className="sm:col-span-2 p-4 rounded-2xl bg-surface border border-border space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <h5 className="font-bold text-foreground flex items-center gap-1.5">
+                        <ShieldCheck size={13} className="text-brand-blue" />
+                        <span>Kebijakan Pembatalan & Refund</span>
+                      </h5>
+                      <button
+                        type="button"
+                        onClick={() => setShowCancellationModal(true)}
+                        className="text-xs text-brand-blue font-bold hover:underline cursor-pointer"
                       >
-                        <span>Pelajari Kebijakan Refund & Pembatalan Embun</span>
-                        <span>&rarr;</span>
-                      </a>
-                    </p>
+                        Lihat Jadwal Refund &rarr;
+                      </button>
+                    </div>
+                    <CancellationPolicyBannerButton
+                      checkInDate={checkInDate}
+                      onClick={() => setShowCancellationModal(true)}
+                    />
                   </div>
                 </div>
 
@@ -3444,6 +3450,10 @@ export function SpotRedirectClient() {
 
                 {/* CTA Booking Button */}
                 <div className="space-y-2.5 pt-1">
+                  <CancellationPolicyBannerButton
+                    checkInDate={checkInDate}
+                    onClick={() => setShowCancellationModal(true)}
+                  />
                   <button
                     type="button"
                     onClick={handleProceedBooking}
@@ -3453,14 +3463,13 @@ export function SpotRedirectClient() {
                   </button>
                   <p className="text-[11px] text-center text-foreground-muted">
                     Tunduk pada{' '}
-                    <a
-                      href="/kebijakan-refund"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-brand-blue font-semibold hover:underline"
+                    <button
+                      type="button"
+                      onClick={() => setShowCancellationModal(true)}
+                      className="text-brand-blue font-semibold hover:underline cursor-pointer"
                     >
                       Kebijakan Refund & Pembatalan
-                    </a>
+                    </button>
                   </p>
                 </div>
               </div>
@@ -4509,6 +4518,10 @@ export function SpotRedirectClient() {
 
             {/* CTA Buttons */}
             <div className="space-y-2.5 pt-2">
+              <CancellationPolicyBannerButton
+                checkInDate={checkInDate}
+                onClick={() => setShowCancellationModal(true)}
+              />
               <button
                 type="button"
                 onClick={handleProceedBooking}
@@ -4518,14 +4531,13 @@ export function SpotRedirectClient() {
               </button>
               <p className="text-[11px] text-center text-foreground-muted">
                 Tunduk pada{' '}
-                <a
-                  href="/kebijakan-refund"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-brand-blue font-semibold hover:underline"
+                <button
+                  type="button"
+                  onClick={() => setShowCancellationModal(true)}
+                  className="text-brand-blue font-semibold hover:underline cursor-pointer"
                 >
                   Kebijakan Refund & Pembatalan
-                </a>
+                </button>
               </p>
 
               {/* Direct App Store & Google Play Features Box */}
@@ -4709,6 +4721,13 @@ export function SpotRedirectClient() {
           </div>
         </div>
       )}
+
+      {/* Cancellation & Refund Policy Modal */}
+      <CancellationPolicyModal
+        isOpen={showCancellationModal}
+        onClose={() => setShowCancellationModal(false)}
+        checkInDate={checkInDate}
+      />
     </div>
   );
 }

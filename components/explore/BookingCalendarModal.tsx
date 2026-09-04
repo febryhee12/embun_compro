@@ -79,20 +79,32 @@ export function BookingCalendarModal({
   const [activeStep, setActiveStep] = useState<"checkIn" | "checkOut">("checkIn");
   const [hoveredDate, setHoveredDate] = useState<string | null>(null);
 
-  // Helper untuk mengecek apakah ada malam yang sudah penuh di antara dua tanggal
+  // Helper to add days cleanly without timezone drift
+  const addDaysStr = (dateStr: string, days: number): string => {
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const date = new Date(Date.UTC(y, m - 1, d + days));
+    return date.toISOString().split("T")[0];
+  };
+
+  // Helper untuk mengecek apakah ada malam yang sudah penuh di antara dua tanggal [startStr, endStr)
   const hasBookedBetween = (startStr: string, endStr: string): boolean => {
     try {
-      const cur = new Date(startStr);
-      const end = new Date(endStr);
-      while (cur < end) {
-        const key = cur.toISOString().split("T")[0];
-        if (bookedSet.has(key)) return true;
-        cur.setDate(cur.getDate() + 1);
+      if (endStr <= startStr) return false;
+      let cur = addDaysStr(startStr, 0);
+      while (cur < endStr) {
+        if (bookedSet.has(cur)) return true;
+        cur = addDaysStr(cur, 1);
       }
       return false;
     } catch {
       return false;
     }
+  };
+
+  // Cek apakah tanggal candidate dapat dipilih sebagai check-out (half-open)
+  const isSelectableAsCheckout = (checkInStr: string, candidateStr: string): boolean => {
+    if (!checkInStr || candidateStr <= checkInStr) return false;
+    return !hasBookedBetween(checkInStr, candidateStr);
   };
 
   // Initial month based on current checkInDate or today
@@ -140,30 +152,34 @@ export function BookingCalendarModal({
   const handleDateClick = (dateStr: string) => {
     if (dateStr < todayStr) return;
 
-    if (activeStep === "checkIn") {
-      if (bookedSet.has(dateStr)) return; // Tidak boleh check-in di hari penuh
+    // Jika belum memilih check-in atau kedua tanggal sudah terisi, mulai pilih check-in baru
+    if (!tempIn || (tempIn && tempOut)) {
+      if (bookedSet.has(dateStr)) return; // Tidak boleh check-in di hari yang sudah penuh
+      setTempIn(dateStr);
+      setTempOut("");
+      setActiveStep("checkOut");
+      return;
+    }
+
+    // Sedang memilih check-out (tempIn sudah ada, tempOut belum)
+    if (dateStr <= tempIn) {
+      if (bookedSet.has(dateStr)) return;
       setTempIn(dateStr);
       setTempOut("");
       setActiveStep("checkOut");
     } else {
-      // selecting checkOut
-      if (dateStr <= tempIn) {
-        if (bookedSet.has(dateStr)) return;
-        setTempIn(dateStr);
-        setTempOut("");
-        setActiveStep("checkOut");
-      } else {
-        // Jangan izinkan check-out bila rentang menginap melompati hari penuh
-        if (hasBookedBetween(tempIn, dateStr)) {
-          if (!bookedSet.has(dateStr)) {
-            setTempIn(dateStr);
-            setTempOut("");
-            setActiveStep("checkOut");
-          }
-          return;
-        }
+      // dateStr > tempIn: cek apakah interval malam bebas
+      const isIntervalFree = isSelectableAsCheckout(tempIn, dateStr);
+      if (isIntervalFree) {
         setTempOut(dateStr);
         setActiveStep("checkIn");
+      } else {
+        // Melewati malam yang penuh, jika tanggal ini kosong mulai check-in baru dari sini
+        if (!bookedSet.has(dateStr)) {
+          setTempIn(dateStr);
+          setTempOut("");
+          setActiveStep("checkOut");
+        }
       }
     }
   };
@@ -212,7 +228,18 @@ export function BookingCalendarModal({
       ).padStart(2, "0")}`;
       const isPast = dayStr < todayStr;
       const isBooked = bookedSet.has(dayStr);
-      const isDisabled = isPast || isBooked;
+
+      // Half-open check-out logic:
+      // Ketika check-in sudah dipilih dan check-out belum, tanggal penuh yang berada tepat
+      // setelah malam bebas (hari pergantian tamu / changeover) DAPAT dipilih sebagai check-out.
+      const isCheckoutChangeover =
+        Boolean(tempIn) &&
+        !tempOut &&
+        dayStr > tempIn &&
+        isBooked &&
+        isSelectableAsCheckout(tempIn, dayStr);
+
+      const isDisabled = isPast || (isBooked && !isCheckoutChangeover);
       const isStart = dayStr === tempIn;
       const isEnd = dayStr === tempOut;
       const isInRange =
@@ -224,6 +251,10 @@ export function BookingCalendarModal({
         dayStr > tempIn &&
         dayStr <= hoveredDate &&
         !hasBookedBetween(tempIn, hoveredDate);
+
+      const [y, mNum, d] = dayStr.split("-").map(Number);
+      const dayOfWeek = new Date(y, mNum - 1, d).getDay();
+      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6; // Minggu atau Sabtu
 
       days.push(
         <div
@@ -243,22 +274,30 @@ export function BookingCalendarModal({
             disabled={isDisabled}
             onClick={() => handleDateClick(dayStr)}
             title={
-              isBooked
+              isCheckoutChangeover
+                ? "Tanggal Check-out Tersedia (Hari Pergantian Tamu)"
+                : isBooked
                 ? "Spot sudah penuh di tanggal ini"
                 : isPast
                 ? "Tanggal lewat"
                 : undefined
             }
-            className={`h-9 w-9 sm:h-10 sm:w-10 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
-              isDisabled
+            className={`h-9 w-9 sm:h-10 sm:w-10 rounded-2xl flex items-center justify-center text-xs transition-all ${
+              isStart || isEnd
+                ? "bg-brand-blue text-white font-bold shadow-md scale-105 rounded-full"
+                : isCheckoutChangeover
+                ? `border-2 border-neutral-800 bg-white font-bold hover:scale-105 cursor-pointer shadow-2xs ${
+                    isWeekend ? "text-red-500" : "text-foreground"
+                  }`
+                : isDisabled
                 ? isBooked
-                  ? "text-neutral-400 bg-neutral-100/80 line-through cursor-not-allowed opacity-60"
-                  : "text-foreground-muted/30 line-through cursor-not-allowed"
-                : isStart || isEnd
-                ? "bg-brand-blue text-white font-bold shadow-md scale-105"
+                  ? "text-neutral-400 bg-neutral-100/80 line-through cursor-not-allowed opacity-60 rounded-full"
+                  : "text-foreground-muted/30 line-through cursor-not-allowed rounded-full"
                 : isInRange || isHovered
-                ? "text-brand-blue font-bold hover:bg-brand-blue/20"
-                : "text-foreground hover:bg-surface hover:scale-105 cursor-pointer"
+                ? "text-brand-blue font-bold hover:bg-brand-blue/20 rounded-full"
+                : `${
+                    isWeekend ? "text-red-500 font-semibold" : "text-foreground"
+                  } hover:bg-surface hover:scale-105 cursor-pointer rounded-full`
             }`}
           >
             {day}
@@ -431,14 +470,32 @@ export function BookingCalendarModal({
             >
               Batal
             </button>
-            <button
-              type="button"
-              onClick={handleApply}
-              className="px-4 sm:px-5 py-2.5 rounded-2xl bg-brand-blue text-white text-xs font-bold hover:bg-brand-blue-hover shadow-md transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
-            >
-              <Check size={14} />
-              <span>Simpan ({nightsCount || 1} Malam)</span>
-            </button>
+            {tempIn && tempOut ? (
+              <button
+                type="button"
+                onClick={handleApply}
+                className="px-4 sm:px-5 py-2.5 rounded-2xl bg-brand-blue text-white text-xs font-bold hover:bg-brand-blue-hover shadow-md transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+              >
+                <Check size={14} />
+                <span>Simpan ({nightsCount} Malam)</span>
+              </button>
+            ) : tempIn ? (
+              <button
+                type="button"
+                disabled
+                className="px-4 sm:px-5 py-2.5 rounded-2xl bg-brand-lime text-black text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 cursor-default whitespace-nowrap"
+              >
+                <span>Pilih tanggal check-out</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                disabled
+                className="px-4 sm:px-5 py-2.5 rounded-2xl bg-surface border border-border text-foreground-muted text-xs font-semibold cursor-default whitespace-nowrap"
+              >
+                <span>Pilih tanggal check-in</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
