@@ -20,7 +20,6 @@ import {
   ExternalLink,
   MessageCircle,
   AlertCircle,
-  ShieldCheck,
   XCircle,
   Clock3,
   Mail,
@@ -507,14 +506,13 @@ export function OrderDetailClient() {
                     1. KARTU STATUS HERO
                 ════════════════════════════════════════════════════════════════ */}
                 {isPaid ? (
-                  /* KARTU TIKET RESMI TERKONFIRMASI */
+                  /* KARTU TIKET RESMI */
                   <div className="bg-white rounded-3xl border border-border p-6 sm:p-7 shadow-2xs">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
                       <div className="space-y-2 text-center sm:text-left flex-1">
-                        <div className="flex items-center justify-center sm:justify-start gap-1.5 text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-full w-fit mx-auto sm:mx-0">
-                          <ShieldCheck size={14} />
+                        <div className="flex items-center justify-center sm:justify-start gap-1.5 text-neutral-700 bg-neutral-100 border border-neutral-200 px-2.5 py-1 rounded-full w-fit mx-auto sm:mx-0">
                           <span className="text-[10.5px] uppercase font-bold tracking-wider">
-                            Tiket Resmi Terkonfirmasi
+                            Tiket Resmi
                           </span>
                         </div>
 
