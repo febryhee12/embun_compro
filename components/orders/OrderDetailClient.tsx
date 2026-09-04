@@ -923,7 +923,7 @@ export function OrderDetailClient() {
                         <ExternalLink size={11} className="text-foreground-muted" />
                       </a>
                     )}
-                    {order.campsite?.emergencyWhatsapp && (
+                    {isPaid && !isUnsettledDP && order.campsite?.emergencyWhatsapp && (
                       <a
                         href={`https://wa.me/${order.campsite.emergencyWhatsapp.replace(/\D/g, '')}`}
                         target="_blank"
