@@ -55,7 +55,6 @@ export function ReviewsModal({
 }: ReviewsModalProps) {
   const [selectedStar, setSelectedStar] = useState<number | null>(null);
   const [onlyPhotos, setOnlyPhotos] = useState<boolean>(false);
-  const [searchQuery, setSearchQuery] = useState<string>('');
   const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
 
   // Perhitungan rating rata-rata & jumlah ulasan
@@ -88,7 +87,7 @@ export function ReviewsModal({
     return reviews.filter((r) => Boolean(r.photoUrl)).length;
   }, [reviews]);
 
-  // Filter & Search Reviews
+  // Filter Reviews (Bintang & Foto)
   const filteredReviews = useMemo(() => {
     return reviews.filter((r) => {
       const star = Math.min(5, Math.max(1, Math.round(Number(r.rating) || 5)));
@@ -98,49 +97,30 @@ export function ReviewsModal({
       if (onlyPhotos && !r.photoUrl) {
         return false;
       }
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        const text = (
-          r.message ||
-          r.comment ||
-          r.content ||
-          r.review ||
-          ''
-        ).toLowerCase();
-        const author = (
-          r.maskedAuthorName ||
-          r.authorName ||
-          r.guestName ||
-          r.userName ||
-          r.user?.fullName ||
-          r.user?.name ||
-          ''
-        ).toLowerCase();
-        const spot = (r.spotName || r.blockName || '').toLowerCase();
-        if (!text.includes(q) && !author.includes(q) && !spot.includes(q)) {
-          return false;
-        }
-      }
       return true;
     });
-  }, [reviews, selectedStar, onlyPhotos, searchQuery]);
+  }, [reviews, selectedStar, onlyPhotos]);
 
   const handleResetFilters = () => {
     setSelectedStar(null);
     setOnlyPhotos(false);
-    setSearchQuery('');
   };
 
-  const isFiltered = selectedStar !== null || onlyPhotos || Boolean(searchQuery.trim());
+  const isFiltered = selectedStar !== null || onlyPhotos;
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 animate-in fade-in duration-200">
       <div className="w-full max-w-4xl bg-white text-foreground rounded-t-3xl sm:rounded-3xl shadow-2xl border border-border flex flex-col h-[90vh] sm:h-[85vh] max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200">
+        {/* ═══ MOBILE DRAG HANDLE STRIP ═══ */}
+        <div className="pt-3 pb-1 flex justify-center sm:hidden bg-white shrink-0">
+          <div className="w-12 h-1.5 bg-neutral-300 rounded-full" />
+        </div>
+
         {/* ═══ TOP HEADER ═══ */}
-        <div className="px-5 py-4 sm:px-8 sm:py-5 border-b border-border flex items-center justify-between shrink-0 bg-surface/30">
-          <div className="space-y-0.5 min-w-0 pr-4">
+        <div className="px-5 py-3.5 sm:px-8 sm:py-5 border-b border-border flex items-center justify-between shrink-0 bg-white">
+          <div className="space-y-0.5 min-w-0 pr-3">
             <h2 className="text-base sm:text-lg font-bold text-foreground truncate">
               Ulasan Tamu · {targetName}
             </h2>
@@ -152,17 +132,17 @@ export function ReviewsModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-surface text-foreground-muted hover:text-foreground transition-colors cursor-pointer shrink-0 -mr-1"
+            className="w-8 h-8 rounded-full border border-border bg-neutral-100/90 hover:bg-neutral-200 text-foreground flex items-center justify-center transition-colors cursor-pointer shrink-0 shadow-2xs"
             aria-label="Tutup"
           >
-            <X size={20} />
+            <X size={16} className="text-foreground" />
           </button>
         </div>
 
         {/* ═══ MAIN MODAL BODY (AIRBNB 2-COLUMN ON DESKTOP) ═══ */}
-        <div className="flex-1 overflow-hidden grid grid-cols-1 md:grid-cols-12 divide-y md:divide-y-0 md:divide-x divide-border">
+        <div className="flex-1 overflow-hidden grid grid-cols-1 md:grid-cols-12 divide-y md:divide-y-0 md:divide-x divide-border bg-white">
           {/* SISI KIRI: RATING OVERVIEW, AIRBNB PROGRESS BARS & FILTER TABS (COL 5 DESKTOP) */}
-          <div className="md:col-span-5 p-5 sm:p-6 overflow-y-auto space-y-6 bg-surface/15">
+          <div className="md:col-span-5 p-5 sm:p-6 overflow-y-auto space-y-6 bg-white">
             {/* Big Rating Summary */}
             <div className="space-y-2">
               <div className="flex items-baseline gap-2.5">
@@ -315,36 +295,10 @@ export function ReviewsModal({
                 )}
               </div>
             </div>
-
-            {/* Search within Reviews */}
-            <div className="pt-2 border-t border-border/70">
-              <div className="relative flex items-center">
-                <Search
-                  size={14}
-                  className="absolute left-3.5 text-foreground-muted pointer-events-none"
-                />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Cari kata kunci dalam ulasan..."
-                  className="w-full pl-9 pr-8 py-2 rounded-2xl border border-border bg-white text-xs text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all"
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-2.5 p-1 rounded-full text-foreground-muted hover:text-foreground hover:bg-surface cursor-pointer"
-                  >
-                    <X size={12} />
-                  </button>
-                )}
-              </div>
-            </div>
           </div>
 
           {/* SISI KANAN: DAFTAR ULASAN (COL 7 DESKTOP) */}
-          <div className="md:col-span-7 p-5 sm:p-6 overflow-y-auto space-y-5">
+          <div className="md:col-span-7 p-5 sm:p-6 overflow-y-auto space-y-5 bg-white">
             {/* Filter Status Badge / Counter */}
             <div className="flex items-center justify-between text-xs text-foreground-muted pb-2 border-b border-border/60">
               <span>
@@ -355,7 +309,6 @@ export function ReviewsModal({
                 dari {totalCount} ulasan
                 {selectedStar !== null && ` (Bintang ${selectedStar})`}
                 {onlyPhotos && ' (Dengan Foto)'}
-                {searchQuery && ` untuk "${searchQuery}"`}
               </span>
 
               {isFiltered && (
@@ -380,7 +333,7 @@ export function ReviewsModal({
                     Tidak Ditemukan Ulasan
                   </h4>
                   <p className="text-xs text-foreground-muted max-w-xs mx-auto">
-                    Belum ada ulasan yang cocok dengan kriteria filter atau kata kunci pencarian Anda.
+                    Belum ada ulasan yang cocok dengan kriteria filter Anda.
                   </p>
                 </div>
                 <button
@@ -462,7 +415,7 @@ export function ReviewsModal({
                         </div>
 
                         {/* Rating Pill */}
-                        <div className="flex items-center gap-1 bg-surface px-2.5 py-1 rounded-full border border-border text-xs font-bold text-foreground shrink-0 shadow-2xs">
+                        <div className="flex items-center gap-1 bg-white px-2.5 py-1 rounded-full border border-border text-xs font-bold text-foreground shrink-0 shadow-2xs">
                           <Star size={12} className="fill-amber-400 text-amber-400" />
                           <span>{ratingVal.toFixed(1)}</span>
                         </div>

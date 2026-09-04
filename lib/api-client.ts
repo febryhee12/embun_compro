@@ -92,6 +92,27 @@ export async function fetchActiveCampsites() {
   return Array.isArray(data) ? data : [];
 }
 
+export async function fetchCampsiteAggregate(campsiteId: string) {
+  try {
+    const res = await fetch(
+      `${API_BASE_URL}/public/reviews/campsite/${campsiteId}/aggregate`,
+      {
+        headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
+      },
+    );
+    if (res.ok) {
+      const data = await res.json();
+      return {
+        ratingAvg: typeof data?.ratingAvg === 'number' ? data.ratingAvg : 0,
+        ratingCount: typeof data?.ratingCount === 'number' ? data.ratingCount : 0,
+        ratingBreakdown: data?.ratingBreakdown || {},
+      };
+    }
+  } catch {}
+  return { ratingAvg: 0, ratingCount: 0, ratingBreakdown: {} };
+}
+
 export async function fetchPopularSpots() {
   try {
     const res = await fetch(`${API_BASE_URL}/public/campsites/popular-spots`, {

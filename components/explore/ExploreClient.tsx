@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import {
   fetchActiveCampsites,
+  fetchCampsiteAggregate,
   getStoredGuestProfile,
   getGuestToken,
   fetchGuestWishlist,
@@ -23,7 +24,91 @@ import { Tour360Modal } from '@/components/explore/Tour360Modal';
 import {
   Tent,
   Star,
+  ArrowRight,
 } from 'lucide-react';
+
+export const VIEW_SECTIONS = [
+  { id: 'pantai', label: 'Pemandangan Pantai / Laut' },
+  { id: 'danau', label: 'Pemandangan Danau' },
+  { id: 'sungai', label: 'Pemandangan Sungai' },
+  { id: 'lembah', label: 'Pemandangan Lembah / Bukit' },
+  { id: 'gunung', label: 'Pemandangan Gunung' },
+  { id: 'hutan', label: 'Pemandangan Hutan' },
+  { id: 'pinus', label: 'Pemandangan Pohon Pinus' },
+  { id: 'sawah', label: 'Sawah / Perkebunan' },
+  { id: 'kota', label: 'Pemandangan Kota' },
+  { id: 'teh', label: 'Kebun Teh' },
+  { id: 'stroberi', label: 'Kebun Stroberi' },
+];
+
+export const matchesSpotView = (spot: SpotData, viewId: string): boolean => {
+  const rawViews = spot.viewOptions || (spot as any).view_options || [];
+  const spotViews: string[] = Array.isArray(rawViews)
+    ? rawViews.map((v: any) => String(v || '').toLowerCase().trim())
+    : [];
+
+  if (viewId === 'pantai') {
+    return spotViews.some(
+      (v) =>
+        v.includes('pantai') ||
+        v.includes('laut') ||
+        v.includes('beach') ||
+        v.includes('ocean'),
+    );
+  }
+  if (viewId === 'danau') {
+    return spotViews.some((v) => v.includes('danau') || v.includes('lake'));
+  }
+  if (viewId === 'sungai') {
+    return spotViews.some((v) => v.includes('sungai') || v.includes('river'));
+  }
+  if (viewId === 'lembah') {
+    return spotViews.some(
+      (v) =>
+        v.includes('lembah') ||
+        v.includes('bukit') ||
+        v.includes('valley') ||
+        v.includes('hill'),
+    );
+  }
+  if (viewId === 'gunung') {
+    return spotViews.some((v) => v.includes('gunung') || v.includes('mountain'));
+  }
+  if (viewId === 'hutan') {
+    return spotViews.some(
+      (v) =>
+        v.includes('hutan') ||
+        v.includes('forest'),
+    );
+  }
+  if (viewId === 'pinus') {
+    return spotViews.some(
+      (v) =>
+        v.includes('pinus') ||
+        v.includes('pine'),
+    );
+  }
+  if (viewId === 'sawah') {
+    return spotViews.some(
+      (v) =>
+        v.includes('sawah') ||
+        v === 'sawah / perkebunan' ||
+        v.includes('perkebunan'),
+    );
+  }
+  if (viewId === 'kota') {
+    return spotViews.some((v) => v.includes('kota') || v.includes('city'));
+  }
+  if (viewId === 'teh') {
+    return spotViews.some((v) => v.includes('teh') || v.includes('tea'));
+  }
+  if (viewId === 'stroberi') {
+    return spotViews.some(
+      (v) => v.includes('stroberi') || v.includes('strawberry'),
+    );
+  }
+  return false;
+};
 
 export function ExploreClient() {
   const [loading, setLoading] = useState(true);
@@ -60,7 +145,18 @@ export function ExploreClient() {
         setLoading(true);
         setError(null);
         const data = await fetchActiveCampsites();
-        setCampsites(Array.isArray(data) ? data : []);
+        const baseCamps = Array.isArray(data) ? data : [];
+        const campsWithAgg = await Promise.all(
+          baseCamps.map(async (camp: any) => {
+            const agg = await fetchCampsiteAggregate(camp.id);
+            return {
+              ...camp,
+              rating: agg.ratingAvg,
+              reviewCount: agg.ratingCount,
+            };
+          }),
+        );
+        setCampsites(campsWithAgg);
       } catch (err: any) {
         setError(err.message || 'Gagal memuat katalog campsite.');
       } finally {
@@ -114,8 +210,8 @@ export function ExploreClient() {
                 province: camp.province,
                 mapImageUrl: camp.mapImageUrl,
                 addons: camp.addons || [],
-                rating: camp.rating ? Number(camp.rating) : 5.0,
-                reviewCount: camp.reviewCount || 48,
+                rating: camp.rating ? Number(camp.rating) : 0,
+                reviewCount: camp.reviewCount ? Number(camp.reviewCount) : 0,
                 panoramaSpots: camp.panoramaSpots || [],
               },
             });
@@ -161,16 +257,18 @@ export function ExploreClient() {
           spot.campsite.name.toLowerCase().includes(cityTarget);
       }
 
-      // Category filter
+      // Category filter (Strictly tentType & viewOptions - NOT by spot name!)
       let matchCat = true;
       if (selectedCategory !== 'all') {
-        const cleanTarget = selectedCategory.toLowerCase().trim();
-        const spotType = (spot.tentType || '').toLowerCase().trim();
-        const spotName = (spot.name || '').toLowerCase().trim();
-        matchCat =
-          spotType === cleanTarget ||
-          spotType.includes(cleanTarget) ||
-          spotName.includes(cleanTarget);
+        if (selectedCategory.startsWith('view:')) {
+          const viewKey = selectedCategory.replace('view:', '').toLowerCase();
+          matchCat = matchesSpotView(spot, viewKey);
+        } else {
+          // Property type (tentType) - strictly check tentType
+          const cleanTarget = selectedCategory.toLowerCase().trim();
+          const spotType = (spot.tentType || '').toLowerCase().trim();
+          matchCat = spotType === cleanTarget;
+        }
       }
 
       return matchSearch && matchCity && matchCat;
@@ -313,7 +411,24 @@ export function ExploreClient() {
     return nonPlus.length > 0 ? nonPlus.slice(0, 4) : allSpots.slice(0, 4);
   }, [allSpots]);
 
-  // Section 4: Spot Lainnya
+  // Section 3: Pilihan Berdasarkan Pemandangan Alam
+  const [selectedViewTab, setSelectedViewTab] = useState('sungai');
+
+  const spotsByView = useMemo(() => {
+    return allSpots.filter((s) => matchesSpotView(s, selectedViewTab));
+  }, [allSpots, selectedViewTab]);
+
+  // Tampilkan hingga 10 spot agar baris grid terisi penuh & seimbang (2 baris penuh di grid 5 kolom)
+  const displayedViewSpots = useMemo(() => {
+    return spotsByView.slice(0, 10);
+  }, [spotsByView]);
+
+  const handleSeeAllViewSpots = (viewId: string) => {
+    setSelectedCategory(`view:${viewId}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Section 5: Spot Lainnya
   const otherSpots = useMemo(() => {
     return allSpots;
   }, [allSpots]);
@@ -406,8 +521,13 @@ export function ExploreClient() {
                     ? `Hasil Pencarian: "${searchQuery}"`
                     : selectedCategory !== 'all'
                     ? `Kategori: ${
-                        CATEGORIES.find((c) => c.id === selectedCategory)
-                          ?.label || selectedCategory
+                        selectedCategory.startsWith('view:')
+                          ? VIEW_SECTIONS.find(
+                              (v) =>
+                                v.id === selectedCategory.replace('view:', ''),
+                            )?.label || selectedCategory
+                          : CATEGORIES.find((c) => c.id === selectedCategory)
+                              ?.label || selectedCategory
                       }`
                     : `Destinasi: ${selectedCity}`}
                 </h2>
@@ -512,7 +632,99 @@ export function ExploreClient() {
               </section>
             )}
 
-            {/* ── 3. JELAJAHI CAMPSITE ── */}
+            {/* ── 3. PILIHAN BERDASARKAN PEMANDANGAN ALAM ── */}
+            {allSpots.length > 0 && (
+              <section className="space-y-6">
+                <div className="flex items-end justify-between border-b border-border pb-3">
+                  <div className="space-y-1">
+                    <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
+                      Pilihan Berdasarkan Pemandangan Alam
+                    </h2>
+                    <p className="text-xs text-foreground-muted">
+                      Temukan spot camping & glamping dengan panorama favorit, dari tepi sungai hingga danau dan pegunungan.
+                    </p>
+                  </div>
+
+                  {spotsByView.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => handleSeeAllViewSpots(selectedViewTab)}
+                      className="text-xs font-bold text-brand-blue hover:underline cursor-pointer shrink-0 hidden sm:inline-block"
+                    >
+                      Lihat Semua ({spotsByView.length}) →
+                    </button>
+                  )}
+                </div>
+
+                {/* Filter Tabs View (Clean Airbnb style - no icons, no number badges) */}
+                <div
+                  className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5"
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                >
+                  {VIEW_SECTIONS.map((v) => {
+                    const isSelected = selectedViewTab === v.id;
+                    return (
+                      <button
+                        key={v.id}
+                        type="button"
+                        onClick={() => setSelectedViewTab(v.id)}
+                        className={`px-4 py-2 rounded-full text-xs font-semibold shrink-0 transition-all cursor-pointer outline-none select-none ${
+                          isSelected
+                            ? 'bg-brand-blue text-white shadow-2xs font-bold'
+                            : 'bg-surface hover:bg-surface-variant text-foreground-muted hover:text-foreground border border-border/80'
+                        }`}
+                      >
+                        <span className="whitespace-nowrap tracking-tight">{v.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Spot Cards Grid (Up to 10 spots to keep rows completely filled and balanced) */}
+                {spotsByView.length === 0 ? (
+                  <div className="text-center py-12 bg-surface/50 rounded-3xl border border-border p-6">
+                    <Tent size={36} className="mx-auto text-foreground-muted mb-2" />
+                    <h4 className="font-bold text-sm text-foreground">
+                      Belum ada spot untuk pemandangan ini
+                    </h4>
+                    <p className="text-xs text-foreground-muted mt-1">
+                      Pilihan spot dengan pemandangan ini akan segera ditambahkan oleh mitra campsite.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6 sm:gap-7">
+                      {displayedViewSpots.map((spot) => (
+                        <SpotCard
+                          key={`view-${spot.id}`}
+                          spot={spot}
+                          onSelectSpot={handleSelectSpot}
+                          isFavorite={favoriteIds.includes(spot.id)}
+                          onToggleFavorite={toggleFavorite}
+                        />
+                      ))}
+                    </div>
+
+                    {spotsByView.length > 10 && (
+                      <div className="flex justify-center pt-2">
+                        <button
+                          type="button"
+                          onClick={() => handleSeeAllViewSpots(selectedViewTab)}
+                          className="px-6 py-2.5 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-2xs hover:border-brand-blue hover:text-brand-blue"
+                        >
+                          <span>
+                            Lihat Semua {spotsByView.length} Spot {VIEW_SECTIONS.find((v) => v.id === selectedViewTab)?.label || ''}
+                          </span>
+                          <ArrowRight size={13} />
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </section>
+            )}
+
+            {/* ── 4. JELAJAHI CAMPSITE ── */}
             {campsites.length > 0 && (
               <section className="space-y-6">
                 <div className="flex items-end justify-between border-b border-border pb-3">
@@ -536,7 +748,9 @@ export function ExploreClient() {
                     return (
                       <div
                         key={camp.id}
-                        onClick={() => setSearchQuery(camp.name)}
+                        onClick={() => {
+                          window.location.href = `/campsite/${camp.slug || camp.id}`;
+                        }}
                         className="group p-4 rounded-3xl border border-border bg-white hover:shadow-lg transition-all cursor-pointer flex flex-col space-y-3"
                       >
                         <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-surface">
@@ -559,13 +773,15 @@ export function ExploreClient() {
                               </span>
                             </div>
                           )}
-                          <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-full text-[11px] font-bold text-foreground shadow-xs flex items-center gap-1">
-                            <Star
-                              size={12}
-                              className="fill-amber-500 text-amber-500"
-                            />
-                            <span>5.0</span>
-                          </div>
+                          {(camp.reviewCount ?? 0) > 0 && (Number(camp.rating) || 0) > 0 && (
+                            <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-full text-[11px] font-bold text-foreground shadow-xs flex items-center gap-1">
+                              <Star
+                                size={12}
+                                className="fill-amber-500 text-amber-500"
+                              />
+                              <span>{Number(camp.rating).toFixed(1)}</span>
+                            </div>
+                          )}
                           <div className="absolute bottom-3 left-3 bg-black/75 backdrop-blur-xs px-3 py-1 rounded-full text-[11px] font-semibold text-white shadow-xs">
                             {spotCount} Pilihan Unit Spot
                           </div>
@@ -584,8 +800,8 @@ export function ExploreClient() {
                           <span className="text-foreground-muted">
                             Lihat semua kavling
                           </span>
-                          <span className="font-bold text-brand-blue group-hover:translate-x-0.5 transition-transform">
-                            Eksplorasi Spot →
+                          <span className="font-bold text-brand-blue transition-colors">
+                            Eksplorasi Spot
                           </span>
                         </div>
                       </div>

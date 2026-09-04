@@ -196,6 +196,9 @@ export function OrdersClient() {
   // Filter kelompok pesanan sesuai status booking-lifecycle
   const pengajuanOrders = useMemo(() => {
     return orders.filter((o) => {
+      if (o.status === 'CANCELLED' || o.status === 'EXPIRED' || o.status === 'REFUNDED') {
+        return false;
+      }
       if (o.status === 'PENDING') return true;
       const isUnsettledDP =
         o.isDownPayment && (!o.settledAt || (o.remainingBalance ?? 0) > 0);

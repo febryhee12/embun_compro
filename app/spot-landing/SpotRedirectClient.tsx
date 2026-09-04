@@ -52,6 +52,9 @@ import {
   Store,
   Mountain,
   Package,
+  Baby,
+  Rabbit,
+  Dog,
 } from 'lucide-react';
 import {
   getStoredGuestProfile,
@@ -320,7 +323,25 @@ function getFacilityIcon(name?: string, id?: string) {
     lower.includes('tent') ||
     lower.includes('ground')
   )
-    return <Tent size={16} className={iconClass} />;
+  if (
+    lower.includes('bermain') ||
+    lower.includes('playground') ||
+    lower.includes('anak') ||
+    lower.includes('kids')
+  )
+    return <Baby size={16} className={iconClass} />;
+  if (
+    lower.includes('mini zoo') ||
+    lower.includes('zoo') ||
+    lower.includes('satwa') ||
+    lower.includes('petting')
+  )
+    return <Rabbit size={16} className={iconClass} />;
+  if (
+    lower.includes('pet') ||
+    lower.includes('hewan peliharaan')
+  )
+    return <Dog size={16} className={iconClass} />;
   return <CheckCircle2 size={16} className={iconClass} />;
 }
 
@@ -3064,13 +3085,6 @@ export function SpotRedirectClient() {
                         <ShieldCheck size={13} className="text-brand-blue" />
                         <span>Kebijakan Pembatalan & Refund</span>
                       </h5>
-                      <button
-                        type="button"
-                        onClick={() => setShowCancellationModal(true)}
-                        className="text-xs text-brand-blue font-bold hover:underline cursor-pointer"
-                      >
-                        Lihat Jadwal Refund &rarr;
-                      </button>
                     </div>
                     <CancellationPolicyBannerButton
                       checkInDate={checkInDate}
@@ -3113,9 +3127,9 @@ export function SpotRedirectClient() {
                   <button
                     type="button"
                     onClick={() => setShowReviewsModal(true)}
-                    className="text-xs font-bold text-brand-blue hover:underline cursor-pointer"
+                    className="px-4 py-2 rounded-full border border-border bg-white hover:bg-surface text-xs font-bold text-foreground transition-all cursor-pointer shadow-2xs hover:shadow-xs inline-flex items-center justify-center"
                   >
-                    Lihat Semua ({reviewAggregate?.ratingCount || reviews.length})
+                    Lihat Semua
                   </button>
                 )}
               </div>
@@ -3183,18 +3197,6 @@ export function SpotRedirectClient() {
                       </div>
                     ))}
                   </div>
-
-                  {reviews.length > 0 && (
-                    <div className="pt-2">
-                      <button
-                        type="button"
-                        onClick={() => setShowReviewsModal(true)}
-                        className="px-5 py-2.5 rounded-2xl border border-border bg-white hover:bg-surface text-xs font-bold text-foreground transition-all cursor-pointer shadow-2xs hover:shadow-xs"
-                      >
-                        Tampilkan semua {reviewAggregate?.ratingCount || reviews.length} ulasan
-                      </button>
-                    </div>
-                  )}
                 </div>
               ) : (
                 <div className="p-6 rounded-3xl bg-surface border border-border text-center space-y-2">
@@ -5045,11 +5047,7 @@ export function SpotRedirectClient() {
         isOpen={showReviewsModal}
         onClose={() => setShowReviewsModal(false)}
         reviews={reviews}
-        targetName={
-          activeSpot?.name
-            ? `${activeSpot.name}${campsite?.name ? ` · ${campsite.name}` : ''}`
-            : campsite?.name || 'Embun'
-        }
+        targetName={campsite?.name || 'Kawasan Campsite'}
         aggregate={reviewAggregate}
       />
 

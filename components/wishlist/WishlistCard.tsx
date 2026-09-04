@@ -175,7 +175,10 @@ export function WishlistCard({
     catalogCampsite?.city ||
     'Indonesia';
 
-  const rating = catalogCampsite?.rating ? Number(catalogCampsite.rating).toFixed(1) : '5.0';
+  const hasRating =
+    (catalogCampsite?.reviewCount ?? 0) > 0 &&
+    (Number(catalogCampsite?.rating) || 0) > 0;
+  const rating = hasRating ? Number(catalogCampsite.rating).toFixed(1) : null;
 
   return (
     <div
@@ -273,10 +276,12 @@ export function WishlistCard({
           <h3 className="font-bold text-sm sm:text-base text-foreground truncate group-hover:text-brand-blue transition-colors">
             {title}
           </h3>
-          <div className="flex items-center gap-1 shrink-0 font-semibold text-foreground">
-            <Star size={12} className="fill-amber-500 text-amber-500" />
-            <span>{rating}</span>
-          </div>
+          {rating && (
+            <div className="flex items-center gap-1 shrink-0 font-semibold text-foreground">
+              <Star size={12} className="fill-amber-500 text-amber-500" />
+              <span>{rating}</span>
+            </div>
+          )}
         </div>
 
         {/* Subtitle / Campsite & Location */}

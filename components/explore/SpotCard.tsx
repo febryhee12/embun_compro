@@ -304,14 +304,16 @@ export function SpotCard({
           <h4 className="font-bold text-sm text-foreground truncate group-hover:text-brand-blue transition-colors">
             {spot.name}
           </h4>
-          {showRating && (
-            <div className="flex items-center gap-1 shrink-0 font-semibold text-foreground">
-              <Star size={12} className="fill-amber-500 text-amber-500" />
-              <span>
-                {spot.campsite?.rating ? Number(spot.campsite.rating).toFixed(1) : '5.0'}
-              </span>
-            </div>
-          )}
+          {showRating &&
+            (spot.campsite?.reviewCount ?? 0) > 0 &&
+            (Number(spot.campsite?.rating) || 0) > 0 && (
+              <div className="flex items-center gap-1 shrink-0 font-semibold text-foreground">
+                <Star size={12} className="fill-amber-500 text-amber-500" />
+                <span>
+                  {Number(spot.campsite?.rating).toFixed(1)}
+                </span>
+              </div>
+            )}
         </div>
 
         {/* Campsite & Location */}

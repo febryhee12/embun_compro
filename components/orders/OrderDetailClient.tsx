@@ -427,13 +427,32 @@ export function OrderDetailClient() {
     return diffDays >= 7;
   }, [order, isUnsettledDP, booking?.checkIn]);
 
+  const isSettlementExpired = React.useMemo(() => {
+    if (!isUnsettledDP) return false;
+    let targetDate: Date | null = null;
+    if (order?.settlementDeadline) {
+      targetDate = new Date(order.settlementDeadline);
+    } else if (booking?.checkIn) {
+      if (typeof booking.checkIn === 'string' && !booking.checkIn.includes('T')) {
+        const [y, m, day] = booking.checkIn.split('-').map(Number);
+        targetDate = new Date(Date.UTC(y, m - 1, day - 1, 16, 59, 59));
+      } else {
+        const cin = new Date(booking.checkIn);
+        targetDate = new Date(cin.getTime() - 24 * 60 * 60 * 1000);
+      }
+    }
+    if (!targetDate || isNaN(targetDate.getTime())) return false;
+    return Date.now() > targetDate.getTime();
+  }, [isUnsettledDP, order?.settlementDeadline, booking?.checkIn]);
+
   // Kelayakan Batal / Refund:
-  // Muncul saat PENDING atau PAID (sebelum tanggal check-in lewat)
+  // Muncul saat PENDING atau PAID (sebelum tanggal check-in lewat, dan DP belum expired)
   const canCancel = React.useMemo(() => {
     if (!order) return false;
     if (order.status === 'CANCELLED' || order.status === 'EXPIRED' || order.status === 'REFUNDED') {
       return false;
     }
+    if (isSettlementExpired) return false;
     if (order.status === 'PENDING') return true;
     if (order.status === 'PAID') {
       if (!booking?.checkIn) return true;
@@ -444,7 +463,7 @@ export function OrderDetailClient() {
       return checkInDate.getTime() >= now.getTime();
     }
     return false;
-  }, [order, booking?.checkIn]);
+  }, [order, booking?.checkIn, isSettlementExpired]);
 
   const isActuallyRefundEligible = isPaid && Boolean(order?.refund?.refundEligible);
 
@@ -886,34 +905,42 @@ export function OrderDetailClient() {
 
                     {isUnsettledDP ? (
                       <div className="space-y-3 pt-1 print:hidden">
-                        <div className="p-3.5 rounded-2xl bg-amber-100/60 border border-amber-200 text-amber-900 text-xs leading-relaxed">
-                          💡 <strong>Pemberitahuan Pelunasan:</strong> Sisa tagihan wajib dilunasi paling
-                          lambat{' '}
-                          <strong>
-                            {settlementDeadlineFormatted
-                              ? `${settlementDeadlineFormatted} (H-1 sebelum check-in)`
-                              : 'H-1 sebelum jadwal check-in'} pukul 23:59 WIB
-                          </strong>{' '}
-                          melalui aplikasi/web Embun.
-                        </div>
+                        {isSettlementExpired ? (
+                          <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs leading-relaxed">
+                            ⏳ <strong>Batas Waktu Pelunasan Berakhir:</strong> Batas waktu pelunasan sisa tagihan (H-1 sebelum check-in) telah lewat. Pesanan dibatalkan dan uang muka (DP) hangus sesuai kebijakan reservasi.
+                          </div>
+                        ) : (
+                          <>
+                            <div className="p-3.5 rounded-2xl bg-amber-100/60 border border-amber-200 text-amber-900 text-xs leading-relaxed">
+                              💡 <strong>Pemberitahuan Pelunasan:</strong> Sisa tagihan wajib dilunasi paling
+                              lambat{' '}
+                              <strong>
+                                {settlementDeadlineFormatted
+                                  ? `${settlementDeadlineFormatted} (H-1 sebelum check-in)`
+                                  : 'H-1 sebelum jadwal check-in'} pukul 23:59 WIB
+                              </strong>{' '}
+                              melalui aplikasi/web Embun.
+                            </div>
 
-                        <button
-                          type="button"
-                          onClick={handleSettleDP}
-                          disabled={settling}
-                          className="w-full py-3.5 px-6 rounded-full bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
-                        >
-                          {settling ? (
-                            <Loader2 size={16} className="animate-spin" />
-                          ) : (
-                            <CreditCard size={16} />
-                          )}
-                          <span>
-                            {settling
-                              ? 'Membuka Invoice Pelunasan...'
-                              : `Lunasi Sisa Tagihan Sekarang · ${rupiah(remainingBalance)}`}
-                          </span>
-                        </button>
+                            <button
+                              type="button"
+                              onClick={handleSettleDP}
+                              disabled={settling}
+                              className="w-full py-3.5 px-6 rounded-full bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                            >
+                              {settling ? (
+                                <Loader2 size={16} className="animate-spin" />
+                              ) : (
+                                <CreditCard size={16} />
+                              )}
+                              <span>
+                                {settling
+                                  ? 'Membuka Invoice Pelunasan...'
+                                  : `Lunasi Sisa Tagihan Sekarang · ${rupiah(remainingBalance)}`}
+                              </span>
+                            </button>
+                          </>
+                        )}
                       </div>
                     ) : (
                       <div className="p-3 rounded-2xl bg-emerald-100/70 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2">

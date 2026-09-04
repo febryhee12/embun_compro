@@ -29,6 +29,9 @@ import {
   Trees,
   Tent,
   CheckCircle2,
+  Baby,
+  Rabbit,
+  Dog,
 } from 'lucide-react';
 import { SpotCard, type SpotData } from '@/components/explore/SpotCard';
 import { GuestAuthModal } from '@/components/explore/GuestAuthModal';
@@ -130,7 +133,25 @@ function getFacilityIcon(name?: string, id?: string) {
     lower.includes('tent') ||
     lower.includes('ground')
   )
-    return <Tent size={18} className={iconClass} />;
+  if (
+    lower.includes('bermain') ||
+    lower.includes('playground') ||
+    lower.includes('anak') ||
+    lower.includes('kids')
+  )
+    return <Baby size={18} className={iconClass} />;
+  if (
+    lower.includes('mini zoo') ||
+    lower.includes('zoo') ||
+    lower.includes('satwa') ||
+    lower.includes('petting')
+  )
+    return <Rabbit size={18} className={iconClass} />;
+  if (
+    lower.includes('pet') ||
+    lower.includes('hewan peliharaan')
+  )
+    return <Dog size={18} className={iconClass} />;
   return <CheckCircle2 size={18} className={iconClass} />;
 }
 
@@ -1191,10 +1212,9 @@ function CampsiteLandingClientInner() {
                 <button
                   type="button"
                   onClick={() => setShowReviewsModal(true)}
-                  className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold text-brand-blue hover:underline cursor-pointer"
+                  className="px-4 py-2 rounded-full border border-border bg-white hover:bg-surface text-xs font-bold text-foreground transition-all cursor-pointer shadow-2xs hover:shadow-xs inline-flex items-center justify-center"
                 >
-                  <span>Semua Ulasan ({reviews.length})</span>
-                  <span>→</span>
+                  Lihat Semua
                 </button>
               )}
             </div>
@@ -1272,19 +1292,6 @@ function CampsiteLandingClientInner() {
                 );
               })}
             </div>
-
-            {reviews.length > 0 && (
-              <div className="pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowReviewsModal(true)}
-                  className="px-5 py-2.5 rounded-full border border-border bg-white hover:bg-surface text-foreground font-bold text-xs shadow-2xs hover:shadow-xs transition-all cursor-pointer inline-flex items-center gap-1.5"
-                >
-                  <span>Lihat Semua {reviews.length} Ulasan Tamu</span>
-                  <span className="text-foreground-muted">→</span>
-                </button>
-              </div>
-            )}
           </section>
         )}
       </main>
