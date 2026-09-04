@@ -14,6 +14,7 @@ import {
   AlertCircle,
   ShieldCheck,
   ArrowLeft,
+  LogOut,
 } from 'lucide-react';
 import {
   getStoredGuestProfile,
@@ -248,18 +249,31 @@ export function ProfileClient() {
           <div className="space-y-6">
             {/* Header Judul Halaman */}
             <div className="border-b border-border/70 pb-5">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleBack}
+                    className="p-2 -ml-2 rounded-full hover:bg-surface text-foreground transition-colors cursor-pointer shrink-0"
+                    aria-label="Kembali"
+                  >
+                    <ArrowLeft size={22} className="stroke-[2.2]" />
+                  </button>
+                  <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
+                    Profil Saya
+                  </h1>
+                </div>
+
+                {/* Tombol Keluar Cepat di Header */}
                 <button
                   type="button"
-                  onClick={handleBack}
-                  className="p-2 -ml-2 rounded-full hover:bg-surface text-foreground transition-colors cursor-pointer shrink-0"
-                  aria-label="Kembali"
+                  onClick={() => setShowLogoutConfirm(true)}
+                  className="px-4 py-2 rounded-full border border-red-200 bg-white hover:bg-red-50 text-red-600 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs hover:shadow-xs active:scale-95"
+                  title="Keluar dari Akun"
                 >
-                  <ArrowLeft size={22} className="stroke-[2.2]" />
+                  <LogOut size={14} />
+                  <span>Keluar</span>
                 </button>
-                <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
-                  Profil Saya
-                </h1>
               </div>
               <p className="text-xs sm:text-sm text-foreground-muted mt-1 ml-9 sm:ml-10">
                 Kelola data diri, kontak WhatsApp, dan preferensi akun Anda di Embun.
@@ -442,6 +456,27 @@ export function ProfileClient() {
                       </button>
                     </div>
                   </form>
+                </div>
+
+                {/* Kartu Keluar dari Akun (Clean, Nyaman & Jelas Dilihat Tamu) */}
+                <div className="bg-white rounded-3xl border border-border p-5 sm:p-6 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="space-y-0.5">
+                    <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                      <LogOut size={15} className="text-red-600" />
+                      <span>Sesi Akun</span>
+                    </h3>
+                    <p className="text-xs text-foreground-muted">
+                      Anda sedang masuk sebagai <span className="font-semibold text-foreground">{profile?.fullName || 'Tamu'}</span> ({profile?.email || '-'}).
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowLogoutConfirm(true)}
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-full border border-red-200 bg-red-50/60 hover:bg-red-100 text-red-600 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0 shadow-2xs active:scale-95"
+                  >
+                    <LogOut size={14} />
+                    <span>Keluar dari Akun</span>
+                  </button>
                 </div>
               </div>
             </div>
