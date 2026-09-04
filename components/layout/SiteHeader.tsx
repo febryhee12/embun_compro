@@ -67,8 +67,26 @@ const FOCUS_VISIBLE_CLASS =
 export function SiteHeader() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAppBannerDismissed, setIsAppBannerDismissed] = useState(false);
   const { theme, setTheme, systemTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+
+  const handleOpenApp = () => {
+    const customUri = 'embun://explore';
+    const fallbackUrl =
+      typeof navigator !== 'undefined' &&
+      /android/i.test(navigator.userAgent || '')
+        ? 'https://play.google.com/store/apps/details?id=app.embun'
+        : 'https://apps.apple.com/app/embun';
+
+    const start = Date.now();
+    window.location.href = customUri;
+    setTimeout(() => {
+      if (Date.now() - start < 2000) {
+        window.location.href = fallbackUrl;
+      }
+    }, 1500);
+  };
 
   const params = useParams();
   const pathname = usePathname();
@@ -192,7 +210,48 @@ export function SiteHeader() {
   };
 
   return (
-    <header
+    <>
+      {/* Mobile Smart App Banner: Memungkinkan tamu langsung membuka aplikasi jika ada di HP */}
+      {!isAppBannerDismissed && (
+        <div className="md:hidden bg-slate-950 text-white px-4 py-2.5 flex items-center justify-between text-xs border-b border-white/10 relative z-50">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-white p-1.5 flex items-center justify-center shadow-xs shrink-0">
+              <img
+                src="/images/logo/logogram_blue.svg"
+                alt="Embun"
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <div>
+              <p className="font-bold text-xs sm:text-sm leading-tight text-white">
+                Aplikasi Embun
+              </p>
+              <p className="text-[11px] text-white/75 leading-normal mt-0.5">
+                Buka langsung di aplikasi
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleOpenApp}
+              className="px-4 py-2 rounded-full bg-brand-lime hover:bg-brand-lime/90 text-black font-bold text-xs active:scale-95 transition-all cursor-pointer shadow-xs shrink-0"
+            >
+              Buka di App
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsAppBannerDismissed(true)}
+              className="p-1.5 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              title="Tutup banner"
+            >
+              <X size={15} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      <header
       className={[
         'sticky top-0 z-50 transition-[background-color,box-shadow,backdrop-filter] duration-300',
         isScrolled
@@ -358,7 +417,8 @@ export function SiteHeader() {
         ) : null}
       </Container>
     </header>
-  );
+  </>
+);
 }
 
 export default SiteHeader;
