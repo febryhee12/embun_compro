@@ -331,7 +331,7 @@ export function ProfileClient() {
                     </p>
                     <div className="space-y-2 pt-1">
                       <a
-                        href="https://wa.me/6281234567890?text=Halo%20Embun,%20saya%20butuh%20bantuan%20mengenai%20akun%20saya."
+                        href="https://wa.me/6282131411919?text=Halo%20Embun%20CS,%20saya%20butuh%20bantuan%20mengenai%20akun%20saya."
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-full border border-border hover:border-emerald-500 hover:text-emerald-700 bg-surface/50 hover:bg-emerald-50/50 text-xs font-bold text-foreground transition-all cursor-pointer"
