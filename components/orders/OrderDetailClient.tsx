@@ -240,6 +240,7 @@ function formatSettlementDeadline(
 export function OrderDetailClient() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('id');
+  const payToken = searchParams.get('payToken');
 
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -273,7 +274,7 @@ export function OrderDetailClient() {
 
   const load = React.useCallback(async () => {
     if (!orderId) return;
-    if (!getGuestToken()) {
+    if (!getGuestToken() && !payToken) {
       setAuthRequired(true);
       setLoading(false);
       return;
@@ -281,26 +282,30 @@ export function OrderDetailClient() {
     try {
       setLoading(true);
       setError(null);
-      let data = await fetchGuestOrder(orderId);
+      let data = await fetchGuestOrder(orderId, payToken);
       // Bila pesanan masih PENDING (misalnya baru kembali dari redirect Xendit), lakukan auto-sync sekali
       if (data?.status === 'PENDING') {
         const syncRes = await syncOrderStatus(orderId).catch(() => null);
         if (syncRes && (syncRes.status === 'PAID' || syncRes.status === 'COMPLETE')) {
-          data = await fetchGuestOrder(orderId).catch(() => data);
+          data = await fetchGuestOrder(orderId, payToken).catch(() => data);
         }
       }
       setOrder(data);
     } catch (err: any) {
       if (err instanceof ApiError && err.status === 401) {
-        clearGuestSession();
-        setAuthRequired(true);
+        if (!payToken) {
+          clearGuestSession();
+          setAuthRequired(true);
+        } else {
+          setError('Tautan pelunasan ini tidak valid atau sudah kedaluwarsa.');
+        }
       } else {
         setError(err.message || 'Gagal memuat detail pesanan.');
       }
     } finally {
       setLoading(false);
     }
-  }, [orderId]);
+  }, [orderId, payToken]);
 
   useEffect(() => {
     void load();
@@ -348,7 +353,7 @@ export function OrderDetailClient() {
     setError(null);
     setSettling(true);
     try {
-      const res = await initiateSettlementPayment(orderId);
+      const res = await initiateSettlementPayment(orderId, payToken);
       const xenditUrl = res?.invoiceUrl || res?.snapRedirectUrl || res?.redirectUrl;
       if (!xenditUrl) {
         throw new Error('Gagal membuat invoice pelunasan Xendit.');

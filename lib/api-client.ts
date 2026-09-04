@@ -221,15 +221,51 @@ export async function initiateOrderPayment(
 }
 
 /** `POST /api/orders/:id/pay-settlement` — creates Xendit invoice for DP remaining balance. */
-export async function initiateSettlementPayment(orderId: string) {
-  const res = await fetch(`${API_BASE_URL}/orders/${orderId}/pay-settlement`, {
+export async function initiateSettlementPayment(
+  orderId: string,
+  payToken?: string | null,
+) {
+  let headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  try {
+    headers = guestAuthHeaders();
+  } catch {
+    // Tamu belum login akun — menggunakan payToken
+  }
+  const url = payToken
+    ? `${API_BASE_URL}/orders/${orderId}/pay-settlement?payToken=${encodeURIComponent(payToken)}`
+    : `${API_BASE_URL}/orders/${orderId}/pay-settlement`;
+
+  const res = await fetch(url, {
     method: 'POST',
-    headers: guestAuthHeaders(),
+    headers,
+    body: payToken ? JSON.stringify({ payToken }) : undefined,
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.message || 'Gagal memulai pelunasan tagihan.');
   }
+  return res.json();
+}
+
+/** `GET /api/orders/:id/settlement-sync` — sinkronisasi status pelunasan DP. */
+export async function syncSettlementStatus(
+  orderId: string,
+  invoiceId?: string,
+  payToken?: string | null,
+) {
+  let headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  try {
+    headers = guestAuthHeaders();
+  } catch {}
+  const params = new URLSearchParams();
+  if (invoiceId) params.set('invoiceId', invoiceId);
+  if (payToken) params.set('payToken', payToken);
+  const q = params.toString() ? `?${params.toString()}` : '';
+
+  const res = await fetch(`${API_BASE_URL}/orders/${orderId}/settlement-sync${q}`, {
+    headers,
+  });
+  if (!res.ok) return null;
   return res.json();
 }
 
@@ -287,9 +323,22 @@ export async function fetchGuestOrders() {
 }
 
 /** `GET /api/orders/:id` — single order detail/status (for the payment/detail page). */
-export async function fetchGuestOrder(orderId: string) {
-  const res = await fetch(`${API_BASE_URL}/orders/${orderId}`, {
-    headers: guestAuthHeaders(),
+export async function fetchGuestOrder(
+  orderId: string,
+  payToken?: string | null,
+) {
+  let headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  try {
+    headers = guestAuthHeaders();
+  } catch {
+    // Tamu belum login akun — menggunakan payToken
+  }
+  const url = payToken
+    ? `${API_BASE_URL}/orders/${orderId}?payToken=${encodeURIComponent(payToken)}`
+    : `${API_BASE_URL}/orders/${orderId}`;
+
+  const res = await fetch(url, {
+    headers,
     cache: 'no-store',
   });
   if (!res.ok) {
