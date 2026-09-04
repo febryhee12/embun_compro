@@ -601,9 +601,13 @@ export function OrderDetailClient() {
             <div>
               <Link
                 href="/orders"
-                className="text-xs font-semibold text-foreground-muted hover:text-foreground transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-white hover:bg-surface text-xs font-semibold text-foreground transition-all shadow-2xs hover:shadow-xs group cursor-pointer"
               >
-                Kembali ke Pesanan Saya
+                <ArrowLeft
+                  size={13}
+                  className="text-foreground-muted group-hover:text-brand-blue group-hover:-translate-x-0.5 transition-transform"
+                />
+                <span>Kembali ke Pesanan Saya</span>
               </Link>
             </div>
           </div>
@@ -631,9 +635,12 @@ export function OrderDetailClient() {
             <div className="print:hidden">
               <Link
                 href="/orders"
-                className="inline-flex items-center gap-2 text-xs font-bold text-foreground-muted hover:text-brand-blue transition-colors group"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-white hover:bg-surface text-xs font-semibold text-foreground transition-all shadow-2xs hover:shadow-xs group cursor-pointer"
               >
-                <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform text-brand-blue" />
+                <ArrowLeft
+                  size={13}
+                  className="text-foreground-muted group-hover:text-brand-blue group-hover:-translate-x-0.5 transition-transform"
+                />
                 <span>Kembali ke Pesanan Saya</span>
               </Link>
             </div>
