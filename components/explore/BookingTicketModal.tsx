@@ -94,8 +94,80 @@ export function BookingTicketModal({
     window.print();
   };
 
+function DummyQrPlaceholder({ className = '' }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 100 100"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      {/* Top-Left Finder */}
+      <rect x="6" y="6" width="28" height="28" rx="4" fill="none" stroke="currentColor" strokeWidth="4" />
+      <rect x="14" y="14" width="12" height="12" rx="2" fill="currentColor" />
+
+      {/* Top-Right Finder */}
+      <rect x="66" y="6" width="28" height="28" rx="4" fill="none" stroke="currentColor" strokeWidth="4" />
+      <rect x="74" y="14" width="12" height="12" rx="2" fill="currentColor" />
+
+      {/* Bottom-Left Finder */}
+      <rect x="6" y="66" width="28" height="28" rx="4" fill="none" stroke="currentColor" strokeWidth="4" />
+      <rect x="14" y="74" width="12" height="12" rx="2" fill="currentColor" />
+
+      {/* Alignment Pattern */}
+      <rect x="68" y="68" width="16" height="16" rx="3" fill="none" stroke="currentColor" strokeWidth="3" />
+      <rect x="73" y="73" width="6" height="6" rx="1" fill="currentColor" />
+
+      {/* Dummy timing / module squares */}
+      <rect x="38" y="8" width="5" height="5" rx="1" />
+      <rect x="48" y="8" width="5" height="5" rx="1" />
+      <rect x="56" y="8" width="5" height="5" rx="1" />
+      <rect x="42" y="16" width="5" height="5" rx="1" />
+      <rect x="52" y="16" width="5" height="5" rx="1" />
+      <rect x="38" y="24" width="5" height="5" rx="1" />
+      <rect x="48" y="24" width="5" height="5" rx="1" />
+      <rect x="58" y="24" width="5" height="5" rx="1" />
+
+      <rect x="8" y="38" width="5" height="5" rx="1" />
+      <rect x="8" y="48" width="5" height="5" rx="1" />
+      <rect x="8" y="56" width="5" height="5" rx="1" />
+      <rect x="16" y="42" width="5" height="5" rx="1" />
+      <rect x="16" y="52" width="5" height="5" rx="1" />
+      <rect x="24" y="38" width="5" height="5" rx="1" />
+      <rect x="24" y="48" width="5" height="5" rx="1" />
+      <rect x="24" y="58" width="5" height="5" rx="1" />
+
+      {/* Center cluster */}
+      <rect x="38" y="38" width="6" height="6" rx="1" />
+      <rect x="48" y="38" width="6" height="6" rx="1" />
+      <rect x="56" y="38" width="6" height="6" rx="1" />
+      <rect x="38" y="48" width="6" height="6" rx="1" />
+      <rect x="46" y="46" width="8" height="8" rx="2" fill="none" stroke="currentColor" strokeWidth="2.5" />
+      <rect x="58" y="48" width="6" height="6" rx="1" />
+      <rect x="38" y="58" width="6" height="6" rx="1" />
+      <rect x="48" y="58" width="6" height="6" rx="1" />
+      <rect x="58" y="58" width="6" height="6" rx="1" />
+
+      {/* Right / Bottom clusters */}
+      <rect x="70" y="38" width="5" height="5" rx="1" />
+      <rect x="80" y="40" width="5" height="5" rx="1" />
+      <rect x="88" y="38" width="5" height="5" rx="1" />
+      <rect x="74" y="48" width="5" height="5" rx="1" />
+      <rect x="84" y="52" width="5" height="5" rx="1" />
+
+      <rect x="38" y="70" width="5" height="5" rx="1" />
+      <rect x="44" y="80" width="5" height="5" rx="1" />
+      <rect x="38" y="88" width="5" height="5" rx="1" />
+      <rect x="50" y="74" width="5" height="5" rx="1" />
+      <rect x="54" y="84" width="5" height="5" rx="1" />
+    </svg>
+  );
+}
+
   const shortCode = orderData.orderId.slice(-8).toUpperCase();
   const isDP = orderData.paymentScheme === "DP_50";
+  const isUnsettledDP = isDP && Number(orderData.remainingBalance ?? 0) > 0;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in duration-200">
@@ -170,17 +242,34 @@ export function BookingTicketModal({
 
             {/* Simulated QR Code Box */}
             <div className="flex flex-col items-center gap-2 p-3.5 rounded-2xl bg-white border border-border shadow-xs shrink-0 self-center sm:self-auto">
-              <div className="w-36 h-36 sm:w-40 sm:h-40 bg-surface-variant flex items-center justify-center rounded-xl p-2.5 border border-border/50">
-                <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(orderData.orderId)}`}
-                  alt="QR Code Check-in"
-                  className="w-full h-full object-contain"
-                />
+              <div className="w-36 h-36 sm:w-40 sm:h-40 bg-surface-variant flex items-center justify-center rounded-xl p-2.5 border border-border/50 relative overflow-hidden">
+                {isUnsettledDP ? (
+                  <>
+                    <DummyQrPlaceholder className="w-full h-full object-contain filter blur-md opacity-25 select-none pointer-events-none scale-105 text-neutral-800" />
+                    <div className="absolute inset-0 flex items-center justify-center p-2">
+                      <span className="px-3 py-1 rounded-full bg-white/95 border border-neutral-200/90 text-neutral-600 text-[11px] font-semibold shadow-2xs backdrop-blur-xs tracking-wide select-none">
+                        Belum Aktif
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(orderData.orderId)}`}
+                    alt="QR Code Check-in"
+                    className="w-full h-full object-contain"
+                  />
+                )}
               </div>
-              <span className="text-[10px] font-bold text-foreground-muted flex items-center gap-1.5">
-                <QrCode size={12} className="text-brand-blue" />
-                Scan Check-In
-              </span>
+              {isUnsettledDP ? (
+                <span className="text-[10px] font-medium text-foreground-muted text-center select-none">
+                  Aktif setelah pelunasan
+                </span>
+              ) : (
+                <span className="text-[10px] font-bold text-foreground-muted flex items-center gap-1.5">
+                  <QrCode size={12} className="text-brand-blue" />
+                  Scan Check-In
+                </span>
+              )}
             </div>
           </div>
 
