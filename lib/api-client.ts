@@ -309,6 +309,92 @@ export async function cancelGuestOrder(orderId: string, reason?: string) {
   return res.json();
 }
 
+export interface RescheduleQuote {
+  available: boolean;
+  conflictReason?: string;
+  oldTotal: number;
+  newTotal: number;
+  priceDifference: number;
+  adminFee: number;
+  rescheduleFee: number;
+  totalPayable: number;
+  requiresPayment: boolean;
+}
+
+export interface RescheduleResult {
+  success?: boolean;
+  requiresPayment: boolean;
+  invoiceUrl?: string;
+  invoiceId?: string;
+  priceDifference?: number;
+  adminFee?: number;
+  totalPayable?: number;
+  order?: any;
+}
+
+/** `GET /api/orders/:id/reschedule-quote` — preview kalkulasi & ketersediaan tanggal baru. */
+export async function fetchRescheduleQuote(
+  orderId: string,
+  newCheckIn: string,
+  newCheckOut: string,
+  blockId?: string,
+): Promise<RescheduleQuote> {
+  const params = new URLSearchParams({
+    checkIn: newCheckIn,
+    checkOut: newCheckOut,
+  });
+  if (blockId) params.set('blockId', blockId);
+
+  const res = await fetch(`${API_BASE_URL}/orders/${orderId}/reschedule-quote?${params.toString()}`, {
+    headers: guestAuthHeaders(),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Gagal memeriksa ketersediaan reschedule.');
+  }
+  return res.json();
+}
+
+/** `POST /api/orders/:id/reschedule` — eksekusi ubah jadwal pesanan. */
+export async function submitRescheduleOrder(
+  orderId: string,
+  newCheckIn: string,
+  newCheckOut: string,
+  items?: Array<{ bookingId: string; newBlockId?: string }>,
+): Promise<RescheduleResult> {
+  const res = await fetch(`${API_BASE_URL}/orders/${orderId}/reschedule`, {
+    method: 'POST',
+    headers: guestAuthHeaders(),
+    body: JSON.stringify({
+      newCheckIn,
+      newCheckOut,
+      ...(items ? { items } : {}),
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Gagal mengajukan ubah jadwal.');
+  }
+  return res.json();
+}
+
+/** `POST /api/orders/:id/refund-bank-details` — simpan data rekening manual refund tamu. */
+export async function submitRefundBankDetails(
+  orderId: string,
+  details: { accountHolder: string; bankName: string; accountNumber: string },
+) {
+  const res = await fetch(`${API_BASE_URL}/orders/${orderId}/refund-bank-details`, {
+    method: 'POST',
+    headers: guestAuthHeaders(),
+    body: JSON.stringify(details),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Gagal menyimpan data rekening refund.');
+  }
+  return res.json();
+}
+
 /** `GET /api/orders` — the guest's own order history. */
 export async function fetchGuestOrders() {
   const res = await fetch(`${API_BASE_URL}/orders`, {

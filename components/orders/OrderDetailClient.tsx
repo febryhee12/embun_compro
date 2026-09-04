@@ -29,6 +29,7 @@ import {
   FileText,
   PackageCheck,
   ScrollText,
+  RotateCcw,
 } from 'lucide-react';
 import {
   fetchGuestOrder,
@@ -48,6 +49,8 @@ import { ExploreFooter } from '@/components/explore/ExploreFooter';
 import { GuestAuthModal } from '@/components/explore/GuestAuthModal';
 import { CompleteProfileModal } from '@/components/explore/CompleteProfileModal';
 import { InvoiceModal, InvoiceDocument } from '@/components/orders/InvoiceModal';
+import { CancelRefundModal } from '@/components/orders/CancelRefundModal';
+import { RescheduleModal } from '@/components/orders/RescheduleModal';
 
 function getOrderBadge(order: any) {
   if (order.status === 'PAID') {
@@ -251,6 +254,8 @@ export function OrderDetailClient() {
   const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [isCompleteProfileOpen, setIsCompleteProfileOpen] = useState(false);
   const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
+  const [isCancelRefundOpen, setIsCancelRefundOpen] = useState(false);
+  const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
 
   useEffect(() => {
     setCurrentUser(getStoredGuestProfile());
@@ -406,6 +411,42 @@ export function OrderDetailClient() {
   const isDP = order?.isDownPayment;
   const remainingBalance = Number(order?.remainingBalance) || 0;
   const isUnsettledDP = isPaid && isDP && (!order?.settledAt || remainingBalance > 0);
+
+  // Kelayakan Ubah Jadwal (Reschedule):
+  // Syarat: Status PAID, bukan DP belum lunas, belum pernah reschedule, dan minimal H-7 sebelum check-in
+  const canReschedule = React.useMemo(() => {
+    if (!order || order.status !== 'PAID') return false;
+    if (order.isRescheduled || order.bookings?.some((b: any) => b.isRescheduled || b.rescheduledAt)) return false;
+    if (isUnsettledDP) return false;
+    if (!booking?.checkIn) return false;
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const checkInDate = new Date(booking.checkIn);
+    checkInDate.setHours(0, 0, 0, 0);
+    const diffDays = Math.round((checkInDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return diffDays >= 7;
+  }, [order, isUnsettledDP, booking?.checkIn]);
+
+  // Kelayakan Batal / Refund:
+  // Muncul saat PENDING atau PAID (sebelum tanggal check-in lewat)
+  const canCancel = React.useMemo(() => {
+    if (!order) return false;
+    if (order.status === 'CANCELLED' || order.status === 'EXPIRED' || order.status === 'REFUNDED') {
+      return false;
+    }
+    if (order.status === 'PENDING') return true;
+    if (order.status === 'PAID') {
+      if (!booking?.checkIn) return true;
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      const checkInDate = new Date(booking.checkIn);
+      checkInDate.setHours(0, 0, 0, 0);
+      return checkInDate.getTime() >= now.getTime();
+    }
+    return false;
+  }, [order, booking?.checkIn]);
+
+  const isActuallyRefundEligible = isPaid && Boolean(order?.refund?.refundEligible);
 
   const settlementDeadlineFormatted = React.useMemo(() => {
     return formatSettlementDeadline(order?.settlementDeadline, booking?.checkIn);
@@ -1195,17 +1236,44 @@ export function OrderDetailClient() {
                     )}
                   </div>
 
-                  {/* Tombol Cetak Invoice Resmi */}
-                  <div className="pt-3 border-t border-border/60 print:hidden">
-                    <button
-                      type="button"
-                      onClick={() => setIsInvoiceOpen(true)}
-                      className="w-full py-3 px-4 rounded-full border border-border bg-white hover:bg-surface text-brand-blue font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs hover:border-brand-blue"
-                    >
-                      <Printer size={15} />
-                      <span>Cetak Invoice / Unduh PDF</span>
-                    </button>
-                  </div>
+                  {/* Tombol Aksi: Reschedule / Batal / Ajukan Refund */}
+                  {(canReschedule || canCancel) && (
+                    <div className="pt-3 border-t border-border/60 space-y-2 print:hidden">
+                      {/* Tombol Ubah Jadwal (Reschedule) */}
+                      {canReschedule && (
+                        <button
+                          type="button"
+                          onClick={() => setIsRescheduleOpen(true)}
+                          className="w-full py-3 px-4 rounded-full border border-brand-blue bg-white hover:bg-brand-blue/5 text-brand-blue font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs hover:border-brand-blue-hover"
+                        >
+                          <Calendar size={15} />
+                          <span>Ubah Jadwal (Reschedule)</span>
+                        </button>
+                      )}
+
+                      {/* Tombol Batal / Ajukan Refund */}
+                      {canCancel && (
+                        <button
+                          type="button"
+                          onClick={() => setIsCancelRefundOpen(true)}
+                          className={`w-full py-3 px-4 rounded-full font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs ${
+                            isActuallyRefundEligible
+                              ? 'border border-rose-200 bg-rose-50/50 hover:bg-rose-50 text-rose-600'
+                              : 'border border-border bg-white hover:bg-surface text-foreground-muted hover:text-rose-600'
+                          }`}
+                        >
+                          <RotateCcw size={14} />
+                          <span>
+                            {isActuallyRefundEligible
+                              ? 'Ajukan Refund'
+                              : isPending
+                              ? 'Batalkan Pesanan'
+                              : 'Batalkan Pesanan (Tanpa Refund)'}
+                          </span>
+                        </button>
+                      )}
+                    </div>
+                  )}
 
                   {/* Tombol Aksi Pembayaran jika Pending */}
                   {isPending && (
@@ -1328,6 +1396,26 @@ export function OrderDetailClient() {
           addonLines={addonLines}
           nights={nights}
           shortCode={shortCode}
+        />
+      )}
+
+      {/* Modal Batal & Refund */}
+      {order && (
+        <CancelRefundModal
+          isOpen={isCancelRefundOpen}
+          onClose={() => setIsCancelRefundOpen(false)}
+          order={order}
+          onSuccess={load}
+        />
+      )}
+
+      {/* Modal Ubah Jadwal (Reschedule) */}
+      {order && (
+        <RescheduleModal
+          isOpen={isRescheduleOpen}
+          onClose={() => setIsRescheduleOpen(false)}
+          order={order}
+          onSuccess={load}
         />
       )}
     </div>
