@@ -186,6 +186,8 @@ interface CampsiteDetail {
   panoramaSpots?: any[];
   blocks: SpotItem[];
   youtube?: string | null;
+  holidays?: Array<{ id?: string; date: string | Date; label?: string }>;
+  weekendDays?: number[];
 }
 
 interface ReviewItem {
@@ -202,6 +204,13 @@ interface ReviewAggregate {
   ratingAvg: number;
   ratingCount: number;
   ratingBreakdown?: Record<string, number>;
+}
+
+interface AccommodationStayLine {
+  label: string;
+  unitPrice: number;
+  quantity: number;
+  amount: number;
 }
 
 function extractYoutubeVideoId(url?: string | null): string | null {
@@ -364,6 +373,86 @@ const spotDetailCache = new Map<
   string,
   { campsite: CampsiteDetail; activeSpot: SpotItem }
 >();
+
+function getStayDayCategory(
+  dateStr: string,
+  holidays?: Array<{ id?: string; date: string | Date; label?: string }>,
+): 'weekday' | 'weekend' | 'holiday' {
+  if (!dateStr) return 'weekday';
+  const ymd = dateStr.slice(0, 10);
+
+  if (Array.isArray(holidays) && holidays.length > 0) {
+    const holidaySet = new Set(
+      holidays.map((h) =>
+        typeof h.date === 'string'
+          ? h.date.slice(0, 10)
+          : new Date(h.date).toISOString().slice(0, 10),
+      ),
+    );
+    if (holidaySet.has(ymd)) return 'holiday';
+
+    // Eve of holiday (the night before a holiday)
+    const [y, m, d] = ymd.split('-').map(Number);
+    const curr = new Date(Date.UTC(y, m - 1, d));
+    curr.setUTCDate(curr.getUTCDate() + 1);
+    const nextYmd = curr.toISOString().slice(0, 10);
+    if (holidaySet.has(nextYmd)) return 'holiday';
+  }
+
+  // Day of week: Friday (5) or Saturday (6) is weekend
+  const [y, m, d] = ymd.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  const dow = dt.getUTCDay();
+  if (dow === 5 || dow === 6) {
+    return 'weekend';
+  }
+  return 'weekday';
+}
+
+function getPackageRateForCategory(
+  pkg: PricingPackageItem | null | undefined,
+  spot: SpotItem | null | undefined,
+  category: 'weekday' | 'weekend' | 'holiday',
+): number {
+  if (pkg) {
+    if (pkg.flatRateMode && pkg.flatRate != null && pkg.flatRate !== '') {
+      return Number(pkg.flatRate);
+    }
+    if (category === 'holiday') {
+      return Number(
+        pkg.holidayRate ??
+          pkg.weekendRate ??
+          pkg.weekdayRate ??
+          spot?.holidayPrice ??
+          spot?.weekendPrice ??
+          spot?.weekdayPrice ??
+          0,
+      );
+    }
+    if (category === 'weekend') {
+      return Number(
+        pkg.weekendRate ??
+          pkg.weekdayRate ??
+          spot?.weekendPrice ??
+          spot?.weekdayPrice ??
+          0,
+      );
+    }
+    return Number(pkg.weekdayRate ?? spot?.weekdayPrice ?? 0);
+  }
+
+  if (spot) {
+    if (category === 'holiday') {
+      return spot.holidayPrice ?? spot.weekendPrice ?? spot.weekdayPrice ?? 0;
+    }
+    if (category === 'weekend') {
+      return spot.weekendPrice ?? spot.weekdayPrice ?? 0;
+    }
+    return spot.weekdayPrice ?? 0;
+  }
+
+  return 0;
+}
 
 export function SpotRedirectClient() {
   const router = useRouter();
@@ -1367,26 +1456,110 @@ export function SpotRedirectClient() {
     }
   }, [isTentPackage, availableAddons, activeSpot]);
 
-  // Pricing calculations driven by selectedPackage
+  // Pricing calculations driven by selectedPackage & date category
   const spotPricePerNight = useMemo(() => {
-    if (selectedPackage) {
-      if (
-        selectedPackage.flatRateMode &&
-        selectedPackage.flatRate != null &&
-        selectedPackage.flatRate !== ''
-      ) {
-        return Number(selectedPackage.flatRate);
-      }
-      if (
-        selectedPackage.weekdayRate != null &&
-        selectedPackage.weekdayRate !== ''
-      ) {
-        return Number(selectedPackage.weekdayRate);
+    if (checkInDate) {
+      const cat = getStayDayCategory(checkInDate, campsite?.holidays);
+      const rate = getPackageRateForCategory(selectedPackage, activeSpot, cat);
+      if (rate > 0) return rate;
+    }
+    return getPackageRateForCategory(selectedPackage, activeSpot, 'weekday');
+  }, [selectedPackage, activeSpot, checkInDate, campsite?.holidays]);
+
+  // Breakdown of accommodation stay lines per day category
+  const accommodationStayLines = useMemo<AccommodationStayLine[]>(() => {
+    if (!checkInDate || !checkOutDate || nights <= 0) return [];
+
+    // Prioritize authoritative lines from backend serverQuote if present
+    if (serverQuote?.lines && Array.isArray(serverQuote.lines)) {
+      const accomLines = serverQuote.lines.filter(
+        (l: any) =>
+          (l.code === 'SPOT' || l.code === 'PACKAGE') && Number(l.amount) > 0,
+      );
+      if (accomLines.length > 0) {
+        return accomLines.map((l: any) => ({
+          label: l.label,
+          unitPrice: Number(l.unitPrice),
+          quantity: Number(l.quantity),
+          amount: Number(l.amount),
+        }));
       }
     }
-    if (!activeSpot) return 0;
-    return activeSpot.weekdayPrice || 0;
-  }, [selectedPackage, activeSpot]);
+
+    // Local breakdown calculation
+    const counts: Record<'weekday' | 'weekend' | 'holiday', number> = {
+      weekday: 0,
+      weekend: 0,
+      holiday: 0,
+    };
+
+    const [sy, sm, sd] = checkInDate.split('-').map(Number);
+    const [ey, em, ed] = checkOutDate.split('-').map(Number);
+    const start = new Date(Date.UTC(sy, sm - 1, sd));
+    const end = new Date(Date.UTC(ey, em - 1, ed));
+
+    for (let d = new Date(start); d < end; d.setUTCDate(d.getUTCDate() + 1)) {
+      const ymd = d.toISOString().slice(0, 10);
+      const cat = getStayDayCategory(ymd, campsite?.holidays);
+      counts[cat]++;
+    }
+
+    if (
+      selectedPackage?.flatRateMode &&
+      selectedPackage.flatRate != null &&
+      selectedPackage.flatRate !== ''
+    ) {
+      const rate = Number(selectedPackage.flatRate);
+      return [
+        {
+          label: 'Semua hari',
+          unitPrice: rate,
+          quantity: nights,
+          amount: rate * nights,
+        },
+      ];
+    }
+
+    const labels: Record<'weekday' | 'weekend' | 'holiday', string> = {
+      weekday: 'Hari biasa',
+      weekend: 'Akhir pekan',
+      holiday: 'Libur',
+    };
+
+    const lines: Array<{
+      label: string;
+      unitPrice: number;
+      quantity: number;
+      amount: number;
+    }> = [];
+
+    (['weekday', 'weekend', 'holiday'] as const).forEach((cat) => {
+      const cnt = counts[cat];
+      if (cnt > 0) {
+        const unitPrice = getPackageRateForCategory(
+          selectedPackage,
+          activeSpot,
+          cat,
+        );
+        lines.push({
+          label: labels[cat],
+          unitPrice,
+          quantity: cnt,
+          amount: unitPrice * cnt,
+        });
+      }
+    });
+
+    return lines;
+  }, [
+    checkInDate,
+    checkOutDate,
+    nights,
+    serverQuote,
+    selectedPackage,
+    activeSpot,
+    campsite?.holidays,
+  ]);
 
   // Helper to check if an addon is charged per night
   const isAddonPerNight = (addon: any) => {
@@ -1512,9 +1685,21 @@ export function SpotRedirectClient() {
     if (serverQuote?.total != null) {
       return serverQuote.total;
     }
+    const accomTotal =
+      accommodationStayLines.reduce(
+        (acc: number, l: { amount: number }) => acc + l.amount,
+        0,
+      ) || spotPricePerNight * nights;
     const extraAmount = extraPersonInfo?.amount || 0;
-    return spotPricePerNight * nights + extraAmount + addonTotal;
-  }, [serverQuote, extraPersonInfo, spotPricePerNight, nights, addonTotal]);
+    return accomTotal + extraAmount + addonTotal;
+  }, [
+    serverQuote,
+    accommodationStayLines,
+    spotPricePerNight,
+    nights,
+    extraPersonInfo,
+    addonTotal,
+  ]);
 
   const grandTotal = useMemo(() => {
     return rentalSubtotal + totalServiceAndTaxFee;
@@ -2281,10 +2466,28 @@ export function SpotRedirectClient() {
                       const isSelected =
                         (selectedPackage?.id ||
                           activeSpot.pricingPackages?.[0]?.id) === pkg.id;
-                      const pkgPrice =
-                        pkg.flatRateMode && pkg.flatRate
-                          ? Number(pkg.flatRate)
-                          : Number(pkg.weekdayRate) || spotPricePerNight;
+                      const pkgPrice = (() => {
+                        if (pkg.flatRateMode && pkg.flatRate) {
+                          return Number(pkg.flatRate);
+                        }
+                        if (checkInDate) {
+                          const cat = getStayDayCategory(
+                            checkInDate,
+                            campsite?.holidays,
+                          );
+                          const rate = getPackageRateForCategory(
+                            pkg,
+                            activeSpot,
+                            cat,
+                          );
+                          if (rate > 0) return rate;
+                        }
+                        return (
+                          Number(pkg.weekdayRate) ||
+                          activeSpot.weekdayPrice ||
+                          spotPricePerNight
+                        );
+                      })();
                       const cleanDesc = pkg.description
                         ? pkg.description
                             .replace(/<[^>]+>/g, '')
@@ -3379,18 +3582,35 @@ export function SpotRedirectClient() {
                 {checkInDate && checkOutDate ? (
                   <>
                     <div className="space-y-2.5 pt-2 border-t border-border text-xs">
-                      <div className="flex justify-between items-start gap-4">
-                        <div className="min-w-0 pr-2">
-                          <span className="text-foreground-muted block leading-snug">
-                            {selectedPackage?.name || 'Sewa Spot'}
-                          </span>
-                          <span className="text-[11px] text-foreground-muted/70 block mt-0.5">
-                            {rupiah(spotPricePerNight)} × {nights} malam
-                          </span>
-                        </div>
-                        <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right pt-0.5">
-                          {rupiah(spotPricePerNight * nights)}
+                      <div className="space-y-1.5">
+                        <span className="text-foreground-muted block leading-snug font-medium">
+                          {selectedPackage?.name || 'Sewa Spot'}
                         </span>
+                        {accommodationStayLines.length > 0 ? (
+                          accommodationStayLines.map((line, lIdx) => (
+                            <div
+                              key={lIdx}
+                              className="flex justify-between items-center text-[11px]"
+                            >
+                              <span className="text-foreground-muted/80">
+                                {line.label} ({rupiah(line.unitPrice)} ×{' '}
+                                {line.quantity} malam)
+                              </span>
+                              <span className="font-semibold text-foreground shrink-0">
+                                {rupiah(line.amount)}
+                              </span>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="flex justify-between items-center text-[11px]">
+                            <span className="text-foreground-muted/80">
+                              {rupiah(spotPricePerNight)} × {nights} malam
+                            </span>
+                            <span className="font-semibold text-foreground shrink-0">
+                              {rupiah(spotPricePerNight * nights)}
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                       {extraPersonInfo && extraPersonInfo.amount > 0 && (
@@ -3897,31 +4117,88 @@ export function SpotRedirectClient() {
               </div>
 
               {/* Price & Capacity Summary */}
-              <div className="flex items-center justify-between p-4 rounded-2xl bg-surface border border-border">
-                <div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted block">
-                    Tarif Paket
-                  </span>
-                  <span className="text-xl font-extrabold text-brand-blue">
-                    {rupiah(
-                      detailPackage.flatRateMode && detailPackage.flatRate
-                        ? Number(detailPackage.flatRate)
-                        : Number(detailPackage.weekdayRate) || spotPricePerNight,
-                    )}
-                  </span>
-                  <span className="text-xs text-foreground-muted"> / malam</span>
-                </div>
-                <div className="text-right">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted block">
+              <div className="p-4 rounded-2xl bg-surface border border-border space-y-3">
+                <div className="flex items-center justify-between pb-2.5 border-b border-border/60">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
                     Kapasitas
                   </span>
-                  <span className="text-sm font-bold text-foreground">
+                  <span className="text-xs font-bold text-foreground px-2.5 py-0.5 rounded-full bg-brand-blue/10 text-brand-blue">
                     Maks.{' '}
                     {detailPackage.maxOccupancy ||
                       detailPackage.baseCapacity ||
                       activeSpot.maxCapacity}{' '}
                     Tamu
                   </span>
+                </div>
+                <div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted block mb-2">
+                    Tarif Paket
+                  </span>
+                  {detailPackage.flatRateMode ? (
+                    <div className="flex items-center justify-between text-xs py-1">
+                      <span className="text-foreground-muted">Semua hari</span>
+                      <span className="font-bold text-foreground">
+                        {rupiah(
+                          Number(detailPackage.flatRate) || spotPricePerNight,
+                        )}{' '}
+                        <span className="text-[10px] text-foreground-muted font-normal">
+                          / malam
+                        </span>
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="space-y-1.5 text-xs">
+                      <div className="flex items-center justify-between py-0.5">
+                        <span className="text-foreground-muted">Hari biasa</span>
+                        <span className="font-bold text-foreground">
+                          {rupiah(
+                            Number(detailPackage.weekdayRate) ||
+                              activeSpot.weekdayPrice ||
+                              0,
+                          )}{' '}
+                          <span className="text-[10px] text-foreground-muted font-normal">
+                            / malam
+                          </span>
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between py-0.5">
+                        <span className="text-foreground-muted">Akhir pekan</span>
+                        <span className="font-bold text-foreground">
+                          {rupiah(
+                            Number(
+                              detailPackage.weekendRate ??
+                                detailPackage.weekdayRate ??
+                                activeSpot.weekendPrice ??
+                                activeSpot.weekdayPrice ??
+                                0,
+                            ),
+                          )}{' '}
+                          <span className="text-[10px] text-foreground-muted font-normal">
+                            / malam
+                          </span>
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between py-0.5">
+                        <span className="text-foreground-muted">Libur</span>
+                        <span className="font-bold text-foreground">
+                          {rupiah(
+                            Number(
+                              detailPackage.holidayRate ??
+                                detailPackage.weekendRate ??
+                                detailPackage.weekdayRate ??
+                                activeSpot.holidayPrice ??
+                                activeSpot.weekendPrice ??
+                                activeSpot.weekdayPrice ??
+                                0,
+                            ),
+                          )}{' '}
+                          <span className="text-[10px] text-foreground-muted font-normal">
+                            / malam
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -4498,18 +4775,35 @@ export function SpotRedirectClient() {
             {checkInDate && checkOutDate ? (
               <>
                 <div className="space-y-2.5 pt-2 border-t border-border text-xs">
-                  <div className="flex justify-between items-start gap-4">
-                    <div className="min-w-0 pr-2">
-                      <span className="text-foreground-muted block leading-snug">
-                        {selectedPackage?.name || 'Sewa Spot'}
-                      </span>
-                      <span className="text-[11px] text-foreground-muted/70 block mt-0.5">
-                        {rupiah(spotPricePerNight)} × {nights} malam
-                      </span>
-                    </div>
-                    <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right pt-0.5">
-                      {rupiah(spotPricePerNight * nights)}
+                  <div className="space-y-1.5">
+                    <span className="text-foreground-muted block leading-snug font-medium">
+                      {selectedPackage?.name || 'Sewa Spot'}
                     </span>
+                    {accommodationStayLines.length > 0 ? (
+                      accommodationStayLines.map((line, lIdx) => (
+                        <div
+                          key={lIdx}
+                          className="flex justify-between items-center text-[11px]"
+                        >
+                          <span className="text-foreground-muted/80">
+                            {line.label} ({rupiah(line.unitPrice)} ×{' '}
+                            {line.quantity} malam)
+                          </span>
+                          <span className="font-semibold text-foreground shrink-0">
+                            {rupiah(line.amount)}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="flex justify-between items-center text-[11px]">
+                        <span className="text-foreground-muted/80">
+                          {rupiah(spotPricePerNight)} × {nights} malam
+                        </span>
+                        <span className="font-semibold text-foreground shrink-0">
+                          {rupiah(spotPricePerNight * nights)}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {extraPersonInfo && extraPersonInfo.amount > 0 && (
