@@ -631,25 +631,20 @@ export function OrderDetailClient() {
           </div>
         ) : order ? (
           <div className="space-y-6">
-            {/* Navigasi Breadcrumb */}
-            <div className="print:hidden">
-              <Link
-                href="/orders"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-white hover:bg-surface text-xs font-semibold text-foreground transition-all shadow-2xs hover:shadow-xs group cursor-pointer"
-              >
-                <ArrowLeft
-                  size={13}
-                  className="text-foreground-muted group-hover:text-brand-blue group-hover:-translate-x-0.5 transition-transform"
-                />
-                <span>Kembali ke Pesanan Saya</span>
-              </Link>
-            </div>
-
             {/* Header Judul Halaman & Status / Cetak Invoice */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-border/70">
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
-                Detail Pesanan
-              </h1>
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/orders"
+                  className="p-2 -ml-2 rounded-full hover:bg-surface text-foreground transition-colors cursor-pointer shrink-0 print:hidden"
+                  aria-label="Kembali ke Pesanan Saya"
+                >
+                  <ArrowLeft size={22} className="stroke-[2.2]" />
+                </Link>
+                <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
+                  Detail Pesanan
+                </h1>
+              </div>
 
               <div className="flex items-center gap-2.5 flex-wrap print:hidden">
                 <button

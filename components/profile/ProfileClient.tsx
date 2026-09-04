@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Loader2,
   CheckCircle2,
@@ -34,6 +35,7 @@ import {
 } from '@/components/account/AccountNav';
 
 export function ProfileClient() {
+  const router = useRouter();
   const [profile, setProfile] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [authRequired, setAuthRequired] = useState(false);
@@ -43,6 +45,14 @@ export function ProfileClient() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push('/explore');
+    }
+  };
 
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
@@ -238,20 +248,20 @@ export function ProfileClient() {
           <div className="space-y-6">
             {/* Header Judul Halaman */}
             <div className="border-b border-border/70 pb-5">
-              <Link
-                href="/explore"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-white hover:bg-surface text-xs font-semibold text-foreground transition-all shadow-2xs hover:shadow-xs group mb-3.5 cursor-pointer"
-              >
-                <ArrowLeft
-                  size={13}
-                  className="text-foreground-muted group-hover:text-brand-blue group-hover:-translate-x-0.5 transition-transform"
-                />
-                <span>Kembali ke Beranda</span>
-              </Link>
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
-                Profil Saya
-              </h1>
-              <p className="text-xs sm:text-sm text-foreground-muted mt-0.5">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  className="p-2 -ml-2 rounded-full hover:bg-surface text-foreground transition-colors cursor-pointer shrink-0"
+                  aria-label="Kembali"
+                >
+                  <ArrowLeft size={22} className="stroke-[2.2]" />
+                </button>
+                <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
+                  Profil Saya
+                </h1>
+              </div>
+              <p className="text-xs sm:text-sm text-foreground-muted mt-1 ml-9 sm:ml-10">
                 Kelola data diri, kontak WhatsApp, dan preferensi akun Anda di Embun.
               </p>
             </div>
