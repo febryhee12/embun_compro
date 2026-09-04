@@ -14,6 +14,9 @@ import {
   LogOut,
   AlertCircle,
   ArrowRight,
+  HelpCircle,
+  MessageCircle,
+  ShieldCheck,
 } from 'lucide-react';
 import {
   getStoredGuestProfile,
@@ -192,7 +195,7 @@ export function ProfileClient() {
         onOpenAuth={() => setIsAuthOpen(true)}
       />
 
-      <main className="max-w-3xl mx-auto px-4 sm:px-8 py-8 sm:py-10 flex-1 w-full">
+      <main className="max-w-7xl mx-auto px-4 sm:px-8 py-8 sm:py-10 flex-1 w-full">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-28 gap-3 text-foreground-muted">
             <Loader2 size={26} className="animate-spin text-brand-blue" />
@@ -231,14 +234,14 @@ export function ProfileClient() {
           </div>
         ) : (
           <div className="space-y-6">
-            {/* Header Judul */}
+            {/* Header Judul Halaman */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/70 pb-5">
               <div>
                 <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
                   Profil Saya
                 </h1>
                 <p className="text-xs sm:text-sm text-foreground-muted mt-0.5">
-                  Kelola informasi kontak dan preferensi akun Anda di Embun.
+                  Kelola data diri, kontak WhatsApp, dan preferensi akun Anda di Embun.
                 </p>
               </div>
               <Link
@@ -251,176 +254,283 @@ export function ProfileClient() {
               </Link>
             </div>
 
-            {/* Profile Card Container */}
-            <div className="bg-white rounded-3xl border border-border p-6 sm:p-8 shadow-2xs space-y-8">
-              {/* Avatar + summary */}
-              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
-                <div className="relative group">
-                  <div className="w-22 h-22 rounded-full bg-[#c2410c] text-white flex items-center justify-center font-bold text-2xl border-2 border-brand-lime shadow-xs overflow-hidden shrink-0">
-                    {uploadingPhoto ? (
-                      <Loader2 size={24} className="animate-spin text-white" />
-                    ) : photoSrc ? (
-                      <img
-                        src={resolveAssetUrl(photoSrc)}
-                        alt={profile?.fullName || 'Avatar'}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLElement).style.display = 'none';
-                        }}
-                      />
-                    ) : (
-                      <span className="text-2xl font-black text-white select-none">
-                        {(profile?.fullName || 'Tamu')
-                          .trim()
-                          .charAt(0)
-                          .toUpperCase()}
-                      </span>
-                    )}
-                  </div>
-                  <label
-                    htmlFor="profile-photo-input"
-                    className="absolute bottom-0 right-0 p-2 bg-brand-blue text-white rounded-full shadow-md hover:bg-brand-blue-hover transition-all cursor-pointer border-2 border-white flex items-center justify-center"
-                    title="Ubah Foto Profil"
-                  >
-                    <Camera size={14} />
-                    <input
-                      id="profile-photo-input"
-                      type="file"
-                      accept="image/*"
-                      disabled={uploadingPhoto}
-                      className="hidden"
-                      onChange={handlePhotoUpload}
-                    />
-                  </label>
-                </div>
+            {/* Navigasi Tab Horizontal (Mobile & Tablet) */}
+            <div className="lg:hidden flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 sm:-mx-8 sm:px-8">
+              <span className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold border bg-brand-blue text-white border-brand-blue shadow-xs">
+                <User size={14} />
+                <span>Edit Profil</span>
+              </span>
+              <Link
+                href="/orders"
+                className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold border bg-white text-foreground border-border hover:bg-surface transition-colors"
+              >
+                <ListOrdered size={14} className="text-brand-blue" />
+                <span>Pesanan Saya</span>
+              </Link>
+              <button
+                type="button"
+                onClick={() => setShowLogoutConfirm(true)}
+                className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold border bg-white text-red-600 border-red-200 hover:bg-red-50 transition-colors cursor-pointer"
+              >
+                <LogOut size={14} />
+                <span>Keluar</span>
+              </button>
+            </div>
 
-                <div className="space-y-1">
-                  <h2 className="font-bold text-lg text-foreground">
-                    {profile?.fullName || 'Tamu Embun'}
-                  </h2>
-                  <p className="text-xs text-foreground-muted flex items-center justify-center sm:justify-start gap-1.5">
-                    <Mail size={12} className="text-brand-blue shrink-0" />
-                    <span>{profile?.email || 'Belum ada email'}</span>
-                  </p>
-                  <p className="text-[11px] text-foreground-muted pt-1">
-                    Foto dan profil Anda dapat dilihat oleh pengelola campsite saat reservasi berlangsung.
-                  </p>
-                </div>
-              </div>
-
-              {/* Edit form */}
-              <form onSubmit={handleSave} className="space-y-5 pt-2 border-t border-border/70">
-                <div className="flex items-center justify-between pt-2">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-foreground-muted">
-                    Data Kontak Tamu
-                  </h3>
-                </div>
-
-                {error && (
-                  <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2">
-                    <AlertCircle size={15} className="shrink-0" />
-                    <span>{error}</span>
-                  </div>
-                )}
-                {saved && (
-                  <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold flex items-center gap-2">
-                    <CheckCircle2 size={15} className="shrink-0" />
-                    <span>Profil berhasil disimpan.</span>
-                  </div>
-                )}
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                    <User size={13} className="text-brand-blue" />
-                    <span>Nama Lengkap</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Nama lengkap Anda"
-                    className="w-full px-4 py-3 rounded-2xl border border-border bg-surface/30 focus:bg-white text-sm text-foreground outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all"
-                  />
-                  <p className="text-[11px] text-foreground-muted">
-                    Digunakan untuk verifikasi identitas dan voucher reservasi.
-                  </p>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                    <Phone size={13} className="text-emerald-600" />
-                    <span>Nomor WhatsApp</span>
-                  </label>
-                  <div className="relative flex items-center">
-                    <div className="absolute left-3.5 flex items-center gap-1 text-xs font-bold text-foreground pointer-events-none select-none border-r border-border pr-2.5 py-1">
-                      <span>🇮🇩</span>
-                      <span>+62</span>
+            {/* Layout Grid Responsif (Sidebar di Desktop) */}
+            <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-start">
+              {/* Sisi Kiri: Sidebar Menu Akun & Bantuan (Desktop Sticky / Floating) */}
+              <aside className="hidden lg:block lg:col-span-4 xl:col-span-3 sticky top-24 self-start z-20">
+                <div className="space-y-5">
+                  {/* Kartu Menu Navigasi Akun */}
+                  <div className="bg-white rounded-3xl border border-border p-3.5 shadow-2xs">
+                    <div className="px-3 pt-2 pb-2">
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
+                        Pengaturan Akun
+                      </p>
                     </div>
-                    <input
-                      type="tel"
-                      value={phone ? phone.replace(/^(\+62|62|0)/, '') : ''}
-                      onChange={(e) => {
-                        let val = e.target.value.replace(/\D/g, '');
-                        if (val.startsWith('62')) val = val.slice(2);
-                        while (val.startsWith('0')) val = val.slice(1);
-                        setPhone(val ? `08${val.startsWith('8') ? val.slice(1) : val}` : '');
-                      }}
-                      placeholder="81234567890"
-                      className="w-full pl-20 pr-4 py-3 rounded-2xl border border-border bg-surface/30 focus:bg-white text-sm text-foreground outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all font-mono"
-                    />
+
+                    <nav className="space-y-1.5">
+                      <div className="w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold bg-brand-blue text-white shadow-xs select-none">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <User size={16} className="text-white" />
+                          <span className="truncate">Informasi Pribadi</span>
+                        </div>
+                        <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-white/20 text-white">
+                          Aktif
+                        </span>
+                      </div>
+
+                      <Link
+                        href="/orders"
+                        className="w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold text-foreground hover:bg-surface text-foreground-muted hover:text-foreground transition-all"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <ListOrdered size={16} className="text-brand-blue" />
+                          <span className="truncate">Pesanan Saya</span>
+                        </div>
+                        <ArrowRight size={14} className="text-foreground-muted" />
+                      </Link>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowLogoutConfirm(true)}
+                        className="w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold text-red-600 hover:bg-red-50 transition-all cursor-pointer"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <LogOut size={16} />
+                          <span className="truncate">Keluar dari Akun</span>
+                        </div>
+                      </button>
+                    </nav>
                   </div>
-                  <p className="text-[11px] text-foreground-muted">
-                    Nomor WhatsApp aktif untuk menerima voucher e-tiket & petunjuk check-in.
-                  </p>
+
+                  {/* Kartu Bantuan & Kontak Dukungan (Identik dengan Halaman Pesanan) */}
+                  <div className="bg-white rounded-3xl border border-border p-5 shadow-2xs space-y-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-full bg-brand-blue/10 text-brand-blue flex items-center justify-center shrink-0">
+                        <HelpCircle size={17} />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-foreground">Butuh Bantuan?</h4>
+                        <p className="text-[11px] text-foreground-muted">Layanan pelanggan Embun</p>
+                      </div>
+                    </div>
+                    <p className="text-[11.5px] text-foreground-muted leading-relaxed">
+                      Punya pertanyaan seputar akun, pemesanan penginapan, atau perubahan data kontak?
+                    </p>
+                    <div className="space-y-2 pt-1">
+                      <a
+                        href="https://wa.me/6281234567890?text=Halo%20Embun,%20saya%20butuh%20bantuan%20mengenai%20akun%20saya."
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-full border border-border hover:border-emerald-500 hover:text-emerald-700 bg-surface/50 hover:bg-emerald-50/50 text-xs font-bold text-foreground transition-all cursor-pointer"
+                      >
+                        <MessageCircle size={14} className="text-emerald-600" />
+                        <span>Chat WhatsApp CS</span>
+                      </a>
+                      <a
+                        href="mailto:support@embun.app"
+                        className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-full border border-border hover:border-brand-blue hover:text-brand-blue bg-surface/50 hover:bg-brand-blue/5 text-xs font-bold text-foreground transition-all cursor-pointer"
+                      >
+                        <Mail size={14} className="text-brand-blue" />
+                        <span>support@embun.app</span>
+                      </a>
+                    </div>
+                  </div>
                 </div>
+              </aside>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                    <MapPin size={13} className="text-brand-blue" />
-                    <span>Alamat Domisili / Kota Asal</span>
-                  </label>
-                  <textarea
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    placeholder="Alamat lengkap atau kota asal Anda"
-                    rows={3}
-                    className="w-full px-4 py-3 rounded-2xl border border-border bg-surface/30 focus:bg-white text-sm text-foreground outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all resize-none"
-                  />
+              {/* Sisi Kanan: Formulir Edit Profil */}
+              <div className="lg:col-span-8 xl:col-span-9 space-y-6">
+                <div className="bg-white rounded-3xl border border-border p-6 sm:p-8 shadow-2xs space-y-8">
+                  {/* Avatar + summary */}
+                  <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
+                    <div className="relative group shrink-0">
+                      <div className="w-22 h-22 rounded-full bg-[#c2410c] text-white flex items-center justify-center font-bold text-2xl border-2 border-brand-lime shadow-xs overflow-hidden shrink-0">
+                        {uploadingPhoto ? (
+                          <Loader2 size={24} className="animate-spin text-white" />
+                        ) : photoSrc ? (
+                          <img
+                            src={resolveAssetUrl(photoSrc)}
+                            alt={profile?.fullName || 'Avatar'}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLElement).style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <span className="text-2xl font-black text-white select-none">
+                            {(profile?.fullName || 'Tamu')
+                              .trim()
+                              .charAt(0)
+                              .toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+                      <label
+                        htmlFor="profile-photo-input"
+                        className="absolute bottom-0 right-0 p-2 bg-brand-blue text-white rounded-full shadow-md hover:bg-brand-blue-hover transition-all cursor-pointer border-2 border-white flex items-center justify-center"
+                        title="Ubah Foto Profil"
+                      >
+                        <Camera size={14} />
+                        <input
+                          id="profile-photo-input"
+                          type="file"
+                          accept="image/*"
+                          disabled={uploadingPhoto}
+                          className="hidden"
+                          onChange={handlePhotoUpload}
+                        />
+                      </label>
+                    </div>
+
+                    <div className="space-y-1 min-w-0">
+                      <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+                        <h2 className="font-bold text-lg text-foreground">
+                          {profile?.fullName || 'Tamu Embun'}
+                        </h2>
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                          <ShieldCheck size={12} />
+                          <span>Akun Terverifikasi</span>
+                        </span>
+                      </div>
+                      <p className="text-xs text-foreground-muted flex items-center justify-center sm:justify-start gap-1.5 pt-0.5">
+                        <Mail size={12} className="text-brand-blue shrink-0" />
+                        <span>{profile?.email || 'Belum ada email'}</span>
+                      </p>
+                      <p className="text-[11.5px] text-foreground-muted pt-1">
+                        Foto dan data profil Anda akan ditampilkan kepada pengelola campsite untuk kelancaran verifikasi saat check-in.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Edit form */}
+                  <form onSubmit={handleSave} className="space-y-5 pt-4 border-t border-border/70">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-foreground-muted">
+                        Data Kontak Tamu
+                      </h3>
+                    </div>
+
+                    {error && (
+                      <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2">
+                        <AlertCircle size={15} className="shrink-0" />
+                        <span>{error}</span>
+                      </div>
+                    )}
+                    {saved && (
+                      <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold flex items-center gap-2">
+                        <CheckCircle2 size={15} className="shrink-0" />
+                        <span>Profil berhasil disimpan.</span>
+                      </div>
+                    )}
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                        <User size={13} className="text-brand-blue" />
+                        <span>Nama Lengkap</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        placeholder="Nama lengkap Anda sesuai kartu identitas"
+                        className="w-full px-4 py-3 rounded-2xl border border-border bg-surface/30 focus:bg-white text-sm text-foreground outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all"
+                      />
+                      <p className="text-[11px] text-foreground-muted">
+                        Nama lengkap wajib diisi sesuai kartu identitas (KTP/SIM/Paspor).
+                      </p>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                        <Phone size={13} className="text-emerald-600" />
+                        <span>Nomor WhatsApp</span>
+                      </label>
+                      <div className="relative flex items-center">
+                        <div className="absolute left-3.5 flex items-center gap-1 text-xs font-bold text-foreground pointer-events-none select-none border-r border-border pr-2.5 py-1">
+                          <span>🇮🇩</span>
+                          <span>+62</span>
+                        </div>
+                        <input
+                          type="tel"
+                          value={phone ? phone.replace(/^(\+62|62|0)/, '') : ''}
+                          onChange={(e) => {
+                            let val = e.target.value.replace(/\D/g, '');
+                            if (val.startsWith('62')) val = val.slice(2);
+                            while (val.startsWith('0')) val = val.slice(1);
+                            setPhone(val ? `08${val.startsWith('8') ? val.slice(1) : val}` : '');
+                          }}
+                          placeholder="81234567890"
+                          className="w-full pl-20 pr-4 py-3 rounded-2xl border border-border bg-surface/30 focus:bg-white text-sm text-foreground outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all font-mono"
+                        />
+                      </div>
+                      <p className="text-[11px] text-foreground-muted">
+                        Nomor WhatsApp aktif untuk menerima voucher reservasi, e-tiket, & koordinasi check-in.
+                      </p>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                        <MapPin size={13} className="text-brand-blue" />
+                        <span>Alamat Domisili / Kota Asal</span>
+                      </label>
+                      <textarea
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                        placeholder="Contoh: Jl. Sukajadi No. 12, Kota Bandung, Jawa Barat"
+                        rows={3}
+                        className="w-full px-4 py-3 rounded-2xl border border-border bg-surface/30 focus:bg-white text-sm text-foreground outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all resize-none"
+                      />
+                      <p className="text-[11px] text-foreground-muted">
+                        Kota tempat tinggal Anda untuk keperluan data tamu registrasi.
+                      </p>
+                    </div>
+
+                    <p className="text-[11px] text-foreground-muted bg-surface/50 p-3.5 rounded-2xl border border-border/70 leading-relaxed">
+                      Alamat email ({profile?.email || '-'}) dikelola oleh penyedia autentikasi login Anda (Google/Apple) dan tidak dapat diubah secara langsung di sini.
+                    </p>
+
+                    <div className="pt-2">
+                      <button
+                        type="submit"
+                        disabled={saving || uploadingPhoto}
+                        className="w-full py-3.5 px-6 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white font-bold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer shadow-md hover:shadow-lg"
+                      >
+                        {saving ? <Loader2 size={16} className="animate-spin" /> : null}
+                        <span>{saving ? 'Menyimpan...' : 'Simpan Perubahan'}</span>
+                      </button>
+                    </div>
+                  </form>
                 </div>
-
-                <p className="text-[11px] text-foreground-muted bg-surface/50 p-3 rounded-2xl border border-border/70">
-                  Email ({profile?.email || '-'}) terhubung langsung dengan penyedia autentikasi masuk (Google/Apple) dan tidak dapat diubah di sini.
-                </p>
-
-                <div className="pt-2">
-                  <button
-                    type="submit"
-                    disabled={saving || uploadingPhoto}
-                    className="w-full py-3.5 px-6 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white font-bold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer shadow-md hover:shadow-lg"
-                  >
-                    {saving ? <Loader2 size={16} className="animate-spin" /> : null}
-                    <span>{saving ? 'Menyimpan...' : 'Simpan Perubahan'}</span>
-                  </button>
-                </div>
-              </form>
-
-              {/* Logout Button */}
-              <div className="pt-4 border-t border-border/70">
-                <button
-                  type="button"
-                  onClick={() => setShowLogoutConfirm(true)}
-                  className="w-full py-3.5 px-6 rounded-full border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
-                >
-                  <LogOut size={15} />
-                  <span>Keluar dari Akun</span>
-                </button>
               </div>
             </div>
           </div>
         )}
       </main>
 
-      {/* ═══ FOOTER RESMI RESMI EXPLORE ═══ */}
+      {/* ═══ FOOTER RESMI EXPLORE ═══ */}
       <ExploreFooter />
 
       {/* Logout Confirmation Dialog */}

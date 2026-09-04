@@ -16,6 +16,7 @@ import {
   HelpCircle,
   MessageCircle,
   ArrowRight,
+  Mail,
 } from 'lucide-react';
 import {
   getGuestToken,
@@ -401,9 +402,9 @@ export function OrdersClient() {
 
             {/* Layout Grid Responsif (Sidebar di Desktop) */}
             <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-start">
-              {/* Sisi Kiri: Sidebar Menu Status Pesanan (Desktop) */}
-              <aside className="hidden lg:block lg:col-span-4 xl:col-span-3">
-                <div className="sticky top-28 space-y-5">
+              {/* Sisi Kiri: Sidebar Menu Status Pesanan (Desktop Sticky / Floating) */}
+              <aside className="hidden lg:block lg:col-span-4 xl:col-span-3 sticky top-24 self-start z-20">
+                <div className="space-y-5">
                   <div className="bg-white rounded-3xl border border-border p-3.5 shadow-2xs">
                     <div className="px-3 pt-2 pb-2">
                       <p className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
@@ -462,15 +463,24 @@ export function OrdersClient() {
                     <p className="text-[11.5px] text-foreground-muted leading-relaxed">
                       Punya pertanyaan seputar check-in, pelunasan sisa tagihan, atau kebijakan pembatalan?
                     </p>
-                    <a
-                      href="https://wa.me/6281234567890?text=Halo%20Embun,%20saya%20butuh%20bantuan%20mengenai%20pesanan%20saya."
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-full border border-border hover:border-brand-blue hover:text-brand-blue bg-surface/50 text-xs font-bold text-foreground transition-all cursor-pointer"
-                    >
-                      <MessageCircle size={14} className="text-emerald-600" />
-                      <span>Chat WhatsApp CS</span>
-                    </a>
+                    <div className="space-y-2 pt-1">
+                      <a
+                        href="https://wa.me/6281234567890?text=Halo%20Embun,%20saya%20butuh%20bantuan%20mengenai%20pesanan%20saya."
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-full border border-border hover:border-emerald-500 hover:text-emerald-700 bg-surface/50 hover:bg-emerald-50/50 text-xs font-bold text-foreground transition-all cursor-pointer"
+                      >
+                        <MessageCircle size={14} className="text-emerald-600" />
+                        <span>Chat WhatsApp CS</span>
+                      </a>
+                      <a
+                        href="mailto:support@embun.app"
+                        className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-full border border-border hover:border-brand-blue hover:text-brand-blue bg-surface/50 hover:bg-brand-blue/5 text-xs font-bold text-foreground transition-all cursor-pointer"
+                      >
+                        <Mail size={14} className="text-brand-blue" />
+                        <span>support@embun.app</span>
+                      </a>
+                    </div>
                   </div>
                 </div>
               </aside>
