@@ -206,6 +206,37 @@ function formatDateDisplay(dateStr?: string) {
   }
 }
 
+function formatSettlementDeadline(
+  settlementDeadline?: string | Date | null,
+  checkInStr?: string | Date | null,
+): string | null {
+  try {
+    let targetDate: Date | null = null;
+    if (settlementDeadline) {
+      targetDate = new Date(settlementDeadline);
+    } else if (checkInStr) {
+      if (typeof checkInStr === 'string' && !checkInStr.includes('T')) {
+        const [y, m, day] = checkInStr.split('-').map(Number);
+        targetDate = new Date(Date.UTC(y, m - 1, day - 1, 16, 59, 59));
+      } else {
+        const cin = new Date(checkInStr);
+        targetDate = new Date(cin.getTime() - 24 * 60 * 60 * 1000);
+      }
+    }
+    if (!targetDate || isNaN(targetDate.getTime())) return null;
+
+    return targetDate.toLocaleDateString('id-ID', {
+      timeZone: 'Asia/Jakarta',
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  } catch {
+    return null;
+  }
+}
+
 export function OrderDetailClient() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('id');
@@ -370,6 +401,10 @@ export function OrderDetailClient() {
   const isDP = order?.isDownPayment;
   const remainingBalance = Number(order?.remainingBalance) || 0;
   const isUnsettledDP = isPaid && isDP && (!order?.settledAt || remainingBalance > 0);
+
+  const settlementDeadlineFormatted = React.useMemo(() => {
+    return formatSettlementDeadline(order?.settlementDeadline, booking?.checkIn);
+  }, [order?.settlementDeadline, booking?.checkIn]);
 
   const bookingNote =
     order?.bookingNote || booking?.bookingNote || order?.notes || null;
@@ -804,7 +839,13 @@ export function OrderDetailClient() {
                       <div className="space-y-3 pt-1 print:hidden">
                         <div className="p-3.5 rounded-2xl bg-amber-100/60 border border-amber-200 text-amber-900 text-xs leading-relaxed">
                           💡 <strong>Pemberitahuan Pelunasan:</strong> Sisa tagihan wajib dilunasi paling
-                          lambat <strong>H-1 sebelum jadwal check-in</strong> melalui aplikasi/web Embun.
+                          lambat{' '}
+                          <strong>
+                            {settlementDeadlineFormatted
+                              ? `${settlementDeadlineFormatted} (H-1 sebelum check-in)`
+                              : 'H-1 sebelum jadwal check-in'} pukul 23:59 WIB
+                          </strong>{' '}
+                          melalui aplikasi/web Embun.
                         </div>
 
                         <button
