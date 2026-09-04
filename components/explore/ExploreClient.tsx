@@ -8,6 +8,7 @@ import {
   rupiah,
 } from '@/lib/api-client';
 import { ExploreHeader } from '@/components/explore/ExploreHeader';
+import { ExploreFooter } from '@/components/explore/ExploreFooter';
 import {
   CategoryFilterBar,
   CATEGORIES,
@@ -592,27 +593,7 @@ export function ExploreClient() {
 
 
       {/* ═══ 4. FOOTER ═══ */}
-      <footer className="border-t border-border bg-surface py-8 px-4 sm:px-8 text-xs text-foreground-muted mt-auto">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="font-black text-lg text-brand-blue tracking-tight">
-              embun
-            </span>
-            <span>© 2026 PT Alam Kelana Digital. Hak Cipta Dilindungi.</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <a href="/kebijakan-privasi" className="hover:underline">
-              Privasi
-            </a>
-            <a href="/syarat-ketentuan" className="hover:underline">
-              Syarat & Ketentuan
-            </a>
-            <a href="/mitra" className="hover:underline">
-              Mitra Camp
-            </a>
-          </div>
-        </div>
-      </footer>
+      <ExploreFooter />
 
       {/* ═══ 5. MODAL LOGIN ═══ */}
       {isAuthOpen && (

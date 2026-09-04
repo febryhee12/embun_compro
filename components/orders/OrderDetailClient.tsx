@@ -38,6 +38,7 @@ import {
   rupiah,
   ApiError,
 } from '@/lib/api-client';
+import { ExploreFooter } from '@/components/explore/ExploreFooter';
 
 function getOrderBadge(order: any) {
   if (order.status === 'PAID') {
@@ -794,6 +795,8 @@ export function OrderDetailClient() {
           </div>
         ) : null}
       </main>
+
+      <ExploreFooter />
     </div>
   );
 }

@@ -8,6 +8,7 @@ import {
   resolveAssetUrl,
   API_BASE_URL,
 } from '@/lib/api-client';
+import { CompleteProfileModal } from '@/components/explore/CompleteProfileModal';
 
 const GOOGLE_CLIENT_ID =
   '630714602612-7o9huedo97o6jf5ci1k7g1p6g8ncobqf.apps.googleusercontent.com';
@@ -56,6 +57,7 @@ export function GuestAuthModal({
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [pendingProfileForCompletion, setPendingProfileForCompletion] = useState<any | null>(null);
 
   // Load Google Identity Services SDK dynamically
   useEffect(() => {
@@ -108,12 +110,13 @@ export function GuestAuthModal({
 
               // 2. Call backend /guest/auth/social (Flutter compatibility)
               let finalToken = tokenResponse.access_token;
-              let finalProfile = {
+              let finalProfile: any = {
                 id: googleUser.sub,
                 email: googleUser.email,
                 fullName: googleUser.name,
                 avatarUrl: googleUser.picture || '',
                 phone: '',
+                address: '',
               };
 
               try {
@@ -151,8 +154,12 @@ export function GuestAuthModal({
               }
 
               setGuestSession(finalToken, finalProfile);
-              if (onSuccess) onSuccess(finalProfile);
-              onClose();
+              if (!finalProfile.phone || !finalProfile.address) {
+                setPendingProfileForCompletion(finalProfile);
+              } else {
+                if (onSuccess) onSuccess(finalProfile);
+                onClose();
+              }
             } catch (err: any) {
               setError(err.message || 'Gagal masuk dengan Google.');
             } finally {
@@ -185,9 +192,14 @@ export function GuestAuthModal({
                 throw new Error(err.message || 'Login Google gagal.');
               }
               const tokenData = await authRes.json();
-              setGuestSession(tokenData.accessToken, tokenData.guest);
-              if (onSuccess) onSuccess(tokenData.guest);
-              onClose();
+              const guest = tokenData.guest;
+              setGuestSession(tokenData.accessToken, guest);
+              if (!guest.phone || !guest.address) {
+                setPendingProfileForCompletion(guest);
+              } else {
+                if (onSuccess) onSuccess(guest);
+                onClose();
+              }
             } catch (e: any) {
               setError(e.message || 'Gagal masuk dengan Google.');
             } finally {
@@ -265,9 +277,14 @@ export function GuestAuthModal({
         }
       }
 
-      setGuestSession(tokenData.accessToken, tokenData.guest);
-      if (onSuccess) onSuccess(tokenData.guest);
-      onClose();
+      const guest = tokenData.guest;
+      setGuestSession(tokenData.accessToken, guest);
+      if (!guest.phone || !guest.address) {
+        setPendingProfileForCompletion(guest);
+      } else {
+        if (onSuccess) onSuccess(guest);
+        onClose();
+      }
     } catch (err: any) {
       if (err?.error === 'popup_closed_by_user') {
         // User cancelled - not an error worth surfacing.
@@ -299,7 +316,7 @@ export function GuestAuthModal({
           {currentUser ? (
             /* Logged in profile view */
             <div className="space-y-4 text-center py-4">
-              <div className="w-20 h-20 rounded-full bg-brand-lime/30 text-brand-blue mx-auto flex items-center justify-center font-bold text-2xl border-2 border-brand-lime shadow-xs overflow-hidden shrink-0">
+              <div className="w-20 h-20 rounded-full bg-[#c2410c] text-white mx-auto flex items-center justify-center font-bold text-2xl border-2 border-brand-lime shadow-xs overflow-hidden shrink-0">
                 {currentUser.photoUrl || currentUser.avatarUrl ? (
                   <img
                     src={resolveAssetUrl(
@@ -312,7 +329,7 @@ export function GuestAuthModal({
                     }}
                   />
                 ) : (
-                  <span className="text-2xl font-black text-brand-blue select-none">
+                  <span className="text-2xl font-black text-white select-none">
                     {(currentUser.fullName || 'Tamu')
                       .trim()
                       .charAt(0)
@@ -432,39 +449,41 @@ export function GuestAuthModal({
           )}
         </div>
 
-        {/* Bottom Legal Consent */}
-        <div className="pt-4 text-center shrink-0">
-          <p className="text-[11px] sm:text-xs text-foreground-muted leading-relaxed max-w-xs mx-auto">
-            Dengan masuk atau mendaftar, Anda menyetujui{' '}
-            <a
-              href="/kebijakan-privasi"
-              className="text-brand-blue font-semibold hover:underline"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Kebijakan Privasi
-            </a>
-            ,{' '}
-            <a
-              href="/syarat-ketentuan"
-              className="text-brand-blue font-semibold hover:underline"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Syarat & Ketentuan
-            </a>
-            , dan{' '}
-            <a
-              href="/kebijakan-refund"
-              className="text-brand-blue font-semibold hover:underline"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Kebijakan Refund
-            </a>
-            .
-          </p>
-        </div>
+        {/* Bottom Legal Consent - hanya muncul saat belum login */}
+        {!currentUser && (
+          <div className="pt-4 text-center shrink-0">
+            <p className="text-[11px] sm:text-xs text-foreground-muted leading-relaxed max-w-xs mx-auto">
+              Dengan masuk atau mendaftar, Anda menyetujui{' '}
+              <a
+                href="/kebijakan-privasi"
+                className="text-brand-blue font-semibold hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Kebijakan Privasi
+              </a>
+              ,{' '}
+              <a
+                href="/syarat-ketentuan"
+                className="text-brand-blue font-semibold hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Syarat & Ketentuan
+              </a>
+              , dan{' '}
+              <a
+                href="/kebijakan-refund"
+                className="text-brand-blue font-semibold hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Kebijakan Refund
+              </a>
+              .
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Logout Confirmation Dialog */}
@@ -500,6 +519,25 @@ export function GuestAuthModal({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Complete Profile Dialog (Airbnb style for new guests or incomplete profiles) */}
+      {pendingProfileForCompletion && (
+        <CompleteProfileModal
+          isOpen={Boolean(pendingProfileForCompletion)}
+          currentUser={pendingProfileForCompletion}
+          onClose={() => {
+            const user = pendingProfileForCompletion;
+            setPendingProfileForCompletion(null);
+            if (onSuccess) onSuccess(user);
+            onClose();
+          }}
+          onSuccess={(updatedUser) => {
+            setPendingProfileForCompletion(null);
+            if (onSuccess) onSuccess(updatedUser);
+            onClose();
+          }}
+        />
       )}
     </div>
   );

@@ -8,20 +8,22 @@ import { resolveAssetUrl } from '@/lib/api-client';
 interface ExploreHeaderProps {
   onOpenAuth: () => void;
   currentUser: any | null;
-  searchQuery: string;
-  onSearchChange: (q: string) => void;
-  selectedCity: string;
-  onSelectCity: (city: string) => void;
+  showSearch?: boolean;
+  searchQuery?: string;
+  onSearchChange?: (q: string) => void;
+  selectedCity?: string;
+  onSelectCity?: (city: string) => void;
   availableCities?: string[];
 }
 
 export function ExploreHeader({
   onOpenAuth,
   currentUser,
-  searchQuery,
-  onSearchChange,
-  selectedCity,
-  onSelectCity,
+  showSearch = true,
+  searchQuery = '',
+  onSearchChange = () => {},
+  selectedCity = '',
+  onSelectCity = () => {},
   availableCities,
 }: ExploreHeaderProps) {
   const [isCityModalOpen, setIsCityModalOpen] = useState(false);
@@ -80,7 +82,7 @@ export function ExploreHeader({
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-border transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between gap-4">
           {/* Left: Official Brand Logo SVG */}
-          <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
+          <Link href="/explore" className="flex items-center gap-2.5 shrink-0 group">
             <img
               src="/images/logo/primary_blue.svg"
               alt="Embun"
@@ -92,51 +94,55 @@ export function ExploreHeader({
           </Link>
 
           {/* Center: Airbnb-style Pill Search Bar (Desktop) */}
-          <div className="flex-1 max-w-xl hidden md:flex items-center justify-center">
-            <div className="w-full flex items-center justify-between border border-border rounded-full py-1.5 px-4 shadow-2xs hover:shadow-md transition-all bg-white divide-x divide-border text-xs focus-within:ring-2 focus-within:ring-brand-blue/30 focus-within:border-brand-blue">
-              {/* City Filter Trigger */}
-              <button
-                type="button"
-                onClick={() => {
-                  setCitySearchQuery('');
-                  setGeoError(null);
-                  setIsCityModalOpen(true);
-                }}
-                className="px-3 py-1 text-left font-semibold text-foreground truncate hover:text-brand-blue transition-colors flex-1 flex items-center gap-1.5 cursor-pointer outline-none"
-              >
-                <MapPin size={13} className="text-brand-blue shrink-0" />
-                <span className="truncate">
-                  {selectedCity || 'Semua Lokasi'}
-                </span>
-              </button>
+          {showSearch ? (
+            <div className="flex-1 max-w-xl hidden md:flex items-center justify-center">
+              <div className="w-full flex items-center justify-between border border-border rounded-full py-1.5 px-4 shadow-2xs hover:shadow-md transition-all bg-white divide-x divide-border text-xs focus-within:ring-2 focus-within:ring-brand-blue/30 focus-within:border-brand-blue">
+                {/* City Filter Trigger */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCitySearchQuery('');
+                    setGeoError(null);
+                    setIsCityModalOpen(true);
+                  }}
+                  className="px-3 py-1 text-left font-semibold text-foreground truncate hover:text-brand-blue transition-colors flex-1 flex items-center gap-1.5 cursor-pointer outline-none"
+                >
+                  <MapPin size={13} className="text-brand-blue shrink-0" />
+                  <span className="truncate">
+                    {selectedCity || 'Semua Lokasi'}
+                  </span>
+                </button>
 
-              {/* Keyword Search Input */}
-              <div className="pl-3 flex-1 flex items-center gap-2">
-                <input
-                  type="text"
-                  placeholder="Cari nama spot, glamping, area..."
-                  value={searchQuery}
-                  onChange={(e) => onSearchChange(e.target.value)}
-                  style={{ outline: 'none', border: 'none', boxShadow: 'none' }}
-                  className="w-full text-xs text-foreground placeholder:text-foreground-muted bg-transparent outline-none ring-0 border-none focus:outline-none focus:ring-0 focus:border-none focus-visible:outline-none py-1"
-                />
-                {searchQuery ? (
-                  <button
-                    type="button"
-                    onClick={() => onSearchChange('')}
-                    className="p-1 rounded-full hover:bg-surface text-foreground-muted hover:text-foreground transition-colors cursor-pointer"
-                    title="Hapus pencarian"
-                  >
-                    <X size={13} />
-                  </button>
-                ) : (
-                  <div className="w-7 h-7 rounded-full bg-brand-blue text-white flex items-center justify-center shadow-xs shrink-0">
-                    <Search size={13} />
-                  </div>
-                )}
+                {/* Keyword Search Input */}
+                <div className="pl-3 flex-1 flex items-center gap-2">
+                  <input
+                    type="text"
+                    placeholder="Cari nama spot, glamping, area..."
+                    value={searchQuery}
+                    onChange={(e) => onSearchChange(e.target.value)}
+                    style={{ outline: 'none', border: 'none', boxShadow: 'none' }}
+                    className="w-full text-xs text-foreground placeholder:text-foreground-muted bg-transparent outline-none ring-0 border-none focus:outline-none focus:ring-0 focus:border-none focus-visible:outline-none py-1"
+                  />
+                  {searchQuery ? (
+                    <button
+                      type="button"
+                      onClick={() => onSearchChange('')}
+                      className="p-1 rounded-full hover:bg-surface text-foreground-muted hover:text-foreground transition-colors cursor-pointer"
+                      title="Hapus pencarian"
+                    >
+                      <X size={13} />
+                    </button>
+                  ) : (
+                    <div className="w-7 h-7 rounded-full bg-brand-blue text-white flex items-center justify-center shadow-xs shrink-0">
+                      <Search size={13} />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex-1" />
+          )}
 
           {/* Right: User Avatar Menu */}
           <div className="flex items-center gap-3 shrink-0">
@@ -149,7 +155,7 @@ export function ExploreHeader({
               {currentUser ? (
                 <>
                   <Menu size={15} className="text-foreground-muted" />
-                  <div className="w-6 h-6 rounded-full bg-surface text-brand-blue flex items-center justify-center border border-border font-bold text-xs overflow-hidden">
+                  <div className="w-6 h-6 rounded-full bg-[#c2410c] text-white flex items-center justify-center border border-brand-lime/80 font-bold text-xs overflow-hidden shrink-0 shadow-2xs">
                     {currentUser?.avatarUrl || currentUser?.photoUrl ? (
                       <img
                         src={resolveAssetUrl(
@@ -158,10 +164,13 @@ export function ExploreHeader({
                         alt="Avatar"
                         className="w-full h-full object-cover"
                       />
-                    ) : currentUser?.fullName ? (
-                      currentUser.fullName.charAt(0).toUpperCase()
                     ) : (
-                      <User size={14} />
+                      <span className="text-white font-black text-xs select-none">
+                        {(currentUser?.fullName || 'Tamu')
+                          .trim()
+                          .charAt(0)
+                          .toUpperCase()}
+                      </span>
                     )}
                   </div>
                   <span className="hidden sm:inline">
@@ -179,51 +188,53 @@ export function ExploreHeader({
         </div>
 
         {/* Mobile Search Bar (under logo) */}
-        <div className="md:hidden px-4 pb-3 flex items-center gap-2">
-          <div className="flex-1 flex items-center gap-2 border border-border rounded-full py-2.5 px-4 shadow-2xs bg-surface text-xs focus-within:ring-2 focus-within:ring-brand-blue/30 focus-within:border-brand-blue focus-within:bg-white transition-all">
-            <Search size={15} className="text-brand-blue shrink-0" />
-            <input
-              type="text"
-              placeholder="Cari spot, glamping, area..."
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              style={{ outline: 'none', border: 'none', boxShadow: 'none' }}
-              className="w-full text-xs text-foreground placeholder:text-foreground-muted bg-transparent outline-none ring-0 border-none focus:outline-none focus:ring-0 focus:border-none focus-visible:outline-none p-0 m-0"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => onSearchChange('')}
-                className="p-1 rounded-full hover:bg-surface-variant text-foreground-muted hover:text-foreground transition-colors cursor-pointer shrink-0"
-                title="Hapus pencarian"
-              >
-                <X size={14} />
-              </button>
-            )}
-          </div>
+        {showSearch && (
+          <div className="md:hidden px-4 pb-3 flex items-center gap-2">
+            <div className="flex-1 flex items-center gap-2 border border-border rounded-full py-2.5 px-4 shadow-2xs bg-surface text-xs focus-within:ring-2 focus-within:ring-brand-blue/30 focus-within:border-brand-blue focus-within:bg-white transition-all">
+              <Search size={15} className="text-brand-blue shrink-0" />
+              <input
+                type="text"
+                placeholder="Cari spot, glamping, area..."
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                style={{ outline: 'none', border: 'none', boxShadow: 'none' }}
+                className="w-full text-xs text-foreground placeholder:text-foreground-muted bg-transparent outline-none ring-0 border-none focus:outline-none focus:ring-0 focus:border-none focus-visible:outline-none p-0 m-0"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => onSearchChange('')}
+                  className="p-1 rounded-full hover:bg-surface-variant text-foreground-muted hover:text-foreground transition-colors cursor-pointer shrink-0"
+                  title="Hapus pencarian"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              setCitySearchQuery('');
-              setGeoError(null);
-              setIsCityModalOpen(true);
-            }}
-            className={`px-3.5 py-2.5 rounded-full border text-xs font-semibold shrink-0 transition-all flex items-center gap-1 cursor-pointer ${
-              selectedCity
-                ? 'bg-brand-blue text-white border-brand-blue font-bold shadow-2xs'
-                : 'bg-surface hover:bg-surface-variant text-foreground border-border'
-            }`}
-          >
-            <MapPin
-              size={13}
-              className={selectedCity ? 'text-white' : 'text-brand-blue'}
-            />
-            <span className="max-w-[70px] truncate">
-              {selectedCity || 'Lokasi'}
-            </span>
-          </button>
-        </div>
+            <button
+              type="button"
+              onClick={() => {
+                setCitySearchQuery('');
+                setGeoError(null);
+                setIsCityModalOpen(true);
+              }}
+              className={`px-3.5 py-2.5 rounded-full border text-xs font-semibold shrink-0 transition-all flex items-center gap-1 cursor-pointer ${
+                selectedCity
+                  ? 'bg-brand-blue text-white border-brand-blue font-bold shadow-2xs'
+                  : 'bg-surface hover:bg-surface-variant text-foreground border-border'
+              }`}
+            >
+              <MapPin
+                size={13}
+                className={selectedCity ? 'text-white' : 'text-brand-blue'}
+              />
+              <span className="max-w-[70px] truncate">
+                {selectedCity || 'Lokasi'}
+              </span>
+            </button>
+          </div>
+        )}
       </header>
 
       {/* ── Modal Pilih Destinasi / Kota ── */}
