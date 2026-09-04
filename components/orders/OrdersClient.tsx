@@ -10,12 +10,6 @@ import {
   LogIn,
   RefreshCw,
   AlertCircle,
-  Clock,
-  CheckCircle2,
-  ListOrdered,
-  HelpCircle,
-  MessageCircle,
-  Mail,
 } from 'lucide-react';
 import {
   getGuestToken,
@@ -30,6 +24,11 @@ import { ExploreHeader } from '@/components/explore/ExploreHeader';
 import { ExploreFooter } from '@/components/explore/ExploreFooter';
 import { GuestAuthModal } from '@/components/explore/GuestAuthModal';
 import { CompleteProfileModal } from '@/components/explore/CompleteProfileModal';
+import {
+  AccountSidebar,
+  AccountMobileNav,
+  AccountLogoutDialog,
+} from '@/components/account/AccountNav';
 
 function getOrderBadge(order: any) {
   if (order.status === 'PAID') {
@@ -125,6 +124,12 @@ export function OrdersClient() {
   const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [isCompleteProfileOpen, setIsCompleteProfileOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  const handleLogout = () => {
+    clearGuestSession();
+    window.location.href = '/explore';
+  };
 
   useEffect(() => {
     setCurrentUser(getStoredGuestProfile());
@@ -228,7 +233,6 @@ export function OrdersClient() {
       shortLabel: 'Semua',
       count: orders.length,
       description: 'Semua riwayat pemesanan penginapan Anda',
-      icon: ListOrdered,
     },
     {
       id: 'pengajuan' as TabType,
@@ -236,7 +240,6 @@ export function OrdersClient() {
       shortLabel: 'Pengajuan',
       count: pengajuanOrders.length,
       description: 'Pesanan menunggu pembayaran atau sisa pelunasan DP',
-      icon: Clock,
     },
     {
       id: 'menuju_checkin' as TabType,
@@ -244,7 +247,6 @@ export function OrdersClient() {
       shortLabel: 'Check-in',
       count: upcomingOrders.length,
       description: 'Reservasi aktif yang siap untuk keberangkatan',
-      icon: Tent,
     },
     {
       id: 'selesai' as TabType,
@@ -252,7 +254,6 @@ export function OrdersClient() {
       shortLabel: 'Selesai',
       count: doneOrders.length,
       description: 'Pesanan yang telah selesai, direfund, atau dibatalkan',
-      icon: CheckCircle2,
     },
   ], [orders.length, pengajuanOrders.length, upcomingOrders.length, doneOrders.length]);
 
@@ -358,122 +359,50 @@ export function OrdersClient() {
             </div>
 
             {/* Navigasi Tab Horizontal (Mobile & Tablet) */}
-            <div className="lg:hidden flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 sm:-mx-8 sm:px-8">
-              {tabItems.map((item) => {
-                const isActive = activeTab === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setActiveTab(item.id)}
-                    className={`shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer border ${
-                      isActive
-                        ? 'bg-brand-blue text-white border-brand-blue shadow-xs'
-                        : 'bg-white text-foreground border-border hover:bg-surface'
-                    }`}
-                  >
-                    <span>{item.shortLabel}</span>
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-[10.5px] font-bold ${
-                        isActive
-                          ? 'bg-white/20 text-white'
-                          : 'bg-surface text-foreground-muted border border-border/60'
-                      }`}
-                    >
-                      {item.count}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+            <AccountMobileNav
+              activeTab="orders"
+              onLogout={() => setShowLogoutConfirm(true)}
+            />
 
             {/* Layout Grid Responsif (Sidebar di Desktop) */}
             <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-start">
-              {/* Sisi Kiri: Sidebar Menu Status Pesanan (Desktop Sticky / Floating) */}
-              <aside className="hidden lg:block lg:col-span-4 xl:col-span-3 sticky top-24 self-start z-20">
-                <div className="space-y-5">
-                  <div className="bg-white rounded-3xl border border-border p-3.5 shadow-2xs">
-                    <div className="px-3 pt-2 pb-2">
-                      <p className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
-                        Status Pesanan
-                      </p>
-                    </div>
-
-                    <nav className="space-y-1.5">
-                      {tabItems.map((item) => {
-                        const isActive = activeTab === item.id;
-                        const Icon = item.icon;
-                        return (
-                          <button
-                            key={item.id}
-                            type="button"
-                            onClick={() => setActiveTab(item.id)}
-                            className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-                              isActive
-                                ? 'bg-brand-blue text-white shadow-xs'
-                                : 'text-foreground hover:bg-surface text-foreground-muted hover:text-foreground'
-                            }`}
-                          >
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              <Icon
-                                size={16}
-                                className={isActive ? 'text-white' : 'text-brand-blue'}
-                              />
-                              <span className="truncate">{item.label}</span>
-                            </div>
-                            <span
-                              className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                                isActive
-                                  ? 'bg-white/20 text-white'
-                                  : 'bg-surface text-foreground-muted border border-border/60'
-                              }`}
-                            >
-                              {item.count}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </nav>
-                  </div>
-
-                  {/* Kartu Bantuan & Kontak Dukungan */}
-                  <div className="bg-white rounded-3xl border border-border p-5 shadow-2xs space-y-3">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-full bg-brand-blue/10 text-brand-blue flex items-center justify-center shrink-0">
-                        <HelpCircle size={17} />
-                      </div>
-                      <div>
-                        <h4 className="text-xs font-bold text-foreground">Butuh Bantuan?</h4>
-                        <p className="text-[11px] text-foreground-muted">Layanan pelanggan Embun</p>
-                      </div>
-                    </div>
-                    <p className="text-[11.5px] text-foreground-muted leading-relaxed">
-                      Punya pertanyaan seputar check-in, pelunasan sisa tagihan, atau kebijakan pembatalan?
-                    </p>
-                    <div className="space-y-2 pt-1">
-                      <a
-                        href="https://wa.me/6282131411919?text=Halo%20Embun%20CS,%20saya%20butuh%20bantuan%20terkait%20pesanan"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-full border border-border hover:border-emerald-500 hover:text-emerald-700 bg-surface/50 hover:bg-emerald-50/50 text-xs font-bold text-foreground transition-all cursor-pointer"
-                      >
-                        <MessageCircle size={14} className="text-emerald-600" />
-                        <span>Chat WhatsApp CS</span>
-                      </a>
-                      <a
-                        href="mailto:support@embun.app"
-                        className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-full border border-border hover:border-brand-blue hover:text-brand-blue bg-surface/50 hover:bg-brand-blue/5 text-xs font-bold text-foreground transition-all cursor-pointer"
-                      >
-                        <Mail size={14} className="text-brand-blue" />
-                        <span>support@embun.app</span>
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </aside>
+              {/* Sisi Kiri: Sidebar Menu Akun & Bantuan */}
+              <AccountSidebar
+                activeTab="orders"
+                onLogout={() => setShowLogoutConfirm(true)}
+              />
 
               {/* Sisi Kanan: Daftar Pesanan Sesuai Tab Aktif */}
-              <div className="lg:col-span-8 xl:col-span-9 space-y-4">
+              <div className="lg:col-span-8 xl:col-span-9 space-y-6">
+                {/* Menu Status Pesanan: Tab saja dan tidak perlu pakai icon */}
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 -mx-1 px-1">
+                  {tabItems.map((item) => {
+                    const isActive = activeTab === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setActiveTab(item.id)}
+                        className={`shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer border ${
+                          isActive
+                            ? 'bg-brand-blue text-white border-brand-blue shadow-xs'
+                            : 'bg-white text-foreground-muted border-border hover:bg-surface hover:text-foreground'
+                        }`}
+                      >
+                        <span>{item.label}</span>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10.5px] font-bold ${
+                            isActive
+                              ? 'bg-white/20 text-white'
+                              : 'bg-surface text-foreground-muted border border-border/60'
+                          }`}
+                        >
+                          {item.count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
                 {/* Header Keterangan Tab Aktif */}
                 <div className="flex items-center justify-between pb-1">
                   <div>
@@ -621,6 +550,13 @@ export function OrdersClient() {
           setCurrentUser(updated);
           setIsCompleteProfileOpen(false);
         }}
+      />
+
+      {/* Logout Confirmation Dialog */}
+      <AccountLogoutDialog
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={handleLogout}
       />
     </div>
   );
