@@ -17,6 +17,7 @@ import {
   HelpCircle,
   MessageCircle,
   ShieldCheck,
+  Heart,
 } from 'lucide-react';
 import {
   getStoredGuestProfile,
@@ -251,6 +252,13 @@ export function ProfileClient() {
                 <span>Edit Profil</span>
               </span>
               <Link
+                href="/wishlist"
+                className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold border bg-white text-foreground border-border hover:bg-surface transition-colors"
+              >
+                <Heart size={14} className="text-red-500" />
+                <span>Wishlist Saya</span>
+              </Link>
+              <Link
                 href="/orders"
                 className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold border bg-white text-foreground border-border hover:bg-surface transition-colors"
               >
@@ -290,6 +298,17 @@ export function ProfileClient() {
                           Aktif
                         </span>
                       </div>
+
+                      <Link
+                        href="/wishlist"
+                        className="w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold text-foreground hover:bg-surface text-foreground-muted hover:text-foreground transition-all"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <Heart size={16} className="text-red-500" />
+                          <span className="truncate">Wishlist Saya</span>
+                        </div>
+                        <ArrowRight size={14} className="text-foreground-muted" />
+                      </Link>
 
                       <Link
                         href="/orders"

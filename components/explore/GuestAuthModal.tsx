@@ -356,6 +356,12 @@ export function GuestAuthModal({
                   <span>Edit Profil</span>
                 </a>
                 <a
+                  href="/wishlist"
+                  className="w-full py-3.5 px-6 rounded-full border border-border bg-white hover:bg-surface text-foreground text-xs font-bold transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
+                >
+                  <span>Wishlist Saya</span>
+                </a>
+                <a
                   href="/orders"
                   className="w-full py-3.5 px-6 rounded-full border border-border bg-white hover:bg-surface text-foreground text-xs font-bold transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
                 >

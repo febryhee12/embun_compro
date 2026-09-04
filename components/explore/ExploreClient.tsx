@@ -4,6 +4,10 @@ import React, { useEffect, useState, useMemo } from 'react';
 import {
   fetchActiveCampsites,
   getStoredGuestProfile,
+  getGuestToken,
+  fetchGuestWishlist,
+  addToWishlist,
+  removeFromWishlist,
   resolveAssetUrl,
   rupiah,
 } from '@/lib/api-client';
@@ -64,7 +68,17 @@ export function ExploreClient() {
       }
     };
 
+    const loadWishlist = async () => {
+      if (!getGuestToken()) return;
+      try {
+        const wishlist = await fetchGuestWishlist();
+        const ids = wishlist.map((item) => item.blockId || item.campsiteId);
+        setFavoriteIds(ids);
+      } catch {}
+    };
+
     void loadData();
+    void loadWishlist();
   }, []);
 
   // 2. Extract All Spots & 360 Tours from Campsites
@@ -304,10 +318,31 @@ export function ExploreClient() {
     return allSpots;
   }, [allSpots]);
 
-  const toggleFavorite = (id: string) => {
+  const toggleFavorite = async (id: string) => {
+    if (!getGuestToken()) {
+      setIsAuthOpen(true);
+      return;
+    }
+
+    const spot = allSpots.find((s) => s.id === id);
+    if (!spot) return;
+
+    const isFav = favoriteIds.includes(id);
     setFavoriteIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+      isFav ? prev.filter((x) => x !== id) : [...prev, id],
     );
+
+    try {
+      if (isFav) {
+        await removeFromWishlist(spot.campsite.id, spot.id);
+      } else {
+        await addToWishlist(spot.campsite.id, spot.id);
+      }
+    } catch {
+      setFavoriteIds((prev) =>
+        isFav ? [...prev, id] : prev.filter((x) => x !== id),
+      );
+    }
   };
 
   const isFilteringActive =

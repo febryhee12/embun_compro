@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Search, User, Menu, MapPin, Calendar, X, Check } from 'lucide-react';
+import { Search, User, Menu, MapPin, Calendar, X, Check, Heart } from 'lucide-react';
 import { resolveAssetUrl } from '@/lib/api-client';
 
 interface ExploreHeaderProps {
@@ -165,8 +165,17 @@ export function ExploreHeader({
             <div className="flex-1" />
           )}
 
-          {/* Right: User Avatar Menu */}
-          <div className="flex items-center gap-3 shrink-0">
+          {/* Right: User Avatar Menu & Wishlist */}
+          <div className="flex items-center gap-2.5 shrink-0">
+            <Link
+              href="/wishlist"
+              className="p-2 rounded-full border border-border hover:bg-surface text-foreground transition-colors cursor-pointer flex items-center justify-center"
+              title="Wishlist Saya"
+              aria-label="Wishlist Saya"
+            >
+              <Heart size={16} className="text-foreground" />
+            </Link>
+
             <button
               type="button"
               onClick={onOpenAuth}

@@ -32,7 +32,13 @@ import {
 } from 'lucide-react';
 import { SpotCard, type SpotData } from '@/components/explore/SpotCard';
 import { GuestAuthModal } from '@/components/explore/GuestAuthModal';
-import { getStoredGuestProfile } from '@/lib/api-client';
+import {
+  getStoredGuestProfile,
+  getGuestToken,
+  fetchGuestWishlist,
+  addToWishlist,
+  removeFromWishlist,
+} from '@/lib/api-client';
 
 function getFacilityIcon(name?: string, id?: string) {
   const lower = (name || id || '').toLowerCase();
@@ -358,6 +364,45 @@ function CampsiteLandingClientInner() {
   useEffect(() => {
     setCurrentUser(getStoredGuestProfile());
   }, []);
+
+  // Check if campsite is in user's wishlist
+  useEffect(() => {
+    if (!getGuestToken() || !campsite) return;
+    let isMounted = true;
+    fetchGuestWishlist()
+      .then((wishlist) => {
+        if (!isMounted) return;
+        const exists = wishlist.some(
+          (w) => w.campsiteId === campsite.id && !w.blockId,
+        );
+        setIsFavorite(exists);
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, [campsite?.id]);
+
+  const handleToggleFavorite = async () => {
+    if (!getGuestToken()) {
+      setIsAuthOpen(true);
+      return;
+    }
+    if (!campsite) return;
+
+    const nextState = !isFavorite;
+    setIsFavorite(nextState);
+
+    try {
+      if (nextState) {
+        await addToWishlist(campsite.id);
+      } else {
+        await removeFromWishlist(campsite.id);
+      }
+    } catch {
+      setIsFavorite(!nextState);
+    }
+  };
 
   // Resolve Campsite Data
   useEffect(() => {
@@ -743,11 +788,11 @@ function CampsiteLandingClientInner() {
             </button>
             <button
               type="button"
-              onClick={() => setIsFavorite(!isFavorite)}
+              onClick={handleToggleFavorite}
               className={`p-2 rounded-full border border-border hover:bg-surface transition-colors cursor-pointer ${
                 isFavorite ? 'text-red-500' : 'text-foreground'
               }`}
-              title="Simpan ke Favorit"
+              title={isFavorite ? 'Hapus dari Favorit' : 'Simpan ke Favorit'}
             >
               <Heart size={16} className={isFavorite ? 'fill-red-500' : ''} />
             </button>

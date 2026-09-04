@@ -382,3 +382,84 @@ export async function fetchCampsiteAvailability(campsiteId: string) {
   }
 }
 
+// ── Wishlist API ─────────────────────────────────────────────────────────────
+
+export interface WishlistCampsiteSummary {
+  id: string;
+  name: string;
+  slug: string;
+  city: string | null;
+  province: string | null;
+  coverPhotoUrl: string | null;
+}
+
+export interface WishlistBlockSummary {
+  id: string;
+  name: string;
+  coverPhotoUrl: string | null;
+}
+
+export interface WishlistItemView {
+  id: string;
+  campsiteId: string;
+  blockId: string | null;
+  createdAt: string;
+  campsite: WishlistCampsiteSummary;
+  block: WishlistBlockSummary | null;
+  available: boolean;
+}
+
+/** `GET /api/guest/wishlist` — fetch the authenticated guest's wishlist items. */
+export async function fetchGuestWishlist(): Promise<WishlistItemView[]> {
+  const res = await fetch(`${API_BASE_URL}/guest/wishlist`, {
+    headers: guestAuthHeaders(),
+    cache: 'no-store',
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new ApiError(err.message || 'Gagal memuat wishlist.', res.status);
+  }
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
+}
+
+/** `POST /api/guest/wishlist` — add a campsite or specific spot to the guest's wishlist. */
+export async function addToWishlist(
+  campsiteId: string,
+  blockId?: string | null,
+): Promise<WishlistItemView> {
+  const res = await fetch(`${API_BASE_URL}/guest/wishlist`, {
+    method: 'POST',
+    headers: guestAuthHeaders(),
+    body: JSON.stringify({
+      campsiteId,
+      ...(blockId ? { blockId } : {}),
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new ApiError(err.message || 'Gagal menambahkan ke wishlist.', res.status);
+  }
+  return res.json();
+}
+
+/** `DELETE /api/guest/wishlist` — remove a campsite or specific spot from the guest's wishlist. */
+export async function removeFromWishlist(
+  campsiteId: string,
+  blockId?: string | null,
+): Promise<{ success: boolean }> {
+  const res = await fetch(`${API_BASE_URL}/guest/wishlist`, {
+    method: 'DELETE',
+    headers: guestAuthHeaders(),
+    body: JSON.stringify({
+      campsiteId,
+      ...(blockId ? { blockId } : {}),
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new ApiError(err.message || 'Gagal menghapus dari wishlist.', res.status);
+  }
+  return res.json();
+}
+

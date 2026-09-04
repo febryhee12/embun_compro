@@ -66,6 +66,9 @@ import {
   ApiError,
   fetchPricingQuote,
   fetchCampsiteAvailability,
+  fetchGuestWishlist,
+  addToWishlist,
+  removeFromWishlist,
 } from '@/lib/api-client';
 import { BookingCalendarModal } from '@/components/explore/BookingCalendarModal';
 import { GuestAuthModal } from '@/components/explore/GuestAuthModal';
@@ -414,6 +417,47 @@ export function SpotRedirectClient() {
   // Share & Favorite state
   const [copied, setCopied] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
+
+  // Check if current spot is in user's wishlist
+  useEffect(() => {
+    if (!getGuestToken() || !activeSpot || !campsite) return;
+    let isMounted = true;
+    fetchGuestWishlist()
+      .then((wishlist) => {
+        if (!isMounted) return;
+        const exists = wishlist.some(
+          (w) =>
+            (activeSpot && w.blockId === activeSpot.id) ||
+            (campsite && w.campsiteId === campsite.id && !w.blockId),
+        );
+        setIsFavorite(exists);
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, [activeSpot?.id, campsite?.id]);
+
+  const handleToggleFavorite = async () => {
+    if (!getGuestToken()) {
+      setIsAuthOpen(true);
+      return;
+    }
+    if (!campsite) return;
+
+    const nextState = !isFavorite;
+    setIsFavorite(nextState);
+
+    try {
+      if (nextState) {
+        await addToWishlist(campsite.id, activeSpot?.id || null);
+      } else {
+        await removeFromWishlist(campsite.id, activeSpot?.id || null);
+      }
+    } catch {
+      setIsFavorite(!nextState);
+    }
+  };
 
   // Date selection
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
@@ -1749,11 +1793,11 @@ export function SpotRedirectClient() {
             </button>
             <button
               type="button"
-              onClick={() => setIsFavorite(!isFavorite)}
+              onClick={handleToggleFavorite}
               className={`p-2 rounded-full border border-border hover:bg-surface transition-colors cursor-pointer ${
                 isFavorite ? 'text-red-500' : 'text-foreground'
               }`}
-              title="Simpan ke Favorit"
+              title={isFavorite ? 'Hapus dari Favorit' : 'Simpan ke Favorit'}
             >
               <Heart size={16} className={isFavorite ? 'fill-red-500' : ''} />
             </button>
