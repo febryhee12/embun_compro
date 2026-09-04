@@ -26,6 +26,10 @@ import {
   Mail,
   LogIn,
   HelpCircle,
+  Printer,
+  FileText,
+  PackageCheck,
+  ScrollText,
 } from 'lucide-react';
 import {
   fetchGuestOrder,
@@ -317,16 +321,90 @@ export function OrderDetailClient() {
   const remainingBalance = Number(order?.remainingBalance) || 0;
   const isUnsettledDP = isPaid && isDP && (!order?.settledAt || remainingBalance > 0);
 
-  return (
-    <div className="min-h-screen bg-[#fafafa] text-foreground flex flex-col justify-between">
-      {/* ═══ HEADER ATAS (LOGO RESMI EMBUN EXPLORE & MENU AKUN, TANPA SEARCH BAR) ═══ */}
-      <ExploreHeader
-        showSearch={false}
-        currentUser={currentUser}
-        onOpenAuth={() => setIsAuthOpen(true)}
-      />
+  const bookingNote =
+    order?.bookingNote || booking?.bookingNote || order?.notes || null;
+  const campsiteRules = order?.campsite?.rules || null;
+  const campsiteHostNotes =
+    order?.campsite?.hostNotes || order?.campsite?.campNotes || null;
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-8 py-8 sm:py-10 flex-1 w-full">
+  const addonLines = React.useMemo(() => {
+    if (!order) return [];
+    const list: Array<{
+      name: string;
+      quantity: number;
+      unitPrice: number;
+      amount: number;
+      perNight?: boolean;
+    }> = [];
+
+    // 1. Dari booking.addons
+    const bAddons = booking?.addons;
+    if (Array.isArray(bAddons) && bAddons.length > 0) {
+      for (const a of bAddons) {
+        const qty = Number(a.quantity) || 1;
+        const total =
+          Number(a.amount ?? a.totalPrice ?? (a.unitPrice ? a.unitPrice * qty : 0)) || 0;
+        const uPrice =
+          Number(a.unitPrice ?? a.price ?? (total ? total / qty : 0)) || 0;
+        list.push({
+          name: a.name || a.label || a.addon?.name || 'Layanan Tambahan',
+          quantity: qty,
+          unitPrice: uPrice,
+          amount: total,
+          perNight: Boolean(a.perNight),
+        });
+      }
+    }
+
+    // 2. Dari booking.breakdown.lines
+    if (list.length === 0 && Array.isArray(booking?.breakdown?.lines)) {
+      for (const l of booking.breakdown.lines) {
+        if (l.code === 'ADDON') {
+          const qty = Number(l.quantity) || 1;
+          const total = Number(l.amount) || 0;
+          const uPrice = Number(l.unitPrice) || (total ? total / qty : 0);
+          list.push({
+            name: l.label || 'Layanan Tambahan',
+            quantity: qty,
+            unitPrice: uPrice,
+            amount: total,
+            perNight: Boolean(l.perNight),
+          });
+        }
+      }
+    }
+
+    // 3. Fallback order.addons
+    if (list.length === 0 && Array.isArray(order.addons)) {
+      for (const a of order.addons) {
+        const qty = Number(a.quantity) || 1;
+        const total = Number(a.amount ?? a.totalPrice ?? 0) || 0;
+        const uPrice = Number(a.unitPrice ?? a.price ?? 0) || 0;
+        list.push({
+          name: a.name || a.label || 'Layanan Tambahan',
+          quantity: qty,
+          unitPrice: uPrice,
+          amount: total,
+          perNight: Boolean(a.perNight),
+        });
+      }
+    }
+
+    return list;
+  }, [order, booking]);
+
+  return (
+    <div className="min-h-screen bg-[#fafafa] text-foreground flex flex-col justify-between print:bg-white">
+      {/* ═══ HEADER ATAS (LOGO RESMI EMBUN EXPLORE & MENU AKUN, TANPA SEARCH BAR) ═══ */}
+      <div className="print:hidden">
+        <ExploreHeader
+          showSearch={false}
+          currentUser={currentUser}
+          onOpenAuth={() => setIsAuthOpen(true)}
+        />
+      </div>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-8 py-8 sm:py-10 flex-1 w-full print:p-0 print:max-w-full">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-28 gap-3 text-foreground-muted">
             <Loader2 size={26} className="animate-spin text-brand-blue" />
@@ -384,35 +462,75 @@ export function OrderDetailClient() {
           </div>
         ) : order ? (
           <div className="space-y-6">
-            {/* ═══ SUBHEADER BREADCRUMB & STATUS BADGE ═══ */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-border/70">
+            {/* Kop Invoice Khusus Mode Cetak / PDF */}
+            <div className="hidden print:flex items-center justify-between border-b-2 border-neutral-900 pb-4 mb-4">
               <div className="flex items-center gap-3">
-                <Link
-                  href="/orders"
-                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full hover:bg-surface text-foreground transition-all group text-xs font-bold border border-border/80 shadow-2xs"
-                >
-                  <ArrowLeft size={15} className="group-hover:-translate-x-0.5 transition-transform text-brand-blue" />
-                  <span>Kembali ke Pesanan</span>
-                </Link>
-                <div className="h-4 w-[1px] bg-border hidden sm:block" />
-                <div className="flex items-center gap-2">
-                  <h1 className="text-xl sm:text-2xl font-black tracking-tight text-foreground">
+                <img
+                  src="/images/logo/logo_blue.svg"
+                  alt="Embun Logo"
+                  className="h-9 w-auto object-contain"
+                />
+              </div>
+              <div className="text-right space-y-0.5">
+                <h2 className="text-lg font-black text-neutral-900 tracking-wider uppercase">
+                  Invoice Pemesanan
+                </h2>
+                <p className="text-[11px] text-neutral-600 font-mono">
+                  Kode: <strong className="text-neutral-900">{shortCode}</strong> · ID: {order.id}
+                </p>
+                <p className="text-[10px] text-neutral-500">
+                  Diterbitkan oleh embun.app · PT Embun Aplikasi Pratama
+                </p>
+              </div>
+            </div>
+
+            {/* Navigasi Breadcrumb */}
+            <div className="print:hidden">
+              <Link
+                href="/orders"
+                className="inline-flex items-center gap-2 text-xs font-bold text-foreground-muted hover:text-brand-blue transition-colors group"
+              >
+                <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform text-brand-blue" />
+                <span>Kembali ke Pesanan Saya</span>
+              </Link>
+            </div>
+
+            {/* Header Judul Halaman & Status / Cetak Invoice */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-border/70">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
                     Detail Pesanan
                   </h1>
                   {shortCode && (
-                    <span className="font-mono text-xs font-semibold text-neutral-600 bg-neutral-100/80 px-2.5 py-0.5 rounded-md border border-neutral-200/80">
+                    <span className="font-mono text-xs font-bold text-neutral-700 bg-neutral-100 px-2.5 py-0.5 rounded-md border border-neutral-200">
                       {shortCode}
                     </span>
                   )}
                 </div>
+                <p className="text-xs text-foreground-muted">
+                  No. Transaksi: <span className="font-mono text-foreground font-semibold">{order.id}</span>
+                </p>
               </div>
-              {badge && (
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-medium tracking-wide border self-start sm:self-auto ${badge.className}`}
+
+              <div className="flex items-center gap-2.5 flex-wrap print:hidden">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-border hover:border-brand-blue hover:text-brand-blue bg-white text-xs font-bold text-foreground transition-all cursor-pointer shadow-2xs hover:bg-brand-blue/5"
+                  title="Cetak atau simpan invoice pemesanan sebagai PDF"
                 >
-                  {badge.label}
-                </span>
-              )}
+                  <Printer size={14} className="text-brand-blue" />
+                  <span>Cetak Invoice</span>
+                </button>
+                {badge && (
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-semibold tracking-wide border shrink-0 ${badge.className}`}
+                  >
+                    {badge.label}
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Error Banner jika ada aksi yang gagal */}
@@ -470,7 +588,7 @@ export function OrderDetailClient() {
                         </p>
 
                         {/* Tombol Kirim E-Tiket ke Email */}
-                        <div className="pt-3 flex flex-wrap items-center gap-2.5">
+                        <div className="pt-3 flex flex-wrap items-center gap-2.5 print:hidden">
                           <button
                             type="button"
                             onClick={handleResendTicket}
@@ -631,7 +749,7 @@ export function OrderDetailClient() {
                     </div>
 
                     {isUnsettledDP ? (
-                      <div className="space-y-3 pt-1">
+                      <div className="space-y-3 pt-1 print:hidden">
                         <div className="p-3.5 rounded-2xl bg-amber-100/60 border border-amber-200 text-amber-900 text-xs leading-relaxed">
                           💡 <strong>Pemberitahuan Pelunasan:</strong> Sisa tagihan wajib dilunasi paling
                           lambat <strong>H-1 sebelum jadwal check-in</strong> melalui aplikasi/web Embun.
@@ -694,7 +812,7 @@ export function OrderDetailClient() {
                   </div>
 
                   {/* Action Links ke Maps / WA */}
-                  <div className="flex items-center gap-2.5 flex-wrap">
+                  <div className="flex items-center gap-2.5 flex-wrap print:hidden">
                     {order.campsite?.googleMapsUrl && (
                       <a
                         href={order.campsite.googleMapsUrl}
@@ -781,12 +899,102 @@ export function OrderDetailClient() {
                     </div>
                   </div>
                 </div>
+
+                {/* ════════════════════════════════════════════════════════════════
+                    5. LAYANAN TAMBAHAN (ADD-ON)
+                ════════════════════════════════════════════════════════════════ */}
+                {addonLines.length > 0 && (
+                  <div className="bg-white rounded-3xl border border-border p-6 sm:p-7 space-y-4 shadow-2xs">
+                    <div className="flex items-center justify-between border-b border-border/70 pb-3">
+                      <h4 className="font-bold text-xs text-foreground uppercase tracking-wider flex items-center gap-2">
+                        <PackageCheck size={16} className="text-brand-blue" />
+                        <span>Layanan Tambahan (Add-on)</span>
+                      </h4>
+                      <span className="text-[11px] font-semibold text-neutral-600 bg-neutral-100 px-2.5 py-0.5 rounded-full border border-neutral-200">
+                        {addonLines.length} Layanan
+                      </span>
+                    </div>
+
+                    <div className="divide-y divide-border/60">
+                      {addonLines.map((item, idx) => (
+                        <div
+                          key={idx}
+                          className="py-3 flex items-start justify-between gap-4 first:pt-0 last:pb-0 text-xs"
+                        >
+                          <div className="space-y-0.5 min-w-0">
+                            <p className="font-bold text-foreground text-sm">{item.name}</p>
+                            <p className="text-[11px] text-foreground-muted">
+                              {item.quantity} × {rupiah(item.unitPrice)}
+                              {item.perNight ? ` · ${nights} malam` : ''}
+                            </p>
+                          </div>
+                          <div className="font-bold text-foreground text-sm shrink-0">
+                            {rupiah(item.amount)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ════════════════════════════════════════════════════════════════
+                    6. CATATAN UNTUK CAMPSITE
+                ════════════════════════════════════════════════════════════════ */}
+                <div className="bg-white rounded-3xl border border-border p-6 sm:p-7 space-y-3 shadow-2xs">
+                  <h4 className="font-bold text-xs text-foreground uppercase tracking-wider flex items-center gap-2">
+                    <FileText size={16} className="text-brand-blue" />
+                    <span>Catatan untuk Campsite</span>
+                  </h4>
+                  {bookingNote ? (
+                    <div className="p-4 rounded-2xl bg-surface/80 border border-border/60 text-xs text-foreground leading-relaxed whitespace-pre-line">
+                      {bookingNote}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-foreground-muted italic">
+                      Tidak ada catatan khusus dari tamu untuk pesanan ini.
+                    </p>
+                  )}
+                </div>
+
+                {/* ════════════════════════════════════════════════════════════════
+                    7. ATURAN & KEBIJAKAN CAMPSITE
+                ════════════════════════════════════════════════════════════════ */}
+                {(campsiteRules || campsiteHostNotes) && (
+                  <div className="bg-white rounded-3xl border border-border p-6 sm:p-7 space-y-4 shadow-2xs">
+                    <h4 className="font-bold text-xs text-foreground uppercase tracking-wider flex items-center gap-2">
+                      <ScrollText size={16} className="text-brand-blue" />
+                      <span>Aturan & Kebijakan Campsite</span>
+                    </h4>
+                    <div className="space-y-3 text-xs">
+                      {campsiteRules && (
+                        <div className="p-4 rounded-2xl bg-amber-50/50 border border-amber-200/60 text-amber-950 space-y-1.5">
+                          <span className="text-[10.5px] font-bold uppercase tracking-wider text-amber-800 block">
+                            Aturan Menginap
+                          </span>
+                          <p className="leading-relaxed whitespace-pre-line text-neutral-700">
+                            {campsiteRules}
+                          </p>
+                        </div>
+                      )}
+                      {campsiteHostNotes && (
+                        <div className="p-4 rounded-2xl bg-surface border border-border/60 text-neutral-700 space-y-1.5">
+                          <span className="text-[10.5px] font-bold uppercase tracking-wider text-foreground-muted block">
+                            Catatan dari Pengelola Campsite
+                          </span>
+                          <p className="leading-relaxed whitespace-pre-line">
+                            {campsiteHostNotes}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* ── KOLOM KANAN (SIDEBAR STICKY: INVOICE & BANTUAN) ── */}
               <aside className="lg:col-span-5 xl:col-span-4 space-y-6 lg:sticky lg:top-24 lg:self-start">
                 {/* ════════════════════════════════════════════════════════════════
-                    5. RINCIAN BIAYA & INVOICE
+                    8. RINCIAN BIAYA & INVOICE
                 ════════════════════════════════════════════════════════════════ */}
                 <div className="bg-white rounded-3xl border border-border p-6 space-y-4 shadow-2xs">
                   <div className="flex items-center justify-between border-b border-border/70 pb-3">
@@ -797,34 +1005,69 @@ export function OrderDetailClient() {
                   </div>
 
                   <div className="space-y-2.5 text-xs">
+                    {/* Biaya Sewa Unit Pokok */}
                     <div className="flex justify-between">
-                      <span className="text-foreground-muted">Sewa {booking?.block?.name || 'Unit'} ({nights} malam)</span>
+                      <span className="text-foreground-muted">
+                        Sewa {booking?.block?.name || 'Unit'} ({nights} malam)
+                      </span>
                       <span className="font-semibold text-foreground">
-                        {rupiah(booking?.totalAmount || order.totalAmount)}
+                        {rupiah(
+                          addonLines.length > 0 && booking?.totalAmount
+                            ? Math.max(
+                                0,
+                                booking.totalAmount -
+                                  addonLines.reduce((s, a) => s + a.amount, 0),
+                              )
+                            : booking?.totalAmount ||
+                                Math.max(
+                                  0,
+                                  order.totalAmount -
+                                    (order.guestServiceFee || 0) -
+                                    (order.guestAdminFee || 0) -
+                                    (order.guestTaxFee || 0) -
+                                    addonLines.reduce((s, a) => s + a.amount, 0),
+                                ),
+                        )}
                       </span>
                     </div>
 
+                    {/* Rincian Item Add-on */}
+                    {addonLines.map((addon, idx) => (
+                      <div key={idx} className="flex justify-between text-xs">
+                        <span className="text-foreground-muted">
+                          {addon.name} ({addon.quantity}x
+                          {addon.perNight ? ` · ${nights} mlm` : ''})
+                        </span>
+                        <span className="font-semibold text-foreground">
+                          {rupiah(addon.amount)}
+                        </span>
+                      </div>
+                    ))}
+
+                    {/* Biaya Layanan */}
                     {order.guestServiceFee > 0 && (
                       <div className="flex justify-between">
-                        <span className="text-foreground-muted">Biaya Layanan Platform</span>
+                        <span className="text-foreground-muted">Biaya Layanan</span>
                         <span className="font-semibold text-foreground">
                           {rupiah(order.guestServiceFee)}
                         </span>
                       </div>
                     )}
 
+                    {/* Biaya Admin */}
                     {order.guestAdminFee > 0 && (
                       <div className="flex justify-between">
-                        <span className="text-foreground-muted">Biaya Admin Payment Gateway</span>
+                        <span className="text-foreground-muted">Biaya Admin</span>
                         <span className="font-semibold text-foreground">
                           {rupiah(order.guestAdminFee)}
                         </span>
                       </div>
                     )}
 
+                    {/* PPN */}
                     {order.guestTaxFee > 0 && (
                       <div className="flex justify-between">
-                        <span className="text-foreground-muted">Pajak (PPN)</span>
+                        <span className="text-foreground-muted">PPN</span>
                         <span className="font-semibold text-foreground">
                           {rupiah(order.guestTaxFee)}
                         </span>
@@ -852,9 +1095,21 @@ export function OrderDetailClient() {
                     )}
                   </div>
 
+                  {/* Tombol Cetak Invoice Resmi */}
+                  <div className="pt-3 border-t border-border/60 print:hidden">
+                    <button
+                      type="button"
+                      onClick={() => window.print()}
+                      className="w-full py-3 px-4 rounded-full border border-border bg-white hover:bg-surface text-brand-blue font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs hover:border-brand-blue"
+                    >
+                      <Printer size={15} />
+                      <span>Cetak Invoice / Unduh PDF</span>
+                    </button>
+                  </div>
+
                   {/* Tombol Aksi Pembayaran jika Pending */}
                   {isPending && (
-                    <div className="pt-2">
+                    <div className="pt-2 print:hidden">
                       <button
                         type="button"
                         onClick={handlePayNow}
@@ -868,7 +1123,7 @@ export function OrderDetailClient() {
                   )}
 
                   {/* Tombol Sinkronisasi Status */}
-                  <div className="pt-2 border-t border-border/60">
+                  <div className="pt-2 border-t border-border/60 print:hidden">
                     <button
                       type="button"
                       onClick={handleSync}
@@ -882,9 +1137,9 @@ export function OrderDetailClient() {
                 </div>
 
                 {/* ════════════════════════════════════════════════════════════════
-                    6. WIDGET BANTUAN PELANGGAN CS
+                    9. WIDGET BANTUAN PELANGGAN CS
                 ════════════════════════════════════════════════════════════════ */}
-                <div className="p-6 rounded-3xl bg-white border border-border/80 shadow-2xs space-y-3">
+                <div className="p-6 rounded-3xl bg-white border border-border/80 shadow-2xs space-y-3 print:hidden">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-2xl bg-brand-blue/8 flex items-center justify-center text-brand-blue shrink-0 border border-brand-blue/15">
                       <HelpCircle size={20} />
@@ -923,7 +1178,9 @@ export function OrderDetailClient() {
       </main>
 
       {/* ═══ FOOTER RESMI EXPLORE ═══ */}
-      <ExploreFooter />
+      <div className="print:hidden">
+        <ExploreFooter />
+      </div>
 
       {/* Guest Auth Modal */}
       <GuestAuthModal
