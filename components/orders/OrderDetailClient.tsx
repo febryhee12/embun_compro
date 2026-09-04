@@ -24,6 +24,8 @@ import {
   XCircle,
   Clock3,
   Mail,
+  LogIn,
+  HelpCircle,
 } from 'lucide-react';
 import {
   fetchGuestOrder,
@@ -34,11 +36,15 @@ import {
   initiateXenditPayment,
   getGuestToken,
   clearGuestSession,
+  getStoredGuestProfile,
   resolveAssetUrl,
   rupiah,
   ApiError,
 } from '@/lib/api-client';
+import { ExploreHeader } from '@/components/explore/ExploreHeader';
 import { ExploreFooter } from '@/components/explore/ExploreFooter';
+import { GuestAuthModal } from '@/components/explore/GuestAuthModal';
+import { CompleteProfileModal } from '@/components/explore/CompleteProfileModal';
 
 function getOrderBadge(order: any) {
   if (order.status === 'PAID') {
@@ -135,6 +141,24 @@ export function OrderDetailClient() {
   const [authRequired, setAuthRequired] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any | null>(null);
+  const [isCompleteProfileOpen, setIsCompleteProfileOpen] = useState(false);
+
+  useEffect(() => {
+    setCurrentUser(getStoredGuestProfile());
+  }, []);
+
+  const handleLoginSuccess = (user?: any) => {
+    setIsAuthOpen(false);
+    setAuthRequired(false);
+    if (user) {
+      setCurrentUser(user);
+    } else {
+      setCurrentUser(getStoredGuestProfile());
+    }
+    void load();
+  };
 
   // Action states
   const [paying, setPaying] = useState(false);
@@ -294,58 +318,103 @@ export function OrderDetailClient() {
   const isUnsettledDP = isPaid && isDP && (!order?.settledAt || remainingBalance > 0);
 
   return (
-    <div className="min-h-screen bg-[#fafafa] text-foreground">
-      {/* Header Sticky */}
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-border/70">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/orders"
-              className="p-2 -ml-2 rounded-full hover:bg-surface text-foreground transition-colors"
-              aria-label="Kembali"
-            >
-              <ArrowLeft size={20} className="stroke-[2.2]" />
-            </Link>
-            <div>
-              <h1 className="font-bold text-base text-foreground tracking-tight">Detail Pesanan</h1>
-              <p className="text-[11px] text-foreground-muted font-mono">{shortCode}</p>
-            </div>
-          </div>
-          {badge && (
-            <span
-              className={`px-3 py-1 rounded-full text-xs font-bold tracking-wide border shrink-0 ${badge.className}`}
-            >
-              {badge.label}
-            </span>
-          )}
-        </div>
-      </header>
+    <div className="min-h-screen bg-[#fafafa] text-foreground flex flex-col justify-between">
+      {/* ═══ HEADER ATAS (LOGO RESMI EMBUN EXPLORE & MENU AKUN, TANPA SEARCH BAR) ═══ */}
+      <ExploreHeader
+        showSearch={false}
+        currentUser={currentUser}
+        onOpenAuth={() => setIsAuthOpen(true)}
+      />
 
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-8 py-8 sm:py-10 flex-1 w-full">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-28 gap-3 text-foreground-muted">
             <Loader2 size={26} className="animate-spin text-brand-blue" />
             <p className="text-xs font-semibold">Memuat rincian pesanan...</p>
           </div>
         ) : authRequired ? (
-          <div className="text-center py-20 bg-white rounded-3xl border border-border p-8 space-y-4 shadow-2xs max-w-md mx-auto">
-            <h3 className="font-bold text-base text-foreground">Masuk Terlebih Dahulu</h3>
-            <p className="text-xs text-foreground-muted">
-              Silakan masuk ke akun Anda untuk melihat rincian pemesanan ini.
-            </p>
-            <Link
-              href="/explore"
-              className="inline-flex items-center justify-center w-full py-3 rounded-full bg-brand-blue text-white text-xs font-bold shadow-md hover:bg-brand-blue-hover transition-all"
+          <div className="text-center py-20 bg-white rounded-3xl border border-border p-8 space-y-5 shadow-2xs max-w-md mx-auto my-12">
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-brand-blue/8 flex items-center justify-center p-3 border border-brand-blue/15 shadow-2xs">
+              <img
+                src="/images/logo/logogram_blue.svg"
+                alt="Embun"
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-bold text-base text-foreground">Masuk ke Akun Anda</h3>
+              <p className="text-xs text-foreground-muted leading-relaxed">
+                Sesi masuk Anda telah berakhir atau belum aktif. Silakan masuk untuk melihat rincian pemesanan ini.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsAuthOpen(true)}
+              className="inline-flex items-center justify-center gap-2 w-full py-3.5 rounded-full bg-brand-blue text-white text-xs font-bold shadow-md hover:bg-brand-blue-hover transition-all cursor-pointer"
             >
-              Ke Halaman Explore
-            </Link>
+              <LogIn size={15} />
+              <span>Masuk Sekarang</span>
+            </button>
+            <div>
+              <Link
+                href="/orders"
+                className="text-xs font-semibold text-foreground-muted hover:text-foreground transition-colors"
+              >
+                Kembali ke Pesanan Saya
+              </Link>
+            </div>
           </div>
         ) : error && !order ? (
-          <div className="p-6 text-center bg-red-50 rounded-3xl border border-red-200 text-red-700 text-sm max-w-md mx-auto">
-            {error}
+          <div className="p-8 text-center bg-white rounded-3xl border border-border text-foreground text-sm max-w-md mx-auto my-12 space-y-4 shadow-2xs">
+            <div className="w-12 h-12 mx-auto rounded-full bg-red-50 text-red-600 flex items-center justify-center">
+              <AlertCircle size={22} />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-bold text-sm text-foreground">Gagal Memuat Detail</h3>
+              <p className="text-xs text-foreground-muted">{error}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => void load()}
+              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-brand-blue text-white text-xs font-bold hover:bg-brand-blue-hover transition-all cursor-pointer shadow-xs"
+            >
+              <RefreshCw size={13} />
+              <span>Coba Lagi</span>
+            </button>
           </div>
         ) : order ? (
           <div className="space-y-6">
+            {/* ═══ SUBHEADER BREADCRUMB & STATUS BADGE ═══ */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-border/70">
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/orders"
+                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full hover:bg-surface text-foreground transition-all group text-xs font-bold border border-border/80 shadow-2xs"
+                >
+                  <ArrowLeft size={15} className="group-hover:-translate-x-0.5 transition-transform text-brand-blue" />
+                  <span>Kembali ke Pesanan</span>
+                </Link>
+                <div className="h-4 w-[1px] bg-border hidden sm:block" />
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl sm:text-2xl font-black tracking-tight text-foreground">
+                    Detail Pesanan
+                  </h1>
+                  {shortCode && (
+                    <span className="font-mono text-xs font-semibold text-neutral-600 bg-neutral-100/80 px-2.5 py-0.5 rounded-md border border-neutral-200/80">
+                      {shortCode}
+                    </span>
+                  )}
+                </div>
+              </div>
+              {badge && (
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-medium tracking-wide border self-start sm:self-auto ${badge.className}`}
+                >
+                  {badge.label}
+                </span>
+              )}
+            </div>
+
             {/* Error Banner jika ada aksi yang gagal */}
             {error && (
               <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2">
@@ -354,449 +423,530 @@ export function OrderDetailClient() {
               </div>
             )}
 
-            {/* ════════════════════════════════════════════════════════════════
-                1. KARTU STATUS HERO
-                - HANYA TAMPILKAN TIKET RESMI & QR CODE SCAN JIKA ORDER SUDAH LUNAS / TERBAYAR (PAID/COMPLETE)
-            ════════════════════════════════════════════════════════════════ */}
-            {isPaid ? (
-              /* KARTU TIKET RESMI TERKONFIRMASI (HANYA UNTUK YANG SUDAH BAYAR) */
-              <div className="bg-white rounded-3xl border border-border p-6 shadow-2xs">
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-                  <div className="space-y-2 text-center sm:text-left flex-1">
-                    <div className="flex items-center justify-center sm:justify-start gap-1.5 text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-full w-fit mx-auto sm:mx-0">
-                      <ShieldCheck size={14} />
-                      <span className="text-[10.5px] uppercase font-bold tracking-wider">
-                        Tiket Resmi Terkonfirmasi
+            {/* ═══ GRID RESPONSIVE 2 KOLOM (DESKTOP) ═══ */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+              {/* ── KOLOM KIRI (KONTEN UTAMA) ── */}
+              <div className="lg:col-span-7 xl:col-span-8 space-y-6">
+                {/* ════════════════════════════════════════════════════════════════
+                    1. KARTU STATUS HERO
+                ════════════════════════════════════════════════════════════════ */}
+                {isPaid ? (
+                  /* KARTU TIKET RESMI TERKONFIRMASI */
+                  <div className="bg-white rounded-3xl border border-border p-6 sm:p-7 shadow-2xs">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+                      <div className="space-y-2 text-center sm:text-left flex-1">
+                        <div className="flex items-center justify-center sm:justify-start gap-1.5 text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-full w-fit mx-auto sm:mx-0">
+                          <ShieldCheck size={14} />
+                          <span className="text-[10.5px] uppercase font-bold tracking-wider">
+                            Tiket Resmi Terkonfirmasi
+                          </span>
+                        </div>
+
+                        <div>
+                          <span className="text-[11px] uppercase font-bold tracking-wider text-foreground-muted block">
+                            Kode Booking
+                          </span>
+                          <div className="flex items-center justify-center sm:justify-start gap-2 mt-0.5">
+                            <span className="text-2xl sm:text-3xl font-black text-brand-blue tracking-wider font-mono">
+                              {shortCode}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleCopyCode(shortCode)}
+                              className="p-1.5 rounded-xl border border-border bg-white hover:bg-surface text-foreground-muted hover:text-foreground cursor-pointer transition-colors"
+                              title="Salin Kode"
+                            >
+                              {copied ? (
+                                <Check size={16} className="text-emerald-600" />
+                              ) : (
+                                <Copy size={16} />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+
+                        <p className="text-[11px] text-foreground-muted font-mono break-all pt-1">
+                          No. Transaksi: <span className="text-foreground">{order.id}</span>
+                        </p>
+
+                        {/* Tombol Kirim E-Tiket ke Email */}
+                        <div className="pt-3 flex flex-wrap items-center gap-2.5">
+                          <button
+                            type="button"
+                            onClick={handleResendTicket}
+                            disabled={resendingTicket}
+                            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-brand-blue/10 hover:bg-brand-blue/20 text-brand-blue text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+                            title="Kirim E-Tiket HTML resmi ke alamat email akun Anda"
+                          >
+                            {resendingTicket ? (
+                              <Loader2 size={14} className="animate-spin" />
+                            ) : (
+                              <Mail size={14} />
+                            )}
+                            <span>Kirim E-Tiket ke Email</span>
+                          </button>
+                          {ticketSentNotice && (
+                            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl animate-in fade-in">
+                              {ticketSentNotice}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* QR Code Container Check-in */}
+                      <div className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white border border-border shadow-xs shrink-0 self-center sm:self-auto">
+                        <div className="w-44 h-44 sm:w-48 sm:h-48 bg-surface flex items-center justify-center rounded-2xl p-2.5 border border-border/60">
+                          <img
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(
+                              order.id,
+                            )}`}
+                            alt="QR Code Check-in"
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                        <span className="text-[11px] font-bold text-foreground-muted flex items-center gap-1.5">
+                          <QrCode size={13} className="text-brand-blue" />
+                          Scan untuk Check-in
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ) : isExpired ? (
+                  /* KARTU STATUS KEDALUWARSA */
+                  <div className="bg-neutral-50 rounded-3xl border border-neutral-300/80 p-6 sm:p-7 shadow-2xs space-y-4">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-1.5 text-neutral-700 bg-neutral-200/70 border border-neutral-300 px-2.5 py-1 rounded-full w-fit">
+                          <Clock3 size={14} />
+                          <span className="text-[10.5px] uppercase font-bold tracking-wider">
+                            Batas Waktu Pembayaran Berakhir
+                          </span>
+                        </div>
+                        <h2 className="text-lg font-extrabold text-foreground">
+                          Pesanan Ini Telah Kedaluwarsa
+                        </h2>
+                        <p className="text-xs text-foreground-muted max-w-md leading-relaxed">
+                          Batas waktu pembayaran untuk transaksi ini telah habis. Kuota unit penginapan telah
+                          dilepaskan kembali dan <strong>tiket tidak berlaku untuk check-in</strong>.
+                        </p>
+                      </div>
+
+                      <Link
+                        href="/explore"
+                        className="px-5 py-2.5 rounded-full bg-brand-blue text-white text-xs font-bold shadow-xs hover:bg-brand-blue-hover transition-all shrink-0"
+                      >
+                        Pesan Ulang di Explore
+                      </Link>
+                    </div>
+                    <div className="p-3 rounded-2xl bg-white border border-neutral-200 text-neutral-600 text-[11px] font-mono">
+                      No. Transaksi: {order.id} · Kedaluwarsa pada {order.paymentExpiresAt ? formatDateDisplay(order.paymentExpiresAt) : '-'}
+                    </div>
+                  </div>
+                ) : isCancelled ? (
+                  /* KARTU STATUS DIBATALKAN */
+                  <div className="bg-red-50/70 rounded-3xl border border-red-200 p-6 sm:p-7 shadow-2xs space-y-4">
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-1.5 text-red-700 bg-red-100/80 border border-red-200 px-2.5 py-1 rounded-full w-fit">
+                        <XCircle size={14} />
+                        <span className="text-[10.5px] uppercase font-bold tracking-wider">
+                          Pesanan Dibatalkan
+                        </span>
+                      </div>
+                      <h2 className="text-lg font-extrabold text-red-950">
+                        Pemesanan Ini Telah Dibatalkan
+                      </h2>
+                      <p className="text-xs text-red-800/80 max-w-md leading-relaxed">
+                        Pesanan ini tidak dapat digunakan untuk menginap di campsite.
+                      </p>
+                    </div>
+                  </div>
+                ) : isPending ? (
+                  /* KARTU STATUS MENUNGGU PEMBAYARAN */
+                  <div className="bg-amber-50/70 rounded-3xl border border-amber-200/90 p-6 sm:p-7 shadow-2xs space-y-4">
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-1.5 text-amber-800 bg-amber-100/80 border border-amber-200 px-2.5 py-1 rounded-full w-fit">
+                        <Clock size={14} />
+                        <span className="text-[10.5px] uppercase font-bold tracking-wider">
+                          Menunggu Pembayaran
+                        </span>
+                      </div>
+                      <h2 className="text-lg font-extrabold text-amber-950">
+                        Selesaikan Pembayaran via Xendit
+                      </h2>
+                      <p className="text-xs text-amber-900/80 max-w-md leading-relaxed">
+                        Silakan selesaikan pembayaran sebelum batas waktu berakhir untuk menerbitkan <strong>E-Tiket & QR Code Check-in resmi</strong>.
+                      </p>
+                    </div>
+
+                    <div className="pt-2">
+                      <button
+                        type="button"
+                        onClick={handlePayNow}
+                        disabled={paying}
+                        className="w-full sm:w-auto py-3 px-6 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                      >
+                        {paying ? <Loader2 size={15} className="animate-spin" /> : <CreditCard size={15} />}
+                        <span>{paying ? 'Menghubungkan ke Xendit...' : `Bayar Sekarang · ${rupiah(order.totalAmount)}`}</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* ════════════════════════════════════════════════════════════════
+                    2. CARD SKEMA DP 50% (JIKA BERLAKU)
+                ════════════════════════════════════════════════════════════════ */}
+                {isPaid && isDP && (
+                  <div className="bg-amber-50/70 border border-amber-200/90 rounded-3xl p-6 sm:p-7 space-y-4">
+                    <div className="flex items-center justify-between border-b border-amber-200/60 pb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
+                        <span className="text-xs font-bold uppercase tracking-wider text-amber-900">
+                          Skema Pembayaran: Uang Muka (DP 50%)
+                        </span>
+                      </div>
+                      <span
+                        className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${
+                          isUnsettledDP
+                            ? 'bg-amber-100 text-amber-800 border-amber-300'
+                            : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                        }`}
+                      >
+                        {isUnsettledDP ? 'Belum Dilunasi' : 'Lunas'}
                       </span>
                     </div>
 
-                    <div>
-                      <span className="text-[11px] uppercase font-bold tracking-wider text-foreground-muted block">
-                        Kode Booking
-                      </span>
-                      <div className="flex items-center justify-center sm:justify-start gap-2 mt-0.5">
-                        <span className="text-2xl sm:text-3xl font-black text-brand-blue tracking-wider font-mono">
-                          {shortCode}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleCopyCode(shortCode)}
-                          className="p-1.5 rounded-xl border border-border bg-white hover:bg-surface text-foreground-muted hover:text-foreground cursor-pointer transition-colors"
-                          title="Salin Kode"
-                        >
-                          {copied ? (
-                            <Check size={16} className="text-emerald-600" />
-                          ) : (
-                            <Copy size={16} />
-                          )}
-                        </button>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                      <div className="p-3.5 rounded-2xl bg-white/80 border border-amber-200/50 space-y-1">
+                        <span className="text-amber-800/80 font-medium">DP Dibayar Online</span>
+                        <p className="text-base font-black text-foreground">
+                          {rupiah(order.downPaymentAmount || order.totalAmount)}
+                        </p>
+                      </div>
+                      <div className="p-3.5 rounded-2xl bg-white/80 border border-amber-200/50 space-y-1">
+                        <span className="text-amber-800/80 font-medium">Sisa Tagihan Pelunasan</span>
+                        <p className="text-base font-black text-amber-900">
+                          {rupiah(remainingBalance)}
+                        </p>
                       </div>
                     </div>
 
-                    <p className="text-[11px] text-foreground-muted font-mono break-all pt-1">
-                      No. Transaksi: <span className="text-foreground">{order.id}</span>
-                    </p>
+                    {isUnsettledDP ? (
+                      <div className="space-y-3 pt-1">
+                        <div className="p-3.5 rounded-2xl bg-amber-100/60 border border-amber-200 text-amber-900 text-xs leading-relaxed">
+                          💡 <strong>Pemberitahuan Pelunasan:</strong> Sisa tagihan wajib dilunasi paling
+                          lambat <strong>H-1 sebelum jadwal check-in</strong> melalui aplikasi/web Embun.
+                        </div>
 
-                    {/* Tombol Kirim E-Tiket ke Email */}
-                    <div className="pt-3 flex flex-wrap items-center gap-2.5">
+                        <button
+                          type="button"
+                          onClick={handleSettleDP}
+                          disabled={settling}
+                          className="w-full py-3.5 px-6 rounded-full bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                        >
+                          {settling ? (
+                            <Loader2 size={16} className="animate-spin" />
+                          ) : (
+                            <CreditCard size={16} />
+                          )}
+                          <span>
+                            {settling
+                              ? 'Membuka Invoice Pelunasan...'
+                              : `Lunasi Sisa Tagihan Sekarang · ${rupiah(remainingBalance)}`}
+                          </span>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="p-3 rounded-2xl bg-emerald-100/70 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2">
+                        <Check size={16} className="text-emerald-700" />
+                        <span>Tagihan DP pesanan ini sudah berhasil dilunasi sepenuhnya.</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* ════════════════════════════════════════════════════════════════
+                    3. PROPERTI & JADWAL MENGINAP
+                ════════════════════════════════════════════════════════════════ */}
+                <div className="bg-white rounded-3xl border border-border p-6 sm:p-7 space-y-5 shadow-2xs">
+                  <div className="flex items-start justify-between gap-4 pb-4 border-b border-border/70">
+                    <div className="space-y-1.5 min-w-0">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold uppercase tracking-wider bg-brand-blue/8 text-brand-blue">
+                        {order.campsite?.name || 'Campsite'}
+                      </span>
+                      <h3 className="font-extrabold text-lg sm:text-xl text-foreground">
+                        {booking?.block?.name || 'Unit Penginapan'}
+                      </h3>
+                      <p className="text-xs text-foreground-muted">
+                        {booking?.packageName ? `${booking.packageName} · ` : ''}
+                        {order.campsite?.address || order.campsite?.city}
+                      </p>
+                    </div>
+
+                    {order.campsite?.coverPhotoUrl && (
+                      <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border border-border shrink-0">
+                        <img
+                          src={resolveAssetUrl(order.campsite.coverPhotoUrl)}
+                          alt="Campsite"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action Links ke Maps / WA */}
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    {order.campsite?.googleMapsUrl && (
+                      <a
+                        href={order.campsite.googleMapsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-border hover:bg-surface text-xs font-semibold text-foreground transition-colors"
+                      >
+                        <MapPin size={13} className="text-brand-blue" />
+                        <span>Buka Google Maps</span>
+                        <ExternalLink size={11} className="text-foreground-muted" />
+                      </a>
+                    )}
+                    {order.campsite?.emergencyWhatsapp && (
+                      <a
+                        href={`https://wa.me/${order.campsite.emergencyWhatsapp.replace(/\D/g, '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50 text-xs font-semibold text-emerald-800 transition-colors"
+                      >
+                        <MessageCircle size={13} className="text-emerald-600" />
+                        <span>Hubungi Pengelola Camp</span>
+                      </a>
+                    )}
+                  </div>
+
+                  {/* Check-In / Check-Out Grid */}
+                  <div className="grid grid-cols-2 gap-3.5 text-xs">
+                    <div className="p-4 rounded-2xl bg-surface/80 border border-border/60 space-y-1">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-foreground-muted flex items-center gap-1">
+                        <Calendar size={13} className="text-brand-blue" /> Check-In
+                      </span>
+                      <p className="font-bold text-foreground text-sm">
+                        {formatDateDisplay(booking?.checkIn)}
+                      </p>
+                      <p className="text-[11px] text-foreground-muted">
+                        Mulai {order.campsite?.checkInTime || '14:00'} WIB
+                      </p>
+                    </div>
+
+                    <div className="p-4 rounded-2xl bg-surface/80 border border-border/60 space-y-1">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-foreground-muted flex items-center gap-1">
+                        <Calendar size={13} className="text-brand-blue" /> Check-Out
+                      </span>
+                      <p className="font-bold text-foreground text-sm">
+                        {formatDateDisplay(booking?.checkOut)}
+                      </p>
+                      <p className="text-[11px] text-foreground-muted">
+                        Maksimal {order.campsite?.checkOutTime || '12:00'} WIB
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs pt-1 px-1">
+                    <span className="text-foreground-muted flex items-center gap-1.5">
+                      <Users size={14} className="text-brand-blue" />
+                      Jumlah Tamu: <strong className="text-foreground">{booking?.adultCount || 2} Orang</strong>
+                    </span>
+                    <span className="text-foreground-muted flex items-center gap-1.5">
+                      <Clock size={14} className="text-brand-blue" />
+                      Durasi: <strong className="text-brand-blue">{nights} Malam</strong>
+                    </span>
+                  </div>
+                </div>
+
+                {/* ════════════════════════════════════════════════════════════════
+                    4. DATA TAMU PEMESAN
+                ════════════════════════════════════════════════════════════════ */}
+                <div className="bg-white rounded-3xl border border-border p-6 sm:p-7 space-y-3 shadow-2xs">
+                  <h4 className="font-bold text-xs text-foreground uppercase tracking-wider">
+                    Data Tamu Pemesan
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div className="p-3.5 rounded-2xl bg-surface border border-border/50">
+                      <span className="text-foreground-muted block text-[10.5px]">Nama Lengkap</span>
+                      <strong className="text-foreground text-sm">
+                        {order.guestName || 'Tamu Embun'}
+                      </strong>
+                    </div>
+                    <div className="p-3.5 rounded-2xl bg-surface border border-border/50">
+                      <span className="text-foreground-muted block text-[10.5px]">Nomor WhatsApp</span>
+                      <strong className="text-foreground text-sm">
+                        {order.guestPhone || '-'}
+                      </strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ── KOLOM KANAN (SIDEBAR STICKY: INVOICE & BANTUAN) ── */}
+              <aside className="lg:col-span-5 xl:col-span-4 space-y-6 lg:sticky lg:top-24 lg:self-start">
+                {/* ════════════════════════════════════════════════════════════════
+                    5. RINCIAN BIAYA & INVOICE
+                ════════════════════════════════════════════════════════════════ */}
+                <div className="bg-white rounded-3xl border border-border p-6 space-y-4 shadow-2xs">
+                  <div className="flex items-center justify-between border-b border-border/70 pb-3">
+                    <h4 className="font-bold text-xs text-foreground uppercase tracking-wider flex items-center gap-1.5">
+                      <Receipt size={14} className="text-brand-blue" />
+                      Rincian Pembayaran
+                    </h4>
+                  </div>
+
+                  <div className="space-y-2.5 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-foreground-muted">Sewa {booking?.block?.name || 'Unit'} ({nights} malam)</span>
+                      <span className="font-semibold text-foreground">
+                        {rupiah(booking?.totalAmount || order.totalAmount)}
+                      </span>
+                    </div>
+
+                    {order.guestServiceFee > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-foreground-muted">Biaya Layanan Platform</span>
+                        <span className="font-semibold text-foreground">
+                          {rupiah(order.guestServiceFee)}
+                        </span>
+                      </div>
+                    )}
+
+                    {order.guestAdminFee > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-foreground-muted">Biaya Admin Payment Gateway</span>
+                        <span className="font-semibold text-foreground">
+                          {rupiah(order.guestAdminFee)}
+                        </span>
+                      </div>
+                    )}
+
+                    {order.guestTaxFee > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-foreground-muted">Pajak (PPN)</span>
+                        <span className="font-semibold text-foreground">
+                          {rupiah(order.guestTaxFee)}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="pt-3 border-t border-border flex justify-between items-center text-sm">
+                      <span className="font-bold text-foreground">Total Tagihan Transaksi</span>
+                      <span className="text-base font-black text-brand-blue">
+                        {rupiah(order.totalAmount)}
+                      </span>
+                    </div>
+
+                    {isPaid && isDP && (
+                      <div className="pt-2.5 border-t border-border/60 space-y-1.5 text-xs">
+                        <div className="flex justify-between text-emerald-700 font-medium">
+                          <span>Sudah Dibayar (DP Online)</span>
+                          <span>{rupiah(order.downPaymentAmount || order.totalAmount)}</span>
+                        </div>
+                        <div className="flex justify-between text-amber-900 font-bold">
+                          <span>Sisa Tagihan Belum Dibayar</span>
+                          <span>{rupiah(remainingBalance)}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Tombol Aksi Pembayaran jika Pending */}
+                  {isPending && (
+                    <div className="pt-2">
                       <button
                         type="button"
-                        onClick={handleResendTicket}
-                        disabled={resendingTicket}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-brand-blue/10 hover:bg-brand-blue/20 text-brand-blue text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
-                        title="Kirim E-Tiket HTML resmi ke alamat email akun Anda"
+                        onClick={handlePayNow}
+                        disabled={paying}
+                        className="w-full py-3 px-6 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
                       >
-                        {resendingTicket ? (
-                          <Loader2 size={14} className="animate-spin" />
-                        ) : (
-                          <Mail size={14} />
-                        )}
-                        <span>Kirim E-Tiket ke Email</span>
+                        {paying ? <Loader2 size={15} className="animate-spin" /> : <CreditCard size={15} />}
+                        <span>{paying ? 'Menghubungkan ke Xendit...' : `Bayar Sekarang · ${rupiah(order.totalAmount)}`}</span>
                       </button>
-                      {ticketSentNotice && (
-                        <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl animate-in fade-in">
-                          {ticketSentNotice}
-                        </span>
-                      )}
                     </div>
-                  </div>
+                  )}
 
-                  {/* QR Code Container Check-in (Perbesar agar mudah discan) */}
-                  <div className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white border border-border shadow-xs shrink-0 self-center sm:self-auto">
-                    <div className="w-44 h-44 sm:w-48 sm:h-48 bg-surface flex items-center justify-center rounded-2xl p-2.5 border border-border/60">
-                      <img
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(
-                          order.id,
-                        )}`}
-                        alt="QR Code Check-in"
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    <span className="text-[11px] font-bold text-foreground-muted flex items-center gap-1.5">
-                      <QrCode size={13} className="text-brand-blue" />
-                      Scan untuk Check-in
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ) : isExpired ? (
-              /* KARTU STATUS KEDALUWARSA (TIDAK ADA TIKET & TIDAK ADA QR CHECK-IN) */
-              <div className="bg-neutral-50 rounded-3xl border border-neutral-300/80 p-6 shadow-2xs space-y-4">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-1.5 text-neutral-700 bg-neutral-200/70 border border-neutral-300 px-2.5 py-1 rounded-full w-fit">
-                      <Clock3 size={14} />
-                      <span className="text-[10.5px] uppercase font-bold tracking-wider">
-                        Batas Waktu Pembayaran Berakhir
-                      </span>
-                    </div>
-                    <h2 className="text-lg font-extrabold text-foreground">
-                      Pesanan Ini Telah Kedaluwarsa
-                    </h2>
-                    <p className="text-xs text-foreground-muted max-w-md leading-relaxed">
-                      Batas waktu pembayaran untuk transaksi ini telah habis. Kuota unit penginapan telah
-                      dilepaskan kembali dan <strong>tiket tidak berlaku untuk check-in</strong>.
-                    </p>
-                  </div>
-
-                  <Link
-                    href="/explore"
-                    className="px-5 py-2.5 rounded-full bg-brand-blue text-white text-xs font-bold shadow-xs hover:bg-brand-blue-hover transition-all shrink-0"
-                  >
-                    Pesan Ulang di Explore
-                  </Link>
-                </div>
-                <div className="p-3 rounded-2xl bg-white border border-neutral-200 text-neutral-600 text-[11px] font-mono">
-                  No. Transaksi: {order.id} · Kedaluwarsa pada {order.paymentExpiresAt ? formatDateDisplay(order.paymentExpiresAt) : '-'}
-                </div>
-              </div>
-            ) : isCancelled ? (
-              /* KARTU STATUS DIBATALKAN */
-              <div className="bg-red-50/70 rounded-3xl border border-red-200 p-6 shadow-2xs space-y-4">
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-red-700 bg-red-100/80 border border-red-200 px-2.5 py-1 rounded-full w-fit">
-                    <XCircle size={14} />
-                    <span className="text-[10.5px] uppercase font-bold tracking-wider">
-                      Pesanan Dibatalkan
-                    </span>
-                  </div>
-                  <h2 className="text-lg font-extrabold text-red-950">
-                    Pemesanan Ini Telah Dibatalkan
-                  </h2>
-                  <p className="text-xs text-red-800/80 max-w-md leading-relaxed">
-                    Pesanan ini tidak dapat digunakan untuk menginap di campsite.
-                  </p>
-                </div>
-              </div>
-            ) : isPending ? (
-              /* KARTU STATUS MENUNGGU PEMBAYARAN */
-              <div className="bg-amber-50/70 rounded-3xl border border-amber-200/90 p-6 shadow-2xs space-y-4">
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-amber-800 bg-amber-100/80 border border-amber-200 px-2.5 py-1 rounded-full w-fit">
-                    <Clock size={14} />
-                    <span className="text-[10.5px] uppercase font-bold tracking-wider">
-                      Menunggu Pembayaran
-                    </span>
-                  </div>
-                  <h2 className="text-lg font-extrabold text-amber-950">
-                    Selesaikan Pembayaran via Xendit
-                  </h2>
-                  <p className="text-xs text-amber-900/80 max-w-md leading-relaxed">
-                    Silakan selesaikan pembayaran sebelum batas waktu berakhir untuk menerbitkan <strong>E-Tiket & QR Code Check-in resmi</strong>.
-                  </p>
-                </div>
-
-                <div className="pt-2">
-                  <button
-                    type="button"
-                    onClick={handlePayNow}
-                    disabled={paying}
-                    className="w-full sm:w-auto py-3 px-6 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
-                  >
-                    {paying ? <Loader2 size={15} className="animate-spin" /> : <CreditCard size={15} />}
-                    <span>{paying ? 'Menghubungkan ke Xendit...' : `Bayar Sekarang · ${rupiah(order.totalAmount)}`}</span>
-                  </button>
-                </div>
-              </div>
-            ) : null}
-
-            {/* ════════════════════════════════════════════════════════════════
-                2. CARD KHUSUS SKEMA DP (HANYA JIKA PESANAN AKTIF / SUDAH DIBAYAR)
-            ════════════════════════════════════════════════════════════════ */}
-            {isPaid && isDP && (
-              <div className="bg-amber-50/70 border border-amber-200/90 rounded-3xl p-6 space-y-4">
-                <div className="flex items-center justify-between border-b border-amber-200/60 pb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-amber-900">
-                      Skema Pembayaran: Uang Muka (DP 50%)
-                    </span>
-                  </div>
-                  <span
-                    className={`text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border ${
-                      isUnsettledDP
-                        ? 'bg-amber-100 text-amber-800 border-amber-300'
-                        : 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                    }`}
-                  >
-                    {isUnsettledDP ? 'Belum Dilunasi' : 'Lunas'}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                  <div className="p-3.5 rounded-2xl bg-white/80 border border-amber-200/50 space-y-1">
-                    <span className="text-amber-800/80 font-medium">DP Dibayar Online</span>
-                    <p className="text-base font-black text-foreground">
-                      {rupiah(order.downPaymentAmount || order.totalAmount)}
-                    </p>
-                  </div>
-                  <div className="p-3.5 rounded-2xl bg-white/80 border border-amber-200/50 space-y-1">
-                    <span className="text-amber-800/80 font-medium">Sisa Tagihan Pelunasan</span>
-                    <p className="text-base font-black text-amber-900">
-                      {rupiah(remainingBalance)}
-                    </p>
-                  </div>
-                </div>
-
-                {isUnsettledDP ? (
-                  <div className="space-y-3 pt-1">
-                    <div className="p-3.5 rounded-2xl bg-amber-100/60 border border-amber-200 text-amber-900 text-xs leading-relaxed">
-                      💡 <strong>Pemberitahuan Pelunasan:</strong> Sisa tagihan wajib dilunasi paling
-                      lambat <strong>H-1 sebelum jadwal check-in</strong> melalui aplikasi/web Embun.
-                    </div>
-
+                  {/* Tombol Sinkronisasi Status */}
+                  <div className="pt-2 border-t border-border/60">
                     <button
                       type="button"
-                      onClick={handleSettleDP}
-                      disabled={settling}
-                      className="w-full py-3.5 px-6 rounded-full bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                      onClick={handleSync}
+                      disabled={syncing}
+                      className="w-full py-3 px-4 rounded-full border border-border bg-white hover:bg-surface text-foreground font-semibold text-xs transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer shadow-2xs"
                     >
-                      {settling ? (
-                        <Loader2 size={16} className="animate-spin" />
-                      ) : (
-                        <CreditCard size={16} />
-                      )}
-                      <span>
-                        {settling
-                          ? 'Membuka Invoice Pelunasan...'
-                          : `Lunasi Sisa Tagihan Sekarang · ${rupiah(remainingBalance)}`}
-                      </span>
+                      <RefreshCw size={13} className={syncing ? 'animate-spin text-brand-blue' : ''} />
+                      <span>{syncing ? 'Menyinkronkan...' : 'Sinkronkan Status'}</span>
                     </button>
                   </div>
-                ) : (
-                  <div className="p-3 rounded-2xl bg-emerald-100/70 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2">
-                    <Check size={16} className="text-emerald-700" />
-                    <span>Tagihan DP pesanan ini sudah berhasil dilunasi sepenuhnya.</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ════════════════════════════════════════════════════════════════
-                3. PROPERTI & JADWAL MENGINAP (AIRBNB CLEAN CARD)
-            ════════════════════════════════════════════════════════════════ */}
-            <div className="bg-white rounded-3xl border border-border p-6 space-y-5 shadow-2xs">
-              <div className="flex items-start justify-between gap-4 pb-4 border-b border-border/70">
-                <div className="space-y-1.5 min-w-0">
-                  <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold uppercase tracking-wider bg-brand-blue/8 text-brand-blue">
-                    {order.campsite?.name || 'Campsite'}
-                  </span>
-                  <h3 className="font-extrabold text-lg sm:text-xl text-foreground">
-                    {booking?.block?.name || 'Unit Penginapan'}
-                  </h3>
-                  <p className="text-xs text-foreground-muted">
-                    {booking?.packageName ? `${booking.packageName} · ` : ''}
-                    {order.campsite?.address || order.campsite?.city}
-                  </p>
                 </div>
 
-                {order.campsite?.coverPhotoUrl && (
-                  <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border border-border shrink-0">
-                    <img
-                      src={resolveAssetUrl(order.campsite.coverPhotoUrl)}
-                      alt="Campsite"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Action Links ke Maps / WA */}
-              <div className="flex items-center gap-2.5 flex-wrap">
-                {order.campsite?.googleMapsUrl && (
-                  <a
-                    href={order.campsite.googleMapsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-border hover:bg-surface text-xs font-semibold text-foreground transition-colors"
-                  >
-                    <MapPin size={13} className="text-brand-blue" />
-                    <span>Buka Google Maps</span>
-                    <ExternalLink size={11} className="text-foreground-muted" />
-                  </a>
-                )}
-                {order.campsite?.emergencyWhatsapp && (
-                  <a
-                    href={`https://wa.me/${order.campsite.emergencyWhatsapp.replace(/\D/g, '')}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50 text-xs font-semibold text-emerald-800 transition-colors"
-                  >
-                    <MessageCircle size={13} className="text-emerald-600" />
-                    <span>Hubungi Pengelola Camp</span>
-                  </a>
-                )}
-              </div>
-
-              {/* Check-In / Check-Out Grid */}
-              <div className="grid grid-cols-2 gap-3.5 text-xs">
-                <div className="p-4 rounded-2xl bg-surface/80 border border-border/60 space-y-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-foreground-muted flex items-center gap-1">
-                    <Calendar size={13} className="text-brand-blue" /> Check-In
-                  </span>
-                  <p className="font-bold text-foreground text-sm">
-                    {formatDateDisplay(booking?.checkIn)}
-                  </p>
-                  <p className="text-[11px] text-foreground-muted">
-                    Mulai {order.campsite?.checkInTime || '14:00'} WIB
-                  </p>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-surface/80 border border-border/60 space-y-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-foreground-muted flex items-center gap-1">
-                    <Calendar size={13} className="text-brand-blue" /> Check-Out
-                  </span>
-                  <p className="font-bold text-foreground text-sm">
-                    {formatDateDisplay(booking?.checkOut)}
-                  </p>
-                  <p className="text-[11px] text-foreground-muted">
-                    Maksimal {order.campsite?.checkOutTime || '12:00'} WIB
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between text-xs pt-1 px-1">
-                <span className="text-foreground-muted flex items-center gap-1.5">
-                  <Users size={14} className="text-brand-blue" />
-                  Jumlah Tamu: <strong className="text-foreground">{booking?.adultCount || 2} Orang</strong>
-                </span>
-                <span className="text-foreground-muted flex items-center gap-1.5">
-                  <Clock size={14} className="text-brand-blue" />
-                  Durasi: <strong className="text-brand-blue">{nights} Malam</strong>
-                </span>
-              </div>
-            </div>
-
-            {/* ════════════════════════════════════════════════════════════════
-                4. DATA TAMU PEMESAN
-            ════════════════════════════════════════════════════════════════ */}
-            <div className="bg-white rounded-3xl border border-border p-6 space-y-3 shadow-2xs">
-              <h4 className="font-bold text-xs text-foreground uppercase tracking-wider">
-                Data Tamu Pemesan
-              </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                <div className="p-3 rounded-2xl bg-surface border border-border/50">
-                  <span className="text-foreground-muted block text-[10.5px]">Nama Lengkap</span>
-                  <strong className="text-foreground text-sm">
-                    {order.guestName || 'Tamu Embun'}
-                  </strong>
-                </div>
-                <div className="p-3 rounded-2xl bg-surface border border-border/50">
-                  <span className="text-foreground-muted block text-[10.5px]">Nomor WhatsApp</span>
-                  <strong className="text-foreground text-sm">
-                    {order.guestPhone || '-'}
-                  </strong>
-                </div>
-              </div>
-            </div>
-
-            {/* ════════════════════════════════════════════════════════════════
-                5. RINCIAN BIAYA & INVOICE
-            ════════════════════════════════════════════════════════════════ */}
-            <div className="bg-white rounded-3xl border border-border p-6 space-y-4 shadow-2xs">
-              <div className="flex items-center justify-between border-b border-border/70 pb-3">
-                <h4 className="font-bold text-xs text-foreground uppercase tracking-wider flex items-center gap-1.5">
-                  <Receipt size={14} className="text-brand-blue" />
-                  Rincian Pembayaran
-                </h4>
-              </div>
-
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-foreground-muted">Sewa {booking?.block?.name || 'Unit'} ({nights} malam)</span>
-                  <span className="font-semibold text-foreground">
-                    {rupiah(booking?.totalAmount || order.totalAmount)}
-                  </span>
-                </div>
-
-                {order.guestServiceFee > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-foreground-muted">Biaya Layanan Platform</span>
-                    <span className="font-semibold text-foreground">
-                      {rupiah(order.guestServiceFee)}
-                    </span>
-                  </div>
-                )}
-
-                {order.guestAdminFee > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-foreground-muted">Biaya Admin Payment Gateway</span>
-                    <span className="font-semibold text-foreground">
-                      {rupiah(order.guestAdminFee)}
-                    </span>
-                  </div>
-                )}
-
-                {order.guestTaxFee > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-foreground-muted">Pajak (PPN)</span>
-                    <span className="font-semibold text-foreground">
-                      {rupiah(order.guestTaxFee)}
-                    </span>
-                  </div>
-                )}
-
-                <div className="pt-3 border-t border-border flex justify-between items-center text-sm">
-                  <span className="font-bold text-foreground">Total Tagihan Transaksi</span>
-                  <span className="text-base font-black text-brand-blue">
-                    {rupiah(order.totalAmount)}
-                  </span>
-                </div>
-
-                {isPaid && isDP && (
-                  <div className="pt-2 border-t border-border/60 space-y-1.5 text-xs">
-                    <div className="flex justify-between text-emerald-700 font-medium">
-                      <span>Sudah Dibayar (DP Online)</span>
-                      <span>{rupiah(order.downPaymentAmount || order.totalAmount)}</span>
+                {/* ════════════════════════════════════════════════════════════════
+                    6. WIDGET BANTUAN PELANGGAN CS
+                ════════════════════════════════════════════════════════════════ */}
+                <div className="p-6 rounded-3xl bg-white border border-border/80 shadow-2xs space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-brand-blue/8 flex items-center justify-center text-brand-blue shrink-0 border border-brand-blue/15">
+                      <HelpCircle size={20} />
                     </div>
-                    <div className="flex justify-between text-amber-900 font-bold">
-                      <span>Sisa Tagihan Belum Dibayar</span>
-                      <span>{rupiah(remainingBalance)}</span>
+                    <div>
+                      <h4 className="text-xs font-bold text-foreground">Butuh Bantuan?</h4>
+                      <p className="text-[11px] text-foreground-muted">Layanan pelanggan Embun</p>
                     </div>
                   </div>
-                )}
-              </div>
-            </div>
-
-            {/* ════════════════════════════════════════════════════════════════
-                6. TOMBOL AKSI: BAYAR / SINKRONKAN
-            ════════════════════════════════════════════════════════════════ */}
-            <div className="space-y-3 pt-2">
-              <button
-                type="button"
-                onClick={handleSync}
-                disabled={syncing}
-                className="w-full py-3.5 px-6 rounded-full border border-border bg-white hover:bg-surface text-foreground font-semibold text-xs transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer shadow-2xs"
-              >
-                <RefreshCw size={14} className={syncing ? 'animate-spin text-brand-blue' : ''} />
-                <span>{syncing ? 'Menyinkronkan...' : 'Sinkronkan Status Pembayaran'}</span>
-              </button>
+                  <p className="text-xs text-foreground-muted leading-relaxed">
+                    Punya pertanyaan seputar check-in, pelunasan sisa tagihan, atau kebijakan pembatalan?
+                  </p>
+                  <div className="space-y-2 pt-1">
+                    <a
+                      href="https://wa.me/628112345678?text=Halo%20Embun%20CS,%20saya%20butuh%20bantuan%20terkait%20pesanan"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-full border border-border hover:border-emerald-500 hover:text-emerald-700 bg-surface/50 hover:bg-emerald-50/50 text-xs font-bold text-foreground transition-all cursor-pointer"
+                    >
+                      <MessageCircle size={14} className="text-emerald-600" />
+                      <span>Chat WhatsApp CS</span>
+                    </a>
+                    <a
+                      href="mailto:support@embun.app"
+                      className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-full border border-border hover:border-brand-blue hover:text-brand-blue bg-surface/50 hover:bg-brand-blue/5 text-xs font-bold text-foreground transition-all cursor-pointer"
+                    >
+                      <Mail size={14} className="text-brand-blue" />
+                      <span>support@embun.app</span>
+                    </a>
+                  </div>
+                </div>
+              </aside>
             </div>
           </div>
         ) : null}
       </main>
 
+      {/* ═══ FOOTER RESMI EXPLORE ═══ */}
       <ExploreFooter />
+
+      {/* Guest Auth Modal */}
+      <GuestAuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        currentUser={currentUser}
+        onSuccess={handleLoginSuccess}
+        onLogout={() => {
+          setCurrentUser(null);
+          void load();
+        }}
+      />
+
+      {/* Complete Profile Dialog */}
+      <CompleteProfileModal
+        isOpen={isCompleteProfileOpen}
+        currentUser={currentUser}
+        onClose={() => setIsCompleteProfileOpen(false)}
+        onSuccess={(updated) => {
+          setCurrentUser(updated);
+          setIsCompleteProfileOpen(false);
+        }}
+      />
     </div>
   );
 }
