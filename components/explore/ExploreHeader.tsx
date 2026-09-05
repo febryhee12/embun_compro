@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Search, User, Menu, MapPin, Calendar, X, Check, Heart } from 'lucide-react';
 import { resolveAssetUrl } from '@/lib/api-client';
+import { EXPLORE_I18N, type Language } from '@/lib/explore-i18n';
 
 interface ExploreHeaderProps {
   onOpenAuth: () => void;
@@ -15,6 +16,8 @@ interface ExploreHeaderProps {
   onSelectCity?: (city: string) => void;
   availableCities?: string[];
   showUserMenu?: boolean;
+  lang?: Language;
+  onToggleLanguage?: () => void;
 }
 
 export function ExploreHeader({
@@ -27,7 +30,30 @@ export function ExploreHeader({
   onSelectCity = () => {},
   availableCities,
   showUserMenu = true,
+  lang = 'id',
+  onToggleLanguage,
 }: ExploreHeaderProps) {
+  const [activeLang, setActiveLang] = useState<Language>(lang);
+
+  useEffect(() => {
+    if (lang && lang !== 'id') {
+      setActiveLang(lang);
+      return;
+    }
+    if (typeof window === 'undefined') return;
+    if (window.location.pathname.startsWith('/en')) {
+      setActiveLang('en');
+      return;
+    }
+    const saved = localStorage.getItem('embun_lang');
+    if (saved === 'id' || saved === 'en') {
+      setActiveLang(saved);
+    } else if (lang) {
+      setActiveLang(lang);
+    }
+  }, [lang]);
+
+  const t = EXPLORE_I18N[activeLang];
   const [isCityModalOpen, setIsCityModalOpen] = useState(false);
   const [isAppBannerDismissed, setIsAppBannerDismissed] = useState(false);
   const [citySearchQuery, setCitySearchQuery] = useState('');
@@ -39,7 +65,7 @@ export function ExploreHeader({
     const fallbackUrl =
       typeof navigator !== 'undefined' &&
       /android/i.test(navigator.userAgent || '')
-        ? 'https://play.google.com/store/apps/details?id=app.embun'
+        ? 'https://play.google.com/store/apps/details?id=com.embun.app'
         : 'https://apps.apple.com/app/embun';
 
     const start = Date.now();
@@ -68,7 +94,11 @@ export function ExploreHeader({
 
   const handleGetCurrentLocation = () => {
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
-      setGeoError('Perangkat tidak mendukung deteksi lokasi.');
+      setGeoError(
+        activeLang === 'en'
+          ? 'Device does not support location detection.'
+          : 'Perangkat tidak mendukung deteksi lokasi.',
+      );
       return;
     }
 
@@ -91,7 +121,11 @@ export function ExploreHeader({
       },
       (err) => {
         setGeoLoading(false);
-        setGeoError('Izin akses lokasi ditolak atau tidak tersedia.');
+        setGeoError(
+          activeLang === 'en'
+            ? 'Location permission denied or unavailable.'
+            : 'Izin akses lokasi ditolak atau tidak tersedia.',
+        );
       },
       { timeout: 8000 },
     );
@@ -130,10 +164,12 @@ export function ExploreHeader({
             </div>
             <div>
               <p className="font-bold text-xs sm:text-sm leading-tight text-white">
-                Aplikasi Embun
+                {activeLang === 'en' ? 'Embun App' : 'Aplikasi Embun'}
               </p>
               <p className="text-[11px] text-white/75 leading-normal mt-0.5">
-                Buka langsung di aplikasi
+                {activeLang === 'en'
+                  ? 'Open directly in the app'
+                  : 'Buka langsung di aplikasi'}
               </p>
             </div>
           </div>
@@ -143,13 +179,13 @@ export function ExploreHeader({
               onClick={handleOpenApp}
               className="px-4 py-2 rounded-full bg-brand-lime hover:bg-brand-lime/90 text-black font-bold text-xs active:scale-95 transition-all cursor-pointer shadow-xs shrink-0"
             >
-              Buka di App
+              {activeLang === 'en' ? 'Open in App' : 'Buka di App'}
             </button>
             <button
               type="button"
               onClick={() => setIsAppBannerDismissed(true)}
               className="p-1.5 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-              title="Tutup banner"
+              title={activeLang === 'en' ? 'Close banner' : 'Tutup banner'}
             >
               <X size={15} />
             </button>
@@ -169,7 +205,7 @@ export function ExploreHeader({
               alt="Embun"
               className="h-7 w-auto object-contain transition-transform group-hover:scale-102"
             />
-            <span className="hidden sm:inline-block text-[10px] uppercase font-black tracking-wider px-2 py-0.5 rounded-full bg-brand-lime text-black border border-brand-lime/80 shadow-2xs">
+            <span className="inline-block text-[10px] uppercase font-black tracking-wider px-2 py-0.5 rounded-full bg-brand-lime text-black border border-brand-lime/80 shadow-2xs">
               Explore
             </span>
           </Link>
@@ -190,7 +226,7 @@ export function ExploreHeader({
                 >
                   <MapPin size={13} className="text-brand-blue shrink-0" />
                   <span className="truncate">
-                    {selectedCity || 'Semua Lokasi'}
+                    {selectedCity || t.header.allLocations}
                   </span>
                 </button>
 
@@ -198,7 +234,7 @@ export function ExploreHeader({
                 <div className="pl-3 flex-1 flex items-center gap-2">
                   <input
                     type="text"
-                    placeholder="Cari nama spot, glamping, area..."
+                    placeholder={t.header.searchPlaceholder}
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
                     style={{ outline: 'none', border: 'none', boxShadow: 'none' }}
@@ -209,7 +245,7 @@ export function ExploreHeader({
                       type="button"
                       onClick={() => onSearchChange('')}
                       className="p-1 rounded-full hover:bg-surface text-foreground-muted hover:text-foreground transition-colors cursor-pointer"
-                      title="Hapus pencarian"
+                      title={t.header.clearSearch}
                     >
                       <X size={13} />
                     </button>
@@ -225,14 +261,14 @@ export function ExploreHeader({
             <div className="flex-1" />
           )}
 
-          {/* Right: User Avatar Menu & Wishlist */}
+          {/* Right: User Avatar Menu, Wishlist */}
           {showUserMenu ? (
-            <div className="flex items-center gap-2.5 shrink-0">
+            <div className="flex items-center gap-2 shrink-0">
               <Link
                 href="/wishlist"
                 className="p-2 rounded-full border border-border hover:bg-surface text-foreground transition-colors cursor-pointer flex items-center justify-center"
-                title="Wishlist Saya"
-                aria-label="Wishlist Saya"
+                title={t.header.myWishlist}
+                aria-label={t.header.myWishlist}
               >
                 <Heart size={16} className="text-foreground" />
               </Link>
@@ -271,7 +307,7 @@ export function ExploreHeader({
                 ) : (
                   <>
                     <User size={15} className="text-foreground-muted" />
-                    <span>Masuk</span>
+                    <span>{t.header.signIn}</span>
                   </>
                 )}
               </button>
@@ -288,7 +324,7 @@ export function ExploreHeader({
               <Search size={15} className="text-brand-blue shrink-0" />
               <input
                 type="text"
-                placeholder="Cari spot, glamping, area..."
+                placeholder={t.header.searchPlaceholder}
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
                 style={{ outline: 'none', border: 'none', boxShadow: 'none' }}
@@ -324,7 +360,7 @@ export function ExploreHeader({
                 className={selectedCity ? 'text-white' : 'text-brand-blue'}
               />
               <span className="max-w-[70px] truncate">
-                {selectedCity || 'Lokasi'}
+                {selectedCity || (activeLang === 'en' ? 'Location' : 'Lokasi')}
               </span>
             </button>
           </div>
@@ -338,12 +374,17 @@ export function ExploreHeader({
             <div className="flex items-center justify-between pb-2 border-b border-border">
               <h3 className="font-bold text-sm text-foreground flex items-center gap-1.5">
                 <MapPin size={15} className="text-brand-blue" />
-                <span>Pilih Destinasi / Wilayah</span>
+                <span>
+                  {activeLang === 'en'
+                    ? 'Select Destination / Region'
+                    : 'Pilih Destinasi / Wilayah'}
+                </span>
               </h3>
               <button
                 type="button"
                 onClick={() => setIsCityModalOpen(false)}
                 className="p-1 rounded-full hover:bg-surface text-foreground-muted hover:text-foreground transition-colors cursor-pointer"
+                title={activeLang === 'en' ? 'Close' : 'Tutup'}
               >
                 <X size={16} />
               </button>
@@ -362,8 +403,12 @@ export function ExploreHeader({
               />
               <span>
                 {geoLoading
-                  ? 'Mendeteksi Lokasi Anda...'
-                  : 'Gunakan Lokasi Saat Ini (Cek GPS)'}
+                  ? activeLang === 'en'
+                    ? 'Detecting Your Location...'
+                    : 'Mendeteksi Lokasi Anda...'
+                  : activeLang === 'en'
+                    ? 'Use Current Location (GPS)'
+                    : 'Gunakan Lokasi Saat Ini (Cek GPS)'}
               </span>
             </button>
 
@@ -378,7 +423,11 @@ export function ExploreHeader({
               <Search size={14} className="text-foreground-muted shrink-0" />
               <input
                 type="text"
-                placeholder="Cari nama kota atau wilayah..."
+                placeholder={
+                  activeLang === 'en'
+                    ? 'Search city or region name...'
+                    : 'Cari nama kota atau wilayah...'
+                }
                 value={citySearchQuery}
                 onChange={(e) => setCitySearchQuery(e.target.value)}
                 className="w-full bg-transparent text-xs text-foreground placeholder:text-foreground-muted outline-none border-none ring-0 p-0"
@@ -414,7 +463,13 @@ export function ExploreHeader({
                         : 'bg-surface hover:bg-surface-variant text-foreground border border-border/80'
                     }`}
                   >
-                    <span className="truncate">{city}</span>
+                    <span className="truncate">
+                      {city === 'Semua Lokasi'
+                        ? activeLang === 'en'
+                          ? 'All Locations'
+                          : 'Semua Lokasi'
+                        : city}
+                    </span>
                     {isSelected && (
                       <Check size={13} className="shrink-0 ml-1" />
                     )}

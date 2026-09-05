@@ -28,9 +28,9 @@ const DEFAULT_PROPS: AppHeroProps = {
   imageSrc: '/images/embun_1.png',
   imageAlt: 'Embun App - Jelajah tanpa batas, reservasi tanpa cemas',
   appStoreHref: '',
-  googlePlayHref: '',
+  googlePlayHref: 'https://play.google.com/store/apps/details?id=com.embun.app',
   appStoreLead: 'Segera Hadir',
-  googlePlayLead: 'Segera Hadir',
+  googlePlayLead: 'Dapatkan di',
 };
 
 /**

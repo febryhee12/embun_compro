@@ -7,7 +7,7 @@ export const i18n = {
         subcopy:
           'Embun App membantu kamu menemukan dan memesan campsite terbaik dalam hitungan menit. Bayar aman, pesanan langsung terkonfirmasi.',
         appStoreLead: 'Segera Hadir',
-        googlePlayLead: 'Segera Hadir',
+        googlePlayLead: 'Dapatkan di',
       },
       featuresHeading: 'Camping seru anti ribet.',
       featuresSubcopy:
@@ -74,7 +74,7 @@ export const i18n = {
         subcopy:
           'Download Embun App sekarang. Temukan dan pesan spot outdoor favoritmu langsung dari genggaman. Gratis di App Store dan Google Play.',
         appStoreLead: 'Segera Hadir',
-        googlePlayLead: 'Segera Hadir',
+        googlePlayLead: 'Dapatkan di',
       },
     },
     partner: {
@@ -158,7 +158,7 @@ export const i18n = {
         subcopy:
           'Embun App helps you find and reserve the best campsites in minutes. Secure payment, instant confirmation.',
         appStoreLead: 'Coming Soon',
-        googlePlayLead: 'Coming Soon',
+        googlePlayLead: 'Get it on',
       },
       featuresHeading: 'Camping seru anti ribet.',
       featuresSubcopy:
@@ -296,7 +296,7 @@ export const i18n = {
         subcopy:
           'Download Embun App now. Find and reserve your favorite outdoor spot right from your fingertips. Available for free on the App Store and Google Play.',
         appStoreLead: 'Coming Soon',
-        googlePlayLead: 'Coming Soon',
+        googlePlayLead: 'Get it on',
       },
     },
     partner: {

@@ -16,9 +16,9 @@ const DEFAULT_PROPS: DownloadCtaProps = {
   subcopy:
     'Temukan dan pesan campsite favoritmu langsung dari genggaman. Tersedia gratis di App Store dan Google Play.',
   appStoreHref: '',
-  googlePlayHref: '',
+  googlePlayHref: 'https://play.google.com/store/apps/details?id=com.embun.app',
   appStoreLead: 'Segera Hadir',
-  googlePlayLead: 'Segera Hadir',
+  googlePlayLead: 'Dapatkan di',
 };
 
 /**

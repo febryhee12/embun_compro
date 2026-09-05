@@ -56,6 +56,9 @@ import {
   Rabbit,
   Dog,
 } from 'lucide-react';
+import { ExploreFooter } from '@/components/explore/ExploreFooter';
+import { TranslatableBox } from '@/components/ui/TranslatableBox';
+import { SPOT_I18N, translateItemName, type Language } from '@/lib/spot-i18n';
 import {
   getStoredGuestProfile,
   getGuestToken,
@@ -83,7 +86,7 @@ import { ReviewsModal } from '@/components/reviews/ReviewsModal';
 
 const APP_STORE_HREF = 'https://apps.apple.com/app/embun';
 const GOOGLE_PLAY_HREF =
-  'https://play.google.com/store/apps/details?id=app.embun';
+  'https://play.google.com/store/apps/details?id=com.embun.app';
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || 'https://api-staging.embun.app/api';
 
@@ -485,11 +488,36 @@ export function SpotRedirectClient() {
   const [serverQuote, setServerQuote] = useState<any | null>(null);
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [isPackageDropdownOpen, setIsPackageDropdownOpen] = useState(false);
-  const [isMobilePackageDropdownOpen, setIsMobilePackageDropdownOpen] =
-    useState(false);
+  const [isMobilePackageDropdownOpen, setIsMobilePackageDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAppBannerDismissed, setIsAppBannerDismissed] = useState(false);
+
+  // Language state (defaults to 'id', persist in localStorage)
+  const [lang, setLang] = useState<Language>('id');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (window.location.pathname.startsWith('/en')) {
+        setLang('en');
+        return;
+      }
+      const savedLang = localStorage.getItem('embun_lang') as Language;
+      if (savedLang === 'id' || savedLang === 'en') {
+        setLang(savedLang);
+      }
+    }
+  }, []);
+
+  const toggleLanguage = () => {
+    const nextLang: Language = lang === 'id' ? 'en' : 'id';
+    setLang(nextLang);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('embun_lang', nextLang);
+    }
+  };
+
+  const t = SPOT_I18N[lang];
 
   const [platformFee, setPlatformFee] = useState({
     adminFeeFlat: 4000,
@@ -609,11 +637,11 @@ export function SpotRedirectClient() {
   const [bookedDates, setBookedDates] = useState<string[]>([]);
 
   const formatDateDisplay = (dateStr?: string) => {
-    if (!dateStr) return 'Pilih tanggal';
+    if (!dateStr) return t.spot.selectDate || 'Pilih tanggal';
     try {
       const [y, m, d] = dateStr.split('-').map(Number);
       const date = new Date(y, m - 1, d);
-      return date.toLocaleDateString('id-ID', {
+      return date.toLocaleDateString(lang === 'en' ? 'en-US' : 'id-ID', {
         day: 'numeric',
         month: 'short',
         year: 'numeric',
@@ -831,6 +859,13 @@ export function SpotRedirectClient() {
       10
     );
   }, [selectedPackage, activeSpot]);
+
+  // Auto-cap guest count jika ganti paket dengan kapasitas maksimal yang lebih kecil
+  useEffect(() => {
+    if (guestCount > effectiveMaxCapacity) {
+      setGuestCount(effectiveMaxCapacity);
+    }
+  }, [effectiveMaxCapacity, guestCount]);
 
   // Sync check-in & check-out cross-validation
   const nights = useMemo(() => {
@@ -1947,8 +1982,12 @@ export function SpotRedirectClient() {
               />
             </div>
             <div>
-              <p className="font-bold text-xs sm:text-sm leading-tight text-white">Aplikasi Embun</p>
-              <p className="text-[11px] text-white/75 leading-normal mt-0.5">Buka langsung di aplikasi</p>
+              <p className="font-bold text-xs sm:text-sm leading-tight text-white">
+                {lang === 'en' ? 'Embun App' : 'Aplikasi Embun'}
+              </p>
+              <p className="text-[11px] text-white/75 leading-normal mt-0.5">
+                {lang === 'en' ? 'Open directly in the app' : 'Buka langsung di aplikasi'}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -1957,13 +1996,13 @@ export function SpotRedirectClient() {
               onClick={handleOpenApp}
               className="px-4 py-2 rounded-full bg-brand-lime hover:bg-brand-lime/90 text-black font-bold text-xs active:scale-95 transition-all cursor-pointer shadow-xs shrink-0"
             >
-              Buka di App
+              {lang === 'en' ? 'Open in App' : 'Buka di App'}
             </button>
             <button
               type="button"
               onClick={() => setIsAppBannerDismissed(true)}
               className="p-1.5 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-              title="Tutup banner"
+              title={lang === 'en' ? 'Close banner' : 'Tutup banner'}
             >
               <X size={15} />
             </button>
@@ -2007,18 +2046,9 @@ export function SpotRedirectClient() {
           <div className="flex items-center gap-1.5 sm:gap-2.5">
             <button
               type="button"
-              onClick={handleOpenApp}
-              className="hidden sm:inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-brand-lime hover:bg-brand-lime/90 text-black text-[11px] sm:text-xs font-bold transition-all cursor-pointer shadow-2xs shrink-0"
-              title="Buka langsung di Aplikasi Embun"
-            >
-              <Smartphone size={13} />
-              <span>Buka App</span>
-            </button>
-            <button
-              type="button"
               onClick={handleShare}
               className="p-2 rounded-full border border-border hover:bg-surface text-foreground transition-colors cursor-pointer"
-              title="Bagikan Halaman Ini"
+              title={t.header.share}
             >
               <Share2 size={16} />
             </button>
@@ -2028,7 +2058,7 @@ export function SpotRedirectClient() {
               className={`p-2 rounded-full border border-border hover:bg-surface transition-colors cursor-pointer ${
                 isFavorite ? 'text-red-500' : 'text-foreground'
               }`}
-              title={isFavorite ? 'Hapus dari Favorit' : 'Simpan ke Favorit'}
+              title={isFavorite ? t.header.unFavorite : t.header.favorite}
             >
               <Heart size={16} className={isFavorite ? 'fill-red-500' : ''} />
             </button>
@@ -2110,9 +2140,9 @@ export function SpotRedirectClient() {
                     size={14}
                     className="text-brand-lime fill-brand-lime"
                   />
-                  <span className="text-brand-blue">Baru</span>
+                  <span className="text-brand-blue">{t.spot.newBadge}</span>
                   <span className="text-foreground-muted font-normal">
-                    · Belum ada ulasan
+                    {lang === 'en' ? '· No reviews yet' : '· Belum ada ulasan'}
                   </span>
                 </div>
               )}
@@ -2129,7 +2159,7 @@ export function SpotRedirectClient() {
                 className="flex items-center gap-1.5 hover:text-foreground font-semibold cursor-pointer underline text-xs"
               >
                 <Share2 size={13} />
-                <span>Bagikan</span>
+                <span>{t.header.share}</span>
               </button>
               <button
                 type="button"
@@ -2141,7 +2171,11 @@ export function SpotRedirectClient() {
                 ) : (
                   <Copy size={13} />
                 )}
-                <span>{copied ? 'Tersalin!' : 'Salin Link'}</span>
+                <span>
+                  {copied
+                    ? t.header.copiedShort || 'Tersalin!'
+                    : t.header.copyLink || 'Salin Link'}
+                </span>
               </button>
             </div>
           </div>
@@ -2367,7 +2401,7 @@ export function SpotRedirectClient() {
                 className="px-3.5 py-2 rounded-xl bg-brand-lime text-black text-xs font-bold shadow-lg flex items-center gap-1.5 hover:scale-103 transition-all cursor-pointer"
               >
                 <Compass size={14} className="animate-spin-slow" />
-                <span>Tur 360° ({panoramaList.length})</span>
+                <span>{t.spot.tour360Count(panoramaList.length)}</span>
               </button>
             )}
 
@@ -2380,7 +2414,7 @@ export function SpotRedirectClient() {
               className="px-3.5 py-2 rounded-xl bg-white/95 backdrop-blur-sm text-foreground text-xs font-bold shadow-lg border border-border flex items-center gap-1.5 hover:bg-white hover:scale-103 transition-all cursor-pointer"
             >
               <Grid size={14} />
-              <span>Tampilkan Semua {spotPhotos.length} Foto</span>
+              <span>{t.spot.showAllPhotos(spotPhotos.length)}</span>
             </button>
           </div>
         </div>
@@ -2395,12 +2429,12 @@ export function SpotRedirectClient() {
             <div className="pb-6 border-b border-border space-y-3">
               <div>
                 <h2 className="text-xl font-bold text-foreground">
-                  Kavling & Unit di {campsite.name}
+                  {t.spot.plotAndUnitIn(campsite.name)}
                 </h2>
                 <p className="text-xs text-foreground-muted mt-1">
-                  Maks. {effectiveMaxCapacity} Tamu{' '}
+                  {t.spot.maxGuests(effectiveMaxCapacity)}{' '}
                   {activeSpot.tentType
-                    ? `· Ground ${activeSpot.tentType}`
+                    ? `· ${t.spot.groundType(translateItemName(activeSpot.tentType, lang))}`
                     : ''}
                 </p>
               </div>
@@ -2409,7 +2443,7 @@ export function SpotRedirectClient() {
             {/* ── REAL SPOT SPECIFICATIONS (Tipe Ground, View, & Fasilitas Spot) ── */}
             <div className="space-y-4 pb-6 border-b border-border">
               <h3 className="font-bold text-base text-foreground">
-                Spesifikasi & Fasilitas Spot
+                {t.spot.specificationsTitle}
               </h3>
 
               {/* View & Ground Badges */}
@@ -2417,7 +2451,7 @@ export function SpotRedirectClient() {
                 {activeSpot.tentType && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-surface border border-border text-xs font-semibold text-foreground">
                     <Tent size={14} className="text-brand-blue" />
-                    <span>Tipe Ground: {activeSpot.tentType}</span>
+                    <span>{t.spot.groundType(translateItemName(activeSpot.tentType, lang))}</span>
                   </span>
                 )}
                 {Array.isArray(activeSpot.viewOptions) &&
@@ -2427,7 +2461,7 @@ export function SpotRedirectClient() {
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-brand-blue/5 border border-brand-blue/20 text-xs font-semibold text-brand-blue"
                     >
                       <Trees size={14} />
-                      <span>{v}</span>
+                      <span>{translateItemName(v, lang)}</span>
                     </span>
                   ))}
               </div>
@@ -2442,30 +2476,137 @@ export function SpotRedirectClient() {
                         className="flex items-center gap-2 p-2.5 rounded-2xl bg-surface border border-border/80 text-xs text-foreground"
                       >
                         {getFacilityIcon(fac)}
-                        <span className="font-medium truncate">{fac}</span>
+                        <span className="font-medium truncate">{translateItemName(fac, lang)}</span>
                       </div>
                     ))}
                   </div>
                 )}
 
-              {/* Catatan Khusus Spot (from activeSpot.specificNotes) */}
-              {activeSpot.specificNotes && (
-                <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-xs space-y-1.5 mt-2">
-                  <h4 className="font-bold text-foreground flex items-center gap-1.5">
-                    <Info size={13} className="text-amber-600 shrink-0" />
-                    <span>Catatan Khusus Unit:</span>
+              {/* Catatan Khusus Pengelola Spot (from activeSpot.specificNotes) */}
+              {(activeSpot.specificNotes || (activeSpot as any).notes) && (
+                <div className="p-4 sm:p-5 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-xs space-y-2.5 mt-3 shadow-2xs">
+                  <h4 className="font-bold text-foreground text-sm flex items-center gap-2">
+                    <Info size={16} className="text-amber-600 shrink-0" />
+                    <span>{t.spot.hostNotesTitle}</span>
                   </h4>
-                  <ul className="space-y-1 text-foreground/80 list-disc list-inside">
-                    {parseHtmlRules(activeSpot.specificNotes).map(
-                      (note, nIdx) => (
-                        <li key={nIdx} className="leading-relaxed">
-                          {note}
-                        </li>
-                      ),
+                  <TranslatableBox
+                    items={parseHtmlRules(
+                      activeSpot.specificNotes || (activeSpot as any).notes,
                     )}
-                  </ul>
+                    lang={lang}
+                    listClassName="space-y-1.5 text-foreground/85 list-disc list-inside pl-0.5"
+                  />
                 </div>
               )}
+            </div>
+
+            {/* ── AIRBNB INTEGRATED CALENDAR SECTION ── */}
+            <div className="space-y-4 pb-8 border-b border-border">
+              <div>
+                <h3 className="font-bold text-lg text-foreground">
+                  {t.spot.selectStayDates}
+                </h3>
+                <p className="text-xs text-foreground-muted">
+                  {checkInDate && checkOutDate ? (
+                    <>
+                      {nights} {lang === 'en' ? 'Nights' : 'Malam'} in {campsite.name} ({formatDateDisplay(checkInDate)} {lang === 'en' ? 'to' : 's/d'}{' '}
+                      {formatDateDisplay(checkOutDate)})
+                    </>
+                  ) : (
+                    lang === 'en'
+                      ? `Select arrival and departure dates at ${campsite.name}`
+                      : `Pilih tanggal kedatangan dan kepulangan di ${campsite.name}`
+                  )}
+                </p>
+              </div>
+
+              {/* Interactive Calendar & Guest Counter Trigger Card (Matching Image 2) */}
+              <div className="rounded-3xl bg-surface border border-border overflow-hidden shadow-2xs">
+                {/* Top: Dates trigger */}
+                <div
+                  onClick={() => setIsCalendarOpen(true)}
+                  className="p-4 sm:p-5 grid grid-cols-2 gap-4 cursor-pointer hover:bg-surface-variant/50 transition-colors group"
+                >
+                  <div className="space-y-1">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted flex items-center gap-1.5">
+                      <Calendar size={13} className="text-brand-blue" />
+                      <span>Check-In</span>
+                    </span>
+                    <div className={`font-bold text-sm sm:text-base group-hover:text-brand-blue transition-colors ${checkInDate ? 'text-foreground' : 'text-foreground-muted'}`}>
+                      {formatDateDisplay(checkInDate)}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1 border-l border-border pl-4">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted flex items-center gap-1.5">
+                      <Calendar size={13} className="text-brand-blue" />
+                      <span>Check-Out</span>
+                    </span>
+                    <div className={`font-bold text-sm sm:text-base group-hover:text-brand-blue transition-colors ${checkOutDate ? 'text-foreground' : 'text-foreground-muted'}`}>
+                      {formatDateDisplay(checkOutDate)}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom: Guest counter */}
+                <div className="px-4 py-3 sm:px-5 sm:py-3.5 border-t border-border bg-white flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="block text-[9px] font-bold uppercase tracking-wider text-foreground-muted">
+                        {t.spot.guestsTitle}
+                      </span>
+                      {selectedPackage?.name && (
+                        <span className="text-[9.5px] font-bold text-brand-blue bg-brand-blue/10 px-1.5 py-0.5 rounded-md">
+                          {selectedPackage.name}
+                        </span>
+                      )}
+                    </div>
+                    <span className="font-bold text-foreground text-xs sm:text-sm">
+                      {t.spot.guestsCountWithMax(guestCount, effectiveMaxCapacity)}
+                    </span>
+                    {extraPersonInfo && extraPersonInfo.count > 0 && extraPersonInfo.unitPrice > 0 ? (
+                      <span className="block text-[10.5px] sm:text-[11px] text-brand-blue font-semibold mt-0.5">
+                        {lang === 'en'
+                          ? `+${rupiah(extraPersonInfo.unitPrice)}/extra guest/night (${extraPersonInfo.count} extra)`
+                          : `+${rupiah(extraPersonInfo.unitPrice)}/tamu ekstra/malam (${extraPersonInfo.count} tamu tambahan)`}
+                      </span>
+                    ) : Number(selectedPackage?.extraPersonFee ?? activeSpot?.extraPersonFee ?? 0) > 0 ? (
+                      <span className="block text-[10px] text-foreground-muted/80 mt-0.5">
+                        {lang === 'en'
+                          ? `Includes ${selectedPackage?.baseCapacity ?? activeSpot?.baseCapacity ?? 1} guests (+${rupiah(Number(selectedPackage?.extraPersonFee ?? activeSpot?.extraPersonFee))}/extra guest)`
+                          : `Termasuk ${selectedPackage?.baseCapacity ?? activeSpot?.baseCapacity ?? 1} tamu (+${rupiah(Number(selectedPackage?.extraPersonFee ?? activeSpot?.extraPersonFee))}/tamu tambahan)`}
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={guestCount <= 1}
+                      onClick={() => setGuestCount(Math.max(1, guestCount - 1))}
+                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-border flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer active:scale-95 transition-all"
+                      aria-label="Kurangi Tamu"
+                    >
+                      <Minus size={13} />
+                    </button>
+                    <span className="font-bold text-xs sm:text-sm w-4 text-center">
+                      {guestCount}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={guestCount >= effectiveMaxCapacity}
+                      onClick={() =>
+                        setGuestCount(
+                          Math.min(effectiveMaxCapacity, guestCount + 1),
+                        )
+                      }
+                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-border flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer active:scale-95 transition-all"
+                      aria-label="Tambah Tamu"
+                    >
+                      <Plus size={13} />
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* ── SECTION: PILIHAN PAKET PENGINAPAN ── */}
@@ -2474,11 +2615,10 @@ export function SpotRedirectClient() {
                 <div className="space-y-4 pb-8 border-b border-border">
                   <div>
                     <h3 className="font-bold text-lg text-foreground">
-                      Pilihan Paket Penginapan
+                      {t.spot.packageOptionsTitle}
                     </h3>
                     <p className="text-xs text-foreground-muted mt-0.5">
-                      Pilih paket yang sesuai dengan kebutuhan Anda untuk unit{' '}
-                      {activeSpot.name}
+                      {t.spot.packageOptionsSubtitle(activeSpot.name)}
                     </p>
                   </div>
 
@@ -2571,7 +2711,7 @@ export function SpotRedirectClient() {
 
                               {isTentIncluded && (
                                 <span className="inline-block text-[10px] font-bold text-brand-blue bg-brand-blue/10 px-2 py-0.5 rounded-full border border-brand-blue/20 mt-1">
-                                  Termasuk Tenda
+                                  {t.spot.includesTent}
                                 </span>
                               )}
 
@@ -2590,30 +2730,37 @@ export function SpotRedirectClient() {
                                   }}
                                   className="text-[11px] font-bold text-brand-blue hover:text-brand-blue/80 hover:underline flex items-center gap-1 cursor-pointer"
                                 >
-                                  <span>Lihat Detail Paket</span>
+                                  <span>{t.spot.viewPackageDetails}</span>
                                   <ChevronRight size={12} />
                                 </button>
                               </div>
                             </div>
                           </div>
 
-                          <div className="flex items-baseline justify-between pt-2.5 border-t border-border/80 text-xs">
+                          <div className="flex flex-wrap items-baseline justify-between gap-1 pt-2.5 border-t border-border/80 text-xs">
                             <div>
                               <span className="text-base font-extrabold text-brand-blue">
                                 {rupiah(pkgPrice)}
                               </span>
                               <span className="text-[10.5px] text-foreground-muted">
                                 {' '}
-                                / malam
+                                {t.spot.perNight}
                               </span>
                             </div>
-                            <span className="text-[10.5px] font-bold text-foreground-muted bg-white px-2 py-0.5 rounded-full border border-border">
-                              Maks.{' '}
-                              {pkg.maxOccupancy ||
-                                pkg.baseCapacity ||
-                                activeSpot.maxCapacity}{' '}
-                              Tamu
-                            </span>
+                            <div className="flex flex-col items-end gap-0.5">
+                              <span className="text-[10.5px] font-bold text-foreground bg-white px-2 py-0.5 rounded-full border border-border">
+                                {lang === 'en'
+                                  ? `Incl. ${pkg.baseCapacity || 1} (Max. ${pkg.maxOccupancy || pkg.baseCapacity || activeSpot.maxCapacity})`
+                                  : `Termasuk ${pkg.baseCapacity || 1} (Maks. ${pkg.maxOccupancy || pkg.baseCapacity || activeSpot.maxCapacity})`}
+                              </span>
+                              {Number(pkg.extraPersonFee ?? activeSpot.extraPersonFee ?? 0) > 0 ? (
+                                <span className="text-[9.5px] font-semibold text-amber-600">
+                                  {lang === 'en'
+                                    ? `+${rupiah(Number(pkg.extraPersonFee ?? activeSpot.extraPersonFee))}/extra guest`
+                                    : `+${rupiah(Number(pkg.extraPersonFee ?? activeSpot.extraPersonFee))}/tamu ekstra`}
+                                </span>
+                              ) : null}
+                            </div>
                           </div>
                         </div>
                       );
@@ -2627,11 +2774,10 @@ export function SpotRedirectClient() {
               <div className="space-y-4 pb-8 border-b border-border">
                 <div>
                   <h3 className="font-bold text-lg text-foreground">
-                    Perlengkapan Tambahan (Opsional)
+                    {t.spot.addonsTitle}
                   </h3>
                   <p className="text-xs text-foreground-muted mt-0.5">
-                    Sewa perlengkapan camping ekstra untuk kenyamanan menginap
-                    Anda di {campsite.name}
+                    {t.spot.addonsSubtitle(campsite.name)}
                   </p>
                 </div>
 
@@ -2652,8 +2798,8 @@ export function SpotRedirectClient() {
                     const unitDisplay = rawUnit ? rawUnit : 'unit';
                     const priceSuffix = perNight
                       ? unitDisplay.toLowerCase() === 'malam'
-                        ? '/ malam'
-                        : `/ ${unitDisplay} / malam`
+                        ? ` ${t.spot.perNight}`
+                        : `/ ${unitDisplay} ${t.spot.perNight}`
                       : `/ ${unitDisplay}`;
 
                     const addonImg = getAddonImageUrl(addon);
@@ -2704,18 +2850,17 @@ export function SpotRedirectClient() {
                               </p>
                               {isIncludedInPkg && (
                                 <span className="text-[9px] font-bold text-brand-blue bg-brand-blue/10 px-1.5 py-0.5 rounded-full">
-                                  Termasuk di Paket
+                                  {t.spot.includedInPackage}
                                 </span>
                               )}
                               {isTent && isTentPackage && !isIncludedInPkg && (
                                 <span className="text-[9px] font-semibold text-foreground-muted bg-surface px-1.5 py-0.5 rounded-full border border-border">
-                                  Paket sudah ada tenda
+                                  {t.spot.packageHasTent}
                                 </span>
                               )}
                               {isTent && !isTentPackage && (
                                 <span className="text-[9px] font-semibold text-foreground-muted bg-white px-1.5 py-0.5 rounded-full border border-border">
-                                  Maks. {kavlingCount} tenda ({kavlingCount}{' '}
-                                  kavling)
+                                  {t.spot.maxTentNotice(kavlingCount)}
                                 </span>
                               )}
                             </div>
@@ -2741,7 +2886,7 @@ export function SpotRedirectClient() {
                           </div>
                         ) : isTentDisabled ? (
                           <div className="text-[10px] font-medium text-foreground-muted shrink-0 px-2 py-1 bg-surface rounded-full border border-border opacity-75">
-                            Terkunci
+                            {t.spot.locked}
                           </div>
                         ) : (
                           <div className="flex items-center gap-2 shrink-0 bg-white border border-border p-1 rounded-full shadow-2xs">
@@ -2773,152 +2918,7 @@ export function SpotRedirectClient() {
               </div>
             )}
 
-            {/* ── AIRBNB INTEGRATED CALENDAR SECTION ── */}
-            <div className="space-y-4 pb-8 border-b border-border">
-              <div>
-                <h3 className="font-bold text-lg text-foreground">
-                  Pilih Tanggal Menginap
-                </h3>
-                <p className="text-xs text-foreground-muted">
-                  {checkInDate && checkOutDate ? (
-                    <>
-                      {nights} Malam di {campsite.name} ({formatDateDisplay(checkInDate)} s/d{' '}
-                      {formatDateDisplay(checkOutDate)})
-                    </>
-                  ) : (
-                    `Pilih tanggal kedatangan dan kepulangan di ${campsite.name}`
-                  )}
-                </p>
-              </div>
-
-              {/* Interactive Calendar Trigger Card */}
-              <div
-                onClick={() => setIsCalendarOpen(true)}
-                className="p-5 rounded-3xl bg-surface hover:bg-surface-variant/70 border border-border hover:border-brand-blue/60 transition-all cursor-pointer group shadow-2xs hover:shadow-md space-y-4"
-              >
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted flex items-center gap-1.5">
-                      <Calendar size={13} className="text-brand-blue" />
-                      <span>Check-In</span>
-                    </span>
-                    <div className={`font-bold text-sm sm:text-base group-hover:text-brand-blue transition-colors ${checkInDate ? 'text-foreground' : 'text-foreground-muted'}`}>
-                      {formatDateDisplay(checkInDate)}
-                    </div>
-                  </div>
-
-                  <div className="space-y-1 border-l border-border pl-4">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted flex items-center gap-1.5">
-                      <Calendar size={13} className="text-brand-blue" />
-                      <span>Check-Out</span>
-                    </span>
-                    <div className={`font-bold text-sm sm:text-base group-hover:text-brand-blue transition-colors ${checkOutDate ? 'text-foreground' : 'text-foreground-muted'}`}>
-                      {formatDateDisplay(checkOutDate)}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-3 border-t border-border/80 text-xs">
-                  <span className="font-semibold text-foreground flex items-center gap-1.5">
-                    <Clock size={13} className="text-brand-blue" />
-                    {nights > 0 ? (
-                      <>
-                        Durasi: <strong className="text-brand-blue">{nights} Malam</strong>
-                      </>
-                    ) : (
-                      <span className="text-foreground-muted">Pilih tanggal menginap</span>
-                    )}
-                  </span>
-                  <span className="text-xs font-bold text-brand-blue group-hover:underline flex items-center gap-1">
-                    {checkInDate && checkOutDate ? 'Ubah Tanggal →' : 'Pilih Tanggal →'}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* ── SECTION: LOKASI & PETA AREA (GOOGLE MAPS) ── */}
-            <div className="space-y-4 pb-8 border-b border-border">
-              <div className="space-y-1">
-                <h3 className="font-bold text-lg text-foreground">
-                  Lokasi & Akses Area
-                </h3>
-                <p className="text-xs text-foreground-muted">
-                  {campsite.name} ·{' '}
-                  {[campsite.address, campsite.city, campsite.province]
-                    .filter(Boolean)
-                    .join(', ')}
-                </p>
-              </div>
-
-              {/* Google Maps Iframe Embed */}
-              {campsite.latitude &&
-              campsite.longitude &&
-              Number(campsite.latitude) !== 0 ? (
-                <div className="relative aspect-[16/9] w-full rounded-3xl overflow-hidden border border-border bg-surface shadow-2xs">
-                  <iframe
-                    width="100%"
-                    height="100%"
-                    className="w-full h-full border-0"
-                    loading="lazy"
-                    title={`Peta Google Maps ${campsite.name}`}
-                    src={`https://maps.google.com/maps?q=${campsite.latitude},${campsite.longitude}&hl=id&z=15&output=embed`}
-                  />
-                  <div className="absolute top-4 left-4 bg-black/80 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-bold text-white shadow-md flex items-center gap-1.5 pointer-events-none">
-                    <MapPin size={13} className="text-brand-lime" />
-                    <span>{campsite.name}</span>
-                  </div>
-                </div>
-              ) : null}
-
-              {/* Denah Resmi Kavling (If Available) */}
-              {campsite.mapImageUrl && (
-                <div className="space-y-2 pt-2">
-                  <h4 className="text-xs font-bold text-foreground">
-                    Denah Resmi Kavling / Site Plan
-                  </h4>
-                  <div
-                    onClick={() => {
-                      setGalleryTab('map');
-                      setIsGalleryOpen(true);
-                    }}
-                    className="relative aspect-[16/9] w-full rounded-3xl overflow-hidden border border-border bg-surface cursor-pointer group shadow-2xs hover:border-brand-blue/60 transition-all"
-                  >
-                    <img
-                      src={resolveAssetUrl(campsite.mapImageUrl)}
-                      alt="Denah Kavling"
-                      className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white font-bold text-xs gap-1.5">
-                      <Maximize2 size={16} />
-                      <span>Buka Denah Penuh</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Google Maps Button & Directions */}
-              <div className="pt-2">
-                <a
-                  href={
-                    campsite.googleMapsUrl ||
-                    (campsite.latitude && campsite.longitude
-                      ? `https://www.google.com/maps/search/?api=1&query=${campsite.latitude},${campsite.longitude}`
-                      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                          campsite.name + ' ' + (campsite.address || ''),
-                        )}`)
-                  }
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-border bg-white hover:bg-surface text-xs font-bold text-brand-blue shadow-2xs hover:shadow-sm transition-all cursor-pointer"
-                >
-                  <MapPin size={14} />
-                  <span>Buka di Google Maps</span>
-                  <ExternalLink size={12} />
-                </a>
-              </div>
-            </div>
-
-            {/* ── SECTION: TENTANG PROPERTI CAMPSITE (PROPERTY DETAILS) ── */}
+            {/* ── SECTION: TENTANG KAWASAN & LOKASI CAMPSITE (PROPERTY DETAILS) ── */}
             <div className="space-y-6 pb-8 border-b border-border">
               {/* Property Cover Banner & Mitra Profile Header */}
               <div className="rounded-3xl border border-border overflow-hidden bg-surface shadow-2xs">
@@ -2994,19 +2994,25 @@ export function SpotRedirectClient() {
                 {/* Description Body */}
                 <div className="p-4 sm:p-6 space-y-2">
                   <h4 className="font-bold text-xs uppercase tracking-wider text-brand-blue">
-                    Tentang Kawasan
+                    {t.areaAndLocation.aboutArea}
                   </h4>
-                  <p className="text-xs sm:text-sm text-foreground/85 leading-relaxed">
-                    {campsite.description ||
-                      `${campsite.name} merupakan destinasi camping dan glamping pilihan di ${campsite.city || 'Jawa Barat'} dengan suasana asri, udara sejuk, dan fasilitas lengkap untuk liburan Anda.`}
-                  </p>
+                  <TranslatableBox
+                    text={
+                      campsite.description ||
+                      (lang === 'en'
+                        ? `${campsite.name} is a prime camping & glamping destination in ${campsite.city || 'West Java'} with pristine nature, cool weather, and complete facilities.`
+                        : `${campsite.name} merupakan destinasi camping dan glamping pilihan di ${campsite.city || 'Jawa Barat'} dengan suasana asri, udara sejuk, dan fasilitas lengkap untuk liburan Anda.`)
+                    }
+                    lang={lang}
+                    textClassName="text-xs sm:text-sm text-foreground/85 leading-relaxed"
+                  />
                   {campsiteSpots.length > 1 && (
                     <div className="pt-2">
                       <a
                         href={`/campsite/${campsite.slug || campsite.id}`}
                         className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-blue/10 hover:bg-brand-blue/20 text-brand-blue text-xs font-bold transition-all border border-brand-blue/20 cursor-pointer shadow-2xs"
                       >
-                        <span>Lihat Semua Spot di {campsite.name}</span>
+                        <span>{t.areaAndLocation.viewAllSpotsInCamp(campsite.name)}</span>
                         <ArrowRight size={13} />
                       </a>
                     </div>
@@ -3019,7 +3025,7 @@ export function SpotRedirectClient() {
                 campsite.facilities.length > 0 && (
                   <div className="space-y-3">
                     <h4 className="font-bold text-sm text-foreground">
-                      Fasilitas Utama Properti
+                      {t.areaAndLocation.mainFacilities}
                     </h4>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-xs text-foreground">
                       {campsite.facilities.map((fac: any, idx: number) => {
@@ -3036,7 +3042,7 @@ export function SpotRedirectClient() {
                           >
                             {getFacilityIcon(facName, facIcon || fac.id)}
                             <span className="font-medium truncate">
-                              {facName}
+                              {translateItemName(facName, lang)}
                             </span>
                           </div>
                         );
@@ -3045,23 +3051,105 @@ export function SpotRedirectClient() {
                   </div>
                 )}
 
+              {/* Lokasi & Peta Akses Kawasan (Google Maps) */}
+              <div className="space-y-3 pt-2">
+                <div className="space-y-0.5">
+                  <h4 className="font-bold text-sm text-foreground">
+                    {t.areaAndLocation.locationAccess}
+                  </h4>
+                  <p className="text-xs text-foreground-muted">
+                    {campsite.name} ·{' '}
+                    {[campsite.address, campsite.city, campsite.province]
+                      .filter(Boolean)
+                      .join(', ')}
+                  </p>
+                </div>
+
+                {/* Google Maps Iframe Embed */}
+                {campsite.latitude &&
+                campsite.longitude &&
+                Number(campsite.latitude) !== 0 ? (
+                  <div className="relative aspect-[16/9] w-full rounded-3xl overflow-hidden border border-border bg-surface shadow-2xs">
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      className="w-full h-full border-0"
+                      loading="lazy"
+                      title={`Peta Google Maps ${campsite.name}`}
+                      src={`https://maps.google.com/maps?q=${campsite.latitude},${campsite.longitude}&hl=${lang === 'en' ? 'en' : 'id'}&z=15&output=embed`}
+                    />
+                    <div className="absolute top-4 left-4 bg-black/80 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-bold text-white shadow-md flex items-center gap-1.5 pointer-events-none">
+                      <MapPin size={13} className="text-brand-lime" />
+                      <span>{campsite.name}</span>
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* Denah Resmi Kavling (If Available) */}
+                {campsite.mapImageUrl && (
+                  <div className="space-y-2 pt-1">
+                    <h5 className="text-xs font-bold text-foreground">
+                      {t.areaAndLocation.officialSitePlan}
+                    </h5>
+                    <div
+                      onClick={() => {
+                        setGalleryTab('map');
+                        setIsGalleryOpen(true);
+                      }}
+                      className="relative aspect-[16/9] w-full rounded-3xl overflow-hidden border border-border bg-surface cursor-pointer group shadow-2xs hover:border-brand-blue/60 transition-all"
+                    >
+                      <img
+                        src={resolveAssetUrl(campsite.mapImageUrl)}
+                        alt="Denah Kavling"
+                        className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white font-bold text-xs gap-1.5">
+                        <Maximize2 size={16} />
+                        <span>{t.areaAndLocation.openFullSitePlan}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Google Maps Button & Directions */}
+                <div className="pt-1">
+                  <a
+                    href={
+                      campsite.googleMapsUrl ||
+                      (campsite.latitude && campsite.longitude
+                        ? `https://www.google.com/maps/search/?api=1&query=${campsite.latitude},${campsite.longitude}`
+                        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                            campsite.name + ' ' + (campsite.address || ''),
+                          )}`)
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-border bg-white hover:bg-surface text-xs font-bold text-brand-blue shadow-2xs hover:shadow-sm transition-all cursor-pointer"
+                  >
+                    <MapPin size={14} />
+                    <span>{t.areaAndLocation.openGoogleMaps}</span>
+                    <ExternalLink size={12} />
+                  </a>
+                </div>
+              </div>
+
               {/* Aturan & Waktu Menginap */}
               <div className="space-y-3">
                 <h4 className="font-bold text-sm text-foreground">
-                  Aturan & Kebijakan Menginap
+                  {t.areaAndLocation.stayRulesAndPolicies}
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-foreground-muted leading-relaxed">
                   <div className="p-4 rounded-2xl bg-surface border border-border space-y-1">
                     <h5 className="font-bold text-foreground flex items-center gap-1.5">
                       <Clock size={13} className="text-brand-blue" />
-                      <span>Waktu Menginap</span>
+                      <span>{t.areaAndLocation.stayHours}</span>
                     </h5>
                     <p>
-                      Check-in mulai:{' '}
+                      {t.areaAndLocation.checkInFrom}{' '}
                       <strong>{campsite.checkInTime || '14:00'} WIB</strong>
                     </p>
                     <p>
-                      Check-out maksimal:{' '}
+                      {t.areaAndLocation.checkOutBy}{' '}
                       <strong>{campsite.checkOutTime || '12:00'} WIB</strong>
                     </p>
                   </div>
@@ -3069,13 +3157,13 @@ export function SpotRedirectClient() {
                   <div className="p-4 rounded-2xl bg-surface border border-border space-y-1">
                     <h5 className="font-bold text-foreground flex items-center gap-1.5">
                       <MoonStar size={13} className="text-brand-blue" />
-                      <span>Jam Tenang (Quiet Hours)</span>
+                      <span>{t.areaAndLocation.quietHours}</span>
                     </h5>
                     <p>
                       <strong>22:00 - 06:00 WIB</strong>
                     </p>
                     <p className="text-[11px]">
-                      Kecilkan volume musik dan suara demi kenyamanan bersama.
+                      {t.areaAndLocation.quietHoursNote}
                     </p>
                   </div>
 
@@ -3083,11 +3171,12 @@ export function SpotRedirectClient() {
                     <div className="flex items-center justify-between">
                       <h5 className="font-bold text-foreground flex items-center gap-1.5">
                         <ShieldCheck size={13} className="text-brand-blue" />
-                        <span>Kebijakan Pembatalan & Refund</span>
+                        <span>{t.areaAndLocation.cancellationPolicy}</span>
                       </h5>
                     </div>
                     <CancellationPolicyBannerButton
                       checkInDate={checkInDate}
+                      lang={lang}
                       onClick={() => setShowCancellationModal(true)}
                     />
                   </div>
@@ -3098,15 +3187,13 @@ export function SpotRedirectClient() {
                   <div className="p-4 rounded-2xl bg-surface border border-border space-y-2 text-xs">
                     <h5 className="font-bold text-foreground flex items-center gap-1.5">
                       <ShieldCheck size={13} className="text-emerald-600" />
-                      <span>Tata Tertib & Keselamatan</span>
+                      <span>{t.areaAndLocation.rulesAndSafety}</span>
                     </h5>
-                    <ul className="space-y-1.5 text-foreground/80 list-disc list-inside">
-                      {parseHtmlRules(campsite.rules).map((rule, rIdx) => (
-                        <li key={rIdx} className="leading-relaxed">
-                          {rule}
-                        </li>
-                      ))}
-                    </ul>
+                    <TranslatableBox
+                      items={parseHtmlRules(campsite.rules)}
+                      lang={lang}
+                      listClassName="space-y-1.5 text-foreground/80 list-disc list-inside"
+                    />
                   </div>
                 )}
               </div>
@@ -3119,8 +3206,8 @@ export function SpotRedirectClient() {
                   <Star size={20} className="fill-amber-500 text-amber-500" />
                   <h3 className="font-bold text-xl text-foreground">
                     {reviewAggregate && reviewAggregate.ratingCount > 0
-                      ? `${reviewAggregate.ratingAvg.toFixed(1)} · ${reviewAggregate.ratingCount} Ulasan Tamu`
-                      : 'Ulasan Tamu'}
+                      ? `${reviewAggregate.ratingAvg.toFixed(1)} · ${reviewAggregate.ratingCount} ${t.reviews.guestReviews}`
+                      : t.reviews.guestReviews}
                   </h3>
                 </div>
                 {reviews.length > 0 && (
@@ -3129,7 +3216,7 @@ export function SpotRedirectClient() {
                     onClick={() => setShowReviewsModal(true)}
                     className="px-4 py-2 rounded-full border border-border bg-white hover:bg-surface text-xs font-bold text-foreground transition-all cursor-pointer shadow-2xs hover:shadow-xs inline-flex items-center justify-center"
                   >
-                    Lihat Semua
+                    {t.reviews.viewAll}
                   </button>
                 )}
               </div>
@@ -3163,7 +3250,7 @@ export function SpotRedirectClient() {
                               </h4>
                               <span className="text-[10px] text-foreground-muted">
                                 {new Date(rev.createdAt).toLocaleDateString(
-                                  'id-ID',
+                                  lang === 'en' ? 'en-US' : 'id-ID',
                                   {
                                     month: 'long',
                                     year: 'numeric',
@@ -3181,9 +3268,11 @@ export function SpotRedirectClient() {
                           </div>
                         </div>
 
-                        <p className="text-xs text-foreground/90 leading-relaxed">
-                          "{rev.message}"
-                        </p>
+                        <TranslatableBox
+                          text={`“${(rev.message || '').trim()}”`}
+                          lang={lang}
+                          textClassName="text-xs text-foreground/90 leading-relaxed italic"
+                        />
 
                         {rev.photoUrl && (
                           <div className="w-20 h-20 rounded-xl overflow-hidden border border-border">
@@ -3216,13 +3305,15 @@ export function SpotRedirectClient() {
             <div className="p-6 sm:p-8 rounded-3xl bg-[#0841b5] text-white space-y-4 shadow-md">
               <div className="max-w-xl space-y-2.5">
                 <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-snug">
-                  Pesan Lebih Cepat & Lengkap di Aplikasi Embun
+                  {lang === 'en'
+                    ? 'Book Faster & More Complete on the Embun App'
+                    : 'Pesan Lebih Cepat & Lengkap di Aplikasi Embun'}
                 </h3>
 
                 <p className="text-xs sm:text-sm text-white/80 leading-relaxed">
-                  Nikmati pengalaman maksimal dengan tur 360° interaktif yang
-                  mulus, peta interaktif spot & campsite, fitur gathering
-                  rombongan, dan e-tiket QR code instan.
+                  {lang === 'en'
+                    ? 'Enjoy the ultimate experience with seamless interactive 360° tours, interactive campsite & spot maps, group gathering features, and instant QR code e-tickets.'
+                    : 'Nikmati pengalaman maksimal dengan tur 360° interaktif yang mulus, peta interaktif spot & campsite, fitur gathering rombongan, dan e-tiket QR code instan.'}
                 </p>
 
                 <div className="flex flex-wrap items-center gap-3 pt-2">
@@ -3347,7 +3438,7 @@ export function SpotRedirectClient() {
                     </span>
                     <span className="text-xs text-foreground-muted">
                       {' '}
-                      / malam
+                      {t.spot.perNight}
                     </span>
                   </div>
                   {reviewAggregate && reviewAggregate.ratingCount > 0 ? (
@@ -3355,7 +3446,7 @@ export function SpotRedirectClient() {
                       <Star size={13} className="fill-amber-500 text-amber-500" />
                       <span>{reviewAggregate.ratingAvg.toFixed(1)}</span>
                       <span className="text-foreground-muted">
-                        · {reviewAggregate.ratingCount} ulasan
+                        · {t.spot.reviewsCount(reviewAggregate.ratingCount)}
                       </span>
                     </div>
                   ) : (
@@ -3364,7 +3455,7 @@ export function SpotRedirectClient() {
                         size={13}
                         className="text-brand-lime fill-brand-lime"
                       />
-                      <span className="text-brand-blue">Baru</span>
+                      <span className="text-brand-blue">{t.spot.newBadge}</span>
                     </div>
                   )}
                 </div>
@@ -3374,7 +3465,7 @@ export function SpotRedirectClient() {
                   activeSpot.pricingPackages.length > 1 && (
                     <div className="space-y-1.5 relative">
                       <label className="text-[11px] font-bold text-foreground flex items-center justify-between">
-                        <span>Pilihan Paket</span>
+                        <span>{t.spot.packageOptionsTitleShort}</span>
                         <span className="text-[10px] font-semibold text-brand-blue truncate max-w-[140px]">
                           {selectedPackage?.name}
                         </span>
@@ -3404,12 +3495,12 @@ export function SpotRedirectClient() {
                             </div>
                             <div className="min-w-0">
                               <span className="font-extrabold text-xs text-foreground block truncate group-hover:text-brand-blue transition-colors">
-                                {selectedPackage?.name || 'Pilih Paket'}
+                                {selectedPackage?.name || t.spot.selectPackage}
                               </span>
                               <span className="text-[11px] font-bold text-brand-blue block mt-0.5">
                                 {rupiah(spotPricePerNight)}{' '}
                                 <span className="text-[10px] text-foreground-muted font-normal">
-                                  / malam · Maks. {effectiveMaxCapacity} Tamu
+                                  {t.spot.perNight} · {t.spot.maxGuests(effectiveMaxCapacity)}
                                 </span>
                               </span>
                             </div>
@@ -3488,7 +3579,7 @@ export function SpotRedirectClient() {
                                           )}
                                         </div>
                                         <span className="text-[10px] text-foreground-muted block mt-0.5">
-                                          Maks. {pkgCap} Tamu
+                                          {t.spot.maxGuests(pkgCap)}
                                         </span>
                                       </div>
                                     </div>
@@ -3546,11 +3637,24 @@ export function SpotRedirectClient() {
                   <div className="p-2.5 bg-white flex items-center justify-between">
                     <div>
                       <span className="block text-[9px] font-bold uppercase tracking-wider text-foreground-muted">
-                        Jumlah Tamu
+                        {t.spot.guestsTitle}
                       </span>
                       <span className="font-bold text-foreground text-xs">
-                        {guestCount} Orang (Maks. {effectiveMaxCapacity})
+                        {t.spot.guestsCountWithMax(guestCount, effectiveMaxCapacity)}
                       </span>
+                      {extraPersonInfo && extraPersonInfo.count > 0 && extraPersonInfo.unitPrice > 0 ? (
+                        <span className="block text-[10px] text-brand-blue font-semibold mt-0.5">
+                          {lang === 'en'
+                            ? `+${rupiah(extraPersonInfo.unitPrice)}/extra guest/night`
+                            : `+${rupiah(extraPersonInfo.unitPrice)}/tamu ekstra/malam`}
+                        </span>
+                      ) : Number(selectedPackage?.extraPersonFee ?? activeSpot?.extraPersonFee ?? 0) > 0 ? (
+                        <span className="block text-[9.5px] text-foreground-muted/70 mt-0.5">
+                          {lang === 'en'
+                            ? `+${rupiah(Number(selectedPackage?.extraPersonFee ?? activeSpot?.extraPersonFee))}/extra guest`
+                            : `+${rupiah(Number(selectedPackage?.extraPersonFee ?? activeSpot?.extraPersonFee))}/tamu tambahan`}
+                        </span>
+                      ) : null}
                     </div>
                     <div className="flex items-center gap-1.5">
                       <button
@@ -3586,7 +3690,7 @@ export function SpotRedirectClient() {
                     <div className="space-y-2.5 pt-2 border-t border-border text-xs">
                       <div className="space-y-1.5">
                         <span className="text-foreground-muted block leading-snug font-medium">
-                          {selectedPackage?.name || 'Sewa Spot'}
+                          {selectedPackage?.name || t.spot.spotRental}
                         </span>
                         {accommodationStayLines.length > 0 ? (
                           accommodationStayLines.map((line, lIdx) => (
@@ -3596,7 +3700,7 @@ export function SpotRedirectClient() {
                             >
                               <span className="text-foreground-muted/80">
                                 {line.label} ({rupiah(line.unitPrice)} ×{' '}
-                                {line.quantity} malam)
+                                {line.quantity} {lang === 'en' ? 'nights' : 'malam'})
                               </span>
                               <span className="font-semibold text-foreground shrink-0">
                                 {rupiah(line.amount)}
@@ -3606,7 +3710,7 @@ export function SpotRedirectClient() {
                         ) : (
                           <div className="flex justify-between items-center text-[11px]">
                             <span className="text-foreground-muted/80">
-                              {rupiah(spotPricePerNight)} × {nights} malam
+                              {rupiah(spotPricePerNight)} × {nights} {lang === 'en' ? 'nights' : 'malam'}
                             </span>
                             <span className="font-semibold text-foreground shrink-0">
                               {rupiah(spotPricePerNight * nights)}
@@ -3619,10 +3723,14 @@ export function SpotRedirectClient() {
                         <div className="flex justify-between items-start gap-4 pt-1 border-t border-border/50">
                           <div className="min-w-0 pr-2">
                             <span className="text-foreground-muted block leading-snug">
-                              Tamu Tambahan
+                              {t.spot.extraGuests}
                             </span>
                             <span className="text-[11px] text-foreground-muted/70 block mt-0.5">
-                              {extraPersonInfo.count} orang × {rupiah(extraPersonInfo.unitPrice)} × {nights} malam
+                              {t.spot.extraGuestsFormula(
+                                extraPersonInfo.count,
+                                rupiah(extraPersonInfo.unitPrice),
+                                nights,
+                              )}
                             </span>
                           </div>
                           <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right pt-0.5">
@@ -3633,7 +3741,9 @@ export function SpotRedirectClient() {
 
                       {addonTotal > 0 && (
                         <div className="flex justify-between items-center gap-4 pt-1 border-t border-border/50">
-                          <span className="text-foreground-muted">Perlengkapan Tambahan</span>
+                          <span className="text-foreground-muted">
+                            {lang === 'en' ? 'Additional Equipment' : 'Perlengkapan Tambahan'}
+                          </span>
                           <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right">
                             +{rupiah(addonTotal)}
                           </span>
@@ -3641,14 +3751,14 @@ export function SpotRedirectClient() {
                       )}
 
                       <div className="flex justify-between items-center gap-4 pt-1 border-t border-border/50">
-                        <span className="text-foreground-muted">Biaya Layanan & Pajak</span>
+                        <span className="text-foreground-muted">{t.spot.serviceAndTaxFee}</span>
                         <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right">
                           +{rupiah(totalServiceAndTaxFee)}
                         </span>
                       </div>
 
                       <div className="flex justify-between items-baseline pt-2 border-t border-border font-bold text-sm text-foreground">
-                        <span>Total Tagihan</span>
+                        <span>{t.spot.totalBill}</span>
                         <span className="text-base text-brand-blue font-extrabold shrink-0 whitespace-nowrap">
                           {rupiah(grandTotal)}
                         </span>
@@ -3668,7 +3778,7 @@ export function SpotRedirectClient() {
                           }`}
                         >
                           <span className="block text-[11px] font-bold text-foreground">
-                            DP 50%
+                            {t.spot.dp50}
                           </span>
                           <span className="block text-xs font-extrabold text-brand-blue mt-0.5">
                             {rupiah(dp50Total)}
@@ -3685,7 +3795,7 @@ export function SpotRedirectClient() {
                           }`}
                         >
                           <span className="block text-[11px] font-bold text-foreground">
-                            Bayar Lunas
+                            {t.spot.payFull}
                           </span>
                           <span className="block text-xs font-extrabold text-brand-blue mt-0.5">
                             {rupiah(grandTotal)}
@@ -3697,18 +3807,18 @@ export function SpotRedirectClient() {
                 ) : (
                   <div className="pt-2 border-t border-border space-y-2.5 text-xs">
                     <div className="flex justify-between items-baseline">
-                      <span className="text-foreground-muted">Tarif Sewa</span>
+                      <span className="text-foreground-muted">{t.spot.rentalRate}</span>
                       <span className="font-bold text-foreground">
                         {rupiah(spotPricePerNight)}{' '}
                         <span className="text-[11px] font-normal text-foreground-muted">
-                          / malam
+                          {t.spot.perNight}
                         </span>
                       </span>
                     </div>
                     <div className="p-3 rounded-2xl bg-surface/70 border border-border/80 text-[11.5px] text-foreground-muted leading-relaxed flex items-start gap-2">
                       <Info size={15} className="text-brand-blue shrink-0 mt-0.5" />
                       <span>
-                        Pilih tanggal check-in & check-out untuk melihat rincian biaya lengkap.
+                        {t.spot.selectDatesHelp}
                       </span>
                     </div>
                   </div>
@@ -3724,6 +3834,7 @@ export function SpotRedirectClient() {
                 <div className="space-y-2.5 pt-1">
                   <CancellationPolicyBannerButton
                     checkInDate={checkInDate}
+                    lang={lang}
                     onClick={() => setShowCancellationModal(true)}
                   />
                   {checkInDate && checkOutDate ? (
@@ -3732,7 +3843,7 @@ export function SpotRedirectClient() {
                       onClick={handleProceedBooking}
                       className="w-full py-3.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
                     >
-                      <span>{`Lanjut Pemesanan · ${rupiah(paymentAmountToPay)}`}</span>
+                      <span>{t.spot.continueBooking(rupiah(paymentAmountToPay))}</span>
                     </button>
                   ) : (
                     <button
@@ -3741,17 +3852,17 @@ export function SpotRedirectClient() {
                       className="w-full py-3.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
                     >
                       <Calendar size={15} />
-                      <span>Pilih Tanggal Menginap</span>
+                      <span>{t.spot.selectStayDates}</span>
                     </button>
                   )}
                   <p className="text-[11px] text-center text-foreground-muted">
-                    Tunduk pada{' '}
+                    {t.spot.subjectTo}{' '}
                     <button
                       type="button"
                       onClick={() => setShowCancellationModal(true)}
                       className="text-brand-blue font-semibold hover:underline cursor-pointer"
                     >
-                      Kebijakan Refund & Pembatalan
+                      {t.spot.cancellationPolicy}
                     </button>
                   </p>
                 </div>
@@ -3762,28 +3873,7 @@ export function SpotRedirectClient() {
       </main>
  
        {/* ── FOOTER KHAS EMBUN EXPLORE ── */}
-       <footer className="border-t border-border bg-surface py-8 sm:py-10 text-xs text-foreground-muted mt-auto pb-28 lg:pb-8">
-         <div className="max-w-[2520px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 flex flex-col sm:flex-row items-center justify-between gap-4">
-           <div className="flex items-center gap-2">
-             <span className="font-black text-lg text-brand-blue tracking-tight">embun</span>
-             <span>© 2026 PT Alam Kelana Digital. Hak Cipta Dilindungi.</span>
-           </div>
-           <div className="flex items-center gap-6 pr-0 sm:pr-16 lg:pr-20">
-             <a href="/id/kebijakan-privasi/" className="hover:underline">
-               Privasi
-             </a>
-             <a href="/id/syarat-ketentuan/" className="hover:underline">
-               Syarat & Ketentuan
-             </a>
-             <a href="/id/kebijakan-refund/" className="hover:underline">
-               Kebijakan Refund
-             </a>
-             <a href="/id/mitra/" className="hover:underline">
-               Mitra Camp
-             </a>
-           </div>
-         </div>
-       </footer>
+       <ExploreFooter lang={lang} onToggleLanguage={toggleLanguage} className="pb-28 lg:pb-8" />
 
       {/* ════════════════════════════════════════════════════════════════════════
           5. MOBILE STICKY BOTTOM BAR
@@ -3798,10 +3888,10 @@ export function SpotRedirectClient() {
               <span className="text-base font-extrabold text-foreground">
                 {rupiah(spotPricePerNight)}
               </span>
-              <span className="text-xs text-foreground-muted"> / malam</span>
+              <span className="text-xs text-foreground-muted"> {t.spot.perNight}</span>
               {checkInDate && checkOutDate ? (
                 <p className="text-[10.5px] text-brand-blue font-bold group-hover:underline flex items-center gap-1">
-                  <span>{nights} Malam</span>
+                  <span>{t.spot.nightsCount(nights)}</span>
                   <span>
                     ({formatDateDisplay(checkInDate)} -{' '}
                     {formatDateDisplay(checkOutDate)})
@@ -3809,7 +3899,7 @@ export function SpotRedirectClient() {
                 </p>
               ) : (
                 <p className="text-[10.5px] text-brand-blue font-bold group-hover:underline flex items-center gap-1">
-                  <span>Pilih tanggal menginap</span>
+                  <span>{t.dates.selectDatesPrompt}</span>
                   <ArrowRight size={11} />
                 </p>
               )}
@@ -3819,14 +3909,14 @@ export function SpotRedirectClient() {
               type="button"
               onClick={() => {
                 if (checkInDate && checkOutDate) {
-                  setIsMobileBookingOpen(true);
+                  handleProceedBooking();
                 } else {
                   setIsCalendarOpen(true);
                 }
               }}
-              className="px-6 py-3 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-xs font-bold shadow-md cursor-pointer flex items-center gap-1.5 transition-all"
+              className="px-6 py-3 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-xs font-bold shadow-md cursor-pointer flex items-center gap-1.5 transition-all active:scale-[0.98]"
             >
-              <span>{checkInDate && checkOutDate ? 'Pesan' : 'Pilih Tanggal'}</span>
+              <span>{checkInDate && checkOutDate ? (lang === 'en' ? 'Book' : 'Pesan') : (lang === 'en' ? 'Select Dates' : 'Pilih Tanggal')}</span>
               <ArrowRight size={14} />
             </button>
           </div>
@@ -4068,6 +4158,7 @@ export function SpotRedirectClient() {
         }}
         spotName={activeSpot?.name}
         bookedDates={bookedDates}
+        lang={lang}
       />
 
       {/* ════════════════════════════════════════════════════════════════════════
@@ -4080,7 +4171,8 @@ export function SpotRedirectClient() {
             <div className="flex items-center justify-between p-5 border-b border-border sticky top-0 bg-white/95 backdrop-blur-sm z-10">
               <div className="min-w-0 pr-3">
                 <h3 className="font-extrabold text-base sm:text-lg text-foreground truncate">
-                  Detail Paket: {detailPackage.name}
+                  {lang === 'en' ? 'Package Details: ' : 'Detail Paket: '}
+                  {detailPackage.name}
                 </h3>
                 <p className="text-xs text-foreground-muted truncate">
                   {activeSpot.name} · {campsite.name}
@@ -4113,45 +4205,75 @@ export function SpotRedirectClient() {
                 {Array.isArray(detailPackage.images) &&
                   detailPackage.images.length > 1 && (
                     <span className="absolute bottom-3 right-3 bg-black/70 text-white text-xs font-bold px-2.5 py-1 rounded-lg backdrop-blur-xs">
-                      {detailPackage.images.length} Foto
+                      {detailPackage.images.length} {lang === 'en' ? 'Photos' : 'Foto'}
                     </span>
                   )}
               </div>
 
               {/* Price & Capacity Summary */}
               <div className="p-4 rounded-2xl bg-surface border border-border space-y-3">
-                <div className="flex items-center justify-between pb-2.5 border-b border-border/60">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
-                    Kapasitas
-                  </span>
-                  <span className="text-xs font-bold text-foreground px-2.5 py-0.5 rounded-full bg-brand-blue/10 text-brand-blue">
-                    Maks.{' '}
-                    {detailPackage.maxOccupancy ||
-                      detailPackage.baseCapacity ||
-                      activeSpot.maxCapacity}{' '}
-                    Tamu
-                  </span>
+                {/* Capacity & Extra Guest Breakdown */}
+                <div className="flex flex-col gap-2 pb-2.5 border-b border-border/60 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
+                      {lang === 'en' ? 'Included Guests' : 'Kapasitas Termasuk'}
+                    </span>
+                    <span className="font-bold text-foreground">
+                      {detailPackage.baseCapacity || activeSpot.baseCapacity || 1} {lang === 'en' ? 'Guests' : 'Tamu'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
+                      {lang === 'en' ? 'Max Capacity' : 'Kapasitas Maksimal'}
+                    </span>
+                    <span className="font-bold text-brand-blue px-2.5 py-0.5 rounded-full bg-brand-blue/10 text-xs">
+                      {t.spot.maxGuests(
+                        detailPackage.maxOccupancy ||
+                          detailPackage.baseCapacity ||
+                          activeSpot.maxCapacity,
+                      )}
+                    </span>
+                  </div>
+                  {Number(detailPackage.extraPersonFee ?? activeSpot.extraPersonFee ?? 0) > 0 ? (
+                    <div className="flex items-center justify-between pt-1 border-t border-dashed border-border/60">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
+                        {lang === 'en' ? 'Extra Guest Fee' : 'Biaya Tamu Tambahan'}
+                      </span>
+                      <span className="font-bold text-amber-600">
+                        +{rupiah(Number(detailPackage.extraPersonFee ?? activeSpot.extraPersonFee))}/{lang === 'en' ? 'guest/night' : 'orang/malam'}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between pt-1 border-t border-dashed border-border/60">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
+                        {lang === 'en' ? 'Extra Guest Fee' : 'Biaya Tamu Tambahan'}
+                      </span>
+                      <span className="font-bold text-emerald-600">
+                        {lang === 'en' ? 'Free (up to max capacity)' : 'Gratis (hingga kapasitas maks)'}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted block mb-2">
-                    Tarif Paket
+                    {lang === 'en' ? 'Package Rates' : 'Tarif Paket'}
                   </span>
                   {detailPackage.flatRateMode ? (
                     <div className="flex items-center justify-between text-xs py-1">
-                      <span className="text-foreground-muted">Semua hari</span>
+                      <span className="text-foreground-muted">{lang === 'en' ? 'All days' : 'Semua hari'}</span>
                       <span className="font-bold text-foreground">
                         {rupiah(
                           Number(detailPackage.flatRate) || spotPricePerNight,
                         )}{' '}
                         <span className="text-[10px] text-foreground-muted font-normal">
-                          / malam
+                          {t.spot.perNight}
                         </span>
                       </span>
                     </div>
                   ) : (
                     <div className="space-y-1.5 text-xs">
                       <div className="flex items-center justify-between py-0.5">
-                        <span className="text-foreground-muted">Hari biasa</span>
+                        <span className="text-foreground-muted">{lang === 'en' ? 'Weekdays' : 'Hari biasa'}</span>
                         <span className="font-bold text-foreground">
                           {rupiah(
                             Number(detailPackage.weekdayRate) ||
@@ -4159,12 +4281,12 @@ export function SpotRedirectClient() {
                               0,
                           )}{' '}
                           <span className="text-[10px] text-foreground-muted font-normal">
-                            / malam
+                            {t.spot.perNight}
                           </span>
                         </span>
                       </div>
                       <div className="flex items-center justify-between py-0.5">
-                        <span className="text-foreground-muted">Akhir pekan</span>
+                        <span className="text-foreground-muted">{lang === 'en' ? 'Weekends' : 'Akhir pekan'}</span>
                         <span className="font-bold text-foreground">
                           {rupiah(
                             Number(
@@ -4176,12 +4298,12 @@ export function SpotRedirectClient() {
                             ),
                           )}{' '}
                           <span className="text-[10px] text-foreground-muted font-normal">
-                            / malam
+                            {t.spot.perNight}
                           </span>
                         </span>
                       </div>
                       <div className="flex items-center justify-between py-0.5">
-                        <span className="text-foreground-muted">Libur</span>
+                        <span className="text-foreground-muted">{lang === 'en' ? 'Holidays' : 'Libur'}</span>
                         <span className="font-bold text-foreground">
                           {rupiah(
                             Number(
@@ -4195,7 +4317,7 @@ export function SpotRedirectClient() {
                             ),
                           )}{' '}
                           <span className="text-[10px] text-foreground-muted font-normal">
-                            / malam
+                            {t.spot.perNight}
                           </span>
                         </span>
                       </div>
@@ -4208,7 +4330,7 @@ export function SpotRedirectClient() {
               {detailPackage.description && (
                 <div className="space-y-1.5">
                   <h4 className="font-bold text-sm text-foreground">
-                    Deskripsi Paket
+                    {lang === 'en' ? 'Package Description' : 'Deskripsi Paket'}
                   </h4>
                   <p className="text-xs text-foreground/80 leading-relaxed whitespace-pre-line">
                     {detailPackage.description
@@ -4226,14 +4348,20 @@ export function SpotRedirectClient() {
                 <div className="space-y-2.5">
                   <h4 className="font-bold text-sm text-foreground flex items-center gap-1.5">
                     <CheckCircle2 size={16} className="text-brand-blue" />
-                    <span>Fasilitas & Perlengkapan Termasuk:</span>
+                    <span>
+                      {lang === 'en'
+                        ? 'Included Amenities & Gear:'
+                        : 'Fasilitas & Perlengkapan Termasuk:'}
+                    </span>
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {detailPackage.tentPackageAddonId && (
                       <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-brand-blue/5 border border-brand-blue/20 text-xs">
                         <Tent size={16} className="text-brand-blue shrink-0" />
                         <span className="font-bold text-brand-blue">
-                          Tenda Fisik & Pemasangan
+                          {lang === 'en'
+                            ? 'Physical Tent & Setup'
+                            : 'Tenda Fisik & Pemasangan'}
                         </span>
                       </div>
                     )}
@@ -4268,7 +4396,7 @@ export function SpotRedirectClient() {
                                 {name}
                               </span>
                               <span className="text-[10px] text-foreground-muted">
-                                {qty} {addonObj?.unit || 'unit'} · Gratis
+                                {qty} {addonObj?.unit || 'unit'} · {lang === 'en' ? 'Free' : 'Gratis'}
                               </span>
                             </div>
                           </div>
@@ -4286,7 +4414,7 @@ export function SpotRedirectClient() {
                 onClick={() => setDetailPackage(null)}
                 className="px-4 py-2.5 rounded-xl border border-border text-xs font-bold text-foreground hover:bg-surface cursor-pointer"
               >
-                Tutup
+                {lang === 'en' ? 'Close' : 'Tutup'}
               </button>
               <button
                 type="button"
@@ -4297,7 +4425,7 @@ export function SpotRedirectClient() {
                 className="px-6 py-2.5 rounded-xl bg-brand-blue hover:bg-brand-blue/90 text-white text-xs font-extrabold shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
               >
                 <Check size={14} strokeWidth={3} />
-                <span>Pilih Paket Ini</span>
+                <span>{lang === 'en' ? 'Select This Package' : 'Pilih Paket Ini'}</span>
               </button>
             </div>
           </div>
@@ -4350,7 +4478,7 @@ export function SpotRedirectClient() {
               <div className="p-4 rounded-2xl bg-surface border border-border flex items-baseline justify-between">
                 <div>
                   <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted block">
-                    Harga Sewa
+                    {lang === 'en' ? 'Rental Rate' : 'Harga Sewa'}
                   </span>
                   <span className="text-xl font-extrabold text-brand-blue">
                     {rupiah(detailAddon.price)}
@@ -4361,7 +4489,7 @@ export function SpotRedirectClient() {
                 </div>
                 {detailAddon.stock !== null && detailAddon.stock !== undefined && (
                   <span className="text-xs font-semibold text-foreground-muted bg-white px-2.5 py-1 rounded-full border border-border">
-                    Stok: {detailAddon.stock}
+                    {lang === 'en' ? 'Stock: ' : 'Stok: '}{detailAddon.stock}
                   </span>
                 )}
               </div>
@@ -4370,7 +4498,7 @@ export function SpotRedirectClient() {
               {detailAddon.description && (
                 <div className="space-y-1.5">
                   <h4 className="font-bold text-xs uppercase tracking-wider text-foreground-muted">
-                    Deskripsi & Keterangan
+                    {lang === 'en' ? 'Description & Details' : 'Deskripsi & Keterangan'}
                   </h4>
                   <p className="text-xs text-foreground/80 leading-relaxed whitespace-pre-line">
                     {detailAddon.description
@@ -4385,7 +4513,7 @@ export function SpotRedirectClient() {
             {/* Modal Footer */}
             <div className="p-4 border-t border-border bg-surface/50 flex items-center justify-between gap-3 sticky bottom-0">
               <span className="text-xs font-bold text-foreground">
-                Jumlah:{' '}
+                {lang === 'en' ? 'Quantity: ' : 'Jumlah: '}
                 <span className="text-brand-blue font-extrabold">
                   {selectedAddons[detailAddon.id] || 0}
                 </span>
@@ -4411,7 +4539,7 @@ export function SpotRedirectClient() {
                   onClick={() => setDetailAddon(null)}
                   className="ml-2 px-4 py-2 rounded-xl bg-brand-blue hover:bg-brand-blue/90 text-white text-xs font-bold cursor-pointer"
                 >
-                  Selesai
+                  {lang === 'en' ? 'Done' : 'Selesai'}
                 </button>
               </div>
             </div>
@@ -4424,7 +4552,10 @@ export function SpotRedirectClient() {
       ════════════════════════════════════════════════════════════════════════ */}
       {isMobileBookingOpen && (
         <div className="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end justify-center animate-in fade-in duration-200">
-          <div className="bg-white text-foreground rounded-t-3xl border-t border-border w-full max-w-lg max-h-[90vh] overflow-y-auto p-5 space-y-5 shadow-2xl animate-in slide-in-from-bottom duration-200">
+          <div className="bg-white text-foreground rounded-t-3xl border-t border-border w-full max-w-lg max-h-[92vh] overflow-y-auto p-5 space-y-5 shadow-2xl animate-in slide-in-from-bottom duration-200">
+            {/* Drag Handle */}
+            <div className="w-12 h-1.5 bg-border rounded-full mx-auto -mt-1 mb-2" />
+
             {/* Top Header */}
             <div className="flex items-center justify-between border-b border-border pb-3">
               <div>
@@ -4433,7 +4564,7 @@ export function SpotRedirectClient() {
                 </h3>
                 <p className="text-xs text-foreground-muted">
                   {rupiah(spotPricePerNight)}{' '}
-                  <span className="text-[11px]">/ malam</span> · {campsite.name}
+                  <span className="text-[11px]">{t.spot.perNight}</span> · {campsite.name}
                 </p>
               </div>
               <button
@@ -4450,7 +4581,7 @@ export function SpotRedirectClient() {
               activeSpot.pricingPackages.length > 1 && (
                 <div className="space-y-1.5 relative">
                   <label className="text-xs font-bold text-foreground flex items-center justify-between">
-                    <span>Pilihan Paket</span>
+                    <span>{t.spot.packageOptionsTitleShort}</span>
                     <span className="text-[11px] font-semibold text-brand-blue truncate max-w-[140px]">
                       {selectedPackage?.name}
                     </span>
@@ -4482,12 +4613,12 @@ export function SpotRedirectClient() {
                         </div>
                         <div className="min-w-0">
                           <span className="font-extrabold text-xs text-foreground block truncate group-hover:text-brand-blue transition-colors">
-                            {selectedPackage?.name || 'Pilih Paket'}
+                            {selectedPackage?.name || t.spot.selectPackage}
                           </span>
                           <span className="text-[11.5px] font-bold text-brand-blue block mt-0.5">
                             {rupiah(spotPricePerNight)}{' '}
                             <span className="text-[10.5px] text-foreground-muted font-normal">
-                              / malam · Maks. {effectiveMaxCapacity} Tamu
+                              {t.spot.perNight} · {t.spot.maxGuests(effectiveMaxCapacity)}
                             </span>
                           </span>
                         </div>
@@ -4565,7 +4696,7 @@ export function SpotRedirectClient() {
                                       )}
                                     </div>
                                     <span className="text-[10px] text-foreground-muted block mt-0.5">
-                                      Maks. {pkgCap} Tamu
+                                      {t.spot.maxGuests(pkgCap)}
                                     </span>
                                   </div>
                                 </div>
@@ -4618,10 +4749,10 @@ export function SpotRedirectClient() {
               <div className="p-3 bg-white flex items-center justify-between">
                 <div>
                   <span className="block text-[9.5px] font-bold uppercase tracking-wider text-foreground-muted">
-                    Jumlah Tamu
+                    {t.spot.guestsTitle}
                   </span>
                   <span className="font-bold text-foreground text-xs">
-                    {guestCount} Orang (Maks. {effectiveMaxCapacity})
+                    {t.spot.guestsCountWithMax(guestCount, effectiveMaxCapacity)}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -4656,9 +4787,9 @@ export function SpotRedirectClient() {
             {availableAddons.length > 0 && (
               <div className="space-y-2">
                 <label className="text-xs font-bold text-foreground block">
-                  Perlengkapan Tambahan (Opsional)
+                  {t.spot.addonsTitle}
                 </label>
-                <div className="space-y-2 max-h-40 overflow-y-auto pr-1 no-scrollbar text-xs">
+                <div className="space-y-2.5 text-xs">
                   {availableAddons.map((addon) => {
                     const qty = selectedAddons[addon.id] || 0;
                     const isTent = isTentAddon(addon);
@@ -4675,8 +4806,8 @@ export function SpotRedirectClient() {
                     const unitDisplay = rawUnit ? rawUnit : 'unit';
                     const priceSuffix = perNight
                       ? unitDisplay.toLowerCase() === 'malam'
-                        ? '/ malam'
-                        : `/ ${unitDisplay} / malam`
+                        ? ` ${t.spot.perNight}`
+                        : `/ ${unitDisplay} ${t.spot.perNight}`
                       : `/ ${unitDisplay}`;
 
                     const addonImg = getAddonImageUrl(addon);
@@ -4687,7 +4818,9 @@ export function SpotRedirectClient() {
                         className={`p-2.5 rounded-2xl border transition-all flex items-center justify-between gap-2.5 ${
                           isTentDisabled
                             ? 'border-border/60 bg-surface/20 opacity-70'
-                            : 'border-border bg-surface/40'
+                            : qty > 0
+                            ? 'border-brand-blue/50 bg-brand-blue/5 shadow-2xs'
+                            : 'border-border bg-surface/40 hover:bg-surface/70'
                         }`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0 flex-1">
@@ -4711,18 +4844,17 @@ export function SpotRedirectClient() {
                               </p>
                             {isIncludedInPkg && (
                               <span className="text-[9px] font-bold text-brand-blue bg-brand-blue/10 px-1.5 py-0.5 rounded-full">
-                                Termasuk di Paket
+                                {t.spot.includedInPackage}
                               </span>
                             )}
                             {isTent && isTentPackage && !isIncludedInPkg && (
                               <span className="text-[9px] font-semibold text-foreground-muted bg-surface px-1.5 py-0.5 rounded-full border border-border">
-                                Paket sudah ada tenda
+                                {t.spot.packageHasTent}
                               </span>
                             )}
                             {isTent && !isTentPackage && (
                               <span className="text-[9px] font-semibold text-foreground-muted bg-surface px-1.5 py-0.5 rounded-full border border-border">
-                                Maks. {kavlingCount} tenda ({kavlingCount}{' '}
-                                kavling)
+                                {t.spot.maxTentNotice(kavlingCount)}
                               </span>
                             )}
                           </div>
@@ -4741,7 +4873,7 @@ export function SpotRedirectClient() {
                           </div>
                         ) : isTentDisabled ? (
                           <div className="text-[9.5px] font-medium text-foreground-muted shrink-0 px-1.5 py-0.5 bg-surface rounded-full border border-border opacity-75">
-                            Terkunci
+                            {t.spot.locked}
                           </div>
                         ) : (
                           <div className="flex items-center gap-2 shrink-0">
@@ -4749,20 +4881,22 @@ export function SpotRedirectClient() {
                               type="button"
                               disabled={qty <= 0}
                               onClick={() => handleAddonQty(addon.id, -1)}
-                              className="w-6 h-6 rounded-full border border-border bg-white flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                              className="w-7 h-7 rounded-full border border-border bg-white flex items-center justify-center text-foreground hover:bg-surface active:scale-95 transition-transform disabled:opacity-30 cursor-pointer shadow-2xs"
+                              aria-label="Kurang"
                             >
-                              <Minus size={11} />
+                              <Minus size={13} />
                             </button>
-                            <span className="font-bold text-xs w-3 text-center">
+                            <span className={`font-extrabold text-xs w-3 text-center ${qty > 0 ? 'text-brand-blue' : 'text-foreground'}`}>
                               {qty}
                             </span>
                             <button
                               type="button"
                               disabled={isMaxTentReached}
                               onClick={() => handleAddonQty(addon.id, 1)}
-                              className="w-6 h-6 rounded-full border border-border bg-white flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                              className="w-7 h-7 rounded-full border border-border bg-white flex items-center justify-center text-foreground hover:bg-surface active:scale-95 transition-transform disabled:opacity-30 cursor-pointer shadow-2xs"
+                              aria-label="Tambah"
                             >
-                              <Plus size={11} />
+                              <Plus size={13} />
                             </button>
                           </div>
                         )}
@@ -4779,7 +4913,7 @@ export function SpotRedirectClient() {
                 <div className="space-y-2.5 pt-2 border-t border-border text-xs">
                   <div className="space-y-1.5">
                     <span className="text-foreground-muted block leading-snug font-medium">
-                      {selectedPackage?.name || 'Sewa Spot'}
+                      {selectedPackage?.name || t.spot.spotRental}
                     </span>
                     {accommodationStayLines.length > 0 ? (
                       accommodationStayLines.map((line, lIdx) => (
@@ -4789,7 +4923,7 @@ export function SpotRedirectClient() {
                         >
                           <span className="text-foreground-muted/80">
                             {line.label} ({rupiah(line.unitPrice)} ×{' '}
-                            {line.quantity} malam)
+                            {line.quantity} {lang === 'en' ? 'nights' : 'malam'})
                           </span>
                           <span className="font-semibold text-foreground shrink-0">
                             {rupiah(line.amount)}
@@ -4799,7 +4933,7 @@ export function SpotRedirectClient() {
                     ) : (
                       <div className="flex justify-between items-center text-[11px]">
                         <span className="text-foreground-muted/80">
-                          {rupiah(spotPricePerNight)} × {nights} malam
+                          {rupiah(spotPricePerNight)} × {nights} {lang === 'en' ? 'nights' : 'malam'}
                         </span>
                         <span className="font-semibold text-foreground shrink-0">
                           {rupiah(spotPricePerNight * nights)}
@@ -4812,10 +4946,14 @@ export function SpotRedirectClient() {
                     <div className="flex justify-between items-start gap-4 pt-1 border-t border-border/50">
                       <div className="min-w-0 pr-2">
                         <span className="text-foreground-muted block leading-snug">
-                          Tamu Tambahan
+                          {t.spot.extraGuests}
                         </span>
                         <span className="text-[11px] text-foreground-muted/70 block mt-0.5">
-                          {extraPersonInfo.count} orang × {rupiah(extraPersonInfo.unitPrice)} × {nights} malam
+                          {t.spot.extraGuestsFormula(
+                            extraPersonInfo.count,
+                            rupiah(extraPersonInfo.unitPrice),
+                            nights,
+                          )}
                         </span>
                       </div>
                       <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right pt-0.5">
@@ -4826,7 +4964,9 @@ export function SpotRedirectClient() {
 
                   {addonTotal > 0 && (
                     <div className="flex justify-between items-center gap-4 pt-1 border-t border-border/50">
-                      <span className="text-foreground-muted">Perlengkapan Tambahan</span>
+                      <span className="text-foreground-muted">
+                        {lang === 'en' ? 'Additional Equipment' : 'Perlengkapan Tambahan'}
+                      </span>
                       <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right">
                         +{rupiah(addonTotal)}
                       </span>
@@ -4834,14 +4974,14 @@ export function SpotRedirectClient() {
                   )}
 
                   <div className="flex justify-between items-center gap-4 pt-1 border-t border-border/50">
-                    <span className="text-foreground-muted">Biaya Layanan & Pajak</span>
+                    <span className="text-foreground-muted">{t.spot.serviceAndTaxFee}</span>
                     <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right">
                       +{rupiah(totalServiceAndTaxFee)}
                     </span>
                   </div>
 
                   <div className="flex justify-between items-baseline pt-2 border-t border-border font-bold text-sm text-foreground">
-                    <span>Total Tagihan</span>
+                    <span>{t.spot.totalBill}</span>
                     <span className="text-base text-brand-blue font-extrabold shrink-0 whitespace-nowrap">
                       {rupiah(grandTotal)}
                     </span>
@@ -4851,7 +4991,7 @@ export function SpotRedirectClient() {
                 {/* Payment Scheme Choice */}
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-foreground block">
-                    Pilihan Pembayaran
+                    {lang === 'en' ? 'Payment Options' : 'Pilihan Pembayaran'}
                   </label>
                   <div className="grid grid-cols-2 gap-2.5">
                     <button
@@ -4864,7 +5004,7 @@ export function SpotRedirectClient() {
                       }`}
                     >
                       <span className="block text-xs font-bold text-foreground">
-                        DP 50%
+                        {t.spot.dp50}
                       </span>
                       <span className="block text-xs font-extrabold text-brand-blue mt-0.5">
                         {rupiah(dp50Total)}
@@ -4881,7 +5021,7 @@ export function SpotRedirectClient() {
                       }`}
                     >
                       <span className="block text-xs font-bold text-foreground">
-                        Bayar Lunas
+                        {t.spot.payFull}
                       </span>
                       <span className="block text-xs font-extrabold text-brand-blue mt-0.5">
                         {rupiah(grandTotal)}
@@ -4893,18 +5033,18 @@ export function SpotRedirectClient() {
             ) : (
               <div className="pt-2 border-t border-border space-y-2.5 text-xs">
                 <div className="flex justify-between items-baseline">
-                  <span className="text-foreground-muted">Tarif Sewa</span>
+                  <span className="text-foreground-muted">{t.spot.rentalRate}</span>
                   <span className="font-bold text-foreground">
                     {rupiah(spotPricePerNight)}{' '}
                     <span className="text-[11px] font-normal text-foreground-muted">
-                      / malam
+                      {t.spot.perNight}
                     </span>
                   </span>
                 </div>
                 <div className="p-3 rounded-2xl bg-surface/70 border border-border/80 text-[11.5px] text-foreground-muted leading-relaxed flex items-start gap-2">
                   <Info size={15} className="text-brand-blue shrink-0 mt-0.5" />
                   <span>
-                    Pilih tanggal check-in & check-out untuk melihat rincian biaya lengkap.
+                    {t.spot.selectDatesHelp}
                   </span>
                 </div>
               </div>
@@ -4920,6 +5060,7 @@ export function SpotRedirectClient() {
             <div className="space-y-2.5 pt-2">
               <CancellationPolicyBannerButton
                 checkInDate={checkInDate}
+                lang={lang}
                 onClick={() => setShowCancellationModal(true)}
               />
               {checkInDate && checkOutDate ? (
@@ -4928,7 +5069,7 @@ export function SpotRedirectClient() {
                   onClick={handleProceedBooking}
                   className="w-full py-3.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
                 >
-                  <span>{`Lanjut Pemesanan · ${rupiah(paymentAmountToPay)}`}</span>
+                  <span>{t.spot.continueBooking(rupiah(paymentAmountToPay))}</span>
                 </button>
               ) : (
                 <button
@@ -4937,17 +5078,17 @@ export function SpotRedirectClient() {
                   className="w-full py-3.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
                 >
                   <Calendar size={15} />
-                  <span>Pilih Tanggal Menginap</span>
+                  <span>{t.spot.selectStayDates}</span>
                 </button>
               )}
               <p className="text-[11px] text-center text-foreground-muted">
-                Tunduk pada{' '}
+                {t.spot.subjectTo}{' '}
                 <button
                   type="button"
                   onClick={() => setShowCancellationModal(true)}
                   className="text-brand-blue font-semibold hover:underline cursor-pointer"
                 >
-                  Kebijakan Refund & Pembatalan
+                  {t.spot.cancellationPolicy}
                 </button>
               </p>
 
@@ -5023,6 +5164,7 @@ export function SpotRedirectClient() {
           isOpen={isAuthOpen}
           onClose={() => setIsAuthOpen(false)}
           currentUser={currentUser}
+          lang={lang}
           onSuccess={(user) => {
             setCurrentUser(user);
             setIsAuthOpen(false);
@@ -5049,6 +5191,7 @@ export function SpotRedirectClient() {
         reviews={reviews}
         targetName={campsite?.name || 'Kawasan Campsite'}
         aggregate={reviewAggregate}
+        lang={lang}
       />
 
       {/* Cancellation & Refund Policy Modal */}
@@ -5056,6 +5199,7 @@ export function SpotRedirectClient() {
         isOpen={showCancellationModal}
         onClose={() => setShowCancellationModal(false)}
         checkInDate={checkInDate}
+        lang={lang}
       />
     </div>
   );

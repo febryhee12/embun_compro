@@ -1,9 +1,9 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Mail } from 'lucide-react';
+import { Mail, Phone, MapPin, Globe } from 'lucide-react';
 import { Container } from '@/components/ui/Container';
 
 function InstagramIcon(props: React.SVGProps<SVGSVGElement>) {
@@ -88,8 +88,13 @@ const FOCUS_VISIBLE_CLASS =
 
 export function SiteFooter() {
   const params = useParams();
+  const pathname = usePathname();
   const lang = (params?.lang as string) || 'id';
   const legalLinks = getLegalLinks(lang);
+  const switchLang = lang === 'id' ? 'en' : 'id';
+  const switchHref = pathname
+    ? pathname.replace(`/${lang}`, `/${switchLang}`)
+    : `/${switchLang}`;
 
   const year = new Date().getFullYear();
 
@@ -141,6 +146,26 @@ export function SiteFooter() {
             </div>
           </div>
 
+          {/* Kontak & Alamat Perusahaan */}
+          <div className="flex flex-col gap-2.5 max-w-sm text-xs text-foreground-muted">
+            <p className="font-semibold text-brand-black text-sm">
+              PT Alam Kelana Digital
+            </p>
+            <p className="leading-relaxed">
+              Jl. Vila regensi 2 blok EA 13 No.16, Gelam Jaya, Pasar Kemis, Kabupaten Tangerang 15560, Banten, Indonesia
+            </p>
+            <div className="flex flex-col gap-1.5 pt-1">
+              <a
+                href="https://wa.me/6282131411919"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-brand-blue hover:underline transition-colors"
+              >
+                +62 821-3141-1919 (WhatsApp)
+              </a>
+            </div>
+          </div>
+
           {/* Legal Page links */}
           <nav aria-label={lang === 'en' ? 'Legal links' : 'Tautan legal'}>
             <ul className="flex flex-col gap-2 md:items-end">
@@ -158,17 +183,27 @@ export function SiteFooter() {
           </nav>
         </div>
 
-        {/* Copyright & Location */}
-        <div className="flex flex-col gap-2 border-t border-black/10 py-6 md:flex-row md:items-center md:justify-between">
+        {/* Copyright, Location & Language Switcher */}
+        <div className="flex flex-col gap-4 border-t border-black/10 py-6 md:flex-row md:items-center md:justify-between">
           <p className="text-xs text-foreground-muted">
             © {year} Embun | PT Alam Kelana Digital.{' '}
             {lang === 'en'
               ? 'All rights reserved.'
               : 'Seluruh hak cipta dilindungi.'}
           </p>
-          <p className="text-xs text-foreground-muted md:pr-16">
-            Jakarta, Indonesia
-          </p>
+          <div className="flex items-center gap-4 flex-wrap">
+            <p className="text-xs text-foreground-muted">
+              Kabupaten Tangerang, Indonesia
+            </p>
+            <Link
+              href={switchHref}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-black/15 bg-white/90 hover:bg-white text-xs font-bold text-brand-black shadow-2xs transition-all cursor-pointer hover:border-brand-blue hover:text-brand-blue"
+              title={lang === 'en' ? 'Ubah ke Bahasa Indonesia' : 'Switch to English'}
+            >
+              <Globe size={14} className="text-brand-blue shrink-0" />
+              <span>{lang === 'en' ? 'English (EN)' : 'Bahasa Indonesia (ID)'}</span>
+            </Link>
+          </div>
         </div>
       </Container>
     </footer>

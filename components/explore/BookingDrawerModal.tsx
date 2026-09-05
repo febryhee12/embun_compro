@@ -1170,7 +1170,7 @@ export function BookingDrawerModal({
 
               <div className="grid grid-cols-2 gap-2.5">
                 <a
-                  href="https://play.google.com/store/apps/details?id=app.embun"
+                  href="https://play.google.com/store/apps/details?id=com.embun.app"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="py-3 px-3 rounded-2xl border border-border bg-surface hover:bg-surface-variant text-foreground font-bold text-xs transition-colors flex items-center justify-center gap-1.5 text-center"

@@ -79,6 +79,7 @@ export default async function Home({
           subcopy={dict.hero.subcopy}
           appStoreLead={dict.hero.appStoreLead}
           googlePlayLead={dict.hero.googlePlayLead}
+          googlePlayHref="https://play.google.com/store/apps/details?id=com.embun.app"
         />
         <AppFeatures
           headline={dict.featuresHeading}
@@ -98,6 +99,7 @@ export default async function Home({
           subcopy={dict.downloadCta.subcopy}
           appStoreLead={dict.downloadCta.appStoreLead}
           googlePlayLead={dict.downloadCta.googlePlayLead}
+          googlePlayHref="https://play.google.com/store/apps/details?id=com.embun.app"
         />
       </main>
       <SiteFooter />
