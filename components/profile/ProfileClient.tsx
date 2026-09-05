@@ -14,7 +14,6 @@ import {
   AlertCircle,
   ShieldCheck,
   ArrowLeft,
-  LogOut,
 } from 'lucide-react';
 import {
   getStoredGuestProfile,
@@ -263,17 +262,6 @@ export function ProfileClient() {
                     Profil Saya
                   </h1>
                 </div>
-
-                {/* Tombol Keluar Cepat di Header */}
-                <button
-                  type="button"
-                  onClick={() => setShowLogoutConfirm(true)}
-                  className="px-4 py-2 rounded-full border border-red-200 bg-white hover:bg-red-50 text-red-600 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs hover:shadow-xs active:scale-95"
-                  title="Keluar dari Akun"
-                >
-                  <LogOut size={14} />
-                  <span>Keluar</span>
-                </button>
               </div>
               <p className="text-xs sm:text-sm text-foreground-muted mt-1 ml-9 sm:ml-10">
                 Kelola data diri, kontak WhatsApp, dan preferensi akun Anda di Embun.
@@ -461,9 +449,8 @@ export function ProfileClient() {
                 {/* Kartu Keluar dari Akun (Clean, Nyaman & Jelas Dilihat Tamu) */}
                 <div className="bg-white rounded-3xl border border-border p-5 sm:p-6 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="space-y-0.5">
-                    <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                      <LogOut size={15} className="text-red-600" />
-                      <span>Sesi Akun</span>
+                    <h3 className="text-sm font-bold text-foreground">
+                      Sesi Akun
                     </h3>
                     <p className="text-xs text-foreground-muted">
                       Anda sedang masuk sebagai <span className="font-semibold text-foreground">{profile?.fullName || 'Tamu'}</span> ({profile?.email || '-'}).
@@ -472,10 +459,9 @@ export function ProfileClient() {
                   <button
                     type="button"
                     onClick={() => setShowLogoutConfirm(true)}
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-full border border-red-200 bg-red-50/60 hover:bg-red-100 text-red-600 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0 shadow-2xs active:scale-95"
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-full border border-red-200 bg-red-50/60 hover:bg-red-100 text-red-600 text-xs font-bold transition-all flex items-center justify-center cursor-pointer shrink-0 shadow-2xs active:scale-95"
                   >
-                    <LogOut size={14} />
-                    <span>Keluar dari Akun</span>
+                    Keluar dari Akun
                   </button>
                 </div>
               </div>

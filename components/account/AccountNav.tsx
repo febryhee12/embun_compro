@@ -6,7 +6,6 @@ import {
   User,
   Heart,
   ListOrdered,
-  LogOut,
   ArrowRight,
   HelpCircle,
   MessageCircle,
@@ -17,13 +16,13 @@ export type AccountTab = 'profile' | 'wishlist' | 'orders';
 
 interface AccountSidebarProps {
   activeTab: AccountTab;
-  onLogout: () => void;
+  onLogout?: () => void;
   className?: string;
 }
 
 interface AccountMobileNavProps {
   activeTab: AccountTab;
-  onLogout: () => void;
+  onLogout?: () => void;
   className?: string;
 }
 
@@ -117,18 +116,6 @@ export function AccountSidebar({ activeTab, onLogout, className = '' }: AccountS
                 <ArrowRight size={14} className="text-foreground-muted" />
               </Link>
             )}
-
-            {/* 4. Keluar dari Akun */}
-            <button
-              type="button"
-              onClick={onLogout}
-              className="w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold text-red-600 hover:bg-red-50 transition-all cursor-pointer"
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <LogOut size={16} />
-                <span className="truncate">Keluar dari Akun</span>
-              </div>
-            </button>
           </nav>
         </div>
 
@@ -220,16 +207,6 @@ export function AccountMobileNav({ activeTab, onLogout, className = '' }: Accoun
           <span>Pesanan Saya</span>
         </Link>
       )}
-
-      {/* 4. Keluar */}
-      <button
-        type="button"
-        onClick={onLogout}
-        className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold border bg-white text-red-600 border-red-200 hover:bg-red-50 transition-colors cursor-pointer"
-      >
-        <LogOut size={14} />
-        <span>Keluar</span>
-      </button>
     </div>
   );
 }
