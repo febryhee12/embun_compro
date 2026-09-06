@@ -201,21 +201,19 @@ export function NearbyCampsitesMap({
 
       mapInstanceRef.current = map;
 
-      // Tile layer: CartoDB Voyager (clean, modern travel style)
+      // Tile layer: Google Maps Tiles (clean, familiar, fast, no watermark)
       L.tileLayer(
-        'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+        'https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
         {
-          maxZoom: 19,
-          subdomains: 'abcd',
+          maxZoom: 20,
+          subdomains: ['0', '1', '2', '3'],
         },
       ).addTo(map);
 
       // Attribution
       L.control
         .attribution({ position: 'bottomright', prefix: false })
-        .addAttribution(
-          '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://openstreetmap.org">OSM</a>',
-        )
+        .addAttribution('&copy; Google Maps')
         .addTo(map);
 
       const markersMap: Record<string, any> = {};
