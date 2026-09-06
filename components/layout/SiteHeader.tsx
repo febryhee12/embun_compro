@@ -236,9 +236,9 @@ export function SiteHeader() {
             <nav aria-label="Navigasi utama">
               <ul className="flex items-center gap-6 lg:gap-8">
                 {navLinks.map((link) => {
-                  const isActive =
-                    pathname === link.href ||
-                    (link.href !== `/${lang}` && pathname?.startsWith(link.href));
+                  const cleanPath = (pathname || '').replace(/\/$/, '');
+                  const cleanHref = link.href.replace(/\/$/, '');
+                  const isActive = cleanPath === cleanHref;
                   return (
                     <li key={link.href}>
                       <Link
@@ -316,9 +316,9 @@ export function SiteHeader() {
             >
               <ul className="flex flex-col gap-1 pt-2">
                 {navLinks.map((link) => {
-                  const isActive =
-                    pathname === link.href ||
-                    (link.href !== `/${lang}` && pathname?.startsWith(link.href));
+                  const cleanPath = (pathname || '').replace(/\/$/, '');
+                  const cleanHref = link.href.replace(/\/$/, '');
+                  const isActive = cleanPath === cleanHref;
                   return (
                     <li key={link.href}>
                       <Link
