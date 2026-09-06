@@ -194,7 +194,7 @@ export function WishlistClient() {
   const activeCount = items.filter((it) => !unwishlistedIds.has(it.id)).length;
 
   return (
-    <div className="min-h-screen bg-[#fafafa] text-foreground flex flex-col justify-between selection:bg-brand-lime selection:text-black">
+    <div className="min-h-screen bg-background text-foreground flex flex-col justify-between selection:bg-brand-lime selection:text-black">
       {/* ═══ HEADER ATAS (LOGO RESMI EMBUN EXPLORE & MENU AKUN, TANPA LOKASI) ═══ */}
       <ExploreHeader
         onOpenAuth={() => setIsAuthOpen(true)}
@@ -208,16 +208,21 @@ export function WishlistClient() {
       <main className="max-w-[2520px] mx-auto w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-10 flex-1">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-28 gap-3 text-foreground-muted">
-            <div className="w-7 h-7 border-2 border-brand-blue border-t-transparent rounded-full animate-spin" />
+            <div className="w-7 h-7 border-2 border-brand-blue dark:border-brand-lime border-t-transparent rounded-full animate-spin" />
             <p className="text-xs font-semibold">{t.loading}</p>
           </div>
         ) : authRequired ? (
-          <div className="text-center py-20 bg-white rounded-3xl border border-border p-8 space-y-5 shadow-2xs max-w-md mx-auto my-12">
-            <div className="w-16 h-16 mx-auto rounded-2xl bg-brand-blue/8 flex items-center justify-center p-3 border border-brand-blue/15 shadow-2xs">
+          <div className="text-center py-20 bg-white dark:bg-surface rounded-3xl border border-border p-8 space-y-5 shadow-2xs max-w-md mx-auto my-12">
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-brand-blue/8 dark:bg-brand-lime/10 flex items-center justify-center p-3 border border-brand-blue/15 dark:border-brand-lime/20 shadow-2xs">
               <img
                 src="/images/logo/logogram_blue.svg"
                 alt="Embun"
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain dark:hidden"
+              />
+              <img
+                src="/images/logo/logogram_green.svg"
+                alt="Embun"
+                className="w-full h-full object-contain hidden dark:block"
               />
             </div>
             <div className="space-y-1">
@@ -229,7 +234,7 @@ export function WishlistClient() {
             <button
               type="button"
               onClick={() => setIsAuthOpen(true)}
-              className="inline-flex items-center justify-center gap-2 w-full py-3.5 rounded-full bg-brand-blue text-white text-xs font-bold shadow-md hover:bg-brand-blue-hover transition-all cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 w-full py-3.5 rounded-full bg-brand-blue dark:bg-brand-lime text-white dark:text-black text-xs font-bold dark:font-black shadow-md hover:bg-brand-blue-hover dark:hover:bg-brand-lime/90 transition-all cursor-pointer"
             >
               <span>{t.loginNow}</span>
             </button>
@@ -284,8 +289,8 @@ export function WishlistClient() {
               <div className="lg:col-span-8 xl:col-span-9 space-y-6">
                 {/* Unwishlisted Notice / Undo Banner */}
                 {unwishlistedIds.size > 0 && (
-                  <div className="p-4 rounded-2xl bg-neutral-50 border border-neutral-200/80 flex items-center justify-between text-xs text-foreground animate-in fade-in duration-200">
-                    <span className="text-neutral-600">
+                  <div className="p-4 rounded-2xl bg-white dark:bg-surface border border-border flex items-center justify-between text-xs text-foreground animate-in fade-in duration-200 shadow-2xs">
+                    <span className="text-foreground-muted">
                       {t.undoNotice(unwishlistedIds.size)}
                     </span>
                     <button
@@ -297,7 +302,7 @@ export function WishlistClient() {
                         });
                         setUnwishlistedIds(new Set());
                       }}
-                      className="font-bold text-brand-blue hover:underline cursor-pointer ml-3 shrink-0"
+                      className="font-bold text-brand-lime hover:text-white transition-colors cursor-pointer ml-3 shrink-0"
                     >
                       {t.undoAll}
                     </button>
@@ -306,8 +311,8 @@ export function WishlistClient() {
 
                 {/* Empty State */}
                 {items.length === 0 ? (
-                  <div className="text-center py-16 bg-white rounded-3xl border border-border p-8 space-y-4 shadow-2xs max-w-md mx-auto my-6">
-                    <div className="w-16 h-16 mx-auto rounded-2xl bg-brand-blue/8 flex items-center justify-center p-3 border border-brand-blue/15 text-brand-blue">
+                  <div className="text-center py-16 bg-white dark:bg-surface rounded-3xl border border-border p-8 space-y-4 shadow-2xs max-w-md mx-auto my-6">
+                    <div className="w-16 h-16 mx-auto rounded-2xl bg-brand-blue/8 dark:bg-brand-lime/10 flex items-center justify-center p-3 border border-brand-blue/15 dark:border-brand-lime/20 text-brand-blue dark:text-brand-lime">
                       <Heart size={26} className="stroke-[1.75]" />
                     </div>
                     <div className="space-y-1">
@@ -320,7 +325,7 @@ export function WishlistClient() {
                     </div>
                     <Link
                       href="/explore"
-                      className="inline-flex items-center justify-center w-full py-3.5 rounded-full bg-brand-blue text-white text-xs font-bold shadow-md hover:bg-brand-blue-hover transition-all"
+                      className="inline-flex items-center justify-center w-full py-3.5 rounded-full bg-brand-blue dark:bg-brand-lime text-white dark:text-black text-xs font-bold dark:font-black shadow-md hover:bg-brand-blue-hover dark:hover:bg-brand-lime/90 transition-all"
                     >
                       {t.startExplore}
                     </Link>

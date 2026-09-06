@@ -42,48 +42,48 @@ function getOrderBadge(order: any, lang: Language = 'id') {
       return {
         label: t.dp50,
         sublabel: t.remainingBalance(rupiah(order.remainingBalance || 0)),
-        className: 'bg-neutral-100 text-neutral-800 border-neutral-200/80',
-        sublabelClass: 'text-neutral-600 bg-neutral-50 border-neutral-200/80',
+        className: 'bg-neutral-100 dark:bg-white/10 text-neutral-800 dark:text-neutral-200 border-neutral-200/80 dark:border-white/10',
+        sublabelClass: 'text-neutral-600 dark:text-neutral-300 bg-neutral-50 dark:bg-white/5 border-neutral-200/80 dark:border-white/10',
       };
     }
     return {
       label: t.paid,
-      className: 'bg-neutral-100 text-neutral-800 border-neutral-200/80',
+      className: 'bg-neutral-100 dark:bg-white/10 text-neutral-800 dark:text-neutral-200 border-neutral-200/80 dark:border-white/10',
     };
   }
   if (order.status === 'PENDING') {
     return {
       label: t.pending,
-      className: 'bg-neutral-100 text-neutral-800 border-neutral-200/80',
+      className: 'bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-200/80 dark:border-amber-500/20',
     };
   }
   if (order.status === 'COMPLETE' || order.status === 'COMPLETED') {
     return {
       label: t.complete,
-      className: 'bg-neutral-100 text-neutral-700 border-neutral-200/80',
+      className: 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-500/20',
     };
   }
   if (order.status === 'CANCELLED') {
     return {
       label: t.cancelled,
-      className: 'bg-neutral-100 text-neutral-500 border-neutral-200/80',
+      className: 'bg-neutral-100 dark:bg-white/10 text-neutral-500 dark:text-neutral-400 border-neutral-200/80 dark:border-white/10',
     };
   }
   if (order.status === 'EXPIRED') {
     return {
       label: t.expired,
-      className: 'bg-neutral-100 text-neutral-500 border-neutral-200/80',
+      className: 'bg-neutral-100 dark:bg-white/10 text-neutral-500 dark:text-neutral-400 border-neutral-200/80 dark:border-white/10',
     };
   }
   if (order.status === 'REFUNDED') {
     return {
       label: t.refunded,
-      className: 'bg-neutral-100 text-neutral-600 border-neutral-200/80',
+      className: 'bg-neutral-100 dark:bg-white/10 text-neutral-600 dark:text-neutral-300 border-neutral-200/80 dark:border-white/10',
     };
   }
   return {
     label: order.status || 'Draft',
-    className: 'bg-neutral-100 text-neutral-600 border-neutral-200/80',
+    className: 'bg-neutral-100 dark:bg-white/10 text-neutral-600 dark:text-neutral-300 border-neutral-200/80 dark:border-white/10',
   };
 }
 
@@ -299,7 +299,7 @@ export function OrdersClient() {
   const activeTabMeta = tabItems.find((t) => t.id === activeTab) || tabItems[0];
 
   return (
-    <div className="min-h-screen bg-[#fafafa] text-foreground flex flex-col justify-between">
+    <div className="min-h-screen bg-background text-foreground flex flex-col justify-between">
       {/* ═══ HEADER ATAS (LOGO RESMI EMBUN EXPLORE & MENU AKUN, TANPA LOKASI) ═══ */}
       <ExploreHeader
         showSearch={false}
@@ -313,16 +313,21 @@ export function OrdersClient() {
       <main className="max-w-[2520px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-10 flex-1 w-full">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-28 gap-3 text-foreground-muted">
-            <Loader2 size={26} className="animate-spin text-brand-blue" />
+            <Loader2 size={26} className="animate-spin text-brand-blue dark:text-brand-lime" />
             <p className="text-xs font-semibold">{t.loading}</p>
           </div>
         ) : authRequired ? (
-          <div className="text-center py-20 bg-white rounded-3xl border border-border p-8 space-y-5 shadow-2xs max-w-md mx-auto my-12">
-            <div className="w-16 h-16 mx-auto rounded-2xl bg-brand-blue/8 flex items-center justify-center p-3 border border-brand-blue/15 shadow-2xs">
+          <div className="text-center py-20 bg-white dark:bg-surface rounded-3xl border border-border p-8 space-y-5 shadow-2xs max-w-md mx-auto my-12">
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-brand-blue/8 dark:bg-brand-lime/10 flex items-center justify-center p-3 border border-brand-blue/15 dark:border-brand-lime/20 shadow-2xs">
               <img
                 src="/images/logo/logogram_blue.svg"
                 alt="Embun"
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain dark:hidden"
+              />
+              <img
+                src="/images/logo/logogram_green.svg"
+                alt="Embun"
+                className="w-full h-full object-contain hidden dark:block"
               />
             </div>
             <div className="space-y-1">
@@ -334,7 +339,7 @@ export function OrdersClient() {
             <button
               type="button"
               onClick={() => setIsAuthOpen(true)}
-              className="inline-flex items-center justify-center gap-2 w-full py-3.5 rounded-full bg-brand-blue text-white text-xs font-bold shadow-md hover:bg-brand-blue-hover transition-all cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 w-full py-3.5 rounded-full bg-brand-blue dark:bg-brand-lime text-white dark:text-black text-xs font-bold dark:font-black shadow-md hover:bg-brand-blue-hover dark:hover:bg-brand-lime/90 transition-all cursor-pointer"
             >
               <LogIn size={15} />
               <span>{t.loginNow}</span>
@@ -349,8 +354,8 @@ export function OrdersClient() {
             </div>
           </div>
         ) : error ? (
-          <div className="p-8 text-center bg-white rounded-3xl border border-border text-foreground text-sm max-w-md mx-auto my-12 space-y-4 shadow-2xs">
-            <div className="w-12 h-12 mx-auto rounded-full bg-red-50 text-red-600 flex items-center justify-center">
+          <div className="p-8 text-center bg-white dark:bg-surface rounded-3xl border border-border text-foreground text-sm max-w-md mx-auto my-12 space-y-4 shadow-2xs">
+            <div className="w-12 h-12 mx-auto rounded-full bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 flex items-center justify-center">
               <AlertCircle size={22} />
             </div>
             <div className="space-y-1">
@@ -360,7 +365,7 @@ export function OrdersClient() {
             <button
               type="button"
               onClick={() => void load()}
-              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-brand-blue text-white text-xs font-bold hover:bg-brand-blue-hover transition-all cursor-pointer shadow-xs"
+              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-brand-blue dark:bg-brand-lime text-white dark:text-black text-xs font-bold dark:font-black hover:bg-brand-blue-hover dark:hover:bg-brand-lime/90 transition-all cursor-pointer shadow-xs"
             >
               <RefreshCw size={13} />
               <span>{t.retry}</span>
@@ -417,15 +422,15 @@ export function OrdersClient() {
                         onClick={() => setActiveTab(item.id)}
                         className={`shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer border ${
                           isActive
-                            ? 'bg-brand-blue text-white border-brand-blue shadow-xs'
-                            : 'bg-white text-foreground-muted border-border hover:bg-surface hover:text-foreground'
+                            ? 'bg-brand-blue dark:bg-brand-lime text-white dark:text-black border-brand-blue dark:border-brand-lime shadow-xs font-bold dark:font-black'
+                            : 'bg-white dark:bg-surface text-foreground-muted border-border hover:bg-surface hover:text-foreground'
                         }`}
                       >
                         <span>{item.label}</span>
                         <span
                           className={`px-2 py-0.5 rounded-full text-[10.5px] font-bold ${
                             isActive
-                              ? 'bg-white/20 text-white'
+                              ? 'bg-white/20 text-white dark:bg-black/15 dark:text-black'
                               : 'bg-surface text-foreground-muted border border-border/60'
                           }`}
                         >
@@ -448,7 +453,7 @@ export function OrdersClient() {
                 </div>
 
                 {displayedOrders.length === 0 ? (
-                  <div className="bg-white rounded-3xl border border-border p-10 text-center space-y-3 shadow-2xs">
+                  <div className="bg-white dark:bg-surface rounded-3xl border border-border p-10 text-center space-y-3 shadow-2xs">
                     <div className="w-12 h-12 mx-auto rounded-full bg-surface flex items-center justify-center text-foreground-muted">
                       <Tent size={22} />
                     </div>
@@ -480,7 +485,7 @@ export function OrdersClient() {
                         <Link
                           key={order.id}
                           href={`/orders/detail?id=${order.id}`}
-                          className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-3xl border border-border bg-white hover:border-brand-blue/40 hover:shadow-md transition-all active:scale-[0.997]"
+                          className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-3xl border border-border bg-white dark:bg-surface hover:border-brand-blue/40 dark:hover:border-brand-lime/40 hover:shadow-md transition-all active:scale-[0.997]"
                         >
                           <div className="flex items-start sm:items-center gap-4 sm:gap-5 min-w-0">
                             {/* Campsite Cover Image */}
@@ -501,7 +506,7 @@ export function OrdersClient() {
                             {/* Order Info */}
                             <div className="min-w-0 space-y-1.5">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-mono text-[11px] font-semibold text-neutral-600 tracking-wide bg-neutral-100/80 px-2.5 py-0.5 rounded-md border border-neutral-200/80">
+                                <span className="font-mono text-[11px] font-semibold text-neutral-600 dark:text-neutral-300 tracking-wide bg-neutral-100/80 dark:bg-white/5 px-2.5 py-0.5 rounded-md border border-neutral-200/80 dark:border-white/10">
                                   {shortCode}
                                 </span>
                                 <span
@@ -510,13 +515,13 @@ export function OrdersClient() {
                                   {badge.label}
                                 </span>
                                 {badge.sublabel && (
-                                  <span className="text-[10.5px] font-medium text-neutral-600 bg-neutral-50 px-2.5 py-0.5 rounded-md border border-neutral-200/80">
+                                  <span className="text-[10.5px] font-medium text-neutral-600 dark:text-neutral-300 bg-neutral-50 dark:bg-white/5 px-2.5 py-0.5 rounded-md border border-neutral-200/80 dark:border-white/10">
                                     {badge.sublabel}
                                   </span>
                                 )}
                               </div>
 
-                              <h3 className="text-sm sm:text-base font-bold text-foreground truncate group-hover:text-brand-blue transition-colors">
+                              <h3 className="text-sm sm:text-base font-bold text-foreground truncate group-hover:text-brand-blue dark:group-hover:text-brand-lime transition-colors">
                                 {order.campsite?.name || 'Campsite'}
                               </h3>
                               <p className="text-xs text-foreground-muted truncate">
@@ -525,7 +530,7 @@ export function OrdersClient() {
 
                               {dateRange && (
                                 <p className="text-[11px] text-foreground-muted flex items-center gap-1.5 pt-0.5">
-                                  <Calendar size={13} className="text-brand-blue shrink-0" />
+                                  <Calendar size={13} className="text-brand-blue dark:text-brand-lime shrink-0" />
                                   <span>{dateRange}</span>
                                 </p>
                               )}
@@ -542,7 +547,7 @@ export function OrdersClient() {
                                 {rupiah(order.totalAmount)}
                               </p>
                             </div>
-                            <div className="inline-flex items-center gap-1 text-xs font-bold text-brand-blue mt-1 group-hover:translate-x-1 transition-transform">
+                            <div className="inline-flex items-center gap-1 text-xs font-bold text-brand-blue dark:text-brand-lime mt-1 group-hover:translate-x-1 transition-transform">
                               <span>{t.detail}</span>
                               <ChevronRight size={14} />
                             </div>

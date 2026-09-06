@@ -381,14 +381,14 @@ export function InvoiceModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 print:hidden">
       {/* Container Dialog */}
-      <div className="bg-white rounded-3xl border border-border shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[92vh]">
+      <div className="bg-white dark:bg-surface rounded-3xl border border-border shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* Modal Toolbar */}
         <div className="px-6 py-4 border-b border-border/80 flex items-center justify-between bg-surface/50 shrink-0">
           <div className="flex items-center gap-2.5">
             <span className="font-extrabold text-sm text-foreground">
               Invoice Resmi Embun
             </span>
-            <span className="text-[11px] font-mono text-neutral-600 bg-white border border-border px-2 py-0.5 rounded-md font-bold">
+            <span className="text-[11px] font-mono text-foreground-muted bg-surface border border-border px-2 py-0.5 rounded-md font-bold">
               {shortCode}
             </span>
           </div>
@@ -397,7 +397,7 @@ export function InvoiceModal({
             <button
               type="button"
               onClick={handlePrint}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-brand-blue hover:bg-brand-blue-hover dark:bg-brand-lime dark:text-black dark:hover:bg-brand-lime/90 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
             >
               <Printer size={14} />
               <span>Cetak / Unduh PDF</span>
@@ -405,7 +405,7 @@ export function InvoiceModal({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-neutral-200/80 text-foreground-muted hover:text-foreground transition-colors cursor-pointer"
+              className="p-2 rounded-full hover:bg-surface text-foreground-muted hover:text-foreground transition-colors cursor-pointer"
               title="Tutup"
             >
               <X size={18} />
@@ -413,8 +413,8 @@ export function InvoiceModal({
           </div>
         </div>
 
-        {/* Modal Body: Kertas A4 Invoice */}
-        <div className="overflow-y-auto p-4 sm:p-8 bg-neutral-100/60 flex-1">
+        {/* Modal Body: Kertas A4 Invoice (Tetap light paper untuk print fidelity) */}
+        <div className="overflow-y-auto p-4 sm:p-8 bg-neutral-100/80 dark:bg-black/40 flex-1">
           <InvoiceDocument
             order={order}
             booking={booking}

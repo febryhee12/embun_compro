@@ -221,7 +221,7 @@ export function ProfileClient() {
   const photoSrc = profile?.photoUrl || profile?.avatarUrl;
 
   return (
-    <div className="min-h-screen bg-[#fafafa] text-foreground flex flex-col justify-between">
+    <div className="min-h-screen bg-background text-foreground flex flex-col justify-between">
       {/* ═══ HEADER ATAS (LOGO RESMI EMBUN EXPLORE & MENU AKUN, TANPA LOKASI) ═══ */}
       <ExploreHeader
         showSearch={false}
@@ -235,16 +235,21 @@ export function ProfileClient() {
       <main className="max-w-[2520px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-10 flex-1 w-full">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-28 gap-3 text-foreground-muted">
-            <Loader2 size={26} className="animate-spin text-brand-blue" />
+            <Loader2 size={26} className="animate-spin text-brand-blue dark:text-brand-lime" />
             <p className="text-xs font-semibold">{t.loading}</p>
           </div>
         ) : authRequired ? (
-          <div className="text-center py-20 bg-white rounded-3xl border border-border p-8 space-y-5 shadow-2xs max-w-md mx-auto my-12">
-            <div className="w-16 h-16 mx-auto rounded-2xl bg-brand-blue/8 flex items-center justify-center p-3 border border-brand-blue/15 shadow-2xs">
+          <div className="text-center py-20 bg-white dark:bg-surface rounded-3xl border border-border p-8 space-y-5 shadow-2xs max-w-md mx-auto my-12">
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-brand-blue/8 dark:bg-brand-lime/10 flex items-center justify-center p-3 border border-brand-blue/15 dark:border-brand-lime/20 shadow-2xs">
               <img
                 src="/images/logo/logogram_blue.svg"
                 alt="Embun"
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain dark:hidden"
+              />
+              <img
+                src="/images/logo/logogram_green.svg"
+                alt="Embun"
+                className="w-full h-full object-contain hidden dark:block"
               />
             </div>
             <div className="space-y-1">
@@ -256,7 +261,7 @@ export function ProfileClient() {
             <button
               type="button"
               onClick={() => setIsAuthOpen(true)}
-              className="inline-flex items-center justify-center gap-2 w-full py-3.5 rounded-full bg-brand-blue text-white text-xs font-bold shadow-md hover:bg-brand-blue-hover transition-all cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 w-full py-3.5 rounded-full bg-brand-blue dark:bg-brand-lime text-white dark:text-black text-xs font-bold dark:font-black shadow-md hover:bg-brand-blue-hover dark:hover:bg-brand-lime/90 transition-all cursor-pointer"
             >
               <span>{t.loginNow}</span>
             </button>
@@ -311,7 +316,7 @@ export function ProfileClient() {
 
               {/* Sisi Kanan: Formulir Edit Profil */}
               <div className="lg:col-span-8 xl:col-span-9 space-y-6">
-                <div className="bg-white rounded-3xl border border-border p-6 sm:p-8 shadow-2xs space-y-8">
+                <div className="bg-white dark:bg-surface rounded-3xl border border-border p-6 sm:p-8 shadow-2xs space-y-8">
                   {/* Avatar + summary */}
                   <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
                     <div className="relative group shrink-0">
@@ -338,7 +343,7 @@ export function ProfileClient() {
                       </div>
                       <label
                         htmlFor="profile-photo-input"
-                        className="absolute bottom-0 right-0 p-2 bg-brand-blue text-white rounded-full shadow-md hover:bg-brand-blue-hover transition-all cursor-pointer border-2 border-white flex items-center justify-center"
+                        className="absolute bottom-0 right-0 p-2 bg-brand-blue dark:bg-brand-lime text-white dark:text-black rounded-full shadow-md hover:bg-brand-blue-hover dark:hover:bg-brand-lime/90 transition-all cursor-pointer border-2 border-white dark:border-surface flex items-center justify-center"
                         title={t.changePhoto}
                       >
                         <Camera size={14} />
@@ -358,13 +363,13 @@ export function ProfileClient() {
                         <h2 className="font-bold text-lg text-foreground">
                           {profile?.fullName || 'Tamu Embun'}
                         </h2>
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 px-2 py-0.5 rounded-full">
                           <ShieldCheck size={12} />
                           <span>{t.verifiedAccount}</span>
                         </span>
                       </div>
                       <p className="text-xs text-foreground-muted flex items-center justify-center sm:justify-start gap-1.5 pt-0.5">
-                        <Mail size={12} className="text-brand-blue shrink-0" />
+                        <Mail size={12} className="text-brand-blue dark:text-brand-lime shrink-0" />
                         <span>{profile?.email || t.noEmail}</span>
                       </p>
                       <p className="text-[11.5px] text-foreground-muted pt-1">
@@ -382,13 +387,13 @@ export function ProfileClient() {
                     </div>
 
                     {error && (
-                      <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2">
+                      <div className="p-3 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-400 text-xs font-semibold flex items-center gap-2">
                         <AlertCircle size={15} className="shrink-0" />
                         <span>{error}</span>
                       </div>
                     )}
                     {saved && (
-                      <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold flex items-center gap-2">
+                      <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-semibold flex items-center gap-2">
                         <CheckCircle2 size={15} className="shrink-0" />
                         <span>{t.saveSuccess}</span>
                       </div>
@@ -396,7 +401,7 @@ export function ProfileClient() {
 
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                        <User size={13} className="text-brand-blue" />
+                        <User size={13} className="text-brand-blue dark:text-brand-lime" />
                         <span>{t.fullName}</span>
                       </label>
                       <input
@@ -404,7 +409,7 @@ export function ProfileClient() {
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
                         placeholder={t.fullNamePlaceholder}
-                        className="w-full px-4 py-3 rounded-2xl border border-border bg-surface/30 focus:bg-white text-sm text-foreground outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all"
+                        className="w-full px-4 py-3 rounded-2xl border border-border bg-surface/30 focus:bg-white dark:focus:bg-surface text-sm text-foreground outline-none focus:ring-2 focus:ring-brand-blue/30 dark:focus:ring-brand-lime/30 focus:border-brand-blue dark:focus:border-brand-lime transition-all"
                       />
                       <p className="text-[11px] text-foreground-muted">
                         {t.fullNameHelp}
@@ -413,7 +418,7 @@ export function ProfileClient() {
 
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                        <Phone size={13} className="text-emerald-600" />
+                        <Phone size={13} className="text-emerald-600 dark:text-emerald-400" />
                         <span>{t.whatsapp}</span>
                       </label>
                       <div className="relative flex items-center">
@@ -431,7 +436,7 @@ export function ProfileClient() {
                             setPhone(val ? `08${val.startsWith('8') ? val.slice(1) : val}` : '');
                           }}
                           placeholder="81234567890"
-                          className="w-full pl-20 pr-4 py-3 rounded-2xl border border-border bg-surface/30 focus:bg-white text-sm text-foreground outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all font-mono"
+                          className="w-full pl-20 pr-4 py-3 rounded-2xl border border-border bg-surface/30 focus:bg-white dark:focus:bg-surface text-sm text-foreground outline-none focus:ring-2 focus:ring-brand-blue/30 dark:focus:ring-brand-lime/30 focus:border-brand-blue dark:focus:border-brand-lime transition-all font-mono"
                         />
                       </div>
                       <p className="text-[11px] text-foreground-muted">
@@ -441,7 +446,7 @@ export function ProfileClient() {
 
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                        <MapPin size={13} className="text-brand-blue" />
+                        <MapPin size={13} className="text-brand-blue dark:text-brand-lime" />
                         <span>{t.address}</span>
                       </label>
                       <textarea
@@ -449,7 +454,7 @@ export function ProfileClient() {
                         onChange={(e) => setAddress(e.target.value)}
                         placeholder={t.addressPlaceholder}
                         rows={3}
-                        className="w-full px-4 py-3 rounded-2xl border border-border bg-surface/30 focus:bg-white text-sm text-foreground outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all resize-none"
+                        className="w-full px-4 py-3 rounded-2xl border border-border bg-surface/30 focus:bg-white dark:focus:bg-surface text-sm text-foreground outline-none focus:ring-2 focus:ring-brand-blue/30 dark:focus:ring-brand-lime/30 focus:border-brand-blue dark:focus:border-brand-lime transition-all resize-none"
                       />
                       <p className="text-[11px] text-foreground-muted">
                         {t.addressHelp}
@@ -464,7 +469,7 @@ export function ProfileClient() {
                       <button
                         type="submit"
                         disabled={saving || uploadingPhoto}
-                        className="w-full py-3.5 px-6 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white font-bold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer shadow-md hover:shadow-lg"
+                        className="w-full py-3.5 px-6 rounded-full bg-brand-blue dark:bg-brand-lime hover:bg-brand-blue-hover dark:hover:bg-brand-lime/90 text-white dark:text-black font-bold dark:font-black text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer shadow-md hover:shadow-lg"
                       >
                         {saving ? <Loader2 size={16} className="animate-spin" /> : null}
                         <span>{saving ? t.saving : t.save}</span>
@@ -473,8 +478,8 @@ export function ProfileClient() {
                   </form>
                 </div>
 
-                {/* Kartu Keluar dari Akun (Clean, Nyaman & Jelas Dilihat Tamu) */}
-                <div className="bg-white rounded-3xl border border-border p-5 sm:p-6 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                {/* Kartu Keluar dari Akun */}
+                <div className="bg-white dark:bg-surface rounded-3xl border border-border p-5 sm:p-6 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="space-y-0.5">
                     <h3 className="text-sm font-bold text-foreground">
                       {t.sessionTitle}
@@ -486,7 +491,7 @@ export function ProfileClient() {
                   <button
                     type="button"
                     onClick={() => setShowLogoutConfirm(true)}
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-full border border-red-200 bg-red-50/60 hover:bg-red-100 text-red-600 text-xs font-bold transition-all flex items-center justify-center cursor-pointer shrink-0 shadow-2xs active:scale-95"
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-full border border-red-200 dark:border-red-500/30 bg-red-50/60 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold transition-all flex items-center justify-center cursor-pointer shrink-0 shadow-2xs active:scale-95"
                   >
                     {t.logoutButton}
                   </button>

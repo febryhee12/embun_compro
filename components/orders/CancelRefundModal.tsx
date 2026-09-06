@@ -117,15 +117,15 @@ export function CancelRefundModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-      <div className="w-full max-w-lg bg-white text-foreground rounded-t-3xl sm:rounded-3xl shadow-2xl border border-border max-h-[92vh] sm:max-h-[88vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="w-full max-w-lg bg-white dark:bg-surface text-foreground rounded-t-3xl sm:rounded-3xl shadow-2xl border border-border max-h-[92vh] sm:max-h-[88vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header Modal */}
         <div className="p-5 sm:p-6 border-b border-border/70 flex items-center justify-between bg-surface/40">
           <div className="flex items-center gap-3">
             <div
               className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
                 isActuallyRefundEligible
-                  ? 'bg-brand-blue/10 text-brand-blue'
-                  : 'bg-rose-50 text-rose-600'
+                  ? 'bg-brand-blue/10 text-brand-blue dark:bg-brand-lime/10 dark:text-brand-lime'
+                  : 'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400'
               }`}
             >
               {isActuallyRefundEligible ? (
@@ -161,8 +161,8 @@ export function CancelRefundModal({
         {/* Modal Scrollable Body */}
         <form onSubmit={handleSubmit} className="p-5 sm:p-6 overflow-y-auto space-y-5">
           {error && (
-            <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-start gap-2.5">
-              <AlertTriangle size={16} className="shrink-0 mt-0.5 text-rose-600" />
+            <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-400 text-xs font-medium flex items-start gap-2.5">
+              <AlertTriangle size={16} className="shrink-0 mt-0.5 text-rose-600 dark:text-rose-400" />
               <span>{error}</span>
             </div>
           )}
@@ -178,7 +178,7 @@ export function CancelRefundModal({
               </div>
               <div className="flex items-center justify-between text-xs text-foreground-muted">
                 <span>Potongan Pembatalan</span>
-                <span className="font-semibold text-rose-600">
+                <span className="font-semibold text-rose-600 dark:text-rose-400">
                   - {rupiah(deduction)}
                 </span>
               </div>
@@ -191,28 +191,28 @@ export function CancelRefundModal({
                     Sesuai kebijakan refund campsite
                   </span>
                 </div>
-                <span className="font-black text-sm sm:text-base text-brand-blue">
+                <span className="font-black text-sm sm:text-base text-brand-blue dark:text-brand-lime">
                   {rupiah(refundAmount)}
                 </span>
               </div>
             </div>
           ) : isPaid ? (
-            <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200 space-y-2 text-xs text-amber-900">
-              <div className="flex items-center gap-2 font-bold text-amber-800">
+            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-2 text-xs text-amber-800 dark:text-amber-400">
+              <div className="flex items-center gap-2 font-bold text-amber-800 dark:text-amber-300">
                 <AlertTriangle size={15} />
                 <span>Pesanan Non-Refundable / Melewati Batas Waktu</span>
               </div>
-              <p className="text-[11px] leading-relaxed text-amber-900/90">
+              <p className="text-[11px] leading-relaxed text-amber-900/90 dark:text-amber-400/90">
                 Pesanan ini sudah melewati batas waktu pengajuan refund atau berstatus non-refundable. Jika dibatalkan, slot akan dilepas untuk tamu lain dan dana tidak dapat dikembalikan.
               </p>
             </div>
           ) : (
-            <div className="p-4 rounded-2xl bg-blue-50/60 border border-blue-200 text-xs text-blue-900 space-y-1.5">
-              <div className="flex items-center gap-2 font-bold text-brand-blue">
+            <div className="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/30 text-xs text-blue-900 dark:text-blue-300 space-y-1.5">
+              <div className="flex items-center gap-2 font-bold text-brand-blue dark:text-brand-lime">
                 <Info size={15} />
                 <span>Pembatalan Tagihan Belum Dibayar</span>
               </div>
-              <p className="text-[11px] text-blue-900/80 leading-relaxed">
+              <p className="text-[11px] text-blue-900/80 dark:text-blue-300/80 leading-relaxed">
                 Pesanan Anda belum dibayar. Pembatalan ini akan langsung membatalkan invoice dan melepaskan slot tanggal booking secara instan.
               </p>
             </div>
@@ -229,8 +229,8 @@ export function CancelRefundModal({
                   key={reason}
                   className={`flex items-center gap-3 p-3 rounded-xl border text-xs cursor-pointer transition-all ${
                     selectedReason === reason
-                      ? 'border-brand-blue bg-brand-blue/5 text-foreground font-semibold shadow-2xs'
-                      : 'border-border bg-white hover:bg-surface text-foreground-muted'
+                      ? 'border-brand-blue bg-brand-blue/5 dark:border-brand-lime dark:bg-brand-lime/10 text-foreground font-semibold shadow-2xs'
+                      : 'border-border bg-white dark:bg-surface hover:bg-surface/80 text-foreground-muted hover:text-foreground'
                   }`}
                 >
                   <input
@@ -239,7 +239,7 @@ export function CancelRefundModal({
                     value={reason}
                     checked={selectedReason === reason}
                     onChange={() => setSelectedReason(reason)}
-                    className="accent-brand-blue w-4 h-4"
+                    className="accent-brand-blue dark:accent-brand-lime w-4 h-4"
                   />
                   <span>{reason}</span>
                 </label>
@@ -253,7 +253,7 @@ export function CancelRefundModal({
                   onChange={(e) => setCustomReason(e.target.value)}
                   placeholder="Tuliskan alasan pembatalan Anda..."
                   rows={3}
-                  className="w-full text-xs p-3 rounded-xl border border-border bg-white text-foreground focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue resize-none"
+                  className="w-full text-xs p-3 rounded-xl border border-border bg-white dark:bg-surface text-foreground focus:outline-none focus:ring-2 focus:ring-brand-blue/30 dark:focus:ring-brand-lime/30 focus:border-brand-blue dark:focus:border-brand-lime resize-none"
                 />
               </div>
             )}
@@ -264,7 +264,7 @@ export function CancelRefundModal({
             <div className="pt-2 border-t border-border/60 space-y-3">
               <div>
                 <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                  <CreditCard size={14} className="text-brand-blue" />
+                  <CreditCard size={14} className="text-brand-blue dark:text-brand-lime" />
                   <span>Rekening Tujuan Pengembalian Dana</span>
                 </h4>
                 <p className="text-[11px] text-foreground-muted mt-0.5">
@@ -283,7 +283,7 @@ export function CancelRefundModal({
                     value={bankName}
                     onChange={(e) => setBankName(e.target.value)}
                     placeholder="Contoh: BCA / Mandiri / BRI"
-                    className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-border bg-white text-foreground focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue"
+                    className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-border bg-white dark:bg-surface text-foreground focus:outline-none focus:ring-2 focus:ring-brand-blue/30 dark:focus:ring-brand-lime/30 focus:border-brand-blue dark:focus:border-brand-lime"
                   />
                   <datalist id="popular-banks">
                     {POPULAR_BANKS.map((b) => (
@@ -302,7 +302,7 @@ export function CancelRefundModal({
                       value={accountNumber}
                       onChange={(e) => setAccountNumber(e.target.value)}
                       placeholder="1234567890"
-                      className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-border bg-white text-foreground focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue"
+                      className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-border bg-white dark:bg-surface text-foreground focus:outline-none focus:ring-2 focus:ring-brand-blue/30 dark:focus:ring-brand-lime/30 focus:border-brand-blue dark:focus:border-brand-lime"
                     />
                   </div>
                   <div>
@@ -314,7 +314,7 @@ export function CancelRefundModal({
                       value={accountHolder}
                       onChange={(e) => setAccountHolder(e.target.value)}
                       placeholder="Sesuai buku tabungan"
-                      className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-border bg-white text-foreground focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue"
+                      className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-border bg-white dark:bg-surface text-foreground focus:outline-none focus:ring-2 focus:ring-brand-blue/30 dark:focus:ring-brand-lime/30 focus:border-brand-blue dark:focus:border-brand-lime"
                     />
                   </div>
                 </div>
@@ -328,7 +328,7 @@ export function CancelRefundModal({
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="px-4 py-2.5 rounded-full border border-border bg-white hover:bg-surface text-foreground font-bold text-xs transition-colors cursor-pointer disabled:opacity-50"
+              className="px-4 py-2.5 rounded-full border border-border bg-white dark:bg-surface hover:bg-surface dark:hover:bg-neutral-800 text-foreground font-bold text-xs transition-colors cursor-pointer disabled:opacity-50"
             >
               Batal
             </button>

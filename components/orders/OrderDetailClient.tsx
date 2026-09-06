@@ -60,54 +60,54 @@ function getOrderBadge(order: any, lang: Language = 'id') {
     if (isUnsettled) {
       return {
         label: t.dpUnsettled,
-        className: 'bg-neutral-100 text-neutral-800 border-neutral-200/80',
+        className: 'bg-neutral-100 dark:bg-white/10 text-neutral-800 dark:text-neutral-200 border-neutral-200/80 dark:border-white/10',
         isDP: true,
       };
     }
     return {
       label: t.paid,
-      className: 'bg-neutral-100 text-neutral-800 border-neutral-200/80',
+      className: 'bg-neutral-100 dark:bg-white/10 text-neutral-800 dark:text-neutral-200 border-neutral-200/80 dark:border-white/10',
       isDP: false,
     };
   }
   if (order.status === 'PENDING') {
     return {
       label: t.pendingPayment,
-      className: 'bg-neutral-100 text-neutral-800 border-neutral-200/80',
+      className: 'bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-200/80 dark:border-amber-500/20',
       isDP: false,
     };
   }
   if (order.status === 'COMPLETE' || order.status === 'COMPLETED') {
     return {
       label: t.complete,
-      className: 'bg-neutral-100 text-neutral-700 border-neutral-200/80',
+      className: 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-500/20',
       isDP: false,
     };
   }
   if (order.status === 'CANCELLED') {
     return {
       label: t.cancelled,
-      className: 'bg-neutral-100 text-neutral-500 border-neutral-200/80',
+      className: 'bg-neutral-100 dark:bg-white/10 text-neutral-500 dark:text-neutral-400 border-neutral-200/80 dark:border-white/10',
       isDP: false,
     };
   }
   if (order.status === 'EXPIRED') {
     return {
       label: t.expired,
-      className: 'bg-neutral-100 text-neutral-500 border-neutral-200/80',
+      className: 'bg-neutral-100 dark:bg-white/10 text-neutral-500 dark:text-neutral-400 border-neutral-200/80 dark:border-white/10',
       isDP: false,
     };
   }
   if (order.status === 'REFUNDED') {
     return {
       label: t.refunded,
-      className: 'bg-neutral-100 text-neutral-600 border-neutral-200/80',
+      className: 'bg-neutral-100 dark:bg-white/10 text-neutral-600 dark:text-neutral-300 border-neutral-200/80 dark:border-white/10',
       isDP: false,
     };
   }
   return {
     label: order.status || 'Draft',
-    className: 'bg-neutral-100 text-neutral-600 border-neutral-200/80',
+    className: 'bg-neutral-100 dark:bg-white/10 text-neutral-600 dark:text-neutral-300 border-neutral-200/80 dark:border-white/10',
     isDP: false,
   };
 }
@@ -588,7 +588,7 @@ export function OrderDetailClient() {
   const baseRental = Math.max(0, fullRental - totalPaidAddons);
 
   return (
-    <div className="min-h-screen bg-[#fafafa] text-foreground flex flex-col justify-between print:bg-white">
+    <div className="min-h-screen bg-background text-foreground flex flex-col justify-between print:bg-white">
       {/* ═══ HEADER ATAS (LOGO RESMI EMBUN EXPLORE & MENU AKUN, TANPA SEARCH BAR) ═══ */}
       <div className="print:hidden">
         <ExploreHeader
@@ -604,16 +604,21 @@ export function OrderDetailClient() {
       <main className="max-w-[2520px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-10 flex-1 w-full print:hidden">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-28 gap-3 text-foreground-muted">
-            <Loader2 size={26} className="animate-spin text-brand-blue" />
+            <Loader2 size={26} className="animate-spin text-brand-blue dark:text-brand-lime" />
             <p className="text-xs font-semibold">{t.loadingDetail}</p>
           </div>
         ) : authRequired ? (
-          <div className="text-center py-20 bg-white rounded-3xl border border-border p-8 space-y-5 shadow-2xs max-w-md mx-auto my-12">
-            <div className="w-16 h-16 mx-auto rounded-2xl bg-brand-blue/8 flex items-center justify-center p-3 border border-brand-blue/15 shadow-2xs">
+          <div className="text-center py-20 bg-white dark:bg-surface rounded-3xl border border-border p-8 space-y-5 shadow-2xs max-w-md mx-auto my-12">
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-brand-blue/8 dark:bg-brand-lime/10 flex items-center justify-center p-3 border border-brand-blue/15 dark:border-brand-lime/20 shadow-2xs">
               <img
                 src="/images/logo/logogram_blue.svg"
                 alt="Embun"
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain dark:hidden"
+              />
+              <img
+                src="/images/logo/logogram_green.svg"
+                alt="Embun"
+                className="w-full h-full object-contain hidden dark:block"
               />
             </div>
             <div className="space-y-1">
@@ -625,7 +630,7 @@ export function OrderDetailClient() {
             <button
               type="button"
               onClick={() => setIsAuthOpen(true)}
-              className="inline-flex items-center justify-center gap-2 w-full py-3.5 rounded-full bg-brand-blue text-white text-xs font-bold shadow-md hover:bg-brand-blue-hover transition-all cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 w-full py-3.5 rounded-full bg-brand-blue dark:bg-brand-lime text-white dark:text-black text-xs font-bold dark:font-black shadow-md hover:bg-brand-blue-hover dark:hover:bg-brand-lime/90 transition-all cursor-pointer"
             >
               <LogIn size={15} />
               <span>{t.loginNow}</span>
@@ -633,19 +638,19 @@ export function OrderDetailClient() {
             <div>
               <Link
                 href="/orders"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-white hover:bg-surface text-xs font-semibold text-foreground transition-all shadow-2xs hover:shadow-xs group cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-white dark:bg-surface hover:bg-surface text-xs font-semibold text-foreground transition-all shadow-2xs hover:shadow-xs group cursor-pointer"
               >
                 <ArrowLeft
                   size={13}
-                  className="text-foreground-muted group-hover:text-brand-blue group-hover:-translate-x-0.5 transition-transform"
+                  className="text-foreground-muted group-hover:text-brand-blue dark:group-hover:text-brand-lime group-hover:-translate-x-0.5 transition-transform"
                 />
                 <span>{t.backToOrders}</span>
               </Link>
             </div>
           </div>
         ) : error && !order ? (
-          <div className="p-8 text-center bg-white rounded-3xl border border-border text-foreground text-sm max-w-md mx-auto my-12 space-y-4 shadow-2xs">
-            <div className="w-12 h-12 mx-auto rounded-full bg-red-50 text-red-600 flex items-center justify-center">
+          <div className="p-8 text-center bg-white dark:bg-surface rounded-3xl border border-border text-foreground text-sm max-w-md mx-auto my-12 space-y-4 shadow-2xs">
+            <div className="w-12 h-12 mx-auto rounded-full bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 flex items-center justify-center">
               <AlertCircle size={22} />
             </div>
             <div className="space-y-1">
@@ -655,7 +660,7 @@ export function OrderDetailClient() {
             <button
               type="button"
               onClick={() => void load()}
-              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-brand-blue text-white text-xs font-bold hover:bg-brand-blue-hover transition-all cursor-pointer shadow-xs"
+              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-brand-blue dark:bg-brand-lime text-white dark:text-black text-xs font-bold dark:font-black hover:bg-brand-blue-hover dark:hover:bg-brand-lime/90 transition-all cursor-pointer shadow-xs"
             >
               <RefreshCw size={13} />
               <span>{t.retry}</span>
@@ -682,10 +687,10 @@ export function OrderDetailClient() {
                 <button
                   type="button"
                   onClick={() => setIsInvoiceOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-border hover:border-brand-blue hover:text-brand-blue bg-white text-xs font-bold text-foreground transition-all cursor-pointer shadow-2xs hover:bg-brand-blue/5"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-border hover:border-brand-blue dark:hover:border-brand-lime hover:text-brand-blue dark:hover:text-brand-lime bg-white dark:bg-surface text-xs font-bold text-foreground transition-all cursor-pointer shadow-2xs hover:bg-brand-blue/5 dark:hover:bg-brand-lime/10"
                   title={t.printInvoice}
                 >
-                  <Printer size={14} className="text-brand-blue" />
+                  <Printer size={14} className="text-brand-blue dark:text-brand-lime" />
                   <span>{t.printInvoice}</span>
                 </button>
                 {badge && (
@@ -700,7 +705,7 @@ export function OrderDetailClient() {
 
             {/* Error Banner jika ada aksi yang gagal */}
             {error && (
-              <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2">
+              <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-400 text-xs font-semibold flex items-center gap-2">
                 <AlertCircle size={16} className="shrink-0" />
                 <span>{error}</span>
               </div>
@@ -715,10 +720,10 @@ export function OrderDetailClient() {
                 ════════════════════════════════════════════════════════════════ */}
                 {isPaid ? (
                   /* KARTU TIKET RESMI */
-                  <div className="bg-white rounded-3xl border border-border p-6 sm:p-7 shadow-2xs">
+                  <div className="bg-white dark:bg-surface rounded-3xl border border-border p-6 sm:p-7 shadow-2xs">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
                       <div className="space-y-2 text-center sm:text-left flex-1">
-                        <div className="flex items-center justify-center sm:justify-start gap-1.5 text-neutral-700 bg-neutral-100 border border-neutral-200 px-2.5 py-1 rounded-full w-fit mx-auto sm:mx-0">
+                        <div className="flex items-center justify-center sm:justify-start gap-1.5 text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 px-2.5 py-1 rounded-full w-fit mx-auto sm:mx-0">
                           <span className="text-[10.5px] uppercase font-bold tracking-wider">
                             {t.officialTicket}
                           </span>
@@ -729,13 +734,13 @@ export function OrderDetailClient() {
                             {t.bookingCode}
                           </span>
                           <div className="flex items-center justify-center sm:justify-start gap-2 mt-0.5">
-                            <span className="text-2xl sm:text-3xl font-black text-brand-blue tracking-wider font-mono">
+                            <span className="text-2xl sm:text-3xl font-black text-brand-blue dark:text-brand-lime tracking-wider font-mono">
                               {shortCode}
                             </span>
                             <button
                               type="button"
                               onClick={() => handleCopyCode(shortCode)}
-                              className="p-1.5 rounded-xl border border-border bg-white hover:bg-surface text-foreground-muted hover:text-foreground cursor-pointer transition-colors"
+                              className="p-1.5 rounded-xl border border-border bg-white dark:bg-surface hover:bg-surface text-foreground-muted hover:text-foreground cursor-pointer transition-colors"
                               title={t.copyCode}
                             >
                               {copied ? (
@@ -753,13 +758,13 @@ export function OrderDetailClient() {
                       </div>
 
                       {/* QR Code Container Check-in */}
-                      <div className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white border border-border shadow-xs shrink-0 self-center sm:self-auto">
+                      <div className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white dark:bg-surface border border-border shadow-xs shrink-0 self-center sm:self-auto">
                         <div className="w-44 h-44 sm:w-48 sm:h-48 bg-surface flex items-center justify-center rounded-2xl p-2.5 border border-border/60 relative overflow-hidden">
                           {isUnsettledDP ? (
                             <>
                               <DummyQrPlaceholder className="w-full h-full object-contain filter blur-md opacity-25 select-none pointer-events-none scale-105 text-neutral-800" />
                               <div className="absolute inset-0 flex items-center justify-center p-3">
-                                <span className="px-4 py-1.5 rounded-full bg-white/95 border border-neutral-200/90 text-neutral-600 text-xs font-semibold shadow-2xs backdrop-blur-xs tracking-wide select-none">
+                                <span className="px-4 py-1.5 rounded-full bg-white/95 dark:bg-black/90 border border-neutral-200/90 dark:border-white/10 text-neutral-600 dark:text-neutral-300 text-xs font-semibold shadow-2xs backdrop-blur-xs tracking-wide select-none">
                                   {t.qrNotActive}
                                 </span>
                               </div>
@@ -808,58 +813,58 @@ export function OrderDetailClient() {
 
                       <Link
                         href="/explore"
-                        className="px-5 py-2.5 rounded-full bg-brand-blue text-white text-xs font-bold shadow-xs hover:bg-brand-blue-hover transition-all shrink-0"
+                        className="px-5 py-2.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover dark:bg-brand-lime dark:text-black dark:hover:bg-brand-lime/90 text-white text-xs font-bold shadow-xs transition-all shrink-0"
                       >
                         {t.reorderInExplore}
                       </Link>
                     </div>
-                    <div className="p-3 rounded-2xl bg-white border border-neutral-200 text-neutral-600 text-[11px] font-mono">
+                    <div className="p-3 rounded-2xl bg-white dark:bg-surface border border-neutral-200 dark:border-border text-neutral-600 dark:text-neutral-400 text-[11px] font-mono">
                       {t.transactionNo} {order.id} · {order.paymentExpiresAt ? t.expiredOn(formatDateDisplay(order.paymentExpiresAt, lang)) : '-'}
                     </div>
                   </div>
                 ) : isCancelled ? (
                   /* KARTU STATUS DIBATALKAN */
-                  <div className="bg-red-50/70 rounded-3xl border border-red-200 p-6 sm:p-7 shadow-2xs space-y-4">
+                  <div className="bg-red-50/70 dark:bg-red-950/20 rounded-3xl border border-red-200 dark:border-red-900/40 p-6 sm:p-7 shadow-2xs space-y-4">
                     <div className="space-y-1.5">
-                      <div className="flex items-center gap-1.5 text-red-700 bg-red-100/80 border border-red-200 px-2.5 py-1 rounded-full w-fit">
+                      <div className="flex items-center gap-1.5 text-red-700 dark:text-red-400 bg-red-100/80 dark:bg-red-900/30 border border-red-200 dark:border-red-900/40 px-2.5 py-1 rounded-full w-fit">
                         <XCircle size={14} />
                         <span className="text-[10.5px] uppercase font-bold tracking-wider">
                           {t.cancelledBadge}
                         </span>
                       </div>
-                      <h2 className="text-lg font-extrabold text-red-950">
+                      <h2 className="text-lg font-extrabold text-red-950 dark:text-red-200">
                         {t.cancelledTitle}
                       </h2>
-                      <p className="text-xs text-red-800/80 max-w-md leading-relaxed">
+                      <p className="text-xs text-red-800/80 dark:text-red-300/80 max-w-md leading-relaxed">
                         {t.cancelledDesc}
                       </p>
                     </div>
-                    <div className="p-3 rounded-2xl bg-white/90 border border-red-200 text-red-700 text-[11px] font-mono">
+                    <div className="p-3 rounded-2xl bg-white/90 dark:bg-surface border border-red-200 dark:border-red-900/40 text-red-700 dark:text-red-400 text-[11px] font-mono">
                       {t.transactionNo} <span className="font-semibold">{order.id}</span>
                     </div>
                   </div>
                 ) : isPending ? (
                   /* KARTU STATUS MENUNGGU PEMBAYARAN */
-                  <div className="bg-amber-50/70 rounded-3xl border border-amber-200/90 p-6 sm:p-7 shadow-2xs space-y-4">
+                  <div className="bg-amber-50/70 dark:bg-amber-950/20 rounded-3xl border border-amber-200/90 dark:border-amber-900/40 p-6 sm:p-7 shadow-2xs space-y-4">
                     <div className="space-y-1.5">
-                      <div className="flex items-center gap-1.5 text-amber-800 bg-amber-100/80 border border-amber-200 px-2.5 py-1 rounded-full w-fit">
+                      <div className="flex items-center gap-1.5 text-amber-800 dark:text-amber-300 bg-amber-100/80 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-900/40 px-2.5 py-1 rounded-full w-fit">
                         <Clock size={14} />
                         <span className="text-[10.5px] uppercase font-bold tracking-wider">
                           {t.pendingBadge}
                         </span>
                       </div>
-                      <h2 className="text-lg font-extrabold text-amber-950">
+                      <h2 className="text-lg font-extrabold text-amber-950 dark:text-amber-200">
                         {t.pendingTitle}
                       </h2>
-                      <p className="text-xs text-amber-900/80 max-w-md leading-relaxed">
+                      <p className="text-xs text-amber-900/80 dark:text-amber-300/80 max-w-md leading-relaxed">
                         {t.pendingDesc}
                       </p>
                     </div>
 
-                    <div className="p-3 rounded-2xl bg-white/90 border border-amber-200 text-amber-900 text-[11px] font-mono flex items-center justify-between flex-wrap gap-2">
+                    <div className="p-3 rounded-2xl bg-white/90 dark:bg-surface border border-amber-200 dark:border-amber-900/40 text-amber-900 dark:text-amber-300 text-[11px] font-mono flex items-center justify-between flex-wrap gap-2">
                       <span>{t.transactionNo} <span className="font-semibold">{order.id}</span></span>
                       {order.paymentExpiresAt && (
-                        <span className="text-amber-700 font-sans">{t.paymentDeadline(formatDateDisplay(order.paymentExpiresAt, lang))}</span>
+                        <span className="text-amber-700 dark:text-amber-400 font-sans">{t.paymentDeadline(formatDateDisplay(order.paymentExpiresAt, lang))}</span>
                       )}
                     </div>
 
@@ -868,7 +873,7 @@ export function OrderDetailClient() {
                         type="button"
                         onClick={handlePayNow}
                         disabled={paying}
-                        className="w-full sm:w-auto py-3 px-6 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                        className="w-full sm:w-auto py-3 px-6 rounded-full bg-brand-blue hover:bg-brand-blue-hover dark:bg-brand-lime dark:text-black dark:hover:bg-brand-lime/90 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
                       >
                         {paying ? <Loader2 size={15} className="animate-spin" /> : <CreditCard size={15} />}
                         <span>{paying ? t.connectingPayment : t.payNowAmount(rupiah(order.totalAmount))}</span>
@@ -881,19 +886,19 @@ export function OrderDetailClient() {
                     2. CARD SKEMA DP 50% (JIKA BERLAKU)
                 ════════════════════════════════════════════════════════════════ */}
                 {isPaid && isDP && (
-                  <div className="bg-amber-50/70 border border-amber-200/90 rounded-3xl p-6 sm:p-7 space-y-4">
-                    <div className="flex items-center justify-between border-b border-amber-200/60 pb-3">
+                  <div className="bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/90 dark:border-amber-900/40 rounded-3xl p-6 sm:p-7 space-y-4">
+                    <div className="flex items-center justify-between border-b border-amber-200/60 dark:border-amber-900/40 pb-3">
                       <div className="flex items-center gap-2">
                         <div className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
-                        <span className="text-xs font-bold uppercase tracking-wider text-amber-900">
+                        <span className="text-xs font-bold uppercase tracking-wider text-amber-900 dark:text-amber-200">
                           {t.dpSchemeTitle}
                         </span>
                       </div>
                       <span
                         className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${
                           isUnsettledDP
-                            ? 'bg-amber-100 text-amber-800 border-amber-300'
-                            : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                            ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700/50'
+                            : 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700/50'
                         }`}
                       >
                         {isUnsettledDP ? t.unsettled : t.settled}
@@ -901,15 +906,15 @@ export function OrderDetailClient() {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                      <div className="p-3.5 rounded-2xl bg-white/80 border border-amber-200/50 space-y-1">
-                        <span className="text-amber-800/80 font-medium">{t.dpPaidOnline}</span>
+                      <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-surface border border-amber-200/50 dark:border-amber-900/40 space-y-1">
+                        <span className="text-amber-800/80 dark:text-amber-400/80 font-medium">{t.dpPaidOnline}</span>
                         <p className="text-base font-black text-foreground">
                           {rupiah(order.downPaymentAmount || order.totalAmount)}
                         </p>
                       </div>
-                      <div className="p-3.5 rounded-2xl bg-white/80 border border-amber-200/50 space-y-1">
-                        <span className="text-amber-800/80 font-medium">{t.remainingBalanceLabel}</span>
-                        <p className="text-base font-black text-amber-900">
+                      <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-surface border border-amber-200/50 dark:border-amber-900/40 space-y-1">
+                        <span className="text-amber-800/80 dark:text-amber-400/80 font-medium">{t.remainingBalanceLabel}</span>
+                        <p className="text-base font-black text-amber-900 dark:text-amber-300">
                           {rupiah(remainingBalance)}
                         </p>
                       </div>
@@ -918,12 +923,12 @@ export function OrderDetailClient() {
                     {isUnsettledDP ? (
                       <div className="space-y-3 pt-1 print:hidden">
                         {isSettlementExpired ? (
-                          <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs leading-relaxed">
+                          <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/40 text-rose-800 dark:text-rose-300 text-xs leading-relaxed">
                             ⏳ <strong>{t.settleExpired}:</strong> {t.settlementExpiredNotice}
                           </div>
                         ) : (
                           <>
-                            <div className="p-3.5 rounded-2xl bg-amber-100/60 border border-amber-200 text-amber-900 text-xs leading-relaxed">
+                            <div className="p-3.5 rounded-2xl bg-amber-100/60 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/40 text-amber-900 dark:text-amber-300 text-xs leading-relaxed">
                               💡 {t.settlementNotice(
                                 settlementDeadlineFormatted
                                   ? `${settlementDeadlineFormatted} (${lang === 'en' ? 'D-1 before check-in' : 'H-1 sebelum check-in'})`
@@ -952,8 +957,8 @@ export function OrderDetailClient() {
                         )}
                       </div>
                     ) : (
-                      <div className="p-3 rounded-2xl bg-emerald-100/70 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2">
-                        <Check size={16} className="text-emerald-700" />
+                      <div className="p-3 rounded-2xl bg-emerald-100/70 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/40 text-emerald-800 dark:text-emerald-300 text-xs font-semibold flex items-center gap-2">
+                        <Check size={16} className="text-emerald-700 dark:text-emerald-400" />
                         <span>{t.dpFullySettled}</span>
                       </div>
                     )}
@@ -963,10 +968,10 @@ export function OrderDetailClient() {
                 {/* ════════════════════════════════════════════════════════════════
                     3. PROPERTI & JADWAL MENGINAP
                 ════════════════════════════════════════════════════════════════ */}
-                <div className="bg-white rounded-3xl border border-border p-6 sm:p-7 space-y-5 shadow-2xs">
+                <div className="bg-white dark:bg-surface rounded-3xl border border-border p-6 sm:p-7 space-y-5 shadow-2xs">
                   <div className="flex items-start justify-between gap-4 pb-4 border-b border-border/70">
                     <div className="space-y-1.5 min-w-0">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold uppercase tracking-wider bg-brand-blue/8 text-brand-blue">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold uppercase tracking-wider bg-brand-blue/8 dark:bg-brand-lime/15 text-brand-blue dark:text-brand-lime">
                         {order.campsite?.name || t.campsiteDefault}
                       </span>
                       <h3 className="font-extrabold text-lg sm:text-xl text-foreground">
@@ -996,9 +1001,9 @@ export function OrderDetailClient() {
                         href={order.campsite.googleMapsUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-border hover:bg-surface text-xs font-semibold text-foreground transition-colors"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-border hover:bg-surface text-xs font-semibold text-foreground transition-colors hover:text-brand-lime"
                       >
-                        <MapPin size={13} className="text-brand-blue" />
+                        <MapPin size={13} className="text-brand-blue dark:text-brand-lime" />
                         <span>{t.openGoogleMaps}</span>
                         <ExternalLink size={11} className="text-foreground-muted" />
                       </a>
@@ -1008,9 +1013,9 @@ export function OrderDetailClient() {
                         href={`https://wa.me/${order.campsite.emergencyWhatsapp.replace(/\D/g, '')}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50 text-xs font-semibold text-emerald-800 transition-colors"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-500/10 hover:bg-emerald-50 dark:hover:bg-emerald-500/20 text-xs font-semibold text-emerald-800 dark:text-emerald-300 transition-colors"
                       >
-                        <MessageCircle size={13} className="text-emerald-600" />
+                        <MessageCircle size={13} className="text-emerald-500" />
                         <span>{t.contactHost}</span>
                       </a>
                     )}
@@ -1020,7 +1025,7 @@ export function OrderDetailClient() {
                   <div className="grid grid-cols-2 gap-3.5 text-xs">
                     <div className="p-4 rounded-2xl bg-surface/80 border border-border/60 space-y-1">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-foreground-muted flex items-center gap-1">
-                        <Calendar size={13} className="text-brand-blue" /> {t.checkIn}
+                        <Calendar size={13} className="text-brand-blue dark:text-brand-lime" /> {t.checkIn}
                       </span>
                       <p className="font-bold text-foreground text-sm">
                         {formatDateDisplay(booking?.checkIn, lang)}
@@ -1032,7 +1037,7 @@ export function OrderDetailClient() {
 
                     <div className="p-4 rounded-2xl bg-surface/80 border border-border/60 space-y-1">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-foreground-muted flex items-center gap-1">
-                        <Calendar size={13} className="text-brand-blue" /> {t.checkOut}
+                        <Calendar size={13} className="text-brand-blue dark:text-brand-lime" /> {t.checkOut}
                       </span>
                       <p className="font-bold text-foreground text-sm">
                         {formatDateDisplay(booking?.checkOut, lang)}
@@ -1045,12 +1050,12 @@ export function OrderDetailClient() {
 
                   <div className="flex items-center justify-between text-xs pt-1 px-1">
                     <span className="text-foreground-muted flex items-center gap-1.5">
-                      <Users size={14} className="text-brand-blue" />
+                      <Users size={14} className="text-brand-blue dark:text-brand-lime" />
                       <strong className="text-foreground">{t.guestCount(booking?.adultCount || 2)}</strong>
                     </span>
                     <span className="text-foreground-muted flex items-center gap-1.5">
-                      <Clock size={14} className="text-brand-blue" />
-                      <strong className="text-brand-blue">{t.duration(nights)}</strong>
+                      <Clock size={14} className="text-brand-blue dark:text-brand-lime" />
+                      <strong className="text-brand-blue dark:text-brand-lime">{t.duration(nights)}</strong>
                     </span>
                   </div>
                 </div>
@@ -1058,7 +1063,7 @@ export function OrderDetailClient() {
                 {/* ════════════════════════════════════════════════════════════════
                     4. DATA TAMU PEMESAN
                 ════════════════════════════════════════════════════════════════ */}
-                <div className="bg-white rounded-3xl border border-border p-6 sm:p-7 space-y-3 shadow-2xs">
+                <div className="bg-white dark:bg-surface rounded-3xl border border-border p-6 sm:p-7 space-y-3 shadow-2xs">
                   <h4 className="font-bold text-xs text-foreground uppercase tracking-wider">
                     {t.guestDetailsTitle}
                   </h4>
@@ -1082,13 +1087,13 @@ export function OrderDetailClient() {
                     5. LAYANAN TAMBAHAN (ADD-ON)
                 ════════════════════════════════════════════════════════════════ */}
                 {addonLines.length > 0 && (
-                  <div className="bg-white rounded-3xl border border-border p-6 sm:p-7 space-y-4 shadow-2xs">
+                  <div className="bg-white dark:bg-surface rounded-3xl border border-border p-6 sm:p-7 space-y-4 shadow-2xs">
                     <div className="flex items-center justify-between border-b border-border/70 pb-3">
                       <h4 className="font-bold text-xs text-foreground uppercase tracking-wider flex items-center gap-2">
-                        <PackageCheck size={16} className="text-brand-blue" />
+                        <PackageCheck size={16} className="text-brand-blue dark:text-brand-lime" />
                         <span>{t.addonsTitle}</span>
                       </h4>
-                      <span className="text-[11px] font-semibold text-neutral-600 bg-neutral-100 px-2.5 py-0.5 rounded-full border border-neutral-200">
+                      <span className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-300 bg-neutral-100 dark:bg-white/10 px-2.5 py-0.5 rounded-full border border-neutral-200 dark:border-white/10">
                         {t.addonsCount(addonLines.length)}
                       </span>
                     </div>
@@ -1105,7 +1110,7 @@ export function OrderDetailClient() {
                               <p className="font-bold text-foreground text-sm">{item.name}</p>
                               <p className="text-[11px] text-foreground-muted">
                                 {isFree ? (
-                                  <span className="text-emerald-700 font-medium">
+                                  <span className="text-emerald-600 dark:text-emerald-400 font-medium">
                                     {t.includedInPackage}
                                   </span>
                                 ) : (
@@ -1118,7 +1123,7 @@ export function OrderDetailClient() {
                             </div>
                             <div className="font-bold text-foreground text-sm shrink-0">
                               {isFree ? (
-                                <span className="text-emerald-700 text-[11px] font-semibold bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 rounded-full">
+                                <span className="text-emerald-700 dark:text-emerald-400 text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200/80 dark:border-emerald-500/20 px-2.5 py-0.5 rounded-full">
                                   {t.free}
                                 </span>
                               ) : (
@@ -1135,9 +1140,9 @@ export function OrderDetailClient() {
                 {/* ════════════════════════════════════════════════════════════════
                     6. CATATAN UNTUK CAMPSITE
                 ════════════════════════════════════════════════════════════════ */}
-                <div className="bg-white rounded-3xl border border-border p-6 sm:p-7 space-y-3 shadow-2xs">
+                <div className="bg-white dark:bg-surface rounded-3xl border border-border p-6 sm:p-7 space-y-3 shadow-2xs">
                   <h4 className="font-bold text-xs text-foreground uppercase tracking-wider flex items-center gap-2">
-                    <FileText size={16} className="text-brand-blue" />
+                    <FileText size={16} className="text-brand-blue dark:text-brand-lime" />
                     <span>{t.campsiteNoteTitle}</span>
                   </h4>
                   {bookingNote ? (
@@ -1155,24 +1160,24 @@ export function OrderDetailClient() {
                     7. ATURAN & KEBIJAKAN CAMPSITE
                 ════════════════════════════════════════════════════════════════ */}
                 {(campsiteRules || campsiteHostNotes) && (
-                  <div className="bg-white rounded-3xl border border-border p-6 sm:p-7 space-y-4 shadow-2xs">
+                  <div className="bg-white dark:bg-surface rounded-3xl border border-border p-6 sm:p-7 space-y-4 shadow-2xs">
                     <h4 className="font-bold text-xs text-foreground uppercase tracking-wider flex items-center gap-2">
-                      <ScrollText size={16} className="text-brand-blue" />
+                      <ScrollText size={16} className="text-brand-blue dark:text-brand-lime" />
                       <span>{t.rulesTitle}</span>
                     </h4>
                     <div className="space-y-3 text-xs">
                       {campsiteRules && (
-                        <div className="p-4 rounded-2xl bg-amber-50/50 border border-amber-200/60 text-amber-950 space-y-1.5">
-                          <span className="text-[10.5px] font-bold uppercase tracking-wider text-amber-800 block">
+                        <div className="p-4 rounded-2xl bg-amber-50/50 dark:bg-amber-500/10 border border-amber-200/60 dark:border-amber-500/20 text-amber-950 dark:text-amber-200 space-y-1.5">
+                          <span className="text-[10.5px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300 block">
                             {t.stayRules}
                           </span>
-                          <p className="leading-relaxed whitespace-pre-line text-neutral-700">
+                          <p className="leading-relaxed whitespace-pre-line text-neutral-700 dark:text-neutral-300">
                             {campsiteRules}
                           </p>
                         </div>
                       )}
                       {campsiteHostNotes && (
-                        <div className="p-4 rounded-2xl bg-surface border border-border/60 text-neutral-700 space-y-1.5">
+                        <div className="p-4 rounded-2xl bg-surface border border-border/60 text-neutral-700 dark:text-neutral-300 space-y-1.5">
                           <span className="text-[10.5px] font-bold uppercase tracking-wider text-foreground-muted block">
                             {t.hostNotes}
                           </span>
@@ -1191,7 +1196,7 @@ export function OrderDetailClient() {
                 {/* ════════════════════════════════════════════════════════════════
                     8. RINCIAN BIAYA & INVOICE
                 ════════════════════════════════════════════════════════════════ */}
-                <div className="bg-white rounded-3xl border border-border p-6 space-y-4 shadow-2xs">
+                <div className="bg-white dark:bg-surface rounded-3xl border border-border p-6 space-y-4 shadow-2xs">
                   <div className="flex items-center justify-between border-b border-border/70 pb-3">
                     <h4 className="font-bold text-xs text-foreground uppercase tracking-wider">
                       {t.paymentSummaryTitle}
@@ -1254,18 +1259,18 @@ export function OrderDetailClient() {
 
                     <div className="pt-3 border-t border-border flex justify-between items-center text-sm">
                       <span className="font-bold text-foreground">{t.totalTransaction}</span>
-                      <span className="text-base font-black text-brand-blue">
+                      <span className="text-base font-black text-brand-blue dark:text-brand-lime">
                         {rupiah(order.totalAmount)}
                       </span>
                     </div>
 
                     {isPaid && isDP && (
                       <div className="pt-2.5 border-t border-border/60 space-y-1.5 text-xs">
-                        <div className="flex justify-between text-emerald-700 font-medium">
+                        <div className="flex justify-between text-emerald-700 dark:text-emerald-400 font-medium">
                           <span>{t.dpPaidSummary}</span>
                           <span>{rupiah(order.downPaymentAmount || order.totalAmount)}</span>
                         </div>
-                        <div className="flex justify-between text-amber-900 font-bold">
+                        <div className="flex justify-between text-amber-900 dark:text-amber-300 font-bold">
                           <span>{t.remainingBalanceSummary}</span>
                           <span>{rupiah(remainingBalance)}</span>
                         </div>
@@ -1281,7 +1286,7 @@ export function OrderDetailClient() {
                         <button
                           type="button"
                           onClick={() => setIsRescheduleOpen(true)}
-                          className="w-full py-3 px-4 rounded-full border border-brand-blue bg-white hover:bg-brand-blue/5 text-brand-blue font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs hover:border-brand-blue-hover"
+                          className="w-full py-3 px-4 rounded-full border border-brand-blue dark:border-brand-lime bg-white dark:bg-surface hover:bg-brand-blue/5 dark:hover:bg-brand-lime/10 text-brand-blue dark:text-brand-lime font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
                         >
                           <Calendar size={15} />
                           <span>{t.rescheduleButton}</span>
@@ -1295,8 +1300,8 @@ export function OrderDetailClient() {
                           onClick={() => setIsCancelRefundOpen(true)}
                           className={`w-full py-3 px-4 rounded-full font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs ${
                             isActuallyRefundEligible
-                              ? 'border border-rose-200 bg-rose-50/50 hover:bg-rose-50 text-rose-600'
-                              : 'border border-border bg-white hover:bg-surface text-foreground-muted hover:text-rose-600'
+                              ? 'border border-rose-200 dark:border-rose-500/30 bg-rose-50/50 dark:bg-rose-500/10 hover:bg-rose-50 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400'
+                              : 'border border-border bg-white dark:bg-surface hover:bg-surface text-foreground-muted hover:text-rose-600 dark:hover:text-rose-400'
                           }`}
                         >
                           <RotateCcw size={14} />
@@ -1319,7 +1324,7 @@ export function OrderDetailClient() {
                         type="button"
                         onClick={handlePayNow}
                         disabled={paying}
-                        className="w-full py-3 px-6 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                        className="w-full py-3 px-6 rounded-full bg-brand-blue dark:bg-brand-lime hover:bg-brand-blue-hover dark:hover:bg-brand-lime/90 text-white dark:text-black font-bold dark:font-black text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
                       >
                         {paying ? <Loader2 size={15} className="animate-spin" /> : <CreditCard size={15} />}
                         <span>{paying ? t.connectingPayment : t.payNowAmount(rupiah(order.totalAmount))}</span>
@@ -1333,9 +1338,9 @@ export function OrderDetailClient() {
                 {/* ════════════════════════════════════════════════════════════════
                     9. WIDGET BANTUAN PELANGGAN CS
                 ════════════════════════════════════════════════════════════════ */}
-                <div className="p-6 rounded-3xl bg-white border border-border/80 shadow-2xs space-y-3 print:hidden">
+                <div className="p-6 rounded-3xl bg-white dark:bg-surface border border-border/80 shadow-2xs space-y-3 print:hidden">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-brand-blue/8 flex items-center justify-center text-brand-blue shrink-0 border border-brand-blue/15">
+                    <div className="w-10 h-10 rounded-2xl bg-brand-blue/8 dark:bg-brand-lime/10 flex items-center justify-center text-brand-blue dark:text-brand-lime shrink-0 border border-brand-blue/15 dark:border-brand-lime/20">
                       <HelpCircle size={20} />
                     </div>
                     <div>
@@ -1351,16 +1356,16 @@ export function OrderDetailClient() {
                       href="https://wa.me/6282131411919?text=Halo%20Embun%20CS,%20saya%20butuh%20bantuan%20terkait%20pesanan"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-full border border-border hover:border-emerald-500 hover:text-emerald-700 bg-surface/50 hover:bg-emerald-50/50 text-xs font-bold text-foreground transition-all cursor-pointer"
+                      className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-full border border-border hover:border-emerald-500 hover:text-emerald-500 bg-surface/50 hover:bg-emerald-50/10 text-xs font-bold text-foreground transition-all cursor-pointer"
                     >
-                      <MessageCircle size={14} className="text-emerald-600" />
+                      <MessageCircle size={14} className="text-emerald-500" />
                       <span>{t.chatWhatsappCs}</span>
                     </a>
                     <a
                       href="mailto:support@embun.app"
-                      className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-full border border-border hover:border-brand-blue hover:text-brand-blue bg-surface/50 hover:bg-brand-blue/5 text-xs font-bold text-foreground transition-all cursor-pointer"
+                      className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-full border border-border hover:border-brand-blue dark:hover:border-brand-lime hover:text-brand-blue dark:hover:text-brand-lime bg-surface/50 hover:bg-brand-blue/5 dark:hover:bg-brand-lime/10 text-xs font-bold text-foreground transition-all cursor-pointer"
                     >
-                      <Mail size={14} className="text-brand-blue" />
+                      <Mail size={14} className="text-brand-blue dark:text-brand-lime" />
                       <span>support@embun.app</span>
                     </a>
                   </div>

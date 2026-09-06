@@ -277,7 +277,7 @@ export function WishlistCard({
       <div className="space-y-0.5 text-xs">
         {/* Title & Rating */}
         <div className="flex items-baseline justify-between gap-2">
-          <h3 className="font-bold text-sm sm:text-base text-foreground truncate group-hover:text-brand-blue transition-colors">
+          <h3 className="font-bold text-sm sm:text-base text-foreground truncate group-hover:text-brand-blue dark:group-hover:text-brand-lime transition-colors">
             {title}
           </h3>
           {rating && (
