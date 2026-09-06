@@ -61,6 +61,7 @@ import {
 } from 'lucide-react';
 import { ExploreFooter } from '@/components/explore/ExploreFooter';
 import { TranslatableBox } from '@/components/ui/TranslatableBox';
+import { NearbyCampsitesMap } from '@/components/explore/NearbyCampsitesMap';
 import { SPOT_I18N, translateItemName, getSpotSurface, type Language } from '@/lib/spot-i18n';
 import {
   getStoredGuestProfile,
@@ -3129,34 +3130,14 @@ export function SpotRedirectClient() {
                   </p>
                 </div>
 
-                {/* Google Maps Iframe Embed */}
+                {/* Multi-Marker Embun Partner Map & Access */}
                 {campsite.latitude &&
                 campsite.longitude &&
                 Number(campsite.latitude) !== 0 ? (
-                  <div className="relative aspect-[16/9] w-full rounded-3xl overflow-hidden border border-border bg-surface shadow-2xs">
-                    <iframe
-                      width="100%"
-                      height="100%"
-                      className="w-full h-full border-0"
-                      loading="lazy"
-                      title={`Peta Google Maps ${campsite.name}`}
-                      src={`https://maps.google.com/maps?q=${campsite.latitude},${campsite.longitude}&hl=${lang === 'en' ? 'en' : 'id'}&z=15&output=embed`}
-                    />
-                    <div className="absolute top-4 left-4 bg-black/80 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-bold text-white shadow-md flex items-center gap-1.5 pointer-events-none">
-                      <MapPin size={13} className="text-brand-lime" />
-                      <span>{campsite.name}</span>
-                    </div>
-                    <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${campsite.latitude},${campsite.longitude}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="absolute top-4 right-4 bg-black/75 hover:bg-black/90 text-white text-[11px] font-bold px-3 py-1.5 rounded-full shadow-md backdrop-blur-xs flex items-center gap-1.5 transition-all hover:scale-105"
-                      title={lang === 'en' ? 'Open in Google Maps' : 'Buka di Google Maps'}
-                    >
-                      <span>{lang === 'en' ? 'Open Maps' : 'Buka Maps'}</span>
-                      <ExternalLink size={12} />
-                    </a>
-                  </div>
+                  <NearbyCampsitesMap
+                    currentCampsite={campsite}
+                    lang={lang}
+                  />
                 ) : null}
 
                 {/* Denah Resmi Kavling (If Available) */}
