@@ -102,7 +102,7 @@ export function NearbyCampsitesMap({
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<Record<string, any>>({});
 
-  const [activeTab, setActiveTab] = useState<'interactive' | 'google'>('interactive');
+  const [activeTab, setActiveTab] = useState<'google' | 'interactive'>('google');
   const [nearbyList, setNearbyList] = useState<CampsiteWithDistance[]>([]);
   const [selectedCampsiteId, setSelectedCampsiteId] = useState<string | null>(null);
 
@@ -355,21 +355,6 @@ export function NearbyCampsitesMap({
     t,
   ]);
 
-  // Handler to focus on a nearby campsite
-  const handleFocusCampsite = (camp: CampsiteWithDistance) => {
-    setSelectedCampsiteId(camp.id);
-    setActiveTab('interactive');
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.flyTo([camp.latitude, camp.longitude], 14, {
-        duration: 1.2,
-      });
-      const marker = markersRef.current[camp.id];
-      if (marker) {
-        marker.openPopup();
-      }
-    }
-  };
-
   const otherCampsites = useMemo(
     () => nearbyList.filter((c) => !c.isCurrent),
     [nearbyList],
@@ -377,9 +362,21 @@ export function NearbyCampsitesMap({
 
   return (
     <div className="space-y-4">
-      {/* Tab Switcher */}
+      {/* Tab Switcher (Google Maps first, then Peta Mitra Embun Sekitar) */}
       <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
         <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-surface border border-border text-xs font-semibold">
+          <button
+            type="button"
+            onClick={() => setActiveTab('google')}
+            className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
+              activeTab === 'google'
+                ? 'bg-brand-blue text-white shadow-2xs'
+                : 'text-foreground hover:text-brand-blue'
+            }`}
+          >
+            <Navigation size={13} />
+            <span>{t.googleMaps}</span>
+          </button>
           <button
             type="button"
             onClick={() => setActiveTab('interactive')}
@@ -402,18 +399,6 @@ export function NearbyCampsitesMap({
                 +{otherCampsites.length}
               </span>
             )}
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('google')}
-            className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
-              activeTab === 'google'
-                ? 'bg-brand-blue text-white shadow-2xs'
-                : 'text-foreground hover:text-brand-blue'
-            }`}
-          >
-            <Navigation size={13} />
-            <span>{t.googleMaps}</span>
           </button>
         </div>
       </div>
@@ -458,85 +443,6 @@ export function NearbyCampsitesMap({
           </div>
         )}
       </div>
-
-      {/* ── LIST MITRA EMBUN LAIN DI SEKITAR SINI ── */}
-      {otherCampsites.length > 0 && (
-        <div className="space-y-3 pt-2">
-          <div className="space-y-0.5">
-            <h5 className="font-bold text-sm text-foreground">
-              {t.sectionTitle}
-            </h5>
-            <p className="text-xs text-foreground-muted">
-              {t.sectionSubtitle}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {otherCampsites.map((c) => {
-              const photo = c.photos?.[0]?.url || c.images?.[0] || '';
-              const resolved = photo ? resolveAssetUrl(photo) : '';
-              const isSelected = selectedCampsiteId === c.id;
-
-              return (
-                <div
-                  key={c.id}
-                  className={`p-3 rounded-2xl border transition-all bg-surface hover:border-brand-blue/60 group flex flex-col justify-between space-y-3 ${
-                    isSelected
-                      ? 'border-brand-blue ring-2 ring-brand-blue/20 bg-brand-blue/5'
-                      : 'border-border'
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-surface-dark/10 shrink-0 relative">
-                      {resolved ? (
-                        <img
-                          src={resolved}
-                          alt={c.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-foreground-muted">
-                          <MapPin size={20} />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="space-y-1 min-w-0 flex-1">
-                      <h6 className="font-bold text-xs text-foreground truncate group-hover:text-brand-blue transition-colors">
-                        {c.name}
-                      </h6>
-                      <p className="text-[11px] text-foreground-muted truncate">
-                        {c.city || c.address || t.defaultLocation}
-                      </p>
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-brand-blue bg-brand-blue/10 px-2 py-0.5 rounded-full">
-                        <Compass size={10} />
-                        <span>~{c.distanceKm.toFixed(1)} km</span>
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 pt-1 border-t border-border/50 text-xs">
-                    <button
-                      type="button"
-                      onClick={() => handleFocusCampsite(c)}
-                      className="flex-1 py-1.5 px-2.5 rounded-xl border border-border hover:bg-surface text-foreground font-semibold text-center text-[11px] cursor-pointer transition-colors"
-                    >
-                      {t.viewOnMap}
-                    </button>
-                    <Link
-                      href={`/campsite/${c.slug || c.id}`}
-                      className="flex-1 py-1.5 px-2.5 rounded-xl bg-brand-blue hover:bg-brand-blue-hover text-white font-bold text-center text-[11px] transition-colors flex items-center justify-center gap-1"
-                    >
-                      <span>{t.open}</span>
-                      <ChevronRight size={12} />
-                    </Link>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
