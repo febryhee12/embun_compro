@@ -198,8 +198,8 @@ export function CheckoutClient() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#fafafa] flex flex-col items-center justify-center gap-3 text-foreground-muted">
-        <Loader2 size={26} className="animate-spin text-brand-blue" />
+      <div className="min-h-screen bg-[#fafafa] dark:bg-background flex flex-col items-center justify-center gap-3 text-foreground-muted">
+        <Loader2 size={26} className="animate-spin text-brand-blue dark:text-brand-lime" />
         <p className="text-xs font-semibold">{t.loading}</p>
       </div>
     );
@@ -207,8 +207,8 @@ export function CheckoutClient() {
 
   if (!draft) {
     return (
-      <div className="min-h-screen bg-[#fafafa] flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-surface flex items-center justify-center text-foreground-muted mb-4">
+      <div className="min-h-screen bg-[#fafafa] dark:bg-background flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-surface border border-border flex items-center justify-center text-foreground-muted mb-4">
           <Tent size={28} />
         </div>
         <h2 className="text-lg font-bold text-foreground mb-1">{t.notFoundTitle}</h2>
@@ -217,7 +217,7 @@ export function CheckoutClient() {
         </p>
         <Link
           href="/explore"
-          className="px-6 py-3 rounded-full bg-brand-blue text-white text-xs font-bold shadow-md hover:bg-brand-blue-hover transition-all"
+          className="px-6 py-3 rounded-full bg-brand-blue dark:bg-brand-lime text-white dark:text-black text-xs font-bold dark:font-black shadow-md hover:bg-brand-blue-hover dark:hover:bg-brand-lime/90 transition-all"
         >
           {t.backToExplore}
         </Link>
@@ -441,7 +441,7 @@ export function CheckoutClient() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fafafa] text-foreground flex flex-col justify-between">
+    <div className="min-h-screen bg-[#fafafa] dark:bg-background text-foreground flex flex-col justify-between">
       {/* ═══ HEADER ATAS (LOGO RESMI EMBUN EXPLORE & MENU AKUN, TANPA SEARCH) ═══ */}
       <ExploreHeader
         onOpenAuth={() => setIsAuthOpen(true)}
@@ -476,13 +476,13 @@ export function CheckoutClient() {
           ════════════════════════════════════════════════════════════════ */}
           <div className="lg:col-span-7 space-y-6">
             {/* 1. Perjalanan Anda */}
-            <div className="bg-white rounded-3xl border border-border p-6 shadow-2xs space-y-4">
+            <div className="bg-white dark:bg-surface rounded-3xl border border-border p-6 shadow-2xs space-y-4">
               <h2 className="text-base font-extrabold text-foreground">{t.tripSection.title}</h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
-                <div className="p-4 rounded-2xl bg-surface/70 border border-border/60 space-y-1">
+                <div className="p-4 rounded-2xl bg-surface/70 dark:bg-background/50 border border-border/60 space-y-1">
                   <span className="text-[10.5px] font-bold uppercase tracking-wider text-foreground-muted flex items-center gap-1">
-                    <Calendar size={13} className="text-brand-blue" /> {t.tripSection.dates}
+                    <Calendar size={13} className="text-brand-blue dark:text-brand-lime" /> {t.tripSection.dates}
                   </span>
                   <p className="font-bold text-foreground text-sm">
                     {formatDateDisplay(draft.checkInDate, lang)} – {formatDateDisplay(draft.checkOutDate, lang)}
@@ -492,9 +492,9 @@ export function CheckoutClient() {
                   </p>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-surface/70 border border-border/60 space-y-1">
+                <div className="p-4 rounded-2xl bg-surface/70 dark:bg-background/50 border border-border/60 space-y-1">
                   <span className="text-[10.5px] font-bold uppercase tracking-wider text-foreground-muted flex items-center gap-1">
-                    <Users size={13} className="text-brand-blue" /> {t.tripSection.guests}
+                    <Users size={13} className="text-brand-blue dark:text-brand-lime" /> {t.tripSection.guests}
                   </span>
                   <p className="font-bold text-foreground text-sm">
                     {t.tripSection.guestsCount(draft.guestCount)}
@@ -515,7 +515,7 @@ export function CheckoutClient() {
             </div>
 
             {/* 2. Data Pemesan */}
-            <div className="bg-white rounded-3xl border border-border p-6 shadow-2xs space-y-4">
+            <div className="bg-white dark:bg-surface rounded-3xl border border-border p-6 shadow-2xs space-y-4">
               <h2 className="text-base font-extrabold text-foreground">{t.contactSection.title}</h2>
 
               <div className="space-y-3.5 text-xs">
@@ -528,7 +528,7 @@ export function CheckoutClient() {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder={t.contactSection.fullNamePlaceholder}
-                    className="w-full px-4 py-3 rounded-2xl border border-border focus:border-brand-blue focus:outline-hidden text-sm bg-surface/40 transition-colors"
+                    className="w-full px-4 py-3 rounded-2xl border border-border focus:border-brand-blue dark:focus:border-brand-lime focus:outline-hidden text-sm bg-surface/40 dark:bg-background/60 text-foreground transition-colors"
                   />
                 </div>
 
@@ -552,7 +552,7 @@ export function CheckoutClient() {
                           setPhone(val ? `08${val.startsWith('8') ? val.slice(1) : val}` : '');
                         }}
                         placeholder={t.contactSection.phonePlaceholder}
-                        className="w-full pl-20 pr-4 py-3 rounded-2xl border border-border focus:border-brand-blue focus:outline-hidden text-sm bg-surface/40 transition-colors font-mono"
+                        className="w-full pl-20 pr-4 py-3 rounded-2xl border border-border focus:border-brand-blue dark:focus:border-brand-lime focus:outline-hidden text-sm bg-surface/40 dark:bg-background/60 text-foreground transition-colors font-mono"
                       />
                     </div>
                   </div>
@@ -565,7 +565,7 @@ export function CheckoutClient() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder={t.contactSection.emailPlaceholder}
-                      className="w-full px-4 py-3 rounded-2xl border border-border focus:border-brand-blue focus:outline-hidden text-sm bg-surface/40 transition-colors"
+                      className="w-full px-4 py-3 rounded-2xl border border-border focus:border-brand-blue dark:focus:border-brand-lime focus:outline-hidden text-sm bg-surface/40 dark:bg-background/60 text-foreground transition-colors"
                     />
                   </div>
                 </div>
@@ -579,26 +579,26 @@ export function CheckoutClient() {
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                     placeholder={t.contactSection.addressPlaceholder}
-                    className="w-full px-4 py-3 rounded-2xl border border-border focus:border-brand-blue focus:outline-hidden text-sm bg-surface/40 transition-colors"
+                    className="w-full px-4 py-3 rounded-2xl border border-border focus:border-brand-blue dark:focus:border-brand-lime focus:outline-hidden text-sm bg-surface/40 dark:bg-background/60 text-foreground transition-colors"
                   />
                 </div>
               </div>
             </div>
 
             {/* 3. Skema Pembayaran */}
-            <div className="bg-white rounded-3xl border border-border p-6 shadow-2xs space-y-4">
+            <div className="bg-white dark:bg-surface rounded-3xl border border-border p-6 shadow-2xs space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-base font-extrabold text-foreground">{t.paymentSchemeSection.title}</h2>
                 <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
                   isDP
-                    ? 'text-amber-800 bg-amber-100/80 border border-amber-200'
-                    : 'text-brand-blue bg-brand-blue/8 border border-brand-blue/20'
+                    ? 'text-amber-800 dark:text-amber-300 bg-amber-100/80 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80'
+                    : 'text-brand-blue dark:text-brand-lime bg-brand-blue/8 dark:bg-brand-lime/10 border border-brand-blue/20 dark:border-brand-lime/30'
                 }`}>
                   {isDP ? t.paymentSchemeSection.badgeDp : t.paymentSchemeSection.badgeFull}
                 </span>
               </div>
 
-              <div className="p-4 rounded-2xl bg-surface/50 border border-border/70 flex items-center justify-between">
+              <div className="p-4 rounded-2xl bg-surface/50 dark:bg-background/50 border border-border/70 flex items-center justify-between">
                 <div>
                   <span className="font-bold text-xs text-foreground block">
                     {isDP ? t.paymentSchemeSection.dpTitle : t.paymentSchemeSection.fullTitle}
@@ -609,14 +609,14 @@ export function CheckoutClient() {
                       : t.paymentSchemeSection.fullSub}
                   </span>
                 </div>
-                <span className="text-base font-black text-brand-blue">
+                <span className="text-base font-black text-brand-blue dark:text-brand-lime">
                   {rupiah(currentPayable)}
                 </span>
               </div>
 
               {isDP && (
-                <div className="p-3.5 rounded-2xl bg-amber-50/90 border border-amber-200/80 text-amber-900 text-xs leading-relaxed flex items-start gap-2">
-                  <Info size={15} className="shrink-0 mt-0.5 text-amber-700" />
+                <div className="p-3.5 rounded-2xl bg-amber-50/90 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/60 text-amber-900 dark:text-amber-200 text-xs leading-relaxed flex items-start gap-2">
+                  <Info size={15} className="shrink-0 mt-0.5 text-amber-700 dark:text-amber-400" />
                   <span>
                     {t.paymentSchemeSection.dpNotice(rupiah(currentPayable), rupiah(remainingBalance))}
                   </span>
@@ -625,13 +625,13 @@ export function CheckoutClient() {
             </div>
 
             {/* 4. Catatan untuk Campsite (Opsional) */}
-            <div className="bg-white rounded-3xl border border-border p-6 shadow-2xs space-y-3.5">
+            <div className="bg-white dark:bg-surface rounded-3xl border border-border p-6 shadow-2xs space-y-3.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <FileText size={18} className="text-brand-blue" />
+                  <FileText size={18} className="text-brand-blue dark:text-brand-lime" />
                   <h2 className="text-base font-extrabold text-foreground">{t.notesSection.title}</h2>
                 </div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted bg-surface px-2.5 py-0.5 rounded-full border border-border">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted bg-surface dark:bg-background px-2.5 py-0.5 rounded-full border border-border">
                   {t.notesSection.optionalBadge}
                 </span>
               </div>
@@ -644,7 +644,7 @@ export function CheckoutClient() {
                 onChange={(e) => setBookingNote(e.target.value)}
                 placeholder={t.notesSection.placeholder}
                 maxLength={500}
-                className="w-full px-4 py-3 rounded-2xl border border-border focus:border-brand-blue focus:outline-hidden text-sm bg-surface/40 transition-colors resize-none placeholder:text-foreground-muted/60"
+                className="w-full px-4 py-3 rounded-2xl border border-border focus:border-brand-blue dark:focus:border-brand-lime focus:outline-hidden text-sm bg-surface/40 dark:bg-background/60 text-foreground transition-colors resize-none placeholder:text-foreground-muted/60"
               />
               <div className="flex justify-end text-[11px] text-foreground-muted">
                 <span>{bookingNote.length}/500</span>
@@ -652,14 +652,14 @@ export function CheckoutClient() {
             </div>
 
             {/* 5. Aturan & Kebijakan Campsite */}
-            <div className="bg-white rounded-3xl border border-border p-6 shadow-2xs space-y-3.5">
+            <div className="bg-white dark:bg-surface rounded-3xl border border-border p-6 shadow-2xs space-y-3.5">
               <h2 className="text-base font-extrabold text-foreground">{t.policySection.title}</h2>
 
               <ul className="space-y-2 text-xs text-foreground-muted leading-relaxed">
                 <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-brand-blue shrink-0 mt-1.5" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-brand-blue dark:bg-brand-lime shrink-0 mt-1.5" />
                   <span>
-                    <strong>{t.policySection.checkInOutLabel}</strong>
+                    <strong className="text-foreground">{t.policySection.checkInOutLabel}</strong>
                     {t.policySection.checkInOutDesc(
                       draft.campsite.checkInTime || '14:00',
                       draft.campsite.checkOutTime || '12:00',
@@ -667,21 +667,21 @@ export function CheckoutClient() {
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-brand-blue shrink-0 mt-1.5" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-brand-blue dark:bg-brand-lime shrink-0 mt-1.5" />
                   <span>
-                    <strong>{t.policySection.rescheduleLabel}</strong>
+                    <strong className="text-foreground">{t.policySection.rescheduleLabel}</strong>
                     {t.policySection.rescheduleDesc}
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-brand-blue shrink-0 mt-1.5" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-brand-blue dark:bg-brand-lime shrink-0 mt-1.5" />
                   <span>
-                    <strong>{t.policySection.cancellationLabel}</strong>
+                    <strong className="text-foreground">{t.policySection.cancellationLabel}</strong>
                     {t.policySection.cancellationDesc}
                     <button
                       type="button"
                       onClick={() => setShowCancellationModal(true)}
-                      className="text-brand-blue font-bold hover:underline inline-flex items-center gap-0.5 cursor-pointer"
+                      className="text-brand-blue dark:text-brand-lime font-bold hover:underline inline-flex items-center gap-0.5 cursor-pointer"
                     >
                       <span>{t.policySection.cancellationLink}</span>
                       <ChevronRight size={13} />
@@ -689,9 +689,9 @@ export function CheckoutClient() {
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-brand-blue shrink-0 mt-1.5" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-brand-blue dark:bg-brand-lime shrink-0 mt-1.5" />
                   <span>
-                    <strong>{t.policySection.paymentLabel}</strong>
+                    <strong className="text-foreground">{t.policySection.paymentLabel}</strong>
                     {t.policySection.paymentDesc}
                   </span>
                 </li>
@@ -703,14 +703,14 @@ export function CheckoutClient() {
                     type="checkbox"
                     checked={agreed}
                     onChange={(e) => setAgreed(e.target.checked)}
-                    className="w-4 h-4 rounded text-brand-blue border-border focus:ring-brand-blue"
+                    className="w-4 h-4 rounded text-brand-blue dark:text-brand-lime border-border focus:ring-brand-blue dark:focus:ring-brand-lime dark:bg-background"
                   />
                   <span>
                     {t.policySection.agreementPrefix}
                     <Link
                       href={`/${lang}/kebijakan-refund/`}
                       target="_blank"
-                      className="text-brand-blue underline hover:text-brand-blue-hover"
+                      className="text-brand-blue dark:text-brand-lime underline hover:text-brand-blue-hover dark:hover:text-brand-lime/90"
                     >
                       {t.policySection.refundPolicyLink}
                     </Link>
@@ -722,24 +722,24 @@ export function CheckoutClient() {
             {/* Tombol Konfirmasi Final */}
             <div className="pt-2 space-y-3">
               {existingPendingOrder && (
-                <div className="p-4 rounded-2xl bg-amber-50/90 border border-amber-200/90 text-amber-950 space-y-3 animate-in fade-in duration-200">
+                <div className="p-4 rounded-2xl bg-amber-50/90 dark:bg-amber-950/30 border border-amber-200/90 dark:border-amber-800/60 text-amber-950 dark:text-amber-200 space-y-3 animate-in fade-in duration-200">
                   <div className="flex items-start gap-2.5">
-                    <AlertCircle size={18} className="text-amber-600 shrink-0 mt-0.5" />
+                    <AlertCircle size={18} className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                     <div className="text-xs space-y-1">
-                      <p className="font-bold text-amber-900">
+                      <p className="font-bold text-amber-900 dark:text-amber-200">
                         {t.pendingBanner.title(existingPendingOrder.id.slice(0, 8).toUpperCase())}
                       </p>
-                      <p className="text-amber-800/90 text-[11px] leading-relaxed">
+                      <p className="text-amber-800/90 dark:text-amber-300/80 text-[11px] leading-relaxed">
                         {t.pendingBanner.desc}
                       </p>
                     </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-amber-200/60">
+                  <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-amber-200/60 dark:border-amber-800/60">
                     <button
                       type="button"
                       onClick={handlePayExistingOrder}
                       disabled={submitting}
-                      className="px-4 py-2 rounded-xl bg-brand-blue text-white font-bold text-xs shadow-xs hover:bg-brand-blue-hover transition-colors flex items-center gap-1.5 cursor-pointer"
+                      className="px-4 py-2 rounded-xl bg-brand-blue dark:bg-brand-lime text-white dark:text-black font-bold dark:font-black text-xs shadow-xs hover:bg-brand-blue-hover dark:hover:bg-brand-lime/90 transition-colors flex items-center gap-1.5 cursor-pointer"
                     >
                       {submitting ? <Loader2 size={14} className="animate-spin" /> : <CreditCard size={14} />}
                       <span>{t.pendingBanner.continueBtn}</span>
@@ -748,14 +748,14 @@ export function CheckoutClient() {
                       type="button"
                       onClick={handleCancelAndRetry}
                       disabled={cancellingOldOrder}
-                      className="px-3 py-2 rounded-xl bg-white border border-amber-300 text-amber-900 font-semibold text-xs hover:bg-amber-100 transition-colors flex items-center gap-1.5 cursor-pointer"
+                      className="px-3 py-2 rounded-xl bg-white dark:bg-surface border border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200 font-semibold text-xs hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors flex items-center gap-1.5 cursor-pointer"
                     >
                       {cancellingOldOrder && <Loader2 size={14} className="animate-spin" />}
                       <span>{t.pendingBanner.cancelBtn}</span>
                     </button>
                     <Link
                       href={`/orders/detail?id=${existingPendingOrder.id}`}
-                      className="px-3 py-2 rounded-xl text-neutral-600 font-semibold text-xs hover:underline"
+                      className="px-3 py-2 rounded-xl text-neutral-600 dark:text-neutral-400 font-semibold text-xs hover:underline"
                     >
                       {t.pendingBanner.viewDetail}
                     </Link>
@@ -764,8 +764,8 @@ export function CheckoutClient() {
               )}
 
               {error && !existingPendingOrder && (
-                <div className="p-3.5 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2 animate-in fade-in duration-200">
-                  <AlertCircle size={16} className="shrink-0" />
+                <div className="p-3.5 rounded-2xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/60 text-red-700 dark:text-red-300 text-xs font-semibold flex items-center gap-2 animate-in fade-in duration-200">
+                  <AlertCircle size={16} className="shrink-0 text-red-600 dark:text-red-400" />
                   <span>{error}</span>
                 </div>
               )}
@@ -773,7 +773,7 @@ export function CheckoutClient() {
                 type="button"
                 onClick={handleConfirmAndPay}
                 disabled={submitting || !agreed}
-                className="w-full py-4 px-6 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer active:scale-[0.99]"
+                className="w-full py-4 px-6 rounded-full bg-brand-blue dark:bg-brand-lime hover:bg-brand-blue-hover dark:hover:bg-brand-lime/90 text-white dark:text-black font-bold dark:font-black text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer active:scale-[0.99]"
               >
                 {submitting ? (
                   <Loader2 size={18} className="animate-spin" />
@@ -796,10 +796,10 @@ export function CheckoutClient() {
               KOLOM KANAN: STICKY ORDER SUMMARY (AIRBNB STYLE)
           ════════════════════════════════════════════════════════════════ */}
           <div className="lg:col-span-5 lg:sticky lg:top-24">
-            <div className="bg-white rounded-3xl border border-border p-6 shadow-2xs space-y-5">
+            <div className="bg-white dark:bg-surface rounded-3xl border border-border p-6 shadow-2xs space-y-5">
               {/* Unit Header */}
               <div className="flex items-start gap-4 pb-4 border-b border-border/70">
-                <div className="w-20 h-20 rounded-2xl overflow-hidden bg-surface border border-border shrink-0">
+                <div className="w-20 h-20 rounded-2xl overflow-hidden bg-surface dark:bg-background border border-border shrink-0">
                   {draft.campsite.photoUrl ? (
                     <img
                       src={resolveAssetUrl(draft.campsite.photoUrl)}
@@ -814,7 +814,7 @@ export function CheckoutClient() {
                 </div>
 
                 <div className="min-w-0 space-y-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-brand-blue bg-brand-blue/8 px-2 py-0.5 rounded-full">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-brand-blue dark:text-brand-lime bg-brand-blue/8 dark:bg-brand-lime/10 px-2 py-0.5 rounded-full">
                     {draft.campsite.name}
                   </span>
                   <h3 className="font-extrabold text-base text-foreground truncate">
@@ -903,19 +903,19 @@ export function CheckoutClient() {
 
                 <div className="pt-3 border-t border-border flex justify-between items-center text-sm">
                   <span className="font-extrabold text-foreground">{t.summary.totalBill}</span>
-                  <span className="text-lg font-black text-brand-blue">
+                  <span className="text-lg font-black text-brand-blue dark:text-brand-lime">
                     {rupiah(draft.grandTotal)}
                   </span>
                 </div>
 
                 {/* Sisa jika DP */}
                 {isDP && (
-                  <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200/60 space-y-1.5 text-xs">
-                    <div className="flex justify-between text-amber-900 font-bold">
+                  <div className="p-3.5 rounded-2xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/60 space-y-1.5 text-xs">
+                    <div className="flex justify-between text-amber-900 dark:text-amber-200 font-bold">
                       <span>{t.summary.dpPaidNow}</span>
                       <span>{rupiah(currentPayable)}</span>
                     </div>
-                    <div className="flex justify-between text-amber-800/80 text-[11px]">
+                    <div className="flex justify-between text-amber-800/80 dark:text-amber-300/80 text-[11px]">
                       <span>{t.summary.dpRemaining}</span>
                       <span>{rupiah(remainingBalance)}</span>
                     </div>
@@ -925,7 +925,7 @@ export function CheckoutClient() {
 
               {/* Secure guarantee */}
               <div className="pt-3 border-t border-border/60 flex items-center gap-2 text-[11px] text-foreground-muted">
-                <ShieldCheck size={16} className="text-emerald-600 shrink-0" />
+                <ShieldCheck size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
                 <span>{t.summary.secureTransaction}</span>
               </div>
             </div>

@@ -238,10 +238,10 @@ export function CancellationPolicyModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-      <div className="w-full max-w-lg bg-white text-foreground rounded-t-3xl sm:rounded-3xl shadow-2xl border border-border max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="w-full max-w-lg bg-white dark:bg-surface text-foreground rounded-t-3xl sm:rounded-3xl shadow-2xl border border-border max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Mobile drag handle */}
         <div className="pt-3 pb-1 flex justify-center sm:hidden">
-          <div className="w-12 h-1 bg-neutral-300 rounded-full" />
+          <div className="w-12 h-1 bg-neutral-300 dark:bg-neutral-700 rounded-full" />
         </div>
 
         {/* Header Modal */}
@@ -255,7 +255,7 @@ export function CancellationPolicyModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-surface text-foreground-muted hover:text-foreground transition-colors cursor-pointer"
+            className="p-1.5 rounded-full hover:bg-surface dark:hover:bg-background/80 text-foreground-muted hover:text-foreground transition-colors cursor-pointer"
             aria-label={lang === 'en' ? 'Close' : 'Tutup'}
           >
             <X size={18} />
@@ -292,7 +292,7 @@ export function CancellationPolicyModal({
                     <span
                       className={`font-bold ${
                         tier.percentNum >= 100
-                          ? 'text-[#2E7D32]'
+                          ? 'text-[#2E7D32] dark:text-emerald-400'
                           : 'text-foreground'
                       }`}
                     >
@@ -309,7 +309,7 @@ export function CancellationPolicyModal({
               href={`/${lang}/kebijakan-refund/`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-brand-blue font-bold hover:underline inline-flex items-center gap-1"
+              className="text-xs text-brand-blue dark:text-brand-lime font-bold hover:underline inline-flex items-center gap-1"
             >
               <span>
                 {lang === 'en'
@@ -346,11 +346,11 @@ export function CancellationPolicyBannerButton({
     <button
       type="button"
       onClick={onClick}
-      className={`w-full flex items-center justify-between p-3 rounded-2xl bg-surface/60 hover:bg-surface border border-border/80 text-left transition-all cursor-pointer group shadow-2xs ${className}`}
+      className={`w-full flex items-center justify-between p-3 rounded-2xl bg-surface/60 hover:bg-surface dark:bg-surface/80 dark:hover:bg-surface border border-border/80 text-left transition-all cursor-pointer group shadow-2xs ${className}`}
     >
       <div className="flex items-center gap-2.5 text-xs">
-        <Calendar size={15} className="text-neutral-700 shrink-0" />
-        <span className="font-semibold text-foreground group-hover:text-brand-blue transition-colors">
+        <Calendar size={15} className="text-neutral-700 dark:text-brand-lime shrink-0" />
+        <span className="font-semibold text-foreground group-hover:text-brand-blue dark:group-hover:text-brand-lime transition-colors">
           {policy.summaryLabel}
         </span>
       </div>
