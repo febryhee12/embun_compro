@@ -2175,9 +2175,19 @@ export function SpotRedirectClient() {
                 </div>
               )}
               <span>·</span>
-              <span className="underline decoration-foreground/30 font-medium text-foreground">
+              <button
+                type="button"
+                onClick={() => {
+                  const el = document.getElementById('spot-location-map');
+                  if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+                className="underline decoration-foreground/30 hover:decoration-foreground font-medium text-foreground cursor-pointer transition-colors text-left"
+                title={lang === 'en' ? 'Scroll to location map' : 'Lihat peta lokasi kawasan'}
+              >
                 {campsite.city || campsite.address || 'Indonesia'}
-              </span>
+              </button>
             </div>
 
             <div className="flex items-center gap-3">
@@ -3106,7 +3116,7 @@ export function SpotRedirectClient() {
                 )}
 
               {/* Lokasi & Peta Akses Kawasan (Google Maps) */}
-              <div className="space-y-3 pt-2">
+              <div id="spot-location-map" className="space-y-3 pt-2 scroll-mt-28">
                 <div className="space-y-0.5">
                   <h4 className="font-bold text-sm text-foreground">
                     {t.areaAndLocation.locationAccess}
@@ -3136,6 +3146,16 @@ export function SpotRedirectClient() {
                       <MapPin size={13} className="text-brand-lime" />
                       <span>{campsite.name}</span>
                     </div>
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${campsite.latitude},${campsite.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="absolute top-4 right-4 bg-black/75 hover:bg-black/90 text-white text-[11px] font-bold px-3 py-1.5 rounded-full shadow-md backdrop-blur-xs flex items-center gap-1.5 transition-all hover:scale-105"
+                      title={lang === 'en' ? 'Open in Google Maps' : 'Buka di Google Maps'}
+                    >
+                      <span>{lang === 'en' ? 'Open Maps' : 'Buka Maps'}</span>
+                      <ExternalLink size={12} />
+                    </a>
                   </div>
                 ) : null}
 
