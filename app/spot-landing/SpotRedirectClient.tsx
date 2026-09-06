@@ -2142,9 +2142,8 @@ export function SpotRedirectClient() {
               {campsite.name}
             </span>
             {activeSpot.isEmbunPlus && (
-              <span className="text-[10px] font-black uppercase tracking-wider bg-brand-lime text-black px-2 py-0.5 rounded-full border border-brand-lime/80 shadow-2xs flex items-center gap-1">
-                <Sparkles size={11} />
-                <span>Embun Plus</span>
+              <span className="text-[10px] font-black uppercase tracking-wider bg-brand-lime text-black px-2.5 py-0.5 rounded-full border border-brand-lime/80 shadow-2xs">
+                Embun Plus
               </span>
             )}
             {activeSpot.tentType && (

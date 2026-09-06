@@ -242,8 +242,7 @@ export function SpotCard({
         {/* Top Badge: Clean & minimal without heavy drop shadow */}
         <div className="absolute top-3 left-3 flex items-center gap-1.5">
           {spot.isEmbunPlus ? (
-            <span className="px-2.5 py-0.5 rounded-full text-[9.5px] font-black uppercase tracking-wider bg-brand-lime text-black border border-brand-lime/60 shadow-none flex items-center gap-1">
-              <Sparkles size={9} className="fill-black text-black" />
+            <span className="px-2.5 py-0.5 rounded-full text-[9.5px] font-black uppercase tracking-wider bg-brand-lime text-black border border-brand-lime/60 shadow-none">
               Embun Plus
             </span>
           ) : isTour360Mode || has360 ? (
