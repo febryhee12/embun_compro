@@ -47,7 +47,7 @@ const MAP_I18N = {
     nearbyPartnersBadge: (count: number) => `${count} Mitra Sekitar`,
     currentLocationBadge: 'Lokasi Ini',
     approxDistance: (dist: string, campName: string) =>
-      `📍 Sekitar ${dist} km dari ${campName}`,
+      `~${dist} km dari ${campName}`,
     exploreArea: 'Lihat Kawasan',
     sectionTitle: 'Mitra Embun Lain di Kawasan Ini',
     sectionSubtitle:
@@ -62,7 +62,7 @@ const MAP_I18N = {
     nearbyPartnersBadge: (count: number) => `${count} Nearby Partners`,
     currentLocationBadge: 'Current Location',
     approxDistance: (dist: string, campName: string) =>
-      `📍 Approx. ${dist} km from ${campName}`,
+      `~${dist} km from ${campName}`,
     exploreArea: 'Explore Area',
     sectionTitle: 'Other Embun Partners in This Area',
     sectionSubtitle:
@@ -261,42 +261,47 @@ export function NearbyCampsitesMap({
           '';
         const resolvedPhoto = photoUrl ? resolveAssetUrl(photoUrl) : '';
 
-        // Popup HTML with high-contrast readable button
+        // Popup HTML with high-contrast readable button & proportional layout
         const popupContent = document.createElement('div');
-        popupContent.className =
-          'p-1 text-xs space-y-2 text-foreground font-sans max-w-[220px]';
+        popupContent.className = 'text-xs text-foreground font-sans space-y-2.5';
         popupContent.innerHTML = `
           ${
             resolvedPhoto
-              ? `<div class="w-full h-24 rounded-xl overflow-hidden bg-surface mb-1.5">
+              ? `<div class="relative aspect-[16/10] w-full rounded-xl overflow-hidden bg-surface shadow-2xs">
                    <img src="${resolvedPhoto}" alt="${camp.name}" class="w-full h-full object-cover" />
                  </div>`
               : ''
           }
-          <div class="space-y-0.5">
-            <div class="flex items-center gap-1 font-bold text-sm text-foreground">
-              <span>${camp.name}</span>
+          <div class="space-y-1 px-0.5">
+            <div class="flex items-center justify-between gap-1.5">
+              <h6 class="font-bold text-sm text-foreground tracking-tight truncate">${camp.name}</h6>
               ${
                 isCur
-                  ? `<span class="text-[10px] bg-brand-blue/10 text-brand-blue px-1.5 py-0.5 rounded font-bold uppercase">${t.currentLocationBadge}</span>`
+                  ? `<span class="text-[10px] bg-brand-blue/10 text-brand-blue px-2 py-0.5 rounded-full font-bold uppercase shrink-0">${t.currentLocationBadge}</span>`
                   : ''
               }
             </div>
-            <p class="text-[11px] text-foreground-muted truncate">
+            <p class="text-[11px] font-medium text-foreground-muted truncate">
               ${camp.city || camp.address || t.defaultLocation}
             </p>
             ${
               !isCur
-                ? `<p class="text-[11px] font-semibold text-brand-blue">
-                     ${t.approxDistance(camp.distanceKm.toFixed(1), currentCampsite.name)}
-                   </p>`
+                ? `<div class="pt-1">
+                     <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-brand-blue/10 text-brand-blue font-bold text-[10px]">
+                       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+                         <circle cx="12" cy="12" r="10"></circle>
+                         <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+                       </svg>
+                       <span>${t.approxDistance(camp.distanceKm.toFixed(1), currentCampsite.name)}</span>
+                     </div>
+                   </div>`
                 : ''
             }
           </div>
           ${
             !isCur
-              ? `<a href="/campsite/${camp.slug || camp.id}" class="embun-popup-btn mt-2.5" style="display:block !important; width:100% !important; text-align:center !important; padding:8px 12px !important; border-radius:12px !important; background-color:#0841b5 !important; color:#ffffff !important; font-weight:700 !important; font-size:12px !important; text-decoration:none !important; box-shadow:0 2px 6px rgba(8,65,181,0.3) !important;">
-                   ${t.exploreArea}
+              ? `<a href="/campsite/${camp.slug || camp.id}" class="embun-popup-btn mt-2">
+                   <span>${t.exploreArea}</span>
                  </a>`
               : ''
           }

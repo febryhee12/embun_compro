@@ -166,9 +166,9 @@ div.pnlm-about-msg,
 
 /* Leaflet custom popup styling */
 .embun-leaflet-popup .leaflet-popup-content-wrapper {
-  border-radius: 1.25rem !important;
-  padding: 0.5rem !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  border-radius: 1.5rem !important;
+  padding: 0.625rem !important;
+  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.2), 0 10px 15px -5px rgba(0, 0, 0, 0.08) !important;
   border: 1px solid var(--border) !important;
   background: var(--background) !important;
 }
@@ -178,27 +178,59 @@ div.pnlm-about-msg,
 }
 
 .embun-leaflet-popup .leaflet-popup-content {
-  margin: 0.5rem !important;
+  margin: 0 !important;
   line-height: 1.4 !important;
+  width: 250px !important;
+}
+
+.embun-leaflet-popup a.leaflet-popup-close-button {
+  top: 16px !important;
+  right: 16px !important;
+  width: 26px !important;
+  height: 26px !important;
+  background: rgba(0, 0, 0, 0.6) !important;
+  color: #ffffff !important;
+  border-radius: 9999px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+  transition: all 0.2s ease !important;
+  z-index: 50 !important;
+}
+
+.embun-leaflet-popup a.leaflet-popup-close-button:hover {
+  background: rgba(0, 0, 0, 0.85) !important;
+  color: #ffffff !important;
+  transform: scale(1.08) !important;
 }
 
 .embun-leaflet-popup a.embun-popup-btn {
-  display: block !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   width: 100% !important;
   text-align: center !important;
-  padding: 0.5rem 0.75rem !important;
-  border-radius: 0.75rem !important;
+  padding: 0.625rem 1rem !important;
+  border-radius: 0.875rem !important;
   background-color: #0841b5 !important;
   color: #ffffff !important;
   font-weight: 700 !important;
   font-size: 0.75rem !important;
   text-decoration: none !important;
-  transition: background-color 0.2s ease !important;
+  box-shadow: 0 3px 10px rgba(8, 65, 181, 0.25) !important;
+  transition: background-color 0.2s ease, transform 0.15s ease !important;
 }
 
 .embun-leaflet-popup a.embun-popup-btn:hover {
   background-color: #062f8a !important;
   color: #ffffff !important;
+  transform: translateY(-1px) !important;
 }
 
 
