@@ -44,6 +44,8 @@ import {
   CancellationPolicyModal,
   CancellationPolicyBannerButton,
 } from '@/components/checkout/CancellationPolicyModal';
+import { CHECKOUT_I18N } from '@/lib/checkout-i18n';
+import { translateItemName } from '@/lib/spot-i18n';
 
 interface CheckoutDraft {
   campsite: {
@@ -87,11 +89,11 @@ interface CheckoutDraft {
   serverQuote?: any;
 }
 
-function formatDateDisplay(dateStr?: string) {
+function formatDateDisplay(dateStr?: string, lang: 'id' | 'en' = 'id') {
   if (!dateStr) return '-';
   try {
     const d = new Date(dateStr);
-    return d.toLocaleDateString('id-ID', {
+    return d.toLocaleDateString(lang === 'en' ? 'en-US' : 'id-ID', {
       weekday: 'short',
       day: 'numeric',
       month: 'short',
@@ -126,6 +128,29 @@ export function CheckoutClient() {
   const [existingPendingOrder, setExistingPendingOrder] = useState<any | null>(null);
   const [cancellingOldOrder, setCancellingOldOrder] = useState(false);
   const [showCancellationModal, setShowCancellationModal] = useState(false);
+  const [lang, setLang] = useState<'id' | 'en'>('id');
+
+  const t = CHECKOUT_I18N[lang];
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.location.pathname.startsWith('/en')) {
+      setLang('en');
+      return;
+    }
+    const savedLang = localStorage.getItem('embun_lang');
+    if (savedLang === 'id' || savedLang === 'en') {
+      setLang(savedLang);
+    }
+  }, []);
+
+  const toggleLanguage = () => {
+    const nextLang = lang === 'id' ? 'en' : 'id';
+    setLang(nextLang);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('embun_lang', nextLang);
+    }
+  };
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -175,7 +200,7 @@ export function CheckoutClient() {
     return (
       <div className="min-h-screen bg-[#fafafa] flex flex-col items-center justify-center gap-3 text-foreground-muted">
         <Loader2 size={26} className="animate-spin text-brand-blue" />
-        <p className="text-xs font-semibold">Memuat halaman pemesanan...</p>
+        <p className="text-xs font-semibold">{t.loading}</p>
       </div>
     );
   }
@@ -186,15 +211,15 @@ export function CheckoutClient() {
         <div className="w-16 h-16 rounded-2xl bg-surface flex items-center justify-center text-foreground-muted mb-4">
           <Tent size={28} />
         </div>
-        <h2 className="text-lg font-bold text-foreground mb-1">Pemesanan Tidak Ditemukan</h2>
+        <h2 className="text-lg font-bold text-foreground mb-1">{t.notFoundTitle}</h2>
         <p className="text-xs text-foreground-muted max-w-sm mb-6">
-          Sesi pemilihan unit Anda telah berakhir atau belum dimulai. Silakan pilih unit camping kembali.
+          {t.notFoundDesc}
         </p>
         <Link
           href="/explore"
           className="px-6 py-3 rounded-full bg-brand-blue text-white text-xs font-bold shadow-md hover:bg-brand-blue-hover transition-all"
         >
-          Kembali ke Explore
+          {t.backToExplore}
         </Link>
       </div>
     );
@@ -214,21 +239,21 @@ export function CheckoutClient() {
 
     // Validasi form
     if (!fullName.trim()) {
-      setError('Mohon lengkapi nama lengkap pemesan sesuai identitas.');
+      setError(t.errors.fillName);
       return;
     }
     const rawPhoneDigits = phone.replace(/\D/g, '');
     if (!rawPhoneDigits || rawPhoneDigits.length < 8) {
-      setError('Mohon lengkapi nomor WhatsApp yang aktif untuk konfirmasi & tiket.');
+      setError(t.errors.fillPhone);
       return;
     }
     const cleanPhone = `08${rawPhoneDigits.startsWith('8') ? rawPhoneDigits.slice(1) : rawPhoneDigits}`;
     if (!address.trim()) {
-      setError('Mohon lengkapi alamat atau kota asal pemesan.');
+      setError(t.errors.fillAddress);
       return;
     }
     if (!agreed) {
-      setError('Mohon setujui kebijakan & syarat penginapan sebelum melanjutkan.');
+      setError(t.errors.agreeRequired);
       return;
     }
 
@@ -237,7 +262,7 @@ export function CheckoutClient() {
     // Cek token autentikasi tamu
     const token = getGuestToken();
     if (!token) {
-      setError('Silakan masuk terlebih dahulu untuk melanjutkan pembayaran.');
+      setError(t.errors.authRequired);
       setIsAuthOpen(true);
       setSubmitting(false);
       return;
@@ -284,7 +309,7 @@ export function CheckoutClient() {
       // 1. Buat pesanan riil di backend
       const createdOrder = await createRealOrder(orderPayload);
       if (!createdOrder?.id) {
-        throw new Error('Gagal membuat pesanan di server.');
+        throw new Error(t.errors.createFailed);
       }
 
       // 2. Inisiasi pembayaran dengan redirect langsung kembali ke website
@@ -301,7 +326,7 @@ export function CheckoutClient() {
         paymentInit?.invoiceUrl;
 
       if (!paymentUrl) {
-        throw new Error('Gagal mendapatkan URL pembayaran.');
+        throw new Error(t.errors.urlFailed);
       }
 
       // Hapus draft checkout dari session
@@ -318,10 +343,10 @@ export function CheckoutClient() {
       if (err instanceof ApiError && err.status === 401) {
         clearGuestSession();
         setCurrentUser(null);
-        setError('Sesi login telah berakhir. Silakan masuk kembali.');
+        setError(t.errors.sessionExpired);
         setIsAuthOpen(true);
       } else {
-        const rawMsg = err.message || 'Gagal memproses pesanan.';
+        const rawMsg = err.message || t.errors.orderFailed;
         const isConflict =
           rawMsg.includes('dibooking') ||
           rawMsg.includes('SpotUnavailable') ||
@@ -331,7 +356,7 @@ export function CheckoutClient() {
           err?.status === 409;
 
         const friendlyMsg = isConflict
-          ? 'Spot yang Anda pilih sudah penuh pada tanggal yang dipilih.'
+          ? t.errors.spotFull
           : rawMsg;
         setError(friendlyMsg);
 
@@ -374,11 +399,11 @@ export function CheckoutClient() {
         paymentInit?.snapRedirectUrl ||
         paymentInit?.redirectUrl ||
         paymentInit?.invoiceUrl;
-      if (!url) throw new Error('Gagal mendapatkan URL pembayaran.');
+      if (!url) throw new Error(t.errors.urlFailed);
       sessionStorage.removeItem('embun_checkout_draft');
       initiatePayment(url);
     } catch (e: any) {
-      setError(e.message || 'Gagal melanjutkan pembayaran pesanan.');
+      setError(e.message || t.errors.resumeFailed);
       setSubmitting(false);
     }
   };
@@ -391,7 +416,9 @@ export function CheckoutClient() {
     try {
       await cancelGuestOrder(
         existingPendingOrder.id,
-        'Dibatalkan untuk membuat pemesanan ulang',
+        lang === 'en'
+          ? 'Cancelled to recreate booking'
+          : 'Dibatalkan untuk membuat pemesanan ulang',
       );
       setExistingPendingOrder(null);
       setCancellingOldOrder(false);
@@ -400,7 +427,7 @@ export function CheckoutClient() {
         void handleConfirmAndPay();
       }, 700);
     } catch (e: any) {
-      setError(e.message || 'Gagal membatalkan pesanan lama.');
+      setError(e.message || t.errors.cancelOldFailed);
       setCancellingOldOrder(false);
     }
   };
@@ -421,6 +448,8 @@ export function CheckoutClient() {
         currentUser={currentUser}
         showSearch={false}
         showUserMenu={true}
+        lang={lang}
+        onToggleLanguage={toggleLanguage}
       />
 
       <main className="max-w-[2520px] mx-auto w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 lg:py-10 flex-1">
@@ -431,17 +460,13 @@ export function CheckoutClient() {
               type="button"
               onClick={handleBack}
               className="p-2 -ml-2 rounded-full hover:bg-surface text-foreground transition-colors cursor-pointer"
-              aria-label="Kembali"
+              aria-label={t.back}
             >
               <ArrowLeft size={22} className="stroke-[2.2]" />
             </button>
             <h1 className="font-extrabold text-xl sm:text-2xl text-foreground tracking-tight">
-              Tinjau & Konfirmasi Pemesanan
+              {t.pageTitle}
             </h1>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-3 py-1.5 rounded-full font-semibold">
-            <ShieldCheck size={15} />
-            <span>Pemesanan Terlindungi</span>
           </div>
         </div>
 
@@ -452,27 +477,27 @@ export function CheckoutClient() {
           <div className="lg:col-span-7 space-y-6">
             {/* 1. Perjalanan Anda */}
             <div className="bg-white rounded-3xl border border-border p-6 shadow-2xs space-y-4">
-              <h2 className="text-base font-extrabold text-foreground">Perjalanan Anda</h2>
+              <h2 className="text-base font-extrabold text-foreground">{t.tripSection.title}</h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
                 <div className="p-4 rounded-2xl bg-surface/70 border border-border/60 space-y-1">
                   <span className="text-[10.5px] font-bold uppercase tracking-wider text-foreground-muted flex items-center gap-1">
-                    <Calendar size={13} className="text-brand-blue" /> Tanggal
+                    <Calendar size={13} className="text-brand-blue" /> {t.tripSection.dates}
                   </span>
                   <p className="font-bold text-foreground text-sm">
-                    {formatDateDisplay(draft.checkInDate)} – {formatDateDisplay(draft.checkOutDate)}
+                    {formatDateDisplay(draft.checkInDate, lang)} – {formatDateDisplay(draft.checkOutDate, lang)}
                   </p>
                   <p className="text-[11px] text-foreground-muted">
-                    Durasi: <strong>{draft.nights} Malam</strong>
+                    {lang === 'en' ? 'Duration: ' : 'Durasi: '}<strong>{t.tripSection.duration(draft.nights)}</strong>
                   </p>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-surface/70 border border-border/60 space-y-1">
                   <span className="text-[10.5px] font-bold uppercase tracking-wider text-foreground-muted flex items-center gap-1">
-                    <Users size={13} className="text-brand-blue" /> Tamu
+                    <Users size={13} className="text-brand-blue" /> {t.tripSection.guests}
                   </span>
                   <p className="font-bold text-foreground text-sm">
-                    {draft.guestCount} Orang
+                    {t.tripSection.guestsCount(draft.guestCount)}
                   </p>
                   <p className="text-[11px] text-foreground-muted">
                     {draft.spot.name} · {draft.selectedPackage.name}
@@ -484,27 +509,25 @@ export function CheckoutClient() {
                 <CancellationPolicyBannerButton
                   checkInDate={draft.checkInDate}
                   onClick={() => setShowCancellationModal(true)}
+                  lang={lang}
                 />
               </div>
             </div>
 
             {/* 2. Data Pemesan */}
             <div className="bg-white rounded-3xl border border-border p-6 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-base font-extrabold text-foreground">Data Kontak Tamu</h2>
-                <span className="text-[11px] text-foreground-muted">E-tiket dikirim ke sini</span>
-              </div>
+              <h2 className="text-base font-extrabold text-foreground">{t.contactSection.title}</h2>
 
               <div className="space-y-3.5 text-xs">
                 <div>
                   <label className="block font-semibold text-foreground mb-1 text-[11px]">
-                    Nama Lengkap Pemesan *
+                    {t.contactSection.fullNameLabel}
                   </label>
                   <input
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Masukkan nama sesuai KTP"
+                    placeholder={t.contactSection.fullNamePlaceholder}
                     className="w-full px-4 py-3 rounded-2xl border border-border focus:border-brand-blue focus:outline-hidden text-sm bg-surface/40 transition-colors"
                   />
                 </div>
@@ -512,7 +535,7 @@ export function CheckoutClient() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div>
                     <label className="block font-semibold text-foreground mb-1 text-[11px]">
-                      Nomor WhatsApp / HP *
+                      {t.contactSection.phoneLabel}
                     </label>
                     <div className="relative flex items-center">
                       <div className="absolute left-3.5 flex items-center gap-1 text-xs font-bold text-foreground pointer-events-none select-none border-r border-border pr-2.5 py-1">
@@ -528,20 +551,20 @@ export function CheckoutClient() {
                           while (val.startsWith('0')) val = val.slice(1);
                           setPhone(val ? `08${val.startsWith('8') ? val.slice(1) : val}` : '');
                         }}
-                        placeholder="81234567890"
+                        placeholder={t.contactSection.phonePlaceholder}
                         className="w-full pl-20 pr-4 py-3 rounded-2xl border border-border focus:border-brand-blue focus:outline-hidden text-sm bg-surface/40 transition-colors font-mono"
                       />
                     </div>
                   </div>
                   <div>
                     <label className="block font-semibold text-foreground mb-1 text-[11px]">
-                      Email (Opsional)
+                      {t.contactSection.emailLabel}
                     </label>
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="nama@email.com"
+                      placeholder={t.contactSection.emailPlaceholder}
                       className="w-full px-4 py-3 rounded-2xl border border-border focus:border-brand-blue focus:outline-hidden text-sm bg-surface/40 transition-colors"
                     />
                   </div>
@@ -549,13 +572,13 @@ export function CheckoutClient() {
 
                 <div>
                   <label className="block font-semibold text-foreground mb-1 text-[11px]">
-                    Alamat / Kota Asal Pemesan *
+                    {t.contactSection.addressLabel}
                   </label>
                   <input
                     type="text"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    placeholder="Contoh: Jl. Dago No. 12, Bandung"
+                    placeholder={t.contactSection.addressPlaceholder}
                     className="w-full px-4 py-3 rounded-2xl border border-border focus:border-brand-blue focus:outline-hidden text-sm bg-surface/40 transition-colors"
                   />
                 </div>
@@ -565,25 +588,25 @@ export function CheckoutClient() {
             {/* 3. Skema Pembayaran */}
             <div className="bg-white rounded-3xl border border-border p-6 shadow-2xs space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-base font-extrabold text-foreground">Skema Pembayaran</h2>
+                <h2 className="text-base font-extrabold text-foreground">{t.paymentSchemeSection.title}</h2>
                 <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
                   isDP
                     ? 'text-amber-800 bg-amber-100/80 border border-amber-200'
                     : 'text-brand-blue bg-brand-blue/8 border border-brand-blue/20'
                 }`}>
-                  {isDP ? 'Uang Muka (DP 50%)' : 'Bayar Lunas'}
+                  {isDP ? t.paymentSchemeSection.badgeDp : t.paymentSchemeSection.badgeFull}
                 </span>
               </div>
 
               <div className="p-4 rounded-2xl bg-surface/50 border border-border/70 flex items-center justify-between">
                 <div>
                   <span className="font-bold text-xs text-foreground block">
-                    {isDP ? 'Uang Muka (DP 50%)' : 'Pembayaran Penuh (Lunas)'}
+                    {isDP ? t.paymentSchemeSection.dpTitle : t.paymentSchemeSection.fullTitle}
                   </span>
                   <span className="text-[11px] text-foreground-muted">
                     {isDP
-                      ? `Sisa ${rupiah(remainingBalance)} wajib dilunasi paling lambat H-1`
-                      : 'Lunas langsung tanpa sisa tagihan'}
+                      ? t.paymentSchemeSection.dpSub(rupiah(remainingBalance))
+                      : t.paymentSchemeSection.fullSub}
                   </span>
                 </div>
                 <span className="text-base font-black text-brand-blue">
@@ -595,9 +618,7 @@ export function CheckoutClient() {
                 <div className="p-3.5 rounded-2xl bg-amber-50/90 border border-amber-200/80 text-amber-900 text-xs leading-relaxed flex items-start gap-2">
                   <Info size={15} className="shrink-0 mt-0.5 text-amber-700" />
                   <span>
-                    Anda hanya membayar <strong>{rupiah(currentPayable)}</strong> saat ini. Sisa tagihan
-                    sebesar <strong>{rupiah(remainingBalance)}</strong> wajib dilunasi melalui aplikasi
-                    Embun paling lambat H-1 sebelum tanggal check-in.
+                    {t.paymentSchemeSection.dpNotice(rupiah(currentPayable), rupiah(remainingBalance))}
                   </span>
                 </div>
               )}
@@ -608,20 +629,20 @@ export function CheckoutClient() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <FileText size={18} className="text-brand-blue" />
-                  <h2 className="text-base font-extrabold text-foreground">Catatan untuk Campsite</h2>
+                  <h2 className="text-base font-extrabold text-foreground">{t.notesSection.title}</h2>
                 </div>
                 <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted bg-surface px-2.5 py-0.5 rounded-full border border-border">
-                  Opsional
+                  {t.notesSection.optionalBadge}
                 </span>
               </div>
               <p className="text-xs text-foreground-muted leading-relaxed">
-                Punya permintaan khusus, perkiraan jam tiba, atau info tambahan untuk pihak campsite? Sampaikan langsung di sini.
+                {t.notesSection.desc}
               </p>
               <textarea
                 rows={3}
                 value={bookingNote}
                 onChange={(e) => setBookingNote(e.target.value)}
-                placeholder="Contoh: Perkiraan tiba sekitar pukul 15:30 WIB, mohon bantuannya untuk disiapkan tempat dekat fasilitas air / kami membawa anak kecil..."
+                placeholder={t.notesSection.placeholder}
                 maxLength={500}
                 className="w-full px-4 py-3 rounded-2xl border border-border focus:border-brand-blue focus:outline-hidden text-sm bg-surface/40 transition-colors resize-none placeholder:text-foreground-muted/60"
               />
@@ -632,34 +653,37 @@ export function CheckoutClient() {
 
             {/* 5. Aturan & Kebijakan Campsite */}
             <div className="bg-white rounded-3xl border border-border p-6 shadow-2xs space-y-3.5">
-              <h2 className="text-base font-extrabold text-foreground">Kebijakan Penginapan</h2>
+              <h2 className="text-base font-extrabold text-foreground">{t.policySection.title}</h2>
 
               <ul className="space-y-2 text-xs text-foreground-muted leading-relaxed">
                 <li className="flex items-start gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-brand-blue shrink-0 mt-1.5" />
                   <span>
-                    <strong>Waktu Check-In & Check-Out:</strong> Check-in mulai pukul{' '}
-                    {draft.campsite.checkInTime || '14:00'} WIB, check-out maksimal pukul{' '}
-                    {draft.campsite.checkOutTime || '12:00'} WIB.
+                    <strong>{t.policySection.checkInOutLabel}</strong>
+                    {t.policySection.checkInOutDesc(
+                      draft.campsite.checkInTime || '14:00',
+                      draft.campsite.checkOutTime || '12:00',
+                    )}
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-brand-blue shrink-0 mt-1.5" />
                   <span>
-                    <strong>Kebijakan Ubah Jadwal:</strong> Reschedule dapat diajukan minimal H-7
-                    sebelum tanggal check-in untuk pesanan yang telah lunas.
+                    <strong>{t.policySection.rescheduleLabel}</strong>
+                    {t.policySection.rescheduleDesc}
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-brand-blue shrink-0 mt-1.5" />
                   <span>
-                    <strong>Kebijakan Pembatalan & Refund:</strong> Pengajuan pembatalan atau pengembalian dana tunduk pada syarat dan tenggat waktu resmi.{' '}
+                    <strong>{t.policySection.cancellationLabel}</strong>
+                    {t.policySection.cancellationDesc}
                     <button
                       type="button"
                       onClick={() => setShowCancellationModal(true)}
                       className="text-brand-blue font-bold hover:underline inline-flex items-center gap-0.5 cursor-pointer"
                     >
-                      <span>Lihat Rincian Batas Waktu Refund</span>
+                      <span>{t.policySection.cancellationLink}</span>
                       <ChevronRight size={13} />
                     </button>
                   </span>
@@ -667,8 +691,8 @@ export function CheckoutClient() {
                 <li className="flex items-start gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-brand-blue shrink-0 mt-1.5" />
                   <span>
-                    <strong>Pembayaran Resmi:</strong> Seluruh transaksi diproses melalui jalur
-                    pembayaran resmi dan terenkripsi. Tidak ada transaksi di luar sistem Embun.
+                    <strong>{t.policySection.paymentLabel}</strong>
+                    {t.policySection.paymentDesc}
                   </span>
                 </li>
               </ul>
@@ -682,13 +706,13 @@ export function CheckoutClient() {
                     className="w-4 h-4 rounded text-brand-blue border-border focus:ring-brand-blue"
                   />
                   <span>
-                    Saya telah membaca dan menyetujui seluruh aturan di atas serta{' '}
+                    {t.policySection.agreementPrefix}
                     <Link
-                      href="/id/kebijakan-refund/"
+                      href={`/${lang}/kebijakan-refund/`}
                       target="_blank"
                       className="text-brand-blue underline hover:text-brand-blue-hover"
                     >
-                      Kebijakan Refund & Pembatalan
+                      {t.policySection.refundPolicyLink}
                     </Link>
                   </span>
                 </label>
@@ -703,10 +727,10 @@ export function CheckoutClient() {
                     <AlertCircle size={18} className="text-amber-600 shrink-0 mt-0.5" />
                     <div className="text-xs space-y-1">
                       <p className="font-bold text-amber-900">
-                        Kavling ini sedang Anda booking pada pesanan sebelumnya (#{existingPendingOrder.id.slice(0, 8).toUpperCase()})
+                        {t.pendingBanner.title(existingPendingOrder.id.slice(0, 8).toUpperCase())}
                       </p>
                       <p className="text-amber-800/90 text-[11px] leading-relaxed">
-                        Sistem sedang menahan kavling ini selama 15 menit untuk Anda. Anda dapat langsung melanjutkan pembayaran pesanan ini, atau batalkan pesanan lama untuk membuat baru.
+                        {t.pendingBanner.desc}
                       </p>
                     </div>
                   </div>
@@ -718,7 +742,7 @@ export function CheckoutClient() {
                       className="px-4 py-2 rounded-xl bg-brand-blue text-white font-bold text-xs shadow-xs hover:bg-brand-blue-hover transition-colors flex items-center gap-1.5 cursor-pointer"
                     >
                       {submitting ? <Loader2 size={14} className="animate-spin" /> : <CreditCard size={14} />}
-                      <span>Lanjutkan Bayar Sekarang</span>
+                      <span>{t.pendingBanner.continueBtn}</span>
                     </button>
                     <button
                       type="button"
@@ -727,13 +751,13 @@ export function CheckoutClient() {
                       className="px-3 py-2 rounded-xl bg-white border border-amber-300 text-amber-900 font-semibold text-xs hover:bg-amber-100 transition-colors flex items-center gap-1.5 cursor-pointer"
                     >
                       {cancellingOldOrder && <Loader2 size={14} className="animate-spin" />}
-                      <span>Batalkan Pesanan Lama & Buat Baru</span>
+                      <span>{t.pendingBanner.cancelBtn}</span>
                     </button>
                     <Link
                       href={`/orders/detail?id=${existingPendingOrder.id}`}
                       className="px-3 py-2 rounded-xl text-neutral-600 font-semibold text-xs hover:underline"
                     >
-                      Lihat Rincian
+                      {t.pendingBanner.viewDetail}
                     </Link>
                   </div>
                 </div>
@@ -758,12 +782,12 @@ export function CheckoutClient() {
                 )}
                 <span>
                   {submitting
-                    ? 'Memproses Pembayaran...'
-                    : `Konfirmasi & Bayar · ${rupiah(currentPayable)}`}
+                    ? t.buttons.processing
+                    : t.buttons.confirmAndPay(rupiah(currentPayable))}
                 </span>
               </button>
               <p className="text-[11px] text-center text-foreground-muted mt-2">
-                Halaman pembayaran aman akan terbuka otomatis setelah konfirmasi.
+                {t.buttons.secureHint}
               </p>
             </div>
           </div>
@@ -800,7 +824,7 @@ export function CheckoutClient() {
                     {draft.selectedPackage.name} · {draft.campsite.city || draft.campsite.address}
                   </p>
                   <p className="text-[11px] text-foreground-muted">
-                    {formatDateDisplay(draft.checkInDate)} – {formatDateDisplay(draft.checkOutDate)} · {draft.nights} Malam · {draft.guestCount} Tamu
+                    {formatDateDisplay(draft.checkInDate, lang)} – {formatDateDisplay(draft.checkOutDate, lang)} · {t.summary.unitMeta(draft.nights, draft.guestCount)}
                   </p>
                 </div>
               </div>
@@ -809,12 +833,13 @@ export function CheckoutClient() {
               <CancellationPolicyBannerButton
                 checkInDate={draft.checkInDate}
                 onClick={() => setShowCancellationModal(true)}
+                lang={lang}
               />
 
               {/* Rincian Harga */}
               <div className="space-y-3 text-xs">
                 <h4 className="font-bold text-xs uppercase tracking-wider text-foreground">
-                  Rincian Harga
+                  {t.summary.priceDetailsTitle}
                 </h4>
 
                 <div className="flex justify-between items-start gap-4">
@@ -823,7 +848,7 @@ export function CheckoutClient() {
                       {draft.selectedPackage.name}
                     </span>
                     <span className="text-[11px] text-foreground-muted/70 block mt-0.5">
-                      {rupiah(draft.spotPricePerNight)} × {draft.nights} malam
+                      {t.summary.spotPriceFormula(rupiah(draft.spotPricePerNight), draft.nights)}
                     </span>
                   </div>
                   <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right pt-0.5">
@@ -835,10 +860,14 @@ export function CheckoutClient() {
                   <div className="flex justify-between items-start gap-4 pt-1 border-t border-border/50">
                     <div className="min-w-0 pr-2">
                       <span className="text-foreground-muted block leading-snug">
-                        Tamu Tambahan
+                        {t.summary.extraGuestsTitle}
                       </span>
                       <span className="text-[11px] text-foreground-muted/70 block mt-0.5">
-                        {draft.extraPersonInfo.count} orang × {rupiah(draft.extraPersonInfo.unitPrice)} × {draft.nights} malam
+                        {t.summary.extraGuestsFormula(
+                          draft.extraPersonInfo.count,
+                          rupiah(draft.extraPersonInfo.unitPrice),
+                          draft.nights,
+                        )}
                       </span>
                     </div>
                     <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right pt-0.5">
@@ -850,12 +879,12 @@ export function CheckoutClient() {
                 {draft.activeAddonsList.length > 0 && (
                   <div className="space-y-1.5 pt-1 border-t border-border/50">
                     <span className="text-[11px] font-semibold text-foreground-muted block">
-                      Perlengkapan Tambahan:
+                      {t.summary.additionalAddonsTitle}
                     </span>
                     {draft.activeAddonsList.map((addon) => (
                       <div key={addon.id} className="flex justify-between items-center gap-3 text-[11.5px] pl-2">
                         <span className="text-foreground-muted truncate">
-                          {addon.name} × {addon.qty}
+                          {translateItemName(addon.name, lang)} × {addon.qty}
                         </span>
                         <span className="font-medium text-foreground shrink-0 whitespace-nowrap text-right">
                           {rupiah(addon.price * addon.qty)}
@@ -866,14 +895,14 @@ export function CheckoutClient() {
                 )}
 
                 <div className="flex justify-between items-center gap-4 pt-1 border-t border-border/50">
-                  <span className="text-foreground-muted">Biaya Layanan & Pajak</span>
+                  <span className="text-foreground-muted">{t.summary.serviceAndTaxFee}</span>
                   <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right">
                     +{rupiah(draft.totalServiceAndTaxFee)}
                   </span>
                 </div>
 
                 <div className="pt-3 border-t border-border flex justify-between items-center text-sm">
-                  <span className="font-extrabold text-foreground">Total Tagihan</span>
+                  <span className="font-extrabold text-foreground">{t.summary.totalBill}</span>
                   <span className="text-lg font-black text-brand-blue">
                     {rupiah(draft.grandTotal)}
                   </span>
@@ -883,11 +912,11 @@ export function CheckoutClient() {
                 {isDP && (
                   <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200/60 space-y-1.5 text-xs">
                     <div className="flex justify-between text-amber-900 font-bold">
-                      <span>Dibayar Sekarang (DP 50% + Fee)</span>
+                      <span>{t.summary.dpPaidNow}</span>
                       <span>{rupiah(currentPayable)}</span>
                     </div>
                     <div className="flex justify-between text-amber-800/80 text-[11px]">
-                      <span>Sisa Pelunasan di H-1</span>
+                      <span>{t.summary.dpRemaining}</span>
                       <span>{rupiah(remainingBalance)}</span>
                     </div>
                   </div>
@@ -897,7 +926,7 @@ export function CheckoutClient() {
               {/* Secure guarantee */}
               <div className="pt-3 border-t border-border/60 flex items-center gap-2 text-[11px] text-foreground-muted">
                 <ShieldCheck size={16} className="text-emerald-600 shrink-0" />
-                <span>Transaksi terenkripsi dengan standar keamanan pembayaran digital</span>
+                <span>{t.summary.secureTransaction}</span>
               </div>
             </div>
           </div>
@@ -905,7 +934,7 @@ export function CheckoutClient() {
       </main>
 
       {/* Footer Explore */}
-      <ExploreFooter />
+      <ExploreFooter lang={lang} onToggleLanguage={toggleLanguage} />
 
       {/* Guest Authentication Modal */}
       {isAuthOpen && (
@@ -914,6 +943,7 @@ export function CheckoutClient() {
           onClose={() => setIsAuthOpen(false)}
           currentUser={currentUser}
           fromCheckout={true}
+          lang={lang}
           onSuccess={(user) => {
             setCurrentUser(user);
             if (user) {
@@ -937,6 +967,7 @@ export function CheckoutClient() {
         isOpen={showCancellationModal}
         onClose={() => setShowCancellationModal(false)}
         checkInDate={draft?.checkInDate}
+        lang={lang}
       />
     </div>
   );

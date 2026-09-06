@@ -58,7 +58,7 @@ import {
 } from 'lucide-react';
 import { ExploreFooter } from '@/components/explore/ExploreFooter';
 import { TranslatableBox } from '@/components/ui/TranslatableBox';
-import { SPOT_I18N, translateItemName, type Language } from '@/lib/spot-i18n';
+import { SPOT_I18N, translateItemName, getSpotSurface, type Language } from '@/lib/spot-i18n';
 import {
   getStoredGuestProfile,
   getGuestToken,
@@ -2115,7 +2115,7 @@ export function SpotRedirectClient() {
             )}
             {activeSpot.tentType && (
               <span className="text-xs font-semibold text-foreground-muted bg-surface px-2.5 py-0.5 rounded-full border border-border">
-                {activeSpot.tentType}
+                {translateItemName(activeSpot.tentType, lang)}
               </span>
             )}
           </div>
@@ -2433,52 +2433,91 @@ export function SpotRedirectClient() {
                 </h2>
                 <p className="text-xs text-foreground-muted mt-1">
                   {t.spot.maxGuests(effectiveMaxCapacity)}{' '}
-                  {activeSpot.tentType
-                    ? `· ${t.spot.groundType(translateItemName(activeSpot.tentType, lang))}`
-                    : ''}
+                  {(() => {
+                    const surface = getSpotSurface(activeSpot.facilities);
+                    if (surface) {
+                      return `· ${translateItemName(surface, lang)}`;
+                    }
+                    if (
+                      activeSpot.tentType &&
+                      activeSpot.tentType.toLowerCase() !== 'ground'
+                    ) {
+                      return `· ${translateItemName(activeSpot.tentType, lang)}`;
+                    }
+                    return '';
+                  })()}
                 </p>
               </div>
             </div>
 
-            {/* ── REAL SPOT SPECIFICATIONS (Tipe Ground, View, & Fasilitas Spot) ── */}
+            {/* ── REAL SPOT SPECIFICATIONS (Tipe Ground / Jenis Alas, View, & Fasilitas Spot) ── */}
             <div className="space-y-4 pb-6 border-b border-border">
               <h3 className="font-bold text-base text-foreground">
                 {t.spot.specificationsTitle}
               </h3>
 
-              {/* View & Ground Badges */}
-              <div className="flex flex-wrap gap-2">
-                {activeSpot.tentType && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-surface border border-border text-xs font-semibold text-foreground">
-                    <Tent size={14} className="text-brand-blue" />
-                    <span>{t.spot.groundType(translateItemName(activeSpot.tentType, lang))}</span>
-                  </span>
-                )}
-                {Array.isArray(activeSpot.viewOptions) &&
-                  activeSpot.viewOptions.map((v, vIdx) => (
-                    <span
-                      key={vIdx}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-brand-blue/5 border border-brand-blue/20 text-xs font-semibold text-brand-blue"
-                    >
-                      <Trees size={14} />
-                      <span>{translateItemName(v, lang)}</span>
-                    </span>
-                  ))}
-              </div>
+              {/* View & Ground / Surface Badges */}
+              {(() => {
+                const surface = getSpotSurface(activeSpot.facilities);
+                return (
+                  <div className="flex flex-wrap gap-2">
+                    {surface ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-surface border border-border text-xs font-semibold text-foreground">
+                        <Tent size={14} className="text-brand-blue" />
+                        <span>{translateItemName(surface, lang)}</span>
+                      </span>
+                    ) : activeSpot.tentType ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-surface border border-border text-xs font-semibold text-foreground">
+                        <Tent size={14} className="text-brand-blue" />
+                        <span>{translateItemName(activeSpot.tentType, lang)}</span>
+                      </span>
+                    ) : null}
+                    {Array.isArray(activeSpot.viewOptions) &&
+                      activeSpot.viewOptions.map((v, vIdx) => (
+                        <span
+                          key={vIdx}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-brand-blue/5 border border-brand-blue/20 text-xs font-semibold text-brand-blue"
+                        >
+                          <Trees size={14} />
+                          <span>{translateItemName(v, lang)}</span>
+                        </span>
+                      ))}
+                  </div>
+                );
+              })()}
 
               {/* Real Spot Facilities */}
               {Array.isArray(activeSpot.facilities) &&
                 activeSpot.facilities.length > 0 && (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-2">
-                    {activeSpot.facilities.map((fac, fIdx) => (
-                      <div
-                        key={fIdx}
-                        className="flex items-center gap-2 p-2.5 rounded-2xl bg-surface border border-border/80 text-xs text-foreground"
-                      >
-                        {getFacilityIcon(fac)}
-                        <span className="font-medium truncate">{translateItemName(fac, lang)}</span>
-                      </div>
-                    ))}
+                    {(() => {
+                      const surface = getSpotSurface(activeSpot.facilities);
+                      return activeSpot.facilities
+                        .filter((fac) => {
+                          if (
+                            surface &&
+                            fac.toLowerCase().trim() ===
+                              surface.toLowerCase().trim()
+                          ) {
+                            return false;
+                          }
+                          if (fac.toLowerCase().includes('tanpa alas')) {
+                            return false;
+                          }
+                          return true;
+                        })
+                        .map((fac, fIdx) => (
+                          <div
+                            key={fIdx}
+                            className="flex items-center gap-2 p-2.5 rounded-2xl bg-surface border border-border/80 text-xs text-foreground"
+                          >
+                            {getFacilityIcon(fac)}
+                            <span className="font-medium truncate">
+                              {translateItemName(fac, lang)}
+                            </span>
+                          </div>
+                        ));
+                    })()}
                   </div>
                 )}
 

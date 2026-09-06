@@ -31,51 +31,53 @@ import {
   AccountMobileNav,
   AccountLogoutDialog,
 } from '@/components/account/AccountNav';
+import { ACCOUNT_I18N, type Language } from '@/lib/account-i18n';
 
-function getOrderBadge(order: any) {
+function getOrderBadge(order: any, lang: Language = 'id') {
+  const t = ACCOUNT_I18N[lang].orders.badges;
   if (order.status === 'PAID') {
     const isUnsettled =
       order.isDownPayment && (!order.settledAt || (order.remainingBalance ?? 0) > 0);
     if (isUnsettled) {
       return {
-        label: 'DP 50%',
-        sublabel: `Sisa ${rupiah(order.remainingBalance || 0)}`,
+        label: t.dp50,
+        sublabel: t.remainingBalance(rupiah(order.remainingBalance || 0)),
         className: 'bg-neutral-100 text-neutral-800 border-neutral-200/80',
         sublabelClass: 'text-neutral-600 bg-neutral-50 border-neutral-200/80',
       };
     }
     return {
-      label: 'Lunas',
+      label: t.paid,
       className: 'bg-neutral-100 text-neutral-800 border-neutral-200/80',
     };
   }
   if (order.status === 'PENDING') {
     return {
-      label: 'Menunggu Bayar',
+      label: t.pending,
       className: 'bg-neutral-100 text-neutral-800 border-neutral-200/80',
     };
   }
-  if (order.status === 'COMPLETE') {
+  if (order.status === 'COMPLETE' || order.status === 'COMPLETED') {
     return {
-      label: 'Selesai',
+      label: t.complete,
       className: 'bg-neutral-100 text-neutral-700 border-neutral-200/80',
     };
   }
   if (order.status === 'CANCELLED') {
     return {
-      label: 'Dibatalkan',
+      label: t.cancelled,
       className: 'bg-neutral-100 text-neutral-500 border-neutral-200/80',
     };
   }
   if (order.status === 'EXPIRED') {
     return {
-      label: 'Kedaluwarsa',
+      label: t.expired,
       className: 'bg-neutral-100 text-neutral-500 border-neutral-200/80',
     };
   }
   if (order.status === 'REFUNDED') {
     return {
-      label: 'Direfund',
+      label: t.refunded,
       className: 'bg-neutral-100 text-neutral-600 border-neutral-200/80',
     };
   }
@@ -97,14 +99,15 @@ function getShortCode(campsiteName?: string, orderId?: string) {
   return `${prefix}-${shortPart}`;
 }
 
-function formatDateRange(checkIn?: string, checkOut?: string) {
+function formatDateRange(checkIn?: string, checkOut?: string, lang: Language = 'id') {
   if (!checkIn) return null;
   try {
+    const locale = lang === 'en' ? 'en-US' : 'id-ID';
     const inDate = new Date(checkIn);
-    const inStr = inDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+    const inStr = inDate.toLocaleDateString(locale, { day: 'numeric', month: 'short' });
     if (!checkOut) return inStr;
     const outDate = new Date(checkOut);
-    const outStr = outDate.toLocaleDateString('id-ID', {
+    const outStr = outDate.toLocaleDateString(locale, {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
@@ -128,6 +131,28 @@ export function OrdersClient() {
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [isCompleteProfileOpen, setIsCompleteProfileOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  // Language state (defaults to 'id', persist in localStorage)
+  const [lang, setLang] = useState<Language>('id');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedLang = localStorage.getItem('embun_lang');
+      if (savedLang === 'en' || savedLang === 'id') {
+        setLang(savedLang);
+      }
+    }
+  }, []);
+
+  const handleToggleLanguage = () => {
+    const nextLang: Language = lang === 'id' ? 'en' : 'id';
+    setLang(nextLang);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('embun_lang', nextLang);
+    }
+  };
+
+  const t = ACCOUNT_I18N[lang].orders;
 
   const handleLogout = () => {
     clearGuestSession();
@@ -243,33 +268,33 @@ export function OrdersClient() {
   const tabItems = useMemo(() => [
     {
       id: 'all' as TabType,
-      label: 'Semua Pesanan',
-      shortLabel: 'Semua',
+      label: t.tabs.all,
+      shortLabel: t.tabs.allShort,
       count: orders.length,
-      description: 'Semua riwayat pemesanan penginapan Anda',
+      description: t.tabs.allDesc,
     },
     {
       id: 'pengajuan' as TabType,
-      label: 'Pengajuan',
-      shortLabel: 'Pengajuan',
+      label: t.tabs.pengajuan,
+      shortLabel: t.tabs.pengajuanShort,
       count: pengajuanOrders.length,
-      description: 'Pesanan menunggu pembayaran atau sisa pelunasan DP',
+      description: t.tabs.pengajuanDesc,
     },
     {
       id: 'menuju_checkin' as TabType,
-      label: 'Menuju Check-in',
-      shortLabel: 'Check-in',
+      label: t.tabs.menujuCheckin,
+      shortLabel: t.tabs.menujuCheckinShort,
       count: upcomingOrders.length,
-      description: 'Reservasi aktif yang siap untuk keberangkatan',
+      description: t.tabs.menujuCheckinDesc,
     },
     {
       id: 'selesai' as TabType,
-      label: 'Selesai',
-      shortLabel: 'Selesai',
+      label: t.tabs.selesai,
+      shortLabel: t.tabs.selesaiShort,
       count: doneOrders.length,
-      description: 'Pesanan yang telah selesai, direfund, atau dibatalkan',
+      description: t.tabs.selesaiDesc,
     },
-  ], [orders.length, pengajuanOrders.length, upcomingOrders.length, doneOrders.length]);
+  ], [orders.length, pengajuanOrders.length, upcomingOrders.length, doneOrders.length, t]);
 
   const activeTabMeta = tabItems.find((t) => t.id === activeTab) || tabItems[0];
 
@@ -278,16 +303,18 @@ export function OrdersClient() {
       {/* ═══ HEADER ATAS (LOGO RESMI EMBUN EXPLORE & MENU AKUN, TANPA LOKASI) ═══ */}
       <ExploreHeader
         showSearch={false}
-        showUserMenu={false}
+        showUserMenu={true}
         currentUser={currentUser}
         onOpenAuth={() => setIsAuthOpen(true)}
+        lang={lang}
+        onToggleLanguage={handleToggleLanguage}
       />
 
       <main className="max-w-[2520px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-10 flex-1 w-full">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-28 gap-3 text-foreground-muted">
             <Loader2 size={26} className="animate-spin text-brand-blue" />
-            <p className="text-xs font-semibold">Memuat riwayat pesanan...</p>
+            <p className="text-xs font-semibold">{t.loading}</p>
           </div>
         ) : authRequired ? (
           <div className="text-center py-20 bg-white rounded-3xl border border-border p-8 space-y-5 shadow-2xs max-w-md mx-auto my-12">
@@ -299,9 +326,9 @@ export function OrdersClient() {
               />
             </div>
             <div className="space-y-1">
-              <h3 className="font-bold text-base text-foreground">Masuk ke Akun Anda</h3>
+              <h3 className="font-bold text-base text-foreground">{t.authRequiredTitle}</h3>
               <p className="text-xs text-foreground-muted leading-relaxed">
-                Sesi masuk Anda telah berakhir atau belum aktif. Silakan masuk untuk melihat daftar pemesanan dan tiket penginapan Anda.
+                {t.authRequiredDesc}
               </p>
             </div>
             <button
@@ -310,14 +337,14 @@ export function OrdersClient() {
               className="inline-flex items-center justify-center gap-2 w-full py-3.5 rounded-full bg-brand-blue text-white text-xs font-bold shadow-md hover:bg-brand-blue-hover transition-all cursor-pointer"
             >
               <LogIn size={15} />
-              <span>Masuk Sekarang</span>
+              <span>{t.loginNow}</span>
             </button>
             <div>
               <Link
                 href="/explore"
                 className="text-xs font-semibold text-foreground-muted hover:text-foreground transition-colors"
               >
-                Kembali ke Explore
+                {t.backToExplore}
               </Link>
             </div>
           </div>
@@ -327,7 +354,7 @@ export function OrdersClient() {
               <AlertCircle size={22} />
             </div>
             <div className="space-y-1">
-              <h3 className="font-bold text-sm text-foreground">Gagal Memuat Riwayat</h3>
+              <h3 className="font-bold text-sm text-foreground">{t.errorTitle}</h3>
               <p className="text-xs text-foreground-muted">{error}</p>
             </div>
             <button
@@ -336,7 +363,7 @@ export function OrdersClient() {
               className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-brand-blue text-white text-xs font-bold hover:bg-brand-blue-hover transition-all cursor-pointer shadow-xs"
             >
               <RefreshCw size={13} />
-              <span>Coba Lagi</span>
+              <span>{t.retry}</span>
             </button>
           </div>
         ) : (
@@ -353,11 +380,11 @@ export function OrdersClient() {
                   <ArrowLeft size={22} className="stroke-[2.2]" />
                 </button>
                 <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
-                  Pesanan Saya
+                  {t.title}
                 </h1>
               </div>
               <p className="text-xs sm:text-sm text-foreground-muted mt-1 ml-9 sm:ml-10">
-                Pantau status pengajuan, jadwal check-in, dan riwayat reservasi Anda.
+                {t.subtitle}
               </p>
             </div>
 
@@ -365,6 +392,7 @@ export function OrdersClient() {
             <AccountMobileNav
               activeTab="orders"
               onLogout={() => setShowLogoutConfirm(true)}
+              lang={lang}
             />
 
             {/* Layout Grid Responsif (Sidebar di Desktop) */}
@@ -373,6 +401,7 @@ export function OrdersClient() {
               <AccountSidebar
                 activeTab="orders"
                 onLogout={() => setShowLogoutConfirm(true)}
+                lang={lang}
               />
 
               {/* Sisi Kanan: Daftar Pesanan Sesuai Tab Aktif */}
@@ -425,27 +454,27 @@ export function OrdersClient() {
                     </div>
                     <div className="space-y-1">
                       <h3 className="text-sm font-bold text-foreground">
-                        Tidak ada pesanan di tab {activeTabMeta.label}
+                        {lang === 'en' ? `No orders in ${activeTabMeta.label}` : `Tidak ada pesanan di tab ${activeTabMeta.label}`}
                       </h3>
                       <p className="text-xs text-foreground-muted max-w-sm mx-auto">
                         {activeTab === 'pengajuan'
-                          ? 'Semua pengajuan atau tagihan Anda telah terselesaikan.'
+                          ? t.emptyTabs.pengajuan
                           : activeTab === 'menuju_checkin'
-                          ? 'Belum ada reservasi aktif yang siap untuk check-in.'
+                          ? t.emptyTabs.menujuCheckin
                           : activeTab === 'selesai'
-                          ? 'Belum ada riwayat pesanan yang telah selesai.'
-                          : 'Belum ada pesanan yang tersimpan.'}
+                          ? t.emptyTabs.selesai
+                          : t.emptyTabs.all}
                       </p>
                     </div>
                   </div>
                 ) : (
                   <div className="grid gap-4">
                     {displayedOrders.map((order) => {
-                      const badge = getOrderBadge(order);
+                      const badge = getOrderBadge(order, lang);
                       const booking = order.bookings?.[0];
                       const spotName = booking?.block?.name || 'Unit Penginapan';
                       const shortCode = getShortCode(order.campsite?.name, order.id);
-                      const dateRange = formatDateRange(booking?.checkIn, booking?.checkOut);
+                      const dateRange = formatDateRange(booking?.checkIn, booking?.checkOut, lang);
 
                       return (
                         <Link
@@ -507,14 +536,14 @@ export function OrdersClient() {
                           <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center border-t sm:border-t-0 border-border/60 pt-3 sm:pt-0 shrink-0">
                             <div className="text-left sm:text-right">
                               <span className="text-[10px] uppercase font-bold text-foreground-muted/80 block">
-                                Total Bayar
+                                {t.totalPayment}
                               </span>
                               <p className="text-sm sm:text-base font-black text-foreground">
                                 {rupiah(order.totalAmount)}
                               </p>
                             </div>
                             <div className="inline-flex items-center gap-1 text-xs font-bold text-brand-blue mt-1 group-hover:translate-x-1 transition-transform">
-                              <span>Detail</span>
+                              <span>{t.detail}</span>
                               <ChevronRight size={14} />
                             </div>
                           </div>
@@ -530,13 +559,14 @@ export function OrdersClient() {
       </main>
 
       {/* ═══ FOOTER RESMI RESMI EXPLORE ═══ */}
-      <ExploreFooter />
+      <ExploreFooter lang={lang} />
 
       {/* Guest Auth Modal */}
       <GuestAuthModal
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
         currentUser={currentUser}
+        lang={lang}
         onSuccess={handleLoginSuccess}
         onLogout={() => {
           setCurrentUser(null);
@@ -560,6 +590,7 @@ export function OrdersClient() {
         isOpen={showLogoutConfirm}
         onClose={() => setShowLogoutConfirm(false)}
         onConfirm={handleLogout}
+        lang={lang}
       />
     </div>
   );

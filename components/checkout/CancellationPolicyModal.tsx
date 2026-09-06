@@ -23,14 +23,20 @@ export interface RefundPolicyInfo {
 export function computeRefundPolicy(
   checkInDateStr?: string,
   nonRefundable = false,
+  lang: 'id' | 'en' = 'id',
 ): RefundPolicyInfo {
   if (nonRefundable) {
     return {
       refundable: false,
       summaryLabel: 'Non-Refundable',
-      headerTitle: 'Tidak Dapat Dibatalkan (Non-Refundable)',
+      headerTitle:
+        lang === 'en'
+          ? 'Non-Refundable'
+          : 'Tidak Dapat Dibatalkan (Non-Refundable)',
       headerSubtitle:
-        'Pesanan ini tidak dapat dibatalkan atau dikembalikan dananya setelah pembayaran berhasil.',
+        lang === 'en'
+          ? 'This reservation cannot be cancelled or refunded once payment is completed.'
+          : 'Pesanan ini tidak dapat dibatalkan atau dikembalikan dananya setelah pembayaran berhasil.',
       freeCancelUntilDate: null,
       tiers: [],
     };
@@ -39,26 +45,43 @@ export function computeRefundPolicy(
   if (!checkInDateStr) {
     return {
       refundable: true,
-      summaryLabel: 'Kebijakan Refund & Pembatalan',
-      headerTitle: 'Kebijakan Refund & Pembatalan',
+      summaryLabel:
+        lang === 'en'
+          ? 'Cancellation & Refund Policy'
+          : 'Kebijakan Refund & Pembatalan',
+      headerTitle:
+        lang === 'en'
+          ? 'Cancellation & Refund Policy'
+          : 'Kebijakan Refund & Pembatalan',
       headerSubtitle:
-        'Pengajuan pembatalan pemesanan tunduk pada jadwal ketentuan pengembalian dana berikut.',
+        lang === 'en'
+          ? 'Cancellation requests are subject to the following refund schedule.'
+          : 'Pengajuan pembatalan pemesanan tunduk pada jadwal ketentuan pengembalian dana berikut.',
       freeCancelUntilDate: null,
       tiers: [
         {
-          label: 'Lebih dari 7 hari sebelum check-in',
+          label:
+            lang === 'en'
+              ? 'More than 7 days before check-in'
+              : 'Lebih dari 7 hari sebelum check-in',
           percent: '100%',
           percentNum: 100,
           isAvailable: true,
         },
         {
-          label: '3 – 7 hari sebelum check-in',
+          label:
+            lang === 'en'
+              ? '3 – 7 days before check-in'
+              : '3 – 7 hari sebelum check-in',
           percent: '50%',
           percentNum: 50,
           isAvailable: true,
         },
         {
-          label: 'Kurang dari 3 hari sebelum check-in',
+          label:
+            lang === 'en'
+              ? 'Less than 3 days before check-in'
+              : 'Kurang dari 3 hari sebelum check-in',
           percent: '0%',
           percentNum: 0,
           isAvailable: true,
@@ -71,10 +94,16 @@ export function computeRefundPolicy(
   if (parts.length < 3 || isNaN(parts[0])) {
     return {
       refundable: false,
-      summaryLabel: 'Kebijakan Pembatalan',
-      headerTitle: 'Kebijakan Pembatalan Standar',
+      summaryLabel:
+        lang === 'en' ? 'Cancellation Policy' : 'Kebijakan Pembatalan',
+      headerTitle:
+        lang === 'en'
+          ? 'Standard Cancellation Policy'
+          : 'Kebijakan Pembatalan Standar',
       headerSubtitle:
-        'Pengajuan pembatalan tunduk pada syarat dan ketentuan pengelola campsite.',
+        lang === 'en'
+          ? 'Cancellations are subject to campsite manager terms and conditions.'
+          : 'Pengajuan pembatalan tunduk pada syarat dan ketentuan pengelola campsite.',
       freeCancelUntilDate: null,
       tiers: [],
     };
@@ -82,10 +111,6 @@ export function computeRefundPolicy(
 
   const checkIn = new Date(parts[0], parts[1] - 1, parts[2]);
 
-  // Platform default refund policy tiers:
-  // H-7: 100%
-  // H-3: 50%
-  // < H-3: 0%
   const tier100Date = new Date(checkIn);
   tier100Date.setDate(tier100Date.getDate() - 7);
 
@@ -98,60 +123,88 @@ export function computeRefundPolicy(
   const isTier100Available = tier100Date >= today;
   const isTier50Available = tier50Date >= today;
 
-  const formatDateIndo = (d: Date) => {
-    return d.toLocaleDateString('id-ID', {
+  const formatDateLocale = (d: Date) => {
+    return d.toLocaleDateString(lang === 'en' ? 'en-US' : 'id-ID', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
     });
   };
 
-  const tier100DateStr = formatDateIndo(tier100Date);
-  const tier50DateStr = formatDateIndo(tier50Date);
+  const tier100DateStr = formatDateLocale(tier100Date);
+  const tier50DateStr = formatDateLocale(tier50Date);
 
   const tiers: RefundTier[] = [
     {
-      label: `Sampai ${tier100DateStr}`,
+      label: lang === 'en' ? `Until ${tier100DateStr}` : `Sampai ${tier100DateStr}`,
       percent: '100%',
       percentNum: 100,
       cutoffDate: tier100Date,
       isAvailable: isTier100Available,
     },
     {
-      label: `Sampai ${tier50DateStr}`,
+      label: lang === 'en' ? `Until ${tier50DateStr}` : `Sampai ${tier50DateStr}`,
       percent: '50%',
       percentNum: 50,
       cutoffDate: tier50Date,
       isAvailable: isTier50Available,
     },
     {
-      label: 'Setelahnya',
+      label: lang === 'en' ? 'Afterwards' : 'Setelahnya',
       percent: '0%',
       percentNum: 0,
       isAvailable: true,
     },
   ];
 
-  let summaryLabel = 'Kebijakan Pembatalan';
-  let headerTitle = 'Kebijakan Pembatalan';
+  let summaryLabel =
+    lang === 'en' ? 'Cancellation Policy' : 'Kebijakan Pembatalan';
+  let headerTitle =
+    lang === 'en' ? 'Cancellation Policy' : 'Kebijakan Pembatalan';
   let headerSubtitle =
-    'Batalkan sebelum tanggal ini untuk refund 100% harga sewa. Biaya admin & layanan tidak dikembalikan.';
+    lang === 'en'
+      ? 'Cancel before this date for a 100% rental refund. Admin & service fees are non-refundable.'
+      : 'Batalkan sebelum tanggal ini untuk refund 100% harga sewa. Biaya admin & layanan tidak dikembalikan.';
 
   if (isTier100Available) {
-    summaryLabel = `Refund 100% sampai ${tier100DateStr}`;
-    headerTitle = `Refund 100% sampai ${tier100DateStr}`;
+    summaryLabel =
+      lang === 'en'
+        ? `100% refund until ${tier100DateStr}`
+        : `Refund 100% sampai ${tier100DateStr}`;
+    headerTitle =
+      lang === 'en'
+        ? `100% refund until ${tier100DateStr}`
+        : `Refund 100% sampai ${tier100DateStr}`;
     headerSubtitle =
-      'Batalkan sebelum tanggal ini untuk refund 100% harga sewa. Biaya admin & layanan tidak dikembalikan.';
+      lang === 'en'
+        ? 'Cancel before this date for a 100% rental refund. Admin & service fees are non-refundable.'
+        : 'Batalkan sebelum tanggal ini untuk refund 100% harga sewa. Biaya admin & layanan tidak dikembalikan.';
   } else if (isTier50Available) {
-    summaryLabel = `Refund 50% sampai ${tier50DateStr}`;
-    headerTitle = `Refund 50% sampai ${tier50DateStr}`;
+    summaryLabel =
+      lang === 'en'
+        ? `50% refund until ${tier50DateStr}`
+        : `Refund 50% sampai ${tier50DateStr}`;
+    headerTitle =
+      lang === 'en'
+        ? `50% refund until ${tier50DateStr}`
+        : `Refund 50% sampai ${tier50DateStr}`;
     headerSubtitle =
-      'Batalkan sebelum tanggal ini untuk refund 50% harga sewa. Biaya admin & layanan tidak dikembalikan.';
+      lang === 'en'
+        ? 'Cancel before this date for a 50% rental refund. Admin & service fees are non-refundable.'
+        : 'Batalkan sebelum tanggal ini untuk refund 50% harga sewa. Biaya admin & layanan tidak dikembalikan.';
   } else {
-    summaryLabel = 'Non-Refundable (lewat batas refund)';
-    headerTitle = 'Batas Waktu Pengembalian Dana Telah Lewat';
+    summaryLabel =
+      lang === 'en'
+        ? 'Non-Refundable (past refund deadline)'
+        : 'Non-Refundable (lewat batas refund)';
+    headerTitle =
+      lang === 'en'
+        ? 'Refund Deadline Has Passed'
+        : 'Batas Waktu Pengembalian Dana Telah Lewat';
     headerSubtitle =
-      'Pemesanan yang dilakukan mendekati hari-H tidak dapat dikembalikan dananya.';
+      lang === 'en'
+        ? 'Reservations made close to check-in date are non-refundable.'
+        : 'Pemesanan yang dilakukan mendekati hari-H tidak dapat dikembalikan dananya.';
   }
 
   return {
@@ -169,6 +222,7 @@ interface CancellationPolicyModalProps {
   onClose: () => void;
   checkInDate?: string;
   nonRefundable?: boolean;
+  lang?: 'id' | 'en';
 }
 
 export function CancellationPolicyModal({
@@ -176,10 +230,11 @@ export function CancellationPolicyModal({
   onClose,
   checkInDate,
   nonRefundable = false,
+  lang = 'id',
 }: CancellationPolicyModalProps) {
   if (!isOpen) return null;
 
-  const policy = computeRefundPolicy(checkInDate, nonRefundable);
+  const policy = computeRefundPolicy(checkInDate, nonRefundable, lang);
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
@@ -194,14 +249,14 @@ export function CancellationPolicyModal({
           <div className="flex items-center gap-2">
             <Info size={20} className="text-foreground shrink-0" />
             <h3 className="font-bold text-base sm:text-lg text-foreground">
-              Kebijakan Pembatalan
+              {lang === 'en' ? 'Cancellation Policy' : 'Kebijakan Pembatalan'}
             </h3>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="p-1.5 rounded-full hover:bg-surface text-foreground-muted hover:text-foreground transition-colors cursor-pointer"
-            aria-label="Tutup"
+            aria-label={lang === 'en' ? 'Close' : 'Tutup'}
           >
             <X size={18} />
           </button>
@@ -222,8 +277,8 @@ export function CancellationPolicyModal({
           {policy.tiers.length > 0 && (
             <div className="space-y-2 pt-2">
               <div className="flex items-center justify-between text-xs font-semibold text-foreground-muted pb-2 border-b border-border/70">
-                <span>Batas Waktu Pembatalan</span>
-                <span>Refund</span>
+                <span>{lang === 'en' ? 'Cancellation Window' : 'Batas Waktu Pembatalan'}</span>
+                <span>{lang === 'en' ? 'Refund' : 'Refund'}</span>
               </div>
               <div className="divide-y divide-border/50">
                 {policy.tiers.map((tier, idx) => (
@@ -251,12 +306,16 @@ export function CancellationPolicyModal({
 
           <div className="pt-3 border-t border-border/70">
             <a
-              href="/id/kebijakan-refund/"
+              href={`/${lang}/kebijakan-refund/`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs text-brand-blue font-bold hover:underline inline-flex items-center gap-1"
             >
-              <span>Pelajari Kebijakan Refund & Pembatalan Selengkapnya</span>
+              <span>
+                {lang === 'en'
+                  ? 'Learn more about our Refund & Cancellation Policy'
+                  : 'Pelajari Kebijakan Refund & Pembatalan Selengkapnya'}
+              </span>
               <span>&rarr;</span>
             </a>
           </div>
@@ -271,6 +330,7 @@ interface CancellationPolicyBannerButtonProps {
   nonRefundable?: boolean;
   onClick: () => void;
   className?: string;
+  lang?: 'id' | 'en';
 }
 
 export function CancellationPolicyBannerButton({
@@ -278,8 +338,9 @@ export function CancellationPolicyBannerButton({
   nonRefundable = false,
   onClick,
   className = '',
+  lang = 'id',
 }: CancellationPolicyBannerButtonProps) {
-  const policy = computeRefundPolicy(checkInDate, nonRefundable);
+  const policy = computeRefundPolicy(checkInDate, nonRefundable, lang);
 
   return (
     <button

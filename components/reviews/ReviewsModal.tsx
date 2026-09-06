@@ -11,6 +11,7 @@ import {
   SlidersHorizontal,
 } from 'lucide-react';
 import { resolveAssetUrl } from '@/lib/api-client';
+import { TranslatableBox } from '@/components/ui/TranslatableBox';
 
 export interface ReviewItem {
   id: string;
@@ -44,6 +45,7 @@ interface ReviewsModalProps {
   reviews: ReviewItem[];
   targetName: string;
   aggregate?: ReviewAggregate | null;
+  lang?: 'id' | 'en';
 }
 
 export function ReviewsModal({
@@ -52,6 +54,7 @@ export function ReviewsModal({
   reviews = [],
   targetName,
   aggregate,
+  lang = 'id',
 }: ReviewsModalProps) {
   const [selectedStar, setSelectedStar] = useState<number | null>(null);
   const [onlyPhotos, setOnlyPhotos] = useState<boolean>(false);
@@ -122,10 +125,14 @@ export function ReviewsModal({
         <div className="px-5 py-3.5 sm:px-8 sm:py-5 border-b border-border flex items-center justify-between shrink-0 bg-white">
           <div className="space-y-0.5 min-w-0 pr-3">
             <h2 className="text-base sm:text-lg font-bold text-foreground truncate">
-              Ulasan Tamu · {targetName}
+              {lang === 'en'
+                ? `Guest Reviews · ${targetName}`
+                : `Ulasan Tamu · ${targetName}`}
             </h2>
             <p className="text-[11px] sm:text-xs text-foreground-muted">
-              Pengalaman nyata dan ulasan terverifikasi dari pengunjung Embun
+              {lang === 'en'
+                ? 'Authentic experiences and verified reviews from Embun guests'
+                : 'Pengalaman nyata dan ulasan terverifikasi dari pengunjung Embun'}
             </p>
           </div>
 
@@ -133,7 +140,7 @@ export function ReviewsModal({
             type="button"
             onClick={onClose}
             className="w-8 h-8 rounded-full border border-border bg-neutral-100/90 hover:bg-neutral-200 text-foreground flex items-center justify-center transition-colors cursor-pointer shrink-0 shadow-2xs"
-            aria-label="Tutup"
+            aria-label={lang === 'en' ? 'Close' : 'Tutup'}
           >
             <X size={16} className="text-foreground" />
           </button>
@@ -151,18 +158,26 @@ export function ReviewsModal({
                   <span>{ratingAvg.toFixed(1)}</span>
                 </div>
                 <span className="text-xs font-semibold text-foreground-muted">
-                  dari 5.0
+                  {lang === 'en' ? 'out of 5.0' : 'dari 5.0'}
                 </span>
               </div>
               <p className="text-xs text-foreground-muted font-medium">
-                Berdasarkan <strong>{totalCount} ulasan</strong> tamu terverifikasi
+                {lang === 'en' ? (
+                  <>
+                    Based on <strong>{totalCount} verified</strong> guest reviews
+                  </>
+                ) : (
+                  <>
+                    Berdasarkan <strong>{totalCount} ulasan</strong> tamu terverifikasi
+                  </>
+                )}
               </p>
             </div>
 
             {/* Airbnb Style Rating Breakdown Bars */}
             <div className="space-y-2 pt-2 border-t border-border/70">
               <div className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
-                Distribusi Rating
+                {lang === 'en' ? 'Rating Distribution' : 'Distribusi Rating'}
               </div>
               <div className="space-y-1.5">
                 {starDistribution.map(({ star, count, percentage }) => {
@@ -211,7 +226,7 @@ export function ReviewsModal({
               <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
                 <span className="flex items-center gap-1.5">
                   <SlidersHorizontal size={12} />
-                  <span>Filter Bintang</span>
+                  <span>{lang === 'en' ? 'Star Filter' : 'Filter Bintang'}</span>
                 </span>
                 {isFiltered && (
                   <button
@@ -235,7 +250,7 @@ export function ReviewsModal({
                       : 'bg-white border border-border text-foreground hover:bg-surface'
                   }`}
                 >
-                  Semua ({totalCount})
+                  {lang === 'en' ? `All (${totalCount})` : `Semua (${totalCount})`}
                 </button>
 
                 {[5, 4, 3, 2, 1].map((star) => {
@@ -265,7 +280,7 @@ export function ReviewsModal({
                             : 'fill-amber-400 text-amber-400'
                         }
                       />
-                      <span>{star} Bintang</span>
+                      <span>{lang === 'en' ? `${star} Stars` : `${star} Bintang`}</span>
                       <span
                         className={`text-[10px] px-1.5 py-0.2 rounded-full ml-0.5 ${
                           isSelected
@@ -290,7 +305,7 @@ export function ReviewsModal({
                     }`}
                   >
                     <Camera size={12} />
-                    <span>Dengan Foto ({countWithPhotos})</span>
+                    <span>{lang === 'en' ? `With Photos (${countWithPhotos})` : `Dengan Foto (${countWithPhotos})`}</span>
                   </button>
                 )}
               </div>
@@ -302,13 +317,19 @@ export function ReviewsModal({
             {/* Filter Status Badge / Counter */}
             <div className="flex items-center justify-between text-xs text-foreground-muted pb-2 border-b border-border/60">
               <span>
-                Menampilkan{' '}
-                <strong className="text-foreground">
-                  {filteredReviews.length}
-                </strong>{' '}
-                dari {totalCount} ulasan
-                {selectedStar !== null && ` (Bintang ${selectedStar})`}
-                {onlyPhotos && ' (Dengan Foto)'}
+                {lang === 'en' ? (
+                  <>
+                    Showing <strong className="text-foreground">{filteredReviews.length}</strong> of {totalCount} reviews
+                    {selectedStar !== null && ` (${selectedStar} Stars)`}
+                    {onlyPhotos && ' (With Photos)'}
+                  </>
+                ) : (
+                  <>
+                    Menampilkan <strong className="text-foreground">{filteredReviews.length}</strong> dari {totalCount} ulasan
+                    {selectedStar !== null && ` (Bintang ${selectedStar})`}
+                    {onlyPhotos && ' (Dengan Foto)'}
+                  </>
+                )}
               </span>
 
               {isFiltered && (
@@ -317,7 +338,7 @@ export function ReviewsModal({
                   onClick={handleResetFilters}
                   className="text-brand-blue font-semibold hover:underline cursor-pointer"
                 >
-                  Tampilkan Semua
+                  {lang === 'en' ? 'Show All' : 'Tampilkan Semua'}
                 </button>
               )}
             </div>
@@ -330,10 +351,12 @@ export function ReviewsModal({
                 </div>
                 <div className="space-y-1">
                   <h4 className="font-bold text-sm text-foreground">
-                    Tidak Ditemukan Ulasan
+                    {lang === 'en' ? 'No Reviews Found' : 'Tidak Ditemukan Ulasan'}
                   </h4>
                   <p className="text-xs text-foreground-muted max-w-xs mx-auto">
-                    Belum ada ulasan yang cocok dengan kriteria filter Anda.
+                    {lang === 'en'
+                      ? 'No reviews match your selected filter criteria.'
+                      : 'Belum ada ulasan yang cocok dengan kriteria filter Anda.'}
                   </p>
                 </div>
                 <button
@@ -341,7 +364,7 @@ export function ReviewsModal({
                   onClick={handleResetFilters}
                   className="px-4 py-2 rounded-full bg-brand-blue text-white text-xs font-bold hover:bg-brand-blue-hover transition-colors cursor-pointer"
                 >
-                  Reset Filter
+                  {lang === 'en' ? 'Reset Filters' : 'Reset Filter'}
                 </button>
               </div>
             ) : (
@@ -354,7 +377,7 @@ export function ReviewsModal({
                     rev.userName ||
                     rev.user?.fullName ||
                     rev.user?.name ||
-                    'Tamu Embun';
+                    (lang === 'en' ? 'Embun Guest' : 'Tamu Embun');
                   const avatarChar = displayName.trim().charAt(0).toUpperCase();
                   const reviewText =
                     rev.message ||
@@ -392,7 +415,7 @@ export function ReviewsModal({
                               <span className="font-bold text-xs sm:text-sm text-foreground">
                                 {displayName}
                               </span>
-                              <span title="Pengunjung Terverifikasi" className="inline-flex items-center">
+                              <span title={lang === 'en' ? 'Verified Guest' : 'Pengunjung Terverifikasi'} className="inline-flex items-center">
                                 <CheckCircle2
                                   size={13}
                                   className="text-emerald-600"
@@ -402,13 +425,13 @@ export function ReviewsModal({
                             <p className="text-[11px] text-foreground-muted">
                               {rev.createdAt
                                 ? new Date(rev.createdAt).toLocaleDateString(
-                                    'id-ID',
+                                    lang === 'en' ? 'en-US' : 'id-ID',
                                     {
                                       month: 'long',
                                       year: 'numeric',
                                     },
                                   )
-                                : 'Pengunjung Terverifikasi'}
+                                : (lang === 'en' ? 'Verified Guest' : 'Pengunjung Terverifikasi')}
                               {spotLabel && ` · Spot ${spotLabel}`}
                             </p>
                           </div>
@@ -421,11 +444,15 @@ export function ReviewsModal({
                         </div>
                       </div>
 
-                      {/* Review Text */}
+                      {/* Review Text with On-demand Translation */}
                       {reviewText && (
-                        <p className="text-xs sm:text-sm text-foreground/90 leading-relaxed">
-                          &ldquo;{reviewText.trim()}&rdquo;
-                        </p>
+                        <div className="pt-0.5">
+                          <TranslatableBox
+                            text={`“${reviewText.trim()}”`}
+                            lang={lang}
+                            textClassName="text-xs sm:text-sm text-foreground/90 leading-relaxed italic"
+                          />
+                        </div>
                       )}
 
                       {/* Photo Attachment if available */}

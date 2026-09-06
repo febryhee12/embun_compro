@@ -13,7 +13,6 @@ import {
   Copy,
   Check,
   QrCode,
-  Receipt,
   CreditCard,
   RefreshCw,
   Loader2,
@@ -51,55 +50,57 @@ import { CompleteProfileModal } from '@/components/explore/CompleteProfileModal'
 import { InvoiceModal, InvoiceDocument } from '@/components/orders/InvoiceModal';
 import { CancelRefundModal } from '@/components/orders/CancelRefundModal';
 import { RescheduleModal } from '@/components/orders/RescheduleModal';
+import { ACCOUNT_I18N, type Language } from '@/lib/account-i18n';
 
-function getOrderBadge(order: any) {
+function getOrderBadge(order: any, lang: Language = 'id') {
+  const t = ACCOUNT_I18N[lang].orders.badges;
   if (order.status === 'PAID') {
     const isUnsettled =
       order.isDownPayment && (!order.settledAt || (order.remainingBalance ?? 0) > 0);
     if (isUnsettled) {
       return {
-        label: 'DP 50% (Belum Lunas)',
+        label: t.dpUnsettled,
         className: 'bg-neutral-100 text-neutral-800 border-neutral-200/80',
         isDP: true,
       };
     }
     return {
-      label: 'Lunas',
+      label: t.paid,
       className: 'bg-neutral-100 text-neutral-800 border-neutral-200/80',
       isDP: false,
     };
   }
   if (order.status === 'PENDING') {
     return {
-      label: 'Menunggu Pembayaran',
+      label: t.pendingPayment,
       className: 'bg-neutral-100 text-neutral-800 border-neutral-200/80',
       isDP: false,
     };
   }
-  if (order.status === 'COMPLETE') {
+  if (order.status === 'COMPLETE' || order.status === 'COMPLETED') {
     return {
-      label: 'Selesai',
+      label: t.complete,
       className: 'bg-neutral-100 text-neutral-700 border-neutral-200/80',
       isDP: false,
     };
   }
   if (order.status === 'CANCELLED') {
     return {
-      label: 'Dibatalkan',
+      label: t.cancelled,
       className: 'bg-neutral-100 text-neutral-500 border-neutral-200/80',
       isDP: false,
     };
   }
   if (order.status === 'EXPIRED') {
     return {
-      label: 'Kedaluwarsa',
+      label: t.expired,
       className: 'bg-neutral-100 text-neutral-500 border-neutral-200/80',
       isDP: false,
     };
   }
   if (order.status === 'REFUNDED') {
     return {
-      label: 'Direfund',
+      label: t.refunded,
       className: 'bg-neutral-100 text-neutral-600 border-neutral-200/80',
       isDP: false,
     };
@@ -194,11 +195,11 @@ function getShortCode(campsiteName?: string, orderId?: string) {
   return `${prefix}-${shortPart}`;
 }
 
-function formatDateDisplay(dateStr?: string) {
+function formatDateDisplay(dateStr?: string, lang: Language = 'id') {
   if (!dateStr) return '-';
   try {
     const d = new Date(dateStr);
-    return d.toLocaleDateString('id-ID', {
+    return d.toLocaleDateString(lang === 'en' ? 'en-US' : 'id-ID', {
       weekday: 'short',
       day: 'numeric',
       month: 'short',
@@ -212,6 +213,7 @@ function formatDateDisplay(dateStr?: string) {
 function formatSettlementDeadline(
   settlementDeadline?: string | Date | null,
   checkInStr?: string | Date | null,
+  lang: Language = 'id',
 ): string | null {
   try {
     let targetDate: Date | null = null;
@@ -228,7 +230,7 @@ function formatSettlementDeadline(
     }
     if (!targetDate || isNaN(targetDate.getTime())) return null;
 
-    return targetDate.toLocaleDateString('id-ID', {
+    return targetDate.toLocaleDateString(lang === 'en' ? 'en-US' : 'id-ID', {
       timeZone: 'Asia/Jakarta',
       weekday: 'long',
       day: 'numeric',
@@ -257,6 +259,28 @@ export function OrderDetailClient() {
   const [isCancelRefundOpen, setIsCancelRefundOpen] = useState(false);
   const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
 
+  // Language state (defaults to 'id', persist in localStorage)
+  const [lang, setLang] = useState<Language>('id');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedLang = localStorage.getItem('embun_lang');
+      if (savedLang === 'en' || savedLang === 'id') {
+        setLang(savedLang);
+      }
+    }
+  }, []);
+
+  const handleToggleLanguage = () => {
+    const nextLang: Language = lang === 'id' ? 'en' : 'id';
+    setLang(nextLang);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('embun_lang', nextLang);
+    }
+  };
+
+  const t = ACCOUNT_I18N[lang].orderDetail;
+
   useEffect(() => {
     setCurrentUser(getStoredGuestProfile());
   }, []);
@@ -275,7 +299,6 @@ export function OrderDetailClient() {
   // Action states
   const [paying, setPaying] = useState(false);
   const [settling, setSettling] = useState(false);
-  const [syncing, setSyncing] = useState(false);
 
   const load = React.useCallback(async () => {
     if (!orderId) return;
@@ -372,21 +395,9 @@ export function OrderDetailClient() {
     }
   };
 
-  const handleSync = async () => {
-    if (!orderId) return;
-    setSyncing(true);
-    setError(null);
-    try {
-      await syncOrderStatus(orderId);
-      await load();
-    } catch (err: any) {
-      setError(err.message || 'Gagal menyinkronkan status pesanan.');
-    } finally {
-      setSyncing(false);
-    }
-  };
 
-  const badge = order ? getOrderBadge(order) : null;
+
+  const badge = order ? getOrderBadge(order, lang) : null;
   const booking = order?.bookings?.[0];
   const shortCode = order ? getShortCode(order.campsite?.name, order.id) : '';
 
@@ -468,8 +479,8 @@ export function OrderDetailClient() {
   const isActuallyRefundEligible = isPaid && Boolean(order?.refund?.refundEligible);
 
   const settlementDeadlineFormatted = React.useMemo(() => {
-    return formatSettlementDeadline(order?.settlementDeadline, booking?.checkIn);
-  }, [order?.settlementDeadline, booking?.checkIn]);
+    return formatSettlementDeadline(order?.settlementDeadline, booking?.checkIn, lang);
+  }, [order?.settlementDeadline, booking?.checkIn, lang]);
 
   const bookingNote =
     order?.bookingNote || booking?.bookingNote || order?.notes || null;
@@ -582,9 +593,11 @@ export function OrderDetailClient() {
       <div className="print:hidden">
         <ExploreHeader
           showSearch={false}
-          showUserMenu={false}
+          showUserMenu={true}
           currentUser={currentUser}
           onOpenAuth={() => setIsAuthOpen(true)}
+          lang={lang}
+          onToggleLanguage={handleToggleLanguage}
         />
       </div>
 
@@ -592,7 +605,7 @@ export function OrderDetailClient() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-28 gap-3 text-foreground-muted">
             <Loader2 size={26} className="animate-spin text-brand-blue" />
-            <p className="text-xs font-semibold">Memuat rincian pesanan...</p>
+            <p className="text-xs font-semibold">{t.loadingDetail}</p>
           </div>
         ) : authRequired ? (
           <div className="text-center py-20 bg-white rounded-3xl border border-border p-8 space-y-5 shadow-2xs max-w-md mx-auto my-12">
@@ -604,9 +617,9 @@ export function OrderDetailClient() {
               />
             </div>
             <div className="space-y-1">
-              <h3 className="font-bold text-base text-foreground">Masuk ke Akun Anda</h3>
+              <h3 className="font-bold text-base text-foreground">{t.authRequiredTitle}</h3>
               <p className="text-xs text-foreground-muted leading-relaxed">
-                Sesi masuk Anda telah berakhir atau belum aktif. Silakan masuk untuk melihat rincian pemesanan ini.
+                {t.authRequiredDesc}
               </p>
             </div>
             <button
@@ -615,7 +628,7 @@ export function OrderDetailClient() {
               className="inline-flex items-center justify-center gap-2 w-full py-3.5 rounded-full bg-brand-blue text-white text-xs font-bold shadow-md hover:bg-brand-blue-hover transition-all cursor-pointer"
             >
               <LogIn size={15} />
-              <span>Masuk Sekarang</span>
+              <span>{t.loginNow}</span>
             </button>
             <div>
               <Link
@@ -626,7 +639,7 @@ export function OrderDetailClient() {
                   size={13}
                   className="text-foreground-muted group-hover:text-brand-blue group-hover:-translate-x-0.5 transition-transform"
                 />
-                <span>Kembali ke Pesanan Saya</span>
+                <span>{t.backToOrders}</span>
               </Link>
             </div>
           </div>
@@ -636,7 +649,7 @@ export function OrderDetailClient() {
               <AlertCircle size={22} />
             </div>
             <div className="space-y-1">
-              <h3 className="font-bold text-sm text-foreground">Gagal Memuat Detail</h3>
+              <h3 className="font-bold text-sm text-foreground">{t.loadFailed}</h3>
               <p className="text-xs text-foreground-muted">{error}</p>
             </div>
             <button
@@ -645,7 +658,7 @@ export function OrderDetailClient() {
               className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-brand-blue text-white text-xs font-bold hover:bg-brand-blue-hover transition-all cursor-pointer shadow-xs"
             >
               <RefreshCw size={13} />
-              <span>Coba Lagi</span>
+              <span>{t.retry}</span>
             </button>
           </div>
         ) : order ? (
@@ -656,12 +669,12 @@ export function OrderDetailClient() {
                 <Link
                   href="/orders"
                   className="p-2 -ml-2 rounded-full hover:bg-surface text-foreground transition-colors cursor-pointer shrink-0 print:hidden"
-                  aria-label="Kembali ke Pesanan Saya"
+                  aria-label={t.backToOrders}
                 >
                   <ArrowLeft size={22} className="stroke-[2.2]" />
                 </Link>
                 <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
-                  Detail Pesanan
+                  {t.title}
                 </h1>
               </div>
 
@@ -670,10 +683,10 @@ export function OrderDetailClient() {
                   type="button"
                   onClick={() => setIsInvoiceOpen(true)}
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-border hover:border-brand-blue hover:text-brand-blue bg-white text-xs font-bold text-foreground transition-all cursor-pointer shadow-2xs hover:bg-brand-blue/5"
-                  title="Lihat atau cetak invoice resmi seperti aplikasi Flutter"
+                  title={t.printInvoice}
                 >
                   <Printer size={14} className="text-brand-blue" />
-                  <span>Cetak Invoice</span>
+                  <span>{t.printInvoice}</span>
                 </button>
                 {badge && (
                   <span
@@ -707,13 +720,13 @@ export function OrderDetailClient() {
                       <div className="space-y-2 text-center sm:text-left flex-1">
                         <div className="flex items-center justify-center sm:justify-start gap-1.5 text-neutral-700 bg-neutral-100 border border-neutral-200 px-2.5 py-1 rounded-full w-fit mx-auto sm:mx-0">
                           <span className="text-[10.5px] uppercase font-bold tracking-wider">
-                            Tiket Resmi
+                            {t.officialTicket}
                           </span>
                         </div>
 
                         <div>
                           <span className="text-[11px] uppercase font-bold tracking-wider text-foreground-muted block">
-                            Kode Booking
+                            {t.bookingCode}
                           </span>
                           <div className="flex items-center justify-center sm:justify-start gap-2 mt-0.5">
                             <span className="text-2xl sm:text-3xl font-black text-brand-blue tracking-wider font-mono">
@@ -723,7 +736,7 @@ export function OrderDetailClient() {
                               type="button"
                               onClick={() => handleCopyCode(shortCode)}
                               className="p-1.5 rounded-xl border border-border bg-white hover:bg-surface text-foreground-muted hover:text-foreground cursor-pointer transition-colors"
-                              title="Salin Kode"
+                              title={t.copyCode}
                             >
                               {copied ? (
                                 <Check size={16} className="text-emerald-600" />
@@ -735,7 +748,7 @@ export function OrderDetailClient() {
                         </div>
 
                         <p className="text-[11px] text-foreground-muted font-mono break-all pt-1">
-                          No. Transaksi: <span className="text-foreground">{order.id}</span>
+                          {t.transactionNo} <span className="text-foreground">{order.id}</span>
                         </p>
                       </div>
 
@@ -747,7 +760,7 @@ export function OrderDetailClient() {
                               <DummyQrPlaceholder className="w-full h-full object-contain filter blur-md opacity-25 select-none pointer-events-none scale-105 text-neutral-800" />
                               <div className="absolute inset-0 flex items-center justify-center p-3">
                                 <span className="px-4 py-1.5 rounded-full bg-white/95 border border-neutral-200/90 text-neutral-600 text-xs font-semibold shadow-2xs backdrop-blur-xs tracking-wide select-none">
-                                  Belum Aktif
+                                  {t.qrNotActive}
                                 </span>
                               </div>
                             </>
@@ -763,12 +776,12 @@ export function OrderDetailClient() {
                         </div>
                         {isUnsettledDP ? (
                           <span className="text-[11px] font-medium text-foreground-muted text-center select-none">
-                            Aktif setelah pelunasan
+                            {t.dpActiveNotice}
                           </span>
                         ) : (
                           <span className="text-[11px] font-bold text-foreground-muted flex items-center gap-1.5">
                             <QrCode size={13} className="text-brand-blue" />
-                            Scan untuk Check-in
+                            {t.qrScanNotice}
                           </span>
                         )}
                       </div>
@@ -782,15 +795,14 @@ export function OrderDetailClient() {
                         <div className="flex items-center gap-1.5 text-neutral-700 bg-neutral-200/70 border border-neutral-300 px-2.5 py-1 rounded-full w-fit">
                           <Clock3 size={14} />
                           <span className="text-[10.5px] uppercase font-bold tracking-wider">
-                            Batas Waktu Pembayaran Berakhir
+                            {t.expiredDeadline}
                           </span>
                         </div>
                         <h2 className="text-lg font-extrabold text-foreground">
-                          Pesanan Ini Telah Kedaluwarsa
+                          {t.expiredTitle}
                         </h2>
                         <p className="text-xs text-foreground-muted max-w-md leading-relaxed">
-                          Batas waktu pembayaran untuk transaksi ini telah habis. Kuota unit penginapan telah
-                          dilepaskan kembali dan <strong>tiket tidak berlaku untuk check-in</strong>.
+                          {t.expiredDesc}
                         </p>
                       </div>
 
@@ -798,11 +810,11 @@ export function OrderDetailClient() {
                         href="/explore"
                         className="px-5 py-2.5 rounded-full bg-brand-blue text-white text-xs font-bold shadow-xs hover:bg-brand-blue-hover transition-all shrink-0"
                       >
-                        Pesan Ulang di Explore
+                        {t.reorderInExplore}
                       </Link>
                     </div>
                     <div className="p-3 rounded-2xl bg-white border border-neutral-200 text-neutral-600 text-[11px] font-mono">
-                      No. Transaksi: {order.id} · Kedaluwarsa pada {order.paymentExpiresAt ? formatDateDisplay(order.paymentExpiresAt) : '-'}
+                      {t.transactionNo} {order.id} · {order.paymentExpiresAt ? t.expiredOn(formatDateDisplay(order.paymentExpiresAt, lang)) : '-'}
                     </div>
                   </div>
                 ) : isCancelled ? (
@@ -812,18 +824,18 @@ export function OrderDetailClient() {
                       <div className="flex items-center gap-1.5 text-red-700 bg-red-100/80 border border-red-200 px-2.5 py-1 rounded-full w-fit">
                         <XCircle size={14} />
                         <span className="text-[10.5px] uppercase font-bold tracking-wider">
-                          Pesanan Dibatalkan
+                          {t.cancelledBadge}
                         </span>
                       </div>
                       <h2 className="text-lg font-extrabold text-red-950">
-                        Pemesanan Ini Telah Dibatalkan
+                        {t.cancelledTitle}
                       </h2>
                       <p className="text-xs text-red-800/80 max-w-md leading-relaxed">
-                        Pesanan ini tidak dapat digunakan untuk menginap di campsite.
+                        {t.cancelledDesc}
                       </p>
                     </div>
                     <div className="p-3 rounded-2xl bg-white/90 border border-red-200 text-red-700 text-[11px] font-mono">
-                      No. Transaksi: <span className="font-semibold">{order.id}</span>
+                      {t.transactionNo} <span className="font-semibold">{order.id}</span>
                     </div>
                   </div>
                 ) : isPending ? (
@@ -833,21 +845,21 @@ export function OrderDetailClient() {
                       <div className="flex items-center gap-1.5 text-amber-800 bg-amber-100/80 border border-amber-200 px-2.5 py-1 rounded-full w-fit">
                         <Clock size={14} />
                         <span className="text-[10.5px] uppercase font-bold tracking-wider">
-                          Menunggu Pembayaran
+                          {t.pendingBadge}
                         </span>
                       </div>
                       <h2 className="text-lg font-extrabold text-amber-950">
-                        Selesaikan Pembayaran
+                        {t.pendingTitle}
                       </h2>
                       <p className="text-xs text-amber-900/80 max-w-md leading-relaxed">
-                        Silakan selesaikan pembayaran sebelum batas waktu berakhir untuk menerbitkan <strong>E-Tiket & QR Code Check-in resmi</strong>.
+                        {t.pendingDesc}
                       </p>
                     </div>
 
                     <div className="p-3 rounded-2xl bg-white/90 border border-amber-200 text-amber-900 text-[11px] font-mono flex items-center justify-between flex-wrap gap-2">
-                      <span>No. Transaksi: <span className="font-semibold">{order.id}</span></span>
+                      <span>{t.transactionNo} <span className="font-semibold">{order.id}</span></span>
                       {order.paymentExpiresAt && (
-                        <span className="text-amber-700 font-sans">Batas: {formatDateDisplay(order.paymentExpiresAt)}</span>
+                        <span className="text-amber-700 font-sans">{t.paymentDeadline(formatDateDisplay(order.paymentExpiresAt, lang))}</span>
                       )}
                     </div>
 
@@ -859,7 +871,7 @@ export function OrderDetailClient() {
                         className="w-full sm:w-auto py-3 px-6 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
                       >
                         {paying ? <Loader2 size={15} className="animate-spin" /> : <CreditCard size={15} />}
-                        <span>{paying ? 'Menghubungkan ke Pembayaran...' : `Bayar Sekarang · ${rupiah(order.totalAmount)}`}</span>
+                        <span>{paying ? t.connectingPayment : t.payNowAmount(rupiah(order.totalAmount))}</span>
                       </button>
                     </div>
                   </div>
@@ -874,7 +886,7 @@ export function OrderDetailClient() {
                       <div className="flex items-center gap-2">
                         <div className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
                         <span className="text-xs font-bold uppercase tracking-wider text-amber-900">
-                          Skema Pembayaran: Uang Muka (DP 50%)
+                          {t.dpSchemeTitle}
                         </span>
                       </div>
                       <span
@@ -884,19 +896,19 @@ export function OrderDetailClient() {
                             : 'bg-emerald-100 text-emerald-800 border-emerald-300'
                         }`}
                       >
-                        {isUnsettledDP ? 'Belum Dilunasi' : 'Lunas'}
+                        {isUnsettledDP ? t.unsettled : t.settled}
                       </span>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                       <div className="p-3.5 rounded-2xl bg-white/80 border border-amber-200/50 space-y-1">
-                        <span className="text-amber-800/80 font-medium">DP Dibayar Online</span>
+                        <span className="text-amber-800/80 font-medium">{t.dpPaidOnline}</span>
                         <p className="text-base font-black text-foreground">
                           {rupiah(order.downPaymentAmount || order.totalAmount)}
                         </p>
                       </div>
                       <div className="p-3.5 rounded-2xl bg-white/80 border border-amber-200/50 space-y-1">
-                        <span className="text-amber-800/80 font-medium">Sisa Tagihan Pelunasan</span>
+                        <span className="text-amber-800/80 font-medium">{t.remainingBalanceLabel}</span>
                         <p className="text-base font-black text-amber-900">
                           {rupiah(remainingBalance)}
                         </p>
@@ -907,19 +919,16 @@ export function OrderDetailClient() {
                       <div className="space-y-3 pt-1 print:hidden">
                         {isSettlementExpired ? (
                           <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs leading-relaxed">
-                            ⏳ <strong>Batas Waktu Pelunasan Berakhir:</strong> Batas waktu pelunasan sisa tagihan (H-1 sebelum check-in) telah lewat. Pesanan dibatalkan dan uang muka (DP) hangus sesuai kebijakan reservasi.
+                            ⏳ <strong>{t.settleExpired}:</strong> {t.settlementExpiredNotice}
                           </div>
                         ) : (
                           <>
                             <div className="p-3.5 rounded-2xl bg-amber-100/60 border border-amber-200 text-amber-900 text-xs leading-relaxed">
-                              💡 <strong>Pemberitahuan Pelunasan:</strong> Sisa tagihan wajib dilunasi paling
-                              lambat{' '}
-                              <strong>
-                                {settlementDeadlineFormatted
-                                  ? `${settlementDeadlineFormatted} (H-1 sebelum check-in)`
-                                  : 'H-1 sebelum jadwal check-in'} pukul 23:59 WIB
-                              </strong>{' '}
-                              melalui aplikasi/web Embun.
+                              💡 {t.settlementNotice(
+                                settlementDeadlineFormatted
+                                  ? `${settlementDeadlineFormatted} (${lang === 'en' ? 'D-1 before check-in' : 'H-1 sebelum check-in'})`
+                                  : (lang === 'en' ? 'D-1 before check-in' : 'H-1 sebelum jadwal check-in')
+                              )}
                             </div>
 
                             <button
@@ -935,8 +944,8 @@ export function OrderDetailClient() {
                               )}
                               <span>
                                 {settling
-                                  ? 'Membuka Invoice Pelunasan...'
-                                  : `Lunasi Sisa Tagihan Sekarang · ${rupiah(remainingBalance)}`}
+                                  ? t.openingSettlementInvoice
+                                  : t.settleBalanceNow(rupiah(remainingBalance))}
                               </span>
                             </button>
                           </>
@@ -945,7 +954,7 @@ export function OrderDetailClient() {
                     ) : (
                       <div className="p-3 rounded-2xl bg-emerald-100/70 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2">
                         <Check size={16} className="text-emerald-700" />
-                        <span>Tagihan DP pesanan ini sudah berhasil dilunasi sepenuhnya.</span>
+                        <span>{t.dpFullySettled}</span>
                       </div>
                     )}
                   </div>
@@ -958,10 +967,10 @@ export function OrderDetailClient() {
                   <div className="flex items-start justify-between gap-4 pb-4 border-b border-border/70">
                     <div className="space-y-1.5 min-w-0">
                       <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold uppercase tracking-wider bg-brand-blue/8 text-brand-blue">
-                        {order.campsite?.name || 'Campsite'}
+                        {order.campsite?.name || t.campsiteDefault}
                       </span>
                       <h3 className="font-extrabold text-lg sm:text-xl text-foreground">
-                        {booking?.block?.name || 'Unit Penginapan'}
+                        {booking?.block?.name || t.unitStay}
                       </h3>
                       <p className="text-xs text-foreground-muted">
                         {booking?.packageName ? `${booking.packageName} · ` : ''}
@@ -990,7 +999,7 @@ export function OrderDetailClient() {
                         className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-border hover:bg-surface text-xs font-semibold text-foreground transition-colors"
                       >
                         <MapPin size={13} className="text-brand-blue" />
-                        <span>Buka Google Maps</span>
+                        <span>{t.openGoogleMaps}</span>
                         <ExternalLink size={11} className="text-foreground-muted" />
                       </a>
                     )}
@@ -1002,7 +1011,7 @@ export function OrderDetailClient() {
                         className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50 text-xs font-semibold text-emerald-800 transition-colors"
                       >
                         <MessageCircle size={13} className="text-emerald-600" />
-                        <span>Hubungi Pengelola Camp</span>
+                        <span>{t.contactHost}</span>
                       </a>
                     )}
                   </div>
@@ -1011,25 +1020,25 @@ export function OrderDetailClient() {
                   <div className="grid grid-cols-2 gap-3.5 text-xs">
                     <div className="p-4 rounded-2xl bg-surface/80 border border-border/60 space-y-1">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-foreground-muted flex items-center gap-1">
-                        <Calendar size={13} className="text-brand-blue" /> Check-In
+                        <Calendar size={13} className="text-brand-blue" /> {t.checkIn}
                       </span>
                       <p className="font-bold text-foreground text-sm">
-                        {formatDateDisplay(booking?.checkIn)}
+                        {formatDateDisplay(booking?.checkIn, lang)}
                       </p>
                       <p className="text-[11px] text-foreground-muted">
-                        Mulai {order.campsite?.checkInTime || '14:00'} WIB
+                        {t.checkInTimeFrom(order.campsite?.checkInTime || '14:00')}
                       </p>
                     </div>
 
                     <div className="p-4 rounded-2xl bg-surface/80 border border-border/60 space-y-1">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-foreground-muted flex items-center gap-1">
-                        <Calendar size={13} className="text-brand-blue" /> Check-Out
+                        <Calendar size={13} className="text-brand-blue" /> {t.checkOut}
                       </span>
                       <p className="font-bold text-foreground text-sm">
-                        {formatDateDisplay(booking?.checkOut)}
+                        {formatDateDisplay(booking?.checkOut, lang)}
                       </p>
                       <p className="text-[11px] text-foreground-muted">
-                        Maksimal {order.campsite?.checkOutTime || '12:00'} WIB
+                        {t.checkOutTimeTo(order.campsite?.checkOutTime || '12:00')}
                       </p>
                     </div>
                   </div>
@@ -1037,11 +1046,11 @@ export function OrderDetailClient() {
                   <div className="flex items-center justify-between text-xs pt-1 px-1">
                     <span className="text-foreground-muted flex items-center gap-1.5">
                       <Users size={14} className="text-brand-blue" />
-                      Jumlah Tamu: <strong className="text-foreground">{booking?.adultCount || 2} Orang</strong>
+                      <strong className="text-foreground">{t.guestCount(booking?.adultCount || 2)}</strong>
                     </span>
                     <span className="text-foreground-muted flex items-center gap-1.5">
                       <Clock size={14} className="text-brand-blue" />
-                      Durasi: <strong className="text-brand-blue">{nights} Malam</strong>
+                      <strong className="text-brand-blue">{t.duration(nights)}</strong>
                     </span>
                   </div>
                 </div>
@@ -1051,17 +1060,17 @@ export function OrderDetailClient() {
                 ════════════════════════════════════════════════════════════════ */}
                 <div className="bg-white rounded-3xl border border-border p-6 sm:p-7 space-y-3 shadow-2xs">
                   <h4 className="font-bold text-xs text-foreground uppercase tracking-wider">
-                    Data Tamu Pemesan
+                    {t.guestDetailsTitle}
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                     <div className="p-3.5 rounded-2xl bg-surface border border-border/50">
-                      <span className="text-foreground-muted block text-[10.5px]">Nama Lengkap</span>
+                      <span className="text-foreground-muted block text-[10.5px]">{t.guestFullName}</span>
                       <strong className="text-foreground text-sm">
-                        {order.guestName || 'Tamu Embun'}
+                        {order.guestName || t.guestDefault}
                       </strong>
                     </div>
                     <div className="p-3.5 rounded-2xl bg-surface border border-border/50">
-                      <span className="text-foreground-muted block text-[10.5px]">Nomor WhatsApp</span>
+                      <span className="text-foreground-muted block text-[10.5px]">{t.guestWhatsapp}</span>
                       <strong className="text-foreground text-sm">
                         {order.guestPhone || '-'}
                       </strong>
@@ -1077,10 +1086,10 @@ export function OrderDetailClient() {
                     <div className="flex items-center justify-between border-b border-border/70 pb-3">
                       <h4 className="font-bold text-xs text-foreground uppercase tracking-wider flex items-center gap-2">
                         <PackageCheck size={16} className="text-brand-blue" />
-                        <span>Fasilitas & Layanan Tambahan (Add-on)</span>
+                        <span>{t.addonsTitle}</span>
                       </h4>
                       <span className="text-[11px] font-semibold text-neutral-600 bg-neutral-100 px-2.5 py-0.5 rounded-full border border-neutral-200">
-                        {addonLines.length} Item
+                        {t.addonsCount(addonLines.length)}
                       </span>
                     </div>
 
@@ -1097,12 +1106,12 @@ export function OrderDetailClient() {
                               <p className="text-[11px] text-foreground-muted">
                                 {isFree ? (
                                   <span className="text-emerald-700 font-medium">
-                                    Sudah termasuk dalam paket
+                                    {t.includedInPackage}
                                   </span>
                                 ) : (
                                   <>
                                     {item.quantity} × {rupiah(item.unitPrice)}
-                                    {item.perNight ? ` · ${nights} malam` : ''}
+                                    {item.perNight ? ` · ${t.nightsDuration(nights)}` : ''}
                                   </>
                                 )}
                               </p>
@@ -1110,7 +1119,7 @@ export function OrderDetailClient() {
                             <div className="font-bold text-foreground text-sm shrink-0">
                               {isFree ? (
                                 <span className="text-emerald-700 text-[11px] font-semibold bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 rounded-full">
-                                  Gratis
+                                  {t.free}
                                 </span>
                               ) : (
                                 rupiah(item.amount)
@@ -1129,7 +1138,7 @@ export function OrderDetailClient() {
                 <div className="bg-white rounded-3xl border border-border p-6 sm:p-7 space-y-3 shadow-2xs">
                   <h4 className="font-bold text-xs text-foreground uppercase tracking-wider flex items-center gap-2">
                     <FileText size={16} className="text-brand-blue" />
-                    <span>Catatan untuk Campsite</span>
+                    <span>{t.campsiteNoteTitle}</span>
                   </h4>
                   {bookingNote ? (
                     <div className="p-4 rounded-2xl bg-surface/80 border border-border/60 text-xs text-foreground leading-relaxed whitespace-pre-line">
@@ -1137,7 +1146,7 @@ export function OrderDetailClient() {
                     </div>
                   ) : (
                     <p className="text-xs text-foreground-muted italic">
-                      Tidak ada catatan khusus dari tamu untuk pesanan ini.
+                      {t.campsiteNoteEmpty}
                     </p>
                   )}
                 </div>
@@ -1149,13 +1158,13 @@ export function OrderDetailClient() {
                   <div className="bg-white rounded-3xl border border-border p-6 sm:p-7 space-y-4 shadow-2xs">
                     <h4 className="font-bold text-xs text-foreground uppercase tracking-wider flex items-center gap-2">
                       <ScrollText size={16} className="text-brand-blue" />
-                      <span>Aturan & Kebijakan Campsite</span>
+                      <span>{t.rulesTitle}</span>
                     </h4>
                     <div className="space-y-3 text-xs">
                       {campsiteRules && (
                         <div className="p-4 rounded-2xl bg-amber-50/50 border border-amber-200/60 text-amber-950 space-y-1.5">
                           <span className="text-[10.5px] font-bold uppercase tracking-wider text-amber-800 block">
-                            Aturan Menginap
+                            {t.stayRules}
                           </span>
                           <p className="leading-relaxed whitespace-pre-line text-neutral-700">
                             {campsiteRules}
@@ -1165,7 +1174,7 @@ export function OrderDetailClient() {
                       {campsiteHostNotes && (
                         <div className="p-4 rounded-2xl bg-surface border border-border/60 text-neutral-700 space-y-1.5">
                           <span className="text-[10.5px] font-bold uppercase tracking-wider text-foreground-muted block">
-                            Catatan dari Pengelola Campsite
+                            {t.hostNotes}
                           </span>
                           <p className="leading-relaxed whitespace-pre-line">
                             {campsiteHostNotes}
@@ -1184,9 +1193,8 @@ export function OrderDetailClient() {
                 ════════════════════════════════════════════════════════════════ */}
                 <div className="bg-white rounded-3xl border border-border p-6 space-y-4 shadow-2xs">
                   <div className="flex items-center justify-between border-b border-border/70 pb-3">
-                    <h4 className="font-bold text-xs text-foreground uppercase tracking-wider flex items-center gap-1.5">
-                      <Receipt size={14} className="text-brand-blue" />
-                      Rincian Pembayaran
+                    <h4 className="font-bold text-xs text-foreground uppercase tracking-wider">
+                      {t.paymentSummaryTitle}
                     </h4>
                   </div>
 
@@ -1194,7 +1202,7 @@ export function OrderDetailClient() {
                     {/* Biaya Sewa Unit Pokok */}
                     <div className="flex justify-between">
                       <span className="text-foreground-muted">
-                        Sewa {booking?.block?.name || 'Unit'} ({nights} malam)
+                        {t.rentUnit(booking?.block?.name || t.unitStay, nights)}
                       </span>
                       <span className="font-semibold text-foreground">
                         {rupiah(baseRental)}
@@ -1206,7 +1214,7 @@ export function OrderDetailClient() {
                       <div key={idx} className="flex justify-between text-xs">
                         <span className="text-foreground-muted">
                           {addon.name} ({addon.quantity}x
-                          {addon.perNight ? ` · ${nights} malam` : ''})
+                          {addon.perNight ? ` · ${t.nightsDuration(nights)}` : ''})
                         </span>
                         <span className="font-semibold text-foreground">
                           {rupiah(addon.amount)}
@@ -1217,7 +1225,7 @@ export function OrderDetailClient() {
                     {/* Biaya Layanan */}
                     {order.guestServiceFee > 0 && (
                       <div className="flex justify-between">
-                        <span className="text-foreground-muted">Biaya Layanan</span>
+                        <span className="text-foreground-muted">{t.serviceFee}</span>
                         <span className="font-semibold text-foreground">
                           {rupiah(order.guestServiceFee)}
                         </span>
@@ -1227,7 +1235,7 @@ export function OrderDetailClient() {
                     {/* Biaya Admin */}
                     {order.guestAdminFee > 0 && (
                       <div className="flex justify-between">
-                        <span className="text-foreground-muted">Biaya Admin</span>
+                        <span className="text-foreground-muted">{t.adminFee}</span>
                         <span className="font-semibold text-foreground">
                           {rupiah(order.guestAdminFee)}
                         </span>
@@ -1237,7 +1245,7 @@ export function OrderDetailClient() {
                     {/* PPN */}
                     {order.guestTaxFee > 0 && (
                       <div className="flex justify-between">
-                        <span className="text-foreground-muted">PPN</span>
+                        <span className="text-foreground-muted">{t.taxVat}</span>
                         <span className="font-semibold text-foreground">
                           {rupiah(order.guestTaxFee)}
                         </span>
@@ -1245,7 +1253,7 @@ export function OrderDetailClient() {
                     )}
 
                     <div className="pt-3 border-t border-border flex justify-between items-center text-sm">
-                      <span className="font-bold text-foreground">Total Tagihan Transaksi</span>
+                      <span className="font-bold text-foreground">{t.totalTransaction}</span>
                       <span className="text-base font-black text-brand-blue">
                         {rupiah(order.totalAmount)}
                       </span>
@@ -1254,11 +1262,11 @@ export function OrderDetailClient() {
                     {isPaid && isDP && (
                       <div className="pt-2.5 border-t border-border/60 space-y-1.5 text-xs">
                         <div className="flex justify-between text-emerald-700 font-medium">
-                          <span>Sudah Dibayar (DP Online)</span>
+                          <span>{t.dpPaidSummary}</span>
                           <span>{rupiah(order.downPaymentAmount || order.totalAmount)}</span>
                         </div>
                         <div className="flex justify-between text-amber-900 font-bold">
-                          <span>Sisa Tagihan Belum Dibayar</span>
+                          <span>{t.remainingBalanceSummary}</span>
                           <span>{rupiah(remainingBalance)}</span>
                         </div>
                       </div>
@@ -1276,7 +1284,7 @@ export function OrderDetailClient() {
                           className="w-full py-3 px-4 rounded-full border border-brand-blue bg-white hover:bg-brand-blue/5 text-brand-blue font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs hover:border-brand-blue-hover"
                         >
                           <Calendar size={15} />
-                          <span>Ubah Jadwal (Reschedule)</span>
+                          <span>{t.rescheduleButton}</span>
                         </button>
                       )}
 
@@ -1294,10 +1302,10 @@ export function OrderDetailClient() {
                           <RotateCcw size={14} />
                           <span>
                             {isActuallyRefundEligible
-                              ? 'Ajukan Refund'
+                              ? t.applyRefund
                               : isPending
-                              ? 'Batalkan Pesanan'
-                              : 'Batalkan Pesanan (Tanpa Refund)'}
+                              ? t.cancelOrder
+                              : t.cancelOrderNoRefund}
                           </span>
                         </button>
                       )}
@@ -1314,23 +1322,12 @@ export function OrderDetailClient() {
                         className="w-full py-3 px-6 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
                       >
                         {paying ? <Loader2 size={15} className="animate-spin" /> : <CreditCard size={15} />}
-                        <span>{paying ? 'Menghubungkan ke Pembayaran...' : `Bayar Sekarang · ${rupiah(order.totalAmount)}`}</span>
+                        <span>{paying ? t.connectingPayment : t.payNowAmount(rupiah(order.totalAmount))}</span>
                       </button>
                     </div>
                   )}
 
-                  {/* Tombol Sinkronisasi Status */}
-                  <div className="pt-2 border-t border-border/60 print:hidden">
-                    <button
-                      type="button"
-                      onClick={handleSync}
-                      disabled={syncing}
-                      className="w-full py-3 px-4 rounded-full border border-border bg-white hover:bg-surface text-foreground font-semibold text-xs transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer shadow-2xs"
-                    >
-                      <RefreshCw size={13} className={syncing ? 'animate-spin text-brand-blue' : ''} />
-                      <span>{syncing ? 'Menyinkronkan...' : 'Sinkronkan Status'}</span>
-                    </button>
-                  </div>
+
                 </div>
 
                 {/* ════════════════════════════════════════════════════════════════
@@ -1342,12 +1339,12 @@ export function OrderDetailClient() {
                       <HelpCircle size={20} />
                     </div>
                     <div>
-                      <h4 className="text-xs font-bold text-foreground">Butuh Bantuan?</h4>
-                      <p className="text-[11px] text-foreground-muted">Layanan pelanggan Embun</p>
+                      <h4 className="text-xs font-bold text-foreground">{t.needHelpTitle}</h4>
+                      <p className="text-[11px] text-foreground-muted">{t.needHelpSubtitle}</p>
                     </div>
                   </div>
                   <p className="text-xs text-foreground-muted leading-relaxed">
-                    Punya pertanyaan seputar check-in, pelunasan sisa tagihan, atau kebijakan pembatalan?
+                    {t.needHelpDesc}
                   </p>
                   <div className="space-y-2 pt-1">
                     <a
@@ -1357,7 +1354,7 @@ export function OrderDetailClient() {
                       className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-full border border-border hover:border-emerald-500 hover:text-emerald-700 bg-surface/50 hover:bg-emerald-50/50 text-xs font-bold text-foreground transition-all cursor-pointer"
                     >
                       <MessageCircle size={14} className="text-emerald-600" />
-                      <span>Chat WhatsApp CS</span>
+                      <span>{t.chatWhatsappCs}</span>
                     </a>
                     <a
                       href="mailto:support@embun.app"
@@ -1376,7 +1373,7 @@ export function OrderDetailClient() {
 
       {/* ═══ FOOTER RESMI EXPLORE ═══ */}
       <div className="print:hidden">
-        <ExploreFooter />
+        <ExploreFooter lang={lang} />
       </div>
 
       {/* Guest Auth Modal */}
@@ -1384,6 +1381,7 @@ export function OrderDetailClient() {
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
         currentUser={currentUser}
+        lang={lang}
         onSuccess={handleLoginSuccess}
         onLogout={() => {
           setCurrentUser(null);

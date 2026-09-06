@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { Heart, ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { resolveAssetUrl, rupiah, WishlistItemView } from '@/lib/api-client';
 import { getPhotoCategoryScore } from '@/components/explore/SpotCard';
+import { ACCOUNT_I18N, type Language } from '@/lib/account-i18n';
 
 interface WishlistCardProps {
   item: WishlistItemView;
@@ -12,6 +13,7 @@ interface WishlistCardProps {
   isUnwishlisted: boolean;
   onToggleWishlist: (e: React.MouseEvent, item: WishlistItemView) => void;
   onClickCard: (item: WishlistItemView) => void;
+  lang?: Language;
 }
 
 export function WishlistCard({
@@ -21,7 +23,9 @@ export function WishlistCard({
   isUnwishlisted,
   onToggleWishlist,
   onClickCard,
+  lang = 'id',
 }: WishlistCardProps) {
+  const t = ACCOUNT_I18N[lang].wishlist;
   const [photoIndex, setPhotoIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [failedUrls, setFailedUrls] = useState<Set<string>>(new Set());
@@ -204,7 +208,7 @@ export function WishlistCard({
         {isUnwishlisted && (
           <div className="absolute top-3 left-3 z-10 animate-in fade-in duration-200">
             <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-neutral-900/85 text-white backdrop-blur-xs shadow-xs">
-              Dihapus
+              {t.removed}
             </span>
           </div>
         )}
@@ -213,7 +217,7 @@ export function WishlistCard({
         <button
           type="button"
           onClick={(e) => onToggleWishlist(e, item)}
-          title={isUnwishlisted ? 'Simpan kembali ke Wishlist' : 'Hapus dari Wishlist'}
+          title={isUnwishlisted ? t.saveBack : t.removeFromWishlist}
           className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-xs shadow-xs active:scale-90 transition-all cursor-pointer z-20 ${
             isUnwishlisted
               ? 'bg-white/90 text-neutral-400 hover:text-red-500 hover:bg-white'
@@ -294,13 +298,13 @@ export function WishlistCard({
           <div className="pt-0.5 flex items-baseline justify-between gap-2">
             <p className="text-sm text-foreground">
               <span className="text-xs font-normal text-foreground-muted mr-1">
-                mulai dari
+                {t.startingFrom}
               </span>
               <span className="font-bold text-foreground">
                 {rupiah(startingPrice)}
               </span>
               <span className="text-[11px] font-normal text-foreground-muted ml-1">
-                / malam
+                {t.perNight}
               </span>
             </p>
           </div>
@@ -308,7 +312,7 @@ export function WishlistCard({
 
         {!item.available && (
           <p className="text-[11px] text-amber-600 font-medium pt-0.5">
-            Saat ini tidak tersedia
+            {t.currentlyUnavailable}
           </p>
         )}
       </div>

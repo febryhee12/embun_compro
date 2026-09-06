@@ -33,6 +33,7 @@ import {
   AccountMobileNav,
   AccountLogoutDialog,
 } from '@/components/account/AccountNav';
+import { ACCOUNT_I18N, type Language } from '@/lib/account-i18n';
 
 export function ProfileClient() {
   const router = useRouter();
@@ -45,6 +46,28 @@ export function ProfileClient() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+
+  // Language state (defaults to 'id', persist in localStorage)
+  const [lang, setLang] = useState<Language>('id');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedLang = localStorage.getItem('embun_lang');
+      if (savedLang === 'en' || savedLang === 'id') {
+        setLang(savedLang);
+      }
+    }
+  }, []);
+
+  const handleToggleLanguage = () => {
+    const nextLang: Language = lang === 'id' ? 'en' : 'id';
+    setLang(nextLang);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('embun_lang', nextLang);
+    }
+  };
+
+  const t = ACCOUNT_I18N[lang].profile;
 
   const handleBack = () => {
     if (typeof window !== 'undefined' && window.history.length > 1) {
@@ -202,16 +225,18 @@ export function ProfileClient() {
       {/* ═══ HEADER ATAS (LOGO RESMI EMBUN EXPLORE & MENU AKUN, TANPA LOKASI) ═══ */}
       <ExploreHeader
         showSearch={false}
-        showUserMenu={false}
+        showUserMenu={true}
         currentUser={profile}
         onOpenAuth={() => setIsAuthOpen(true)}
+        lang={lang}
+        onToggleLanguage={handleToggleLanguage}
       />
 
       <main className="max-w-[2520px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-10 flex-1 w-full">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-28 gap-3 text-foreground-muted">
             <Loader2 size={26} className="animate-spin text-brand-blue" />
-            <p className="text-xs font-semibold">Memuat profil...</p>
+            <p className="text-xs font-semibold">{t.loading}</p>
           </div>
         ) : authRequired ? (
           <div className="text-center py-20 bg-white rounded-3xl border border-border p-8 space-y-5 shadow-2xs max-w-md mx-auto my-12">
@@ -223,9 +248,9 @@ export function ProfileClient() {
               />
             </div>
             <div className="space-y-1">
-              <h3 className="font-bold text-base text-foreground">Masuk ke Akun Anda</h3>
+              <h3 className="font-bold text-base text-foreground">{t.authRequiredTitle}</h3>
               <p className="text-xs text-foreground-muted leading-relaxed">
-                Anda harus masuk terlebih dahulu untuk melihat dan memperbarui profil Anda.
+                {t.authRequiredDesc}
               </p>
             </div>
             <button
@@ -233,14 +258,14 @@ export function ProfileClient() {
               onClick={() => setIsAuthOpen(true)}
               className="inline-flex items-center justify-center gap-2 w-full py-3.5 rounded-full bg-brand-blue text-white text-xs font-bold shadow-md hover:bg-brand-blue-hover transition-all cursor-pointer"
             >
-              <span>Masuk Sekarang</span>
+              <span>{t.loginNow}</span>
             </button>
             <div>
               <Link
                 href="/explore"
                 className="text-xs font-semibold text-foreground-muted hover:text-foreground transition-colors"
               >
-                Ke Halaman Explore
+                {t.toExplore}
               </Link>
             </div>
           </div>
@@ -259,12 +284,12 @@ export function ProfileClient() {
                     <ArrowLeft size={22} className="stroke-[2.2]" />
                   </button>
                   <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
-                    Profil Saya
+                    {t.title}
                   </h1>
                 </div>
               </div>
               <p className="text-xs sm:text-sm text-foreground-muted mt-1 ml-9 sm:ml-10">
-                Kelola data diri, kontak WhatsApp, dan preferensi akun Anda di Embun.
+                {t.subtitle}
               </p>
             </div>
 
@@ -272,6 +297,7 @@ export function ProfileClient() {
             <AccountMobileNav
               activeTab="profile"
               onLogout={() => setShowLogoutConfirm(true)}
+              lang={lang}
             />
 
             {/* Layout Grid Responsif (Sidebar di Desktop) */}
@@ -280,6 +306,7 @@ export function ProfileClient() {
               <AccountSidebar
                 activeTab="profile"
                 onLogout={() => setShowLogoutConfirm(true)}
+                lang={lang}
               />
 
               {/* Sisi Kanan: Formulir Edit Profil */}
@@ -312,7 +339,7 @@ export function ProfileClient() {
                       <label
                         htmlFor="profile-photo-input"
                         className="absolute bottom-0 right-0 p-2 bg-brand-blue text-white rounded-full shadow-md hover:bg-brand-blue-hover transition-all cursor-pointer border-2 border-white flex items-center justify-center"
-                        title="Ubah Foto Profil"
+                        title={t.changePhoto}
                       >
                         <Camera size={14} />
                         <input
@@ -333,15 +360,15 @@ export function ProfileClient() {
                         </h2>
                         <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
                           <ShieldCheck size={12} />
-                          <span>Akun Terverifikasi</span>
+                          <span>{t.verifiedAccount}</span>
                         </span>
                       </div>
                       <p className="text-xs text-foreground-muted flex items-center justify-center sm:justify-start gap-1.5 pt-0.5">
                         <Mail size={12} className="text-brand-blue shrink-0" />
-                        <span>{profile?.email || 'Belum ada email'}</span>
+                        <span>{profile?.email || t.noEmail}</span>
                       </p>
                       <p className="text-[11.5px] text-foreground-muted pt-1">
-                        Foto dan data profil Anda akan ditampilkan kepada pengelola campsite untuk kelancaran verifikasi saat check-in.
+                        {t.photoNotice}
                       </p>
                     </div>
                   </div>
@@ -350,7 +377,7 @@ export function ProfileClient() {
                   <form onSubmit={handleSave} className="space-y-5 pt-4 border-t border-border/70">
                     <div className="flex items-center justify-between">
                       <h3 className="text-xs font-bold uppercase tracking-wider text-foreground-muted">
-                        Data Kontak Tamu
+                        {t.contactSection}
                       </h3>
                     </div>
 
@@ -363,31 +390,31 @@ export function ProfileClient() {
                     {saved && (
                       <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold flex items-center gap-2">
                         <CheckCircle2 size={15} className="shrink-0" />
-                        <span>Profil berhasil disimpan.</span>
+                        <span>{t.saveSuccess}</span>
                       </div>
                     )}
 
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
                         <User size={13} className="text-brand-blue" />
-                        <span>Nama Lengkap</span>
+                        <span>{t.fullName}</span>
                       </label>
                       <input
                         type="text"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
-                        placeholder="Nama lengkap Anda sesuai kartu identitas"
+                        placeholder={t.fullNamePlaceholder}
                         className="w-full px-4 py-3 rounded-2xl border border-border bg-surface/30 focus:bg-white text-sm text-foreground outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all"
                       />
                       <p className="text-[11px] text-foreground-muted">
-                        Nama lengkap wajib diisi sesuai kartu identitas (KTP/SIM/Paspor).
+                        {t.fullNameHelp}
                       </p>
                     </div>
 
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
                         <Phone size={13} className="text-emerald-600" />
-                        <span>Nomor WhatsApp</span>
+                        <span>{t.whatsapp}</span>
                       </label>
                       <div className="relative flex items-center">
                         <div className="absolute left-3.5 flex items-center gap-1 text-xs font-bold text-foreground pointer-events-none select-none border-r border-border pr-2.5 py-1">
@@ -408,29 +435,29 @@ export function ProfileClient() {
                         />
                       </div>
                       <p className="text-[11px] text-foreground-muted">
-                        Nomor WhatsApp aktif untuk menerima voucher reservasi, e-tiket, & koordinasi check-in.
+                        {t.whatsappHelp}
                       </p>
                     </div>
 
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
                         <MapPin size={13} className="text-brand-blue" />
-                        <span>Alamat Domisili / Kota Asal</span>
+                        <span>{t.address}</span>
                       </label>
                       <textarea
                         value={address}
                         onChange={(e) => setAddress(e.target.value)}
-                        placeholder="Contoh: Jl. Sukajadi No. 12, Kota Bandung, Jawa Barat"
+                        placeholder={t.addressPlaceholder}
                         rows={3}
                         className="w-full px-4 py-3 rounded-2xl border border-border bg-surface/30 focus:bg-white text-sm text-foreground outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all resize-none"
                       />
                       <p className="text-[11px] text-foreground-muted">
-                        Kota tempat tinggal Anda untuk keperluan data tamu registrasi.
+                        {t.addressHelp}
                       </p>
                     </div>
 
                     <p className="text-[11px] text-foreground-muted bg-surface/50 p-3.5 rounded-2xl border border-border/70 leading-relaxed">
-                      Alamat email ({profile?.email || '-'}) dikelola oleh penyedia autentikasi login Anda (Google/Apple) dan tidak dapat diubah secara langsung di sini.
+                      {t.emailNotice(profile?.email || '-')}
                     </p>
 
                     <div className="pt-2">
@@ -440,7 +467,7 @@ export function ProfileClient() {
                         className="w-full py-3.5 px-6 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white font-bold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer shadow-md hover:shadow-lg"
                       >
                         {saving ? <Loader2 size={16} className="animate-spin" /> : null}
-                        <span>{saving ? 'Menyimpan...' : 'Simpan Perubahan'}</span>
+                        <span>{saving ? t.saving : t.save}</span>
                       </button>
                     </div>
                   </form>
@@ -450,10 +477,10 @@ export function ProfileClient() {
                 <div className="bg-white rounded-3xl border border-border p-5 sm:p-6 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="space-y-0.5">
                     <h3 className="text-sm font-bold text-foreground">
-                      Sesi Akun
+                      {t.sessionTitle}
                     </h3>
                     <p className="text-xs text-foreground-muted">
-                      Anda sedang masuk sebagai <span className="font-semibold text-foreground">{profile?.fullName || 'Tamu'}</span> ({profile?.email || '-'}).
+                      {t.sessionDesc(profile?.fullName || 'Tamu', profile?.email || '-')}
                     </p>
                   </div>
                   <button
@@ -461,7 +488,7 @@ export function ProfileClient() {
                     onClick={() => setShowLogoutConfirm(true)}
                     className="w-full sm:w-auto px-5 py-2.5 rounded-full border border-red-200 bg-red-50/60 hover:bg-red-100 text-red-600 text-xs font-bold transition-all flex items-center justify-center cursor-pointer shrink-0 shadow-2xs active:scale-95"
                   >
-                    Keluar dari Akun
+                    {t.logoutButton}
                   </button>
                 </div>
               </div>
@@ -471,13 +498,14 @@ export function ProfileClient() {
       </main>
 
       {/* ═══ FOOTER RESMI EXPLORE ═══ */}
-      <ExploreFooter />
+      <ExploreFooter lang={lang} />
 
       {/* Logout Confirmation Dialog */}
       <AccountLogoutDialog
         isOpen={showLogoutConfirm}
         onClose={() => setShowLogoutConfirm(false)}
         onConfirm={handleLogout}
+        lang={lang}
       />
 
       {/* Guest Auth Modal */}
@@ -485,6 +513,7 @@ export function ProfileClient() {
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
         currentUser={profile}
+        lang={lang}
         onSuccess={(user) => {
           setProfile(user);
           setFullName(user.fullName || '');

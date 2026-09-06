@@ -24,6 +24,7 @@ import {
   AccountMobileNav,
   AccountLogoutDialog,
 } from '@/components/account/AccountNav';
+import { ACCOUNT_I18N, type Language } from '@/lib/account-i18n';
 
 export function WishlistClient() {
   const router = useRouter();
@@ -34,6 +35,28 @@ export function WishlistClient() {
   const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  // Language state (defaults to 'id', persist in localStorage)
+  const [lang, setLang] = useState<Language>('id');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedLang = localStorage.getItem('embun_lang');
+      if (savedLang === 'en' || savedLang === 'id') {
+        setLang(savedLang);
+      }
+    }
+  }, []);
+
+  const handleToggleLanguage = () => {
+    const nextLang: Language = lang === 'id' ? 'en' : 'id';
+    setLang(nextLang);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('embun_lang', nextLang);
+    }
+  };
+
+  const t = ACCOUNT_I18N[lang].wishlist;
 
   const handleLogout = () => {
     clearGuestSession();
@@ -177,14 +200,16 @@ export function WishlistClient() {
         onOpenAuth={() => setIsAuthOpen(true)}
         currentUser={currentUser}
         showSearch={false}
-        showUserMenu={false}
+        showUserMenu={true}
+        lang={lang}
+        onToggleLanguage={handleToggleLanguage}
       />
 
       <main className="max-w-[2520px] mx-auto w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-10 flex-1">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-28 gap-3 text-foreground-muted">
             <div className="w-7 h-7 border-2 border-brand-blue border-t-transparent rounded-full animate-spin" />
-            <p className="text-xs font-semibold">Memuat wishlist...</p>
+            <p className="text-xs font-semibold">{t.loading}</p>
           </div>
         ) : authRequired ? (
           <div className="text-center py-20 bg-white rounded-3xl border border-border p-8 space-y-5 shadow-2xs max-w-md mx-auto my-12">
@@ -196,9 +221,9 @@ export function WishlistClient() {
               />
             </div>
             <div className="space-y-1">
-              <h3 className="font-bold text-base text-foreground">Masuk ke Akun Anda</h3>
+              <h3 className="font-bold text-base text-foreground">{t.authRequiredTitle}</h3>
               <p className="text-xs text-foreground-muted leading-relaxed">
-                Anda harus masuk terlebih dahulu untuk melihat dan mengelola spot favorit Anda.
+                {t.authRequiredDesc}
               </p>
             </div>
             <button
@@ -206,14 +231,14 @@ export function WishlistClient() {
               onClick={() => setIsAuthOpen(true)}
               className="inline-flex items-center justify-center gap-2 w-full py-3.5 rounded-full bg-brand-blue text-white text-xs font-bold shadow-md hover:bg-brand-blue-hover transition-all cursor-pointer"
             >
-              <span>Masuk Sekarang</span>
+              <span>{t.loginNow}</span>
             </button>
             <div>
               <Link
                 href="/explore"
                 className="text-xs font-semibold text-foreground-muted hover:text-foreground transition-colors"
               >
-                Ke Halaman Explore
+                {t.toExplore}
               </Link>
             </div>
           </div>
@@ -231,13 +256,11 @@ export function WishlistClient() {
                   <ArrowLeft size={22} className="stroke-[2.2]" />
                 </button>
                 <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
-                  Wishlist Saya
+                  {t.title}
                 </h1>
               </div>
               <p className="text-xs sm:text-sm text-foreground-muted mt-1 ml-9 sm:ml-10">
-                {activeCount > 0
-                  ? `${activeCount} spot & penginapan favorit yang Anda simpan`
-                  : 'Spot camping dan akomodasi favorit Anda'}
+                {t.countSubtitle(activeCount)}
               </p>
             </div>
 
@@ -245,6 +268,7 @@ export function WishlistClient() {
             <AccountMobileNav
               activeTab="wishlist"
               onLogout={() => setShowLogoutConfirm(true)}
+              lang={lang}
             />
 
             {/* Layout Grid Responsif (Sidebar di Desktop) */}
@@ -253,6 +277,7 @@ export function WishlistClient() {
               <AccountSidebar
                 activeTab="wishlist"
                 onLogout={() => setShowLogoutConfirm(true)}
+                lang={lang}
               />
 
               {/* Sisi Kanan: Konten Wishlist */}
@@ -261,7 +286,7 @@ export function WishlistClient() {
                 {unwishlistedIds.size > 0 && (
                   <div className="p-4 rounded-2xl bg-neutral-50 border border-neutral-200/80 flex items-center justify-between text-xs text-foreground animate-in fade-in duration-200">
                     <span className="text-neutral-600">
-                      {unwishlistedIds.size} spot dihapus dari wishlist dan akan hilang saat Anda memuat ulang halaman.
+                      {t.undoNotice(unwishlistedIds.size)}
                     </span>
                     <button
                       type="button"
@@ -274,7 +299,7 @@ export function WishlistClient() {
                       }}
                       className="font-bold text-brand-blue hover:underline cursor-pointer ml-3 shrink-0"
                     >
-                      Batalkan Semua
+                      {t.undoAll}
                     </button>
                   </div>
                 )}
@@ -287,17 +312,17 @@ export function WishlistClient() {
                     </div>
                     <div className="space-y-1">
                       <h3 className="font-bold text-base text-foreground">
-                        Belum Ada Wishlist Tersimpan
+                        {t.emptyTitle}
                       </h3>
                       <p className="text-xs text-foreground-muted leading-relaxed">
-                        Jelajahi spot camping dan glamping terbaik, lalu klik ikon hati pada unit yang Anda sukai untuk menyimpannya di sini.
+                        {t.emptyDesc}
                       </p>
                     </div>
                     <Link
                       href="/explore"
                       className="inline-flex items-center justify-center w-full py-3.5 rounded-full bg-brand-blue text-white text-xs font-bold shadow-md hover:bg-brand-blue-hover transition-all"
                     >
-                      Mulai Jelajahi Spot
+                      {t.startExplore}
                     </Link>
                   </div>
                 ) : (
@@ -318,6 +343,7 @@ export function WishlistClient() {
                           isUnwishlisted={unwishlistedIds.has(item.id)}
                           onToggleWishlist={handleToggleWishlist}
                           onClickCard={handleCardClick}
+                          lang={lang}
                         />
                       );
                     })}
@@ -329,19 +355,21 @@ export function WishlistClient() {
         )}
       </main>
 
-      <ExploreFooter />
+      <ExploreFooter lang={lang} />
 
       {/* Logout Confirmation Dialog */}
       <AccountLogoutDialog
         isOpen={showLogoutConfirm}
         onClose={() => setShowLogoutConfirm(false)}
         onConfirm={handleLogout}
+        lang={lang}
       />
 
       {/* Guest Auth Modal */}
       <GuestAuthModal
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
+        lang={lang}
         onSuccess={() => {
           setIsAuthOpen(false);
           void loadData();

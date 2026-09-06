@@ -37,6 +37,85 @@ function loadAppleIdScript(): Promise<any> {
   });
 }
 
+const AUTH_MODAL_I18N = {
+  id: {
+    back: 'Kembali',
+    defaultGuestName: 'Tamu Embun',
+    verifiedAccount: 'Akun Terverifikasi',
+    editProfile: 'Edit Profil',
+    wishlist: 'Wishlist Saya',
+    orders: 'Pesanan Saya',
+    logout: 'Keluar dari Akun',
+    welcomeTitle: 'Selamat Datang di Embun',
+    welcomeDesc: 'Masuk ke akun Anda untuk mengakses profil dan pemesanan Anda.',
+    checkoutTitle: 'Selesaikan Pemesanan',
+    checkoutDesc: 'Masuk ke akun Anda untuk menyelesaikan pemesanan ini.',
+    signInWithGoogle: 'Masuk dengan Google',
+    signInWithApple: 'Masuk dengan Apple',
+    consentPrefix: 'Dengan masuk atau mendaftar, Anda menyetujui ',
+    privacyPolicy: 'Kebijakan Privasi',
+    terms: 'Syarat & Ketentuan',
+    and: ', dan ',
+    refundPolicy: 'Kebijakan Refund',
+    logoutModal: {
+      title: 'Keluar dari Akun?',
+      desc: 'Apakah Anda yakin ingin keluar dari akun Anda saat ini?',
+      cancel: 'Batal',
+      confirm: 'Keluar',
+    },
+    errors: {
+      googleCancelled: 'Login Google dibatalkan.',
+      googleProfileFailed: 'Gagal mengambil data profil Google.',
+      googleFailed: 'Gagal masuk dengan Google.',
+      googleLoading: 'Sedang memuat layanan Google Sign-In, silakan klik kembali.',
+      googleConnectFailed: 'Gagal menghubungkan ke Google.',
+      appleNotConfigured:
+        'Login Apple belum dikonfigurasi (Services ID belum diatur). Silakan gunakan Google atau aplikasi Embun.',
+      appleScriptFailed: 'Gagal memuat layanan Sign in with Apple.',
+      appleTokenFailed: 'Apple tidak mengembalikan token identitas.',
+      appleFailed: 'Gagal masuk dengan Apple.',
+    },
+  },
+  en: {
+    back: 'Back',
+    defaultGuestName: 'Embun Guest',
+    verifiedAccount: 'Verified Account',
+    editProfile: 'Edit Profile',
+    wishlist: 'My Wishlist',
+    orders: 'My Bookings',
+    logout: 'Log Out',
+    welcomeTitle: 'Welcome to Embun',
+    welcomeDesc: 'Sign in to access your profile and bookings.',
+    checkoutTitle: 'Complete Booking',
+    checkoutDesc: 'Sign in to your account to complete this booking.',
+    signInWithGoogle: 'Sign in with Google',
+    signInWithApple: 'Sign in with Apple',
+    consentPrefix: 'By signing in or registering, you agree to our ',
+    privacyPolicy: 'Privacy Policy',
+    terms: 'Terms & Conditions',
+    and: ', and ',
+    refundPolicy: 'Refund Policy',
+    logoutModal: {
+      title: 'Log out of Account?',
+      desc: 'Are you sure you want to log out of your current account?',
+      cancel: 'Cancel',
+      confirm: 'Log Out',
+    },
+    errors: {
+      googleCancelled: 'Google sign-in cancelled.',
+      googleProfileFailed: 'Failed to retrieve Google profile info.',
+      googleFailed: 'Failed to sign in with Google.',
+      googleLoading: 'Loading Google Sign-In services, please click again.',
+      googleConnectFailed: 'Failed to connect to Google.',
+      appleNotConfigured:
+        'Apple Sign-In is not configured. Please use Google or the Embun app.',
+      appleScriptFailed: 'Failed to load Sign in with Apple service.',
+      appleTokenFailed: 'Apple did not return an identity token.',
+      appleFailed: 'Failed to sign in with Apple.',
+    },
+  },
+};
+
 interface GuestAuthModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -44,6 +123,7 @@ interface GuestAuthModalProps {
   currentUser?: any | null;
   onLogout?: () => void;
   fromCheckout?: boolean;
+  lang?: 'id' | 'en';
 }
 
 export function GuestAuthModal({
@@ -53,7 +133,28 @@ export function GuestAuthModal({
   currentUser,
   onLogout,
   fromCheckout = false,
+  lang,
 }: GuestAuthModalProps) {
+  const [activeLang, setActiveLang] = useState<'id' | 'en'>(lang || 'id');
+
+  useEffect(() => {
+    if (lang) {
+      setActiveLang(lang);
+      return;
+    }
+    if (typeof window === 'undefined') return;
+    if (window.location.pathname.startsWith('/en')) {
+      setActiveLang('en');
+      return;
+    }
+    const saved = localStorage.getItem('embun_lang');
+    if (saved === 'id' || saved === 'en') {
+      setActiveLang(saved);
+    }
+  }, [lang]);
+
+  const t = AUTH_MODAL_I18N[activeLang];
+
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -87,7 +188,7 @@ export function GuestAuthModal({
           callback: async (tokenResponse: any) => {
             try {
               if (tokenResponse.error) {
-                setError('Login Google dibatalkan.');
+                setError(t.errors.googleCancelled);
                 setLoadingProvider(null);
                 return;
               }
@@ -103,7 +204,7 @@ export function GuestAuthModal({
               );
 
               if (!userInfoRes.ok) {
-                throw new Error('Gagal mengambil data profil Google');
+                throw new Error(t.errors.googleProfileFailed);
               }
 
               const googleUser = await userInfoRes.json();
@@ -161,7 +262,7 @@ export function GuestAuthModal({
                 onClose();
               }
             } catch (err: any) {
-              setError(err.message || 'Gagal masuk dengan Google.');
+              setError(err.message || t.errors.googleFailed);
             } finally {
               setLoadingProvider(null);
             }
@@ -189,7 +290,7 @@ export function GuestAuthModal({
               });
               if (!authRes.ok) {
                 const err = await authRes.json().catch(() => ({}));
-                throw new Error(err.message || 'Login Google gagal.');
+                throw new Error(err.message || t.errors.googleFailed);
               }
               const tokenData = await authRes.json();
               const guest = tokenData.guest;
@@ -201,7 +302,7 @@ export function GuestAuthModal({
                 onClose();
               }
             } catch (e: any) {
-              setError(e.message || 'Gagal masuk dengan Google.');
+              setError(e.message || t.errors.googleFailed);
             } finally {
               setLoadingProvider(null);
             }
@@ -209,11 +310,11 @@ export function GuestAuthModal({
         });
         (window as any).google.accounts.id.prompt();
       } else {
-        setError('Sedang memuat layanan Google Sign-In, silakan klik kembali.');
+        setError(t.errors.googleLoading);
         setLoadingProvider(null);
       }
     } catch (err: any) {
-      setError(err.message || 'Gagal menghubungkan ke Google.');
+      setError(err.message || t.errors.googleConnectFailed);
       setLoadingProvider(null);
     }
   };
@@ -224,15 +325,13 @@ export function GuestAuthModal({
     try {
       const clientId = process.env.NEXT_PUBLIC_APPLE_CLIENT_ID;
       if (!clientId) {
-        setError(
-          'Login Apple belum dikonfigurasi (Services ID belum diatur). Silakan gunakan Google atau aplikasi Embun.',
-        );
+        setError(t.errors.appleNotConfigured);
         return;
       }
 
       const AppleID = await loadAppleIdScript();
       if (!AppleID) {
-        setError('Gagal memuat layanan Sign in with Apple.');
+        setError(t.errors.appleScriptFailed);
         return;
       }
 
@@ -248,7 +347,7 @@ export function GuestAuthModal({
       const result = await AppleID.auth.signIn();
       const idToken: string | undefined = result?.authorization?.id_token;
       if (!idToken) {
-        throw new Error('Apple tidak mengembalikan token identitas.');
+        throw new Error(t.errors.appleTokenFailed);
       }
 
       const authRes = await fetch(`${API_BASE_URL}/guest/auth/social`, {
@@ -258,7 +357,7 @@ export function GuestAuthModal({
       });
       if (!authRes.ok) {
         const err = await authRes.json().catch(() => ({}));
-        throw new Error(err.message || 'Login Apple gagal.');
+        throw new Error(err.message || t.errors.appleFailed);
       }
       const tokenData = await authRes.json();
 
@@ -290,22 +389,22 @@ export function GuestAuthModal({
         // User cancelled - not an error worth surfacing.
         return;
       }
-      setError(err.message || 'Gagal masuk dengan Apple.');
+      setError(err.message || t.errors.appleFailed);
     } finally {
       setLoadingProvider(null);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-      <div className="w-full max-w-md bg-white text-foreground rounded-t-3xl sm:rounded-3xl shadow-2xl border border-border overflow-hidden min-h-[480px] flex flex-col justify-between p-6 sm:p-8 animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+      <div className="w-full max-w-md bg-white text-foreground rounded-3xl shadow-2xl border border-border overflow-hidden min-h-[480px] flex flex-col justify-between p-6 sm:p-8 animate-in zoom-in-95 duration-200">
         {/* Top Bar with Back Arrow */}
         <div className="flex items-center justify-start shrink-0">
           <button
             type="button"
             onClick={onClose}
             className="p-2 -ml-2 rounded-full hover:bg-surface text-foreground transition-colors cursor-pointer"
-            aria-label="Kembali"
+            aria-label={t.back}
           >
             <ArrowLeft size={22} className="stroke-[2.2]" />
           </button>
@@ -330,7 +429,7 @@ export function GuestAuthModal({
                   />
                 ) : (
                   <span className="text-2xl font-black text-white select-none">
-                    {(currentUser.fullName || 'Tamu')
+                    {(currentUser.fullName || 'G')
                       .trim()
                       .charAt(0)
                       .toUpperCase()}
@@ -339,12 +438,12 @@ export function GuestAuthModal({
               </div>
               <div className="space-y-1">
                 <h3 className="font-bold text-lg text-foreground">
-                  {currentUser.fullName || 'Tamu Embun'}
+                  {currentUser.fullName || t.defaultGuestName}
                 </h3>
                 <p className="text-xs text-foreground-muted">
                   {currentUser.phone ||
                     currentUser.email ||
-                    'Akun Terverifikasi'}
+                    t.verifiedAccount}
                 </p>
               </div>
 
@@ -353,19 +452,19 @@ export function GuestAuthModal({
                   href="/profile"
                   className="w-full py-3.5 px-6 rounded-full border border-border bg-white hover:bg-surface text-foreground text-xs font-bold transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
                 >
-                  <span>Edit Profil</span>
+                  <span>{t.editProfile}</span>
                 </a>
                 <a
                   href="/wishlist"
                   className="w-full py-3.5 px-6 rounded-full border border-border bg-white hover:bg-surface text-foreground text-xs font-bold transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
                 >
-                  <span>Wishlist Saya</span>
+                  <span>{t.wishlist}</span>
                 </a>
                 <a
                   href="/orders"
                   className="w-full py-3.5 px-6 rounded-full border border-border bg-white hover:bg-surface text-foreground text-xs font-bold transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
                 >
-                  <span>Pesanan Saya</span>
+                  <span>{t.orders}</span>
                 </a>
                 <div className="pt-3">
                   <button
@@ -373,7 +472,7 @@ export function GuestAuthModal({
                     onClick={() => setShowLogoutConfirm(true)}
                     className="w-full py-3.5 px-6 rounded-full border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
                   >
-                    <span>Keluar dari Akun</span>
+                    <span>{t.logout}</span>
                   </button>
                 </div>
               </div>
@@ -384,13 +483,13 @@ export function GuestAuthModal({
               <div className="text-center space-y-2.5">
                 <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                   {fromCheckout
-                    ? 'Selesaikan Pemesanan'
-                    : 'Selamat Datang di Embun'}
+                    ? t.checkoutTitle
+                    : t.welcomeTitle}
                 </h2>
                 <p className="text-xs sm:text-sm text-foreground-muted max-w-xs mx-auto leading-relaxed">
                   {fromCheckout
-                    ? 'Masuk ke akun Anda untuk menyelesaikan pemesanan ini.'
-                    : 'Masuk ke akun Anda untuk mengakses profil dan pemesanan Anda.'}
+                    ? t.checkoutDesc
+                    : t.welcomeDesc}
                 </p>
               </div>
 
@@ -425,7 +524,7 @@ export function GuestAuthModal({
                       <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
                     </svg>
                   )}
-                  <span>Masuk dengan Google</span>
+                  <span>{t.signInWithGoogle}</span>
                 </button>
 
                 {/* Apple Sign In */}
@@ -448,7 +547,7 @@ export function GuestAuthModal({
                       <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.7-3.04-7.6-7.85-11.71-14.42-6.19-9.89-10.97-20.91-14.34-33.07-3.37-12.16-5.06-23.76-5.06-34.8 0-14.99 3.78-27.42 11.34-37.3 7.56-9.88 17.2-14.92 28.91-15.12 4.13 0 9.03 1.14 14.71 3.42 5.68 2.28 9.38 3.47 11.1 3.56 1.3.11 5.09-1.12 11.34-3.69 6.26-2.57 11.45-3.77 15.58-3.6 11.52.55 20.89 4.9 28.09 13.06-10.22 6.2-15.22 14.88-15 26.04.22 8.79 3.58 16.08 10.09 21.87 6.5 5.78 14.28 9.01 23.33 9.69-2.46 7.42-5.46 14.66-8.99 21.72zM119.22 33.39c0-6.72 2.45-13.12 7.36-19.2 4.9-6.08 11.02-10.22 18.36-12.41.97 6.63-.87 13.03-5.52 19.2-4.65 6.16-10.74 10.25-18.27 12.27-.43-.76-.65-1.57-.65-2.42z" />
                     </svg>
                   )}
-                  <span>Masuk dengan Apple</span>
+                  <span>{t.signInWithApple}</span>
                 </button>
               </div>
             </div>
@@ -459,32 +558,32 @@ export function GuestAuthModal({
         {!currentUser && (
           <div className="pt-4 text-center shrink-0">
             <p className="text-[11px] sm:text-xs text-foreground-muted leading-relaxed max-w-xs mx-auto">
-              Dengan masuk atau mendaftar, Anda menyetujui{' '}
+              {t.consentPrefix}
               <a
-                href="/id/kebijakan-privasi/"
+                href={`/${activeLang}/kebijakan-privasi/`}
                 className="text-brand-blue font-semibold hover:underline"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Kebijakan Privasi
+                {t.privacyPolicy}
               </a>
               ,{' '}
               <a
-                href="/id/syarat-ketentuan/"
+                href={`/${activeLang}/syarat-ketentuan/`}
                 className="text-brand-blue font-semibold hover:underline"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Syarat & Ketentuan
+                {t.terms}
               </a>
-              , dan{' '}
+              {t.and}
               <a
-                href="/id/kebijakan-refund/"
+                href={`/${activeLang}/kebijakan-refund/`}
                 className="text-brand-blue font-semibold hover:underline"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Kebijakan Refund
+                {t.refundPolicy}
               </a>
               .
             </p>
@@ -497,10 +596,10 @@ export function GuestAuthModal({
         <div className="fixed inset-0 z-60 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150">
           <div className="w-full max-w-sm bg-white text-foreground rounded-3xl shadow-2xl border border-border p-6 text-center space-y-4 animate-in zoom-in-95 duration-150">
             <h3 className="font-bold text-lg text-foreground">
-              Keluar dari Akun?
+              {t.logoutModal.title}
             </h3>
             <p className="text-xs text-foreground-muted leading-relaxed">
-              Apakah Anda yakin ingin keluar dari akun Anda saat ini?
+              {t.logoutModal.desc}
             </p>
             <div className="flex gap-2.5 pt-2">
               <button
@@ -508,7 +607,7 @@ export function GuestAuthModal({
                 onClick={() => setShowLogoutConfirm(false)}
                 className="flex-1 py-3 px-4 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-all cursor-pointer"
               >
-                Batal
+                {t.logoutModal.cancel}
               </button>
               <button
                 type="button"
@@ -520,7 +619,7 @@ export function GuestAuthModal({
                 }}
                 className="flex-1 py-3 px-4 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
               >
-                Keluar
+                {t.logoutModal.confirm}
               </button>
             </div>
           </div>
@@ -532,6 +631,7 @@ export function GuestAuthModal({
         <CompleteProfileModal
           isOpen={Boolean(pendingProfileForCompletion)}
           currentUser={pendingProfileForCompletion}
+          lang={activeLang}
           onClose={() => {
             const user = pendingProfileForCompletion;
             setPendingProfileForCompletion(null);

@@ -19,9 +19,10 @@ interface BookingCalendarModalProps {
   onSelectDates: (checkIn: string, checkOut: string) => void;
   spotName?: string;
   bookedDates?: string[];
+  lang?: 'id' | 'en';
 }
 
-const MONTH_NAMES = [
+const MONTH_NAMES_ID = [
   "Januari",
   "Februari",
   "Maret",
@@ -36,14 +37,30 @@ const MONTH_NAMES = [
   "Desember",
 ];
 
-const DAY_NAMES = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
+const MONTH_NAMES_EN = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
-function formatIndoDate(dateStr?: string): string {
-  if (!dateStr) return "Pilih tanggal";
+const DAY_NAMES_ID = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
+const DAY_NAMES_EN = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+function formatDate(dateStr?: string, lang: 'id' | 'en' = 'id'): string {
+  if (!dateStr) return lang === 'en' ? "Select Date" : "Pilih Tanggal";
   try {
     const [y, m, d] = dateStr.split("-").map(Number);
     const date = new Date(y, m - 1, d);
-    return date.toLocaleDateString("id-ID", {
+    return date.toLocaleDateString(lang === 'en' ? "en-US" : "id-ID", {
       day: "numeric",
       month: "short",
       year: "numeric",
@@ -69,7 +86,11 @@ export function BookingCalendarModal({
   onSelectDates,
   spotName,
   bookedDates = [],
+  lang = 'id',
 }: BookingCalendarModalProps) {
+  const monthNames = lang === 'en' ? MONTH_NAMES_EN : MONTH_NAMES_ID;
+  const dayNames = lang === 'en' ? DAY_NAMES_EN : DAY_NAMES_ID;
+
   const todayStr = useMemo(() => new Date().toISOString().split("T")[0], []);
   const bookedSet = useMemo(() => new Set(bookedDates || []), [bookedDates]);
 
@@ -281,11 +302,15 @@ export function BookingCalendarModal({
             onClick={() => handleDateClick(dayStr)}
             title={
               isCheckoutChangeover
-                ? "Tanggal Check-out Tersedia (Hari Pergantian Tamu)"
+                ? (lang === 'en'
+                    ? "Check-out Date Available (Guest Changeover Day)"
+                    : "Tanggal Check-out Tersedia (Hari Pergantian Tamu)")
                 : isBooked
-                ? "Spot sudah penuh di tanggal ini"
+                ? (lang === 'en'
+                    ? "Spot is fully booked on this date"
+                    : "Spot sudah penuh di tanggal ini")
                 : isPast
-                ? "Tanggal lewat"
+                ? (lang === 'en' ? "Past date" : "Tanggal lewat")
                 : undefined
             }
             className={`h-9 w-9 sm:h-10 sm:w-10 rounded-2xl flex items-center justify-center text-xs transition-all ${
@@ -316,12 +341,12 @@ export function BookingCalendarModal({
       <div className="space-y-3">
         {/* Month & Year Title */}
         <div className="text-center font-bold text-sm sm:text-base text-foreground">
-          {MONTH_NAMES[m.month]} {m.year}
+          {monthNames[m.month]} {m.year}
         </div>
 
         {/* Days Header */}
         <div className="grid grid-cols-7 gap-1 text-center">
-          {DAY_NAMES.map((d) => (
+          {dayNames.map((d) => (
             <span
               key={d}
               className="text-[11px] font-bold text-foreground-muted/70 py-1"
@@ -346,16 +371,24 @@ export function BookingCalendarModal({
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-brand-lime text-black border border-brand-lime/80 shadow-2xs">
-                  {nightsCount > 0 ? `${nightsCount} Malam` : "Pilih Tanggal"}
+                  {nightsCount > 0
+                    ? (lang === 'en'
+                        ? `${nightsCount} Night${nightsCount > 1 ? 's' : ''}`
+                        : `${nightsCount} Malam`)
+                    : (lang === 'en' ? "Select Dates" : "Pilih Tanggal")}
                 </span>
                 <h3 className="font-bold text-base sm:text-lg text-foreground tracking-tight">
-                  Atur Jadwal Menginap
+                  {lang === 'en' ? "Set Stay Dates" : "Atur Jadwal Menginap"}
                 </h3>
               </div>
               <p className="text-xs text-foreground-muted">
                 {spotName
-                  ? `Pilih tanggal check-in & check-out untuk ${spotName}`
-                  : "Klik tanggal kedatangan lalu klik tanggal kepulangan Anda"}
+                  ? (lang === 'en'
+                      ? `Select check-in & check-out dates for ${spotName}`
+                      : `Pilih tanggal check-in & check-out untuk ${spotName}`)
+                  : (lang === 'en'
+                      ? "Select your arrival date followed by departure date"
+                      : "Klik tanggal kedatangan lalu klik tanggal kepulangan Anda")}
               </p>
             </div>
 
@@ -363,7 +396,7 @@ export function BookingCalendarModal({
               type="button"
               onClick={onClose}
               className="p-2 rounded-full hover:bg-surface text-foreground-muted hover:text-foreground transition-colors cursor-pointer shrink-0 -mr-1"
-              aria-label="Tutup Kalender"
+              aria-label={lang === 'en' ? "Close Calendar" : "Tutup Kalender"}
             >
               <X size={20} />
             </button>
@@ -384,7 +417,7 @@ export function BookingCalendarModal({
                 Check-In
               </span>
               <span className="text-xs font-bold whitespace-nowrap">
-                {tempIn ? formatIndoDate(tempIn) : "Pilih Tanggal"}
+                {tempIn ? formatDate(tempIn, lang) : (lang === 'en' ? "Select Date" : "Pilih Tanggal")}
               </span>
             </button>
 
@@ -401,7 +434,7 @@ export function BookingCalendarModal({
                 Check-Out
               </span>
               <span className="text-xs font-bold whitespace-nowrap">
-                {tempOut ? formatIndoDate(tempOut) : "Pilih Tanggal"}
+                {tempOut ? formatDate(tempOut, lang) : (lang === 'en' ? "Select Date" : "Pilih Tanggal")}
               </span>
             </button>
           </div>
@@ -415,20 +448,22 @@ export function BookingCalendarModal({
               type="button"
               onClick={handlePrevMonth}
               className="p-2 rounded-full border border-border hover:bg-surface text-foreground transition-colors cursor-pointer"
-              title="Bulan Sebelumnya"
+              title={lang === 'en' ? "Previous Month" : "Bulan Sebelumnya"}
             >
               <ChevronLeft size={18} />
             </button>
 
             <span className="text-xs font-semibold text-foreground-muted hidden sm:inline-block">
-              Gunakan tanda panah untuk menjelajahi bulan
+              {lang === 'en'
+                ? "Use arrows to browse months"
+                : "Gunakan tanda panah untuk menjelajahi bulan"}
             </span>
 
             <button
               type="button"
               onClick={handleNextMonth}
               className="p-2 rounded-full border border-border hover:bg-surface text-foreground transition-colors cursor-pointer"
-              title="Bulan Berikutnya"
+              title={lang === 'en' ? "Next Month" : "Bulan Berikutnya"}
             >
               <ChevronRight size={18} />
             </button>
@@ -444,15 +479,15 @@ export function BookingCalendarModal({
           <div className="flex flex-wrap items-center justify-center gap-5 pt-3 border-t border-border/50 text-[11px] text-foreground-muted">
             <div className="flex items-center gap-1.5">
               <span className="w-3 h-3 rounded-full bg-brand-blue" />
-              <span>Terpilih</span>
+              <span>{lang === 'en' ? "Selected" : "Terpilih"}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-3 h-3 rounded-full bg-white border border-border" />
-              <span>Tersedia</span>
+              <span>{lang === 'en' ? "Available" : "Tersedia"}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-4 h-4 rounded-full bg-neutral-100 border border-neutral-200 text-neutral-400 line-through flex items-center justify-center text-[9px] font-bold">✕</span>
-              <span>Penuh / Dipesan</span>
+              <span>{lang === 'en' ? "Booked / Unavailable" : "Penuh / Dipesan"}</span>
             </div>
           </div>
         </div>
@@ -465,7 +500,7 @@ export function BookingCalendarModal({
             className="flex items-center gap-1.5 text-xs font-semibold text-foreground-muted hover:text-brand-blue cursor-pointer underline transition-colors shrink-0"
           >
             <RotateCcw size={13} />
-            <span>Reset Tanggal</span>
+            <span>{lang === 'en' ? "Reset Dates" : "Reset Tanggal"}</span>
           </button>
 
           <div className="flex items-center gap-2 sm:gap-3">
@@ -474,7 +509,7 @@ export function BookingCalendarModal({
               onClick={onClose}
               className="px-3.5 sm:px-4 py-2 rounded-2xl border border-border hover:bg-surface text-xs font-semibold text-foreground transition-all cursor-pointer"
             >
-              Batal
+              {lang === 'en' ? "Cancel" : "Batal"}
             </button>
             {tempIn && tempOut ? (
               <button
@@ -483,7 +518,11 @@ export function BookingCalendarModal({
                 className="px-4 sm:px-5 py-2.5 rounded-2xl bg-brand-blue text-white text-xs font-bold hover:bg-brand-blue-hover shadow-md transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
               >
                 <Check size={14} />
-                <span>Simpan ({nightsCount} Malam)</span>
+                <span>
+                  {lang === 'en'
+                    ? `Save (${nightsCount} Night${nightsCount > 1 ? 's' : ''})`
+                    : `Simpan (${nightsCount} Malam)`}
+                </span>
               </button>
             ) : tempIn ? (
               <button
@@ -491,7 +530,7 @@ export function BookingCalendarModal({
                 disabled
                 className="px-4 sm:px-5 py-2.5 rounded-2xl bg-brand-lime text-black text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 cursor-default whitespace-nowrap"
               >
-                <span>Pilih tanggal check-out</span>
+                <span>{lang === 'en' ? "Select check-out date" : "Pilih tanggal check-out"}</span>
               </button>
             ) : (
               <button
@@ -499,7 +538,7 @@ export function BookingCalendarModal({
                 disabled
                 className="px-4 sm:px-5 py-2.5 rounded-2xl bg-surface border border-border text-foreground-muted text-xs font-semibold cursor-default whitespace-nowrap"
               >
-                <span>Pilih tanggal check-in</span>
+                <span>{lang === 'en' ? "Select check-in date" : "Pilih tanggal check-in"}</span>
               </button>
             )}
           </div>

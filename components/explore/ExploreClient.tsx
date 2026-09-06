@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
+import Link from 'next/link';
 import {
   fetchActiveCampsites,
   fetchCampsiteAggregate,
@@ -21,6 +22,7 @@ import {
 import { SpotCard, SpotData } from '@/components/explore/SpotCard';
 import { GuestAuthModal } from '@/components/explore/GuestAuthModal';
 import { Tour360Modal } from '@/components/explore/Tour360Modal';
+import { EXPLORE_I18N, type Language } from '@/lib/explore-i18n';
 import {
   Tent,
   Star,
@@ -110,10 +112,44 @@ export const matchesSpotView = (spot: SpotData, viewId: string): boolean => {
   return false;
 };
 
-export function ExploreClient() {
+export interface ExploreClientProps {
+  initialLang?: Language;
+}
+
+export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [campsites, setCampsites] = useState<any[]>([]);
+
+  // Language state (defaults to 'id', persist in localStorage)
+  const [lang, setLang] = useState<Language>(initialLang || 'id');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (initialLang) {
+        setLang(initialLang);
+        return;
+      }
+      if (window.location.pathname.startsWith('/en')) {
+        setLang('en');
+        return;
+      }
+      const savedLang = localStorage.getItem('embun_lang') as Language;
+      if (savedLang === 'id' || savedLang === 'en') {
+        setLang(savedLang);
+      }
+    }
+  }, [initialLang]);
+
+  const toggleLanguage = () => {
+    const nextLang: Language = lang === 'id' ? 'en' : 'id';
+    setLang(nextLang);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('embun_lang', nextLang);
+    }
+  };
+
+  const t = EXPLORE_I18N[lang];
 
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -260,7 +296,11 @@ export function ExploreClient() {
       // Category filter (Strictly tentType & viewOptions - NOT by spot name!)
       let matchCat = true;
       if (selectedCategory !== 'all') {
-        if (selectedCategory.startsWith('view:')) {
+        if (selectedCategory === 'plus') {
+          matchCat = !!spot.isEmbunPlus;
+        } else if (selectedCategory === 'nearby') {
+          matchCat = !spot.isEmbunPlus;
+        } else if (selectedCategory.startsWith('view:')) {
           const viewKey = selectedCategory.replace('view:', '').toLowerCase();
           matchCat = matchesSpotView(spot, viewKey);
         } else {
@@ -400,16 +440,24 @@ export function ExploreClient() {
     return list;
   }, [campsites]);
 
-  // Section 1: Embun Plus (Paling Atas) - True Embun Plus units only
+  // Section 1: Embun Plus (Paling Atas) - True Embun Plus units only (limit 10 preview)
   const embunPlusSpots = useMemo(() => {
     return allSpots.filter((s) => s.isEmbunPlus);
   }, [allSpots]);
 
-  // Section 2: Spot Terdekat Sekitar Anda
+  const displayedEmbunPlusSpots = useMemo(() => {
+    return embunPlusSpots.slice(0, 10);
+  }, [embunPlusSpots]);
+
+  // Section 2: Spot Terdekat Sekitar Anda (limit 10 preview)
   const nearbySpots = useMemo(() => {
     const nonPlus = allSpots.filter((s) => !s.isEmbunPlus);
-    return nonPlus.length > 0 ? nonPlus.slice(0, 4) : allSpots.slice(0, 4);
+    return nonPlus.length > 0 ? nonPlus : allSpots;
   }, [allSpots]);
+
+  const displayedNearbySpots = useMemo(() => {
+    return nearbySpots.slice(0, 10);
+  }, [nearbySpots]);
 
   // Section 3: Pilihan Berdasarkan Pemandangan Alam
   const [selectedViewTab, setSelectedViewTab] = useState('sungai');
@@ -428,10 +476,21 @@ export function ExploreClient() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Section 5: Spot Lainnya
+  // Section 4: Jelajahi Lokasi Campsite (limit 8 preview)
+  const displayedCampsites = useMemo(() => {
+    return campsites.slice(0, 8);
+  }, [campsites]);
+
+  // Section 5: Spot Lainnya (dilimit bertahap seperti e-commerce: 10 spot pertama, lalu load more)
   const otherSpots = useMemo(() => {
     return allSpots;
   }, [allSpots]);
+
+  const [visibleOtherSpotsCount, setVisibleOtherSpotsCount] = useState(10);
+
+  const displayedOtherSpots = useMemo(() => {
+    return otherSpots.slice(0, visibleOtherSpotsCount);
+  }, [otherSpots, visibleOtherSpotsCount]);
 
   const toggleFavorite = async (id: string) => {
     if (!getGuestToken()) {
@@ -476,12 +535,15 @@ export function ExploreClient() {
         selectedCity={selectedCity}
         onSelectCity={setSelectedCity}
         availableCities={availableCities}
+        lang={lang}
+        onToggleLanguage={toggleLanguage}
       />
 
       {/* ═══ 2. CATEGORY ICON BAR ═══ */}
       <CategoryFilterBar
         selectedCategory={selectedCategory}
         onSelectCategory={setSelectedCategory}
+        lang={lang}
       />
 
       {/* ═══ 3. MAIN CATALOG CONTENT ═══ */}
@@ -518,21 +580,28 @@ export function ExploreClient() {
               <div>
                 <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
                   {searchQuery
-                    ? `Hasil Pencarian: "${searchQuery}"`
+                    ? `${lang === 'en' ? 'Search Results' : 'Hasil Pencarian'}: "${searchQuery}"`
                     : selectedCategory !== 'all'
-                    ? `Kategori: ${
-                        selectedCategory.startsWith('view:')
-                          ? VIEW_SECTIONS.find(
+                    ? `${lang === 'en' ? 'Category' : 'Kategori'}: ${
+                        selectedCategory === 'plus'
+                          ? (lang === 'en' ? 'Top Pick: Premium Nature Stays' : 'Pilihan Penginapan Premium')
+                          : selectedCategory === 'nearby'
+                          ? (lang === 'en' ? 'Nearby Nature Getaways' : 'Spot Terdekat')
+                          : selectedCategory.startsWith('view:')
+                          ? t.views[selectedCategory.replace('view:', '') as keyof typeof t.views] ||
+                            VIEW_SECTIONS.find(
                               (v) =>
                                 v.id === selectedCategory.replace('view:', ''),
                             )?.label || selectedCategory
-                          : CATEGORIES.find((c) => c.id === selectedCategory)
-                              ?.label || selectedCategory
+                          : (t.categories[selectedCategory as keyof typeof t.categories] ||
+                            CATEGORIES.find((c) => c.id === selectedCategory)?.label || selectedCategory)
                       }`
-                    : `Destinasi: ${selectedCity}`}
+                    : `${lang === 'en' ? 'Destination' : 'Destinasi'}: ${selectedCity}`}
                 </h2>
                 <p className="text-xs text-foreground-muted">
-                  Menampilkan {filteredSpots.length} unit penginapan alam
+                  {lang === 'en'
+                    ? `Showing ${filteredSpots.length} nature retreat units`
+                    : `Menampilkan ${filteredSpots.length} unit penginapan alam`}
                 </p>
               </div>
 
@@ -545,7 +614,7 @@ export function ExploreClient() {
                 }}
                 className="text-xs font-bold text-brand-blue hover:underline cursor-pointer"
               >
-                Reset Filter
+                {t.sections.resetFilter}
               </button>
             </div>
 
@@ -553,10 +622,10 @@ export function ExploreClient() {
               <div className="text-center py-16 bg-surface/50 rounded-3xl border border-border p-6">
                 <Tent size={40} className="mx-auto text-foreground-muted mb-2" />
                 <h3 className="font-bold text-sm text-foreground">
-                  Tidak ada spot yang cocok
+                  {t.sections.noSpotsFound}
                 </h3>
                 <p className="text-xs text-foreground-muted mt-1">
-                  Coba ubah kata kunci pencarian atau pilih kategori lain.
+                  {t.sections.tryAdjustFilter}
                 </p>
               </div>
             ) : (
@@ -568,6 +637,7 @@ export function ExploreClient() {
                     onSelectSpot={handleSelectSpot}
                     isFavorite={favoriteIds.includes(spot.id)}
                     onToggleFavorite={toggleFavorite}
+                    lang={lang}
                   />
                 ))}
               </div>
@@ -582,25 +652,41 @@ export function ExploreClient() {
                 <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b border-border pb-3">
                   <div className="space-y-1">
                     <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
-                      Pilihan Penginapan Premium
+                      {t.sections.plusTitle}
                     </h2>
                     <p className="text-xs text-foreground-muted">
-                      Akomodasi glamping & kabin pilihan dengan fasilitas terlengkap dan kenyamanan maksimal.
+                      {t.sections.plusSubtitle}
                     </p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6 sm:gap-7">
-                  {embunPlusSpots.map((spot) => (
+                  {displayedEmbunPlusSpots.map((spot) => (
                     <SpotCard
                       key={`plus-${spot.id}`}
                       spot={spot}
                       onSelectSpot={handleSelectSpot}
                       isFavorite={favoriteIds.includes(spot.id)}
                       onToggleFavorite={toggleFavorite}
+                      lang={lang}
                     />
                   ))}
                 </div>
+
+                {embunPlusSpots.length > 10 && (
+                  <div className="flex justify-center pt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedCategory('plus');
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className="px-8 py-3 rounded-full border border-border bg-white hover:bg-surface text-foreground text-xs font-bold transition-all shadow-2xs hover:border-brand-blue hover:text-brand-blue cursor-pointer active:scale-95"
+                    >
+                      {t.sections.viewAll}
+                    </button>
+                  </div>
+                )}
               </section>
             )}
 
@@ -610,25 +696,41 @@ export function ExploreClient() {
                 <div className="flex items-end justify-between border-b border-border pb-3">
                   <div>
                     <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
-                      Spot Terdekat Sekitar Anda
+                      {t.sections.nearbyTitle}
                     </h2>
                     <p className="text-xs text-foreground-muted">
-                      Pilihan spot camping dan glamping berjarak dekat untuk liburan akhir pekan singkat.
+                      {t.sections.nearbySubtitle}
                     </p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6 sm:gap-7">
-                  {nearbySpots.map((spot) => (
+                  {displayedNearbySpots.map((spot) => (
                     <SpotCard
                       key={`near-${spot.id}`}
                       spot={spot}
                       onSelectSpot={handleSelectSpot}
                       isFavorite={favoriteIds.includes(spot.id)}
                       onToggleFavorite={toggleFavorite}
+                      lang={lang}
                     />
                   ))}
                 </div>
+
+                {nearbySpots.length > 10 && (
+                  <div className="flex justify-center pt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedCategory('nearby');
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className="px-8 py-3 rounded-full border border-border bg-white hover:bg-surface text-foreground text-xs font-bold transition-all shadow-2xs hover:border-brand-blue hover:text-brand-blue cursor-pointer active:scale-95"
+                    >
+                      {t.sections.viewAll}
+                    </button>
+                  </div>
+                )}
               </section>
             )}
 
@@ -638,22 +740,12 @@ export function ExploreClient() {
                 <div className="flex items-end justify-between border-b border-border pb-3">
                   <div className="space-y-1">
                     <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
-                      Pilihan Berdasarkan Pemandangan Alam
+                      {t.sections.viewTitle}
                     </h2>
                     <p className="text-xs text-foreground-muted">
-                      Temukan spot camping & glamping dengan panorama favorit, dari tepi sungai hingga danau dan pegunungan.
+                      {t.sections.viewSubtitle}
                     </p>
                   </div>
-
-                  {spotsByView.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => handleSeeAllViewSpots(selectedViewTab)}
-                      className="text-xs font-bold text-brand-blue hover:underline cursor-pointer shrink-0 hidden sm:inline-block"
-                    >
-                      Lihat Semua ({spotsByView.length}) →
-                    </button>
-                  )}
                 </div>
 
                 {/* Filter Tabs View (Clean Airbnb style - no icons, no number badges) */}
@@ -663,6 +755,7 @@ export function ExploreClient() {
                 >
                   {VIEW_SECTIONS.map((v) => {
                     const isSelected = selectedViewTab === v.id;
+                    const viewLabel = t.views[v.id as keyof typeof t.views] || v.label;
                     return (
                       <button
                         key={v.id}
@@ -674,21 +767,21 @@ export function ExploreClient() {
                             : 'bg-surface hover:bg-surface-variant text-foreground-muted hover:text-foreground border border-border/80'
                         }`}
                       >
-                        <span className="whitespace-nowrap tracking-tight">{v.label}</span>
+                        <span className="whitespace-nowrap tracking-tight">{viewLabel}</span>
                       </button>
                     );
                   })}
                 </div>
 
-                {/* Spot Cards Grid (Up to 10 spots to keep rows completely filled and balanced) */}
+                {/* Spot Cards Grid */}
                 {spotsByView.length === 0 ? (
                   <div className="text-center py-12 bg-surface/50 rounded-3xl border border-border p-6">
                     <Tent size={36} className="mx-auto text-foreground-muted mb-2" />
                     <h4 className="font-bold text-sm text-foreground">
-                      Belum ada spot untuk pemandangan ini
+                      {lang === 'en' ? 'No spots found for this scenery yet' : 'Belum ada spot untuk pemandangan ini'}
                     </h4>
                     <p className="text-xs text-foreground-muted mt-1">
-                      Pilihan spot dengan pemandangan ini akan segera ditambahkan oleh mitra campsite.
+                      {lang === 'en' ? 'Spots with this scenery will be added soon by campsite partners.' : 'Pilihan spot dengan pemandangan ini akan segera ditambahkan oleh mitra campsite.'}
                     </p>
                   </div>
                 ) : (
@@ -701,6 +794,7 @@ export function ExploreClient() {
                           onSelectSpot={handleSelectSpot}
                           isFavorite={favoriteIds.includes(spot.id)}
                           onToggleFavorite={toggleFavorite}
+                          lang={lang}
                         />
                       ))}
                     </div>
@@ -710,12 +804,9 @@ export function ExploreClient() {
                         <button
                           type="button"
                           onClick={() => handleSeeAllViewSpots(selectedViewTab)}
-                          className="px-6 py-2.5 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-2xs hover:border-brand-blue hover:text-brand-blue"
+                          className="px-8 py-3 rounded-full border border-border bg-white hover:bg-surface text-foreground text-xs font-bold transition-all shadow-2xs hover:border-brand-blue hover:text-brand-blue cursor-pointer active:scale-95"
                         >
-                          <span>
-                            Lihat Semua {spotsByView.length} Spot {VIEW_SECTIONS.find((v) => v.id === selectedViewTab)?.label || ''}
-                          </span>
-                          <ArrowRight size={13} />
+                          {t.sections.viewAll}
                         </button>
                       </div>
                     )}
@@ -730,16 +821,16 @@ export function ExploreClient() {
                 <div className="flex items-end justify-between border-b border-border pb-3">
                   <div>
                     <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
-                      Jelajahi Lokasi Campsite
+                      {t.sections.campsitesTitle}
                     </h2>
                     <p className="text-xs text-foreground-muted">
-                      Pilih bumi perkemahan lengkap dengan fasilitas umum, pemandangan, dan peta area.
+                      {t.sections.campsitesSubtitle}
                     </p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-                  {campsites.map((camp) => {
+                  {displayedCampsites.map((camp) => {
                     const coverPhoto = getCampsiteCoverPhoto(camp);
                     const spotCount = Array.isArray(camp.blocks)
                       ? camp.blocks.length
@@ -769,7 +860,7 @@ export function ExploreClient() {
                             <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-emerald-950 via-[#0841b5] to-slate-900 text-white p-4 text-center">
                               <span className="font-bold text-xs">{camp.name}</span>
                               <span className="text-[10px] text-white/70">
-                                {camp.address || 'Kawasan Wisata Alam'}
+                                {camp.address || (lang === 'en' ? 'Nature Tourist Area' : 'Kawasan Wisata Alam')}
                               </span>
                             </div>
                           )}
@@ -783,7 +874,7 @@ export function ExploreClient() {
                             </div>
                           )}
                           <div className="absolute bottom-3 left-3 bg-black/75 backdrop-blur-xs px-3 py-1 rounded-full text-[11px] font-semibold text-white shadow-xs">
-                            {spotCount} Pilihan Unit Spot
+                            {spotCount} {lang === 'en' ? 'Spot Units' : 'Pilihan Unit Spot'}
                           </div>
                         </div>
 
@@ -792,50 +883,79 @@ export function ExploreClient() {
                             {camp.name}
                           </h4>
                           <p className="text-xs text-foreground-muted line-clamp-1">
-                            {camp.address || 'Kawasan Wisata Alam'}
+                            {camp.address || (lang === 'en' ? 'Nature Tourist Area' : 'Kawasan Wisata Alam')}
                           </p>
                         </div>
 
                         <div className="pt-2 border-t border-border flex items-center justify-between text-xs">
                           <span className="text-foreground-muted">
-                            Lihat semua kavling
+                            {lang === 'en' ? 'View all spots' : 'Lihat semua kavling'}
                           </span>
                           <span className="font-bold text-brand-blue transition-colors">
-                            Eksplorasi Spot
+                            {lang === 'en' ? 'Explore Campsite' : 'Eksplorasi Spot'}
                           </span>
                         </div>
                       </div>
                     );
                   })}
                 </div>
+
+                {campsites.length > 8 && (
+                  <div className="flex justify-center pt-2">
+                    <Link
+                      href={`/${lang}/mitra/direktori`}
+                      className="px-8 py-3 rounded-full border border-border bg-white hover:bg-surface text-foreground text-xs font-bold transition-all shadow-2xs hover:border-brand-blue hover:text-brand-blue cursor-pointer active:scale-95 inline-flex items-center justify-center"
+                    >
+                      {t.sections.viewAll}
+                    </Link>
+                  </div>
+                )}
               </section>
             )}
 
-            {/* ── 4. JELAJAHI SPOT LAINNYA ── */}
+            {/* ── 5. JELAJAHI SPOT LAINNYA ── */}
             {otherSpots.length > 0 && (
               <section className="space-y-6">
                 <div className="flex items-end justify-between border-b border-border pb-3">
                   <div>
                     <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
-                      Jelajahi Spot Lainnya
+                      {t.sections.otherSpotsTitle}
                     </h2>
                     <p className="text-xs text-foreground-muted">
-                      Koleksi lengkap beragam pilihan kavling, tenda, saung, dan glamping.
+                      {t.sections.otherSpotsSubtitle}
                     </p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6 sm:gap-7">
-                  {otherSpots.map((spot) => (
+                  {displayedOtherSpots.map((spot) => (
                     <SpotCard
                       key={`other-${spot.id}`}
                       spot={spot}
                       onSelectSpot={handleSelectSpot}
                       isFavorite={favoriteIds.includes(spot.id)}
                       onToggleFavorite={toggleFavorite}
+                      lang={lang}
                     />
                   ))}
                 </div>
+
+                {visibleOtherSpotsCount < otherSpots.length && (
+                  <div className="flex flex-col items-center justify-center pt-4 space-y-2.5">
+                    <p className="text-xs text-foreground-muted">
+                      {t.sections.showingSpots(displayedOtherSpots.length, otherSpots.length)}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setVisibleOtherSpotsCount((prev) => prev + 10)
+                      }
+                      className="px-8 py-3 rounded-full border border-border bg-white hover:bg-surface text-foreground text-xs font-bold transition-all shadow-2xs hover:border-brand-blue hover:text-brand-blue cursor-pointer active:scale-95"
+                    >
+                      {t.sections.showMore}
+                    </button>
+                  </div>
+                )}
               </section>
             )}
           </div>
@@ -844,7 +964,7 @@ export function ExploreClient() {
 
 
       {/* ═══ 4. FOOTER ═══ */}
-      <ExploreFooter />
+      <ExploreFooter lang={lang} onToggleLanguage={toggleLanguage} />
 
       {/* ═══ 5. MODAL LOGIN ═══ */}
       {isAuthOpen && (
@@ -852,6 +972,7 @@ export function ExploreClient() {
           isOpen={isAuthOpen}
           onClose={() => setIsAuthOpen(false)}
           currentUser={currentUser}
+          lang={lang}
           onSuccess={(user) => setCurrentUser(user)}
           onLogout={() => setCurrentUser(null)}
         />

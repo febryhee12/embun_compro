@@ -9,14 +9,81 @@ interface CompleteProfileModalProps {
   onClose: () => void;
   currentUser?: any | null;
   onSuccess?: (updatedUser: any) => void;
+  lang?: 'id' | 'en';
 }
+
+const COMPLETE_PROFILE_I18N = {
+  id: {
+    close: 'Tutup',
+    title: 'Lengkapi Profil Anda',
+    desc: 'Data ini diperlukan oleh pengelola campsite untuk mengonfirmasi reservasi dan memandu proses check-in Anda.',
+    fullName: 'Nama Lengkap',
+    fullNamePlaceholder: 'Contoh: Budi Santoso',
+    phone: 'Nomor WhatsApp / HP',
+    phonePlaceholder: '81234567890',
+    address: 'Alamat / Kota Asal',
+    addressPlaceholder: 'Contoh: Jl. Sukajadi No. 12, Kota Bandung',
+    saving: 'Menyimpan Profil...',
+    saveAndContinue: 'Simpan & Lanjutkan',
+    later: 'Nanti Saja',
+    errors: {
+      nameRequired: 'Nama lengkap wajib diisi sesuai kartu identitas.',
+      phoneRequired: 'Nomor WhatsApp wajib diisi.',
+      phoneInvalid: 'Nomor WhatsApp tidak valid. Masukkan 8–14 digit angka.',
+      addressRequired: 'Alamat domisili atau kota asal wajib diisi.',
+      saveFailed: 'Gagal menyimpan kelengkapan profil. Silakan coba lagi.',
+    },
+  },
+  en: {
+    close: 'Close',
+    title: 'Complete Your Profile',
+    desc: 'This information is required by campsite hosts to confirm your booking and guide your check-in.',
+    fullName: 'Full Name',
+    fullNamePlaceholder: 'e.g. John Doe',
+    phone: 'WhatsApp / Phone Number',
+    phonePlaceholder: '81234567890',
+    address: 'Address / Origin City',
+    addressPlaceholder: 'e.g. 123 Main St, Jakarta',
+    saving: 'Saving Profile...',
+    saveAndContinue: 'Save & Continue',
+    later: 'Maybe Later',
+    errors: {
+      nameRequired: 'Full name is required as shown on ID.',
+      phoneRequired: 'WhatsApp number is required.',
+      phoneInvalid: 'Invalid WhatsApp number. Please enter 8–14 digits.',
+      addressRequired: 'Address or origin city is required.',
+      saveFailed: 'Failed to save profile. Please try again.',
+    },
+  },
+};
 
 export function CompleteProfileModal({
   isOpen,
   onClose,
   currentUser,
   onSuccess,
+  lang,
 }: CompleteProfileModalProps) {
+  const [activeLang, setActiveLang] = useState<'id' | 'en'>(lang || 'id');
+
+  useEffect(() => {
+    if (lang) {
+      setActiveLang(lang);
+      return;
+    }
+    if (typeof window === 'undefined') return;
+    if (window.location.pathname.startsWith('/en')) {
+      setActiveLang('en');
+      return;
+    }
+    const saved = localStorage.getItem('embun_lang');
+    if (saved === 'id' || saved === 'en') {
+      setActiveLang(saved);
+    }
+  }, [lang]);
+
+  const t = COMPLETE_PROFILE_I18N[activeLang];
+
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
@@ -42,22 +109,22 @@ export function CompleteProfileModal({
     const cleanAddress = address.trim();
 
     if (!cleanName) {
-      setError('Nama lengkap wajib diisi sesuai kartu identitas.');
+      setError(t.errors.nameRequired);
       return;
     }
 
     if (!rawPhoneDigits) {
-      setError('Nomor WhatsApp wajib diisi.');
+      setError(t.errors.phoneRequired);
       return;
     }
 
     if (rawPhoneDigits.length < 8 || rawPhoneDigits.length > 14) {
-      setError('Nomor WhatsApp tidak valid. Masukkan 8–14 digit angka.');
+      setError(t.errors.phoneInvalid);
       return;
     }
 
     if (!cleanAddress) {
-      setError('Alamat domisili atau kota asal wajib diisi.');
+      setError(t.errors.addressRequired);
       return;
     }
 
@@ -89,7 +156,7 @@ export function CompleteProfileModal({
       }
       onClose();
     } catch (err: any) {
-      setError(err?.message || 'Gagal menyimpan kelengkapan profil. Silakan coba lagi.');
+      setError(err?.message || t.errors.saveFailed);
     } finally {
       setLoading(false);
     }
@@ -104,7 +171,7 @@ export function CompleteProfileModal({
             type="button"
             onClick={onClose}
             className="p-2 -mr-2 -mt-1 rounded-full hover:bg-surface text-foreground-muted hover:text-foreground transition-colors cursor-pointer"
-            aria-label="Tutup"
+            aria-label={t.close}
           >
             <X size={20} />
           </button>
@@ -113,10 +180,10 @@ export function CompleteProfileModal({
         {/* Introduction */}
         <div className="pb-4 space-y-1">
           <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-            Lengkapi Profil Anda
+            {t.title}
           </h2>
           <p className="text-xs sm:text-sm text-foreground-muted leading-relaxed">
-            Data ini diperlukan oleh pengelola campsite untuk mengonfirmasi reservasi dan memandu proses check-in Anda.
+            {t.desc}
           </p>
         </div>
 
@@ -131,13 +198,13 @@ export function CompleteProfileModal({
           {/* Full Name */}
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-foreground">
-              Nama Lengkap
+              {t.fullName}
             </label>
             <input
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="Contoh: Budi Santoso"
+              placeholder={t.fullNamePlaceholder}
               required
               className="w-full px-4 py-3 rounded-2xl border border-border bg-surface/30 focus:bg-white text-sm text-foreground outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all"
             />
@@ -146,7 +213,7 @@ export function CompleteProfileModal({
           {/* WhatsApp Phone */}
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-foreground">
-              Nomor WhatsApp / HP
+              {t.phone}
             </label>
             <div className="relative flex items-center">
               <div className="absolute left-3.5 flex items-center gap-1 text-xs font-bold text-foreground pointer-events-none select-none border-r border-border pr-2.5 py-1">
@@ -162,7 +229,7 @@ export function CompleteProfileModal({
                   while (val.startsWith('0')) val = val.slice(1);
                   setPhone(val);
                 }}
-                placeholder="81234567890"
+                placeholder={t.phonePlaceholder}
                 required
                 className="w-full pl-20 pr-4 py-3 rounded-2xl border border-border bg-surface/30 focus:bg-white text-sm text-foreground outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all font-mono"
               />
@@ -172,12 +239,12 @@ export function CompleteProfileModal({
           {/* Address */}
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-foreground">
-              Alamat / Kota Asal
+              {t.address}
             </label>
             <textarea
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              placeholder="Contoh: Jl. Sukajadi No. 12, Kota Bandung"
+              placeholder={t.addressPlaceholder}
               rows={2}
               required
               className="w-full px-4 py-3 rounded-2xl border border-border bg-surface/30 focus:bg-white text-sm text-foreground outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all resize-none"
@@ -192,7 +259,7 @@ export function CompleteProfileModal({
               className="w-full py-3.5 px-6 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md hover:shadow-lg disabled:opacity-60"
             >
               {loading ? <Loader2 size={16} className="animate-spin" /> : null}
-              <span>{loading ? 'Menyimpan Profil...' : 'Simpan & Lanjutkan'}</span>
+              <span>{loading ? t.saving : t.saveAndContinue}</span>
             </button>
 
             <button
@@ -201,7 +268,7 @@ export function CompleteProfileModal({
               disabled={loading}
               className="w-full py-2.5 text-center text-xs font-semibold text-foreground-muted hover:text-foreground transition-colors cursor-pointer"
             >
-              Nanti Saja
+              {t.later}
             </button>
           </div>
         </form>

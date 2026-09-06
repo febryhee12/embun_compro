@@ -11,6 +11,7 @@ import {
   MessageCircle,
   Mail,
 } from 'lucide-react';
+import { ACCOUNT_I18N, type Language } from '@/lib/account-i18n';
 
 export type AccountTab = 'profile' | 'wishlist' | 'orders';
 
@@ -18,21 +19,25 @@ interface AccountSidebarProps {
   activeTab: AccountTab;
   onLogout?: () => void;
   className?: string;
+  lang?: Language;
 }
 
 interface AccountMobileNavProps {
   activeTab: AccountTab;
   onLogout?: () => void;
   className?: string;
+  lang?: Language;
 }
 
 interface AccountLogoutDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  lang?: Language;
 }
 
-export function AccountSidebar({ activeTab, onLogout, className = '' }: AccountSidebarProps) {
+export function AccountSidebar({ activeTab, onLogout, className = '', lang = 'id' }: AccountSidebarProps) {
+  const t = ACCOUNT_I18N[lang].nav;
   return (
     <aside className={`hidden lg:block lg:col-span-4 xl:col-span-3 sticky top-24 self-start z-20 ${className}`}>
       <div className="space-y-5">
@@ -40,7 +45,7 @@ export function AccountSidebar({ activeTab, onLogout, className = '' }: AccountS
         <div className="bg-white rounded-3xl border border-border p-3.5 shadow-2xs">
           <div className="px-3 pt-2 pb-2">
             <p className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
-              Pengaturan Akun
+              {t.accountSettings}
             </p>
           </div>
 
@@ -50,10 +55,10 @@ export function AccountSidebar({ activeTab, onLogout, className = '' }: AccountS
               <div className="w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold bg-brand-blue text-white shadow-xs select-none">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <User size={16} className="text-white" />
-                  <span className="truncate">Informasi Pribadi</span>
+                  <span className="truncate">{t.profile}</span>
                 </div>
                 <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-white/20 text-white">
-                  Aktif
+                  {t.active}
                 </span>
               </div>
             ) : (
@@ -63,7 +68,7 @@ export function AccountSidebar({ activeTab, onLogout, className = '' }: AccountS
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <User size={16} className="text-brand-blue" />
-                  <span className="truncate">Informasi Pribadi</span>
+                  <span className="truncate">{t.profile}</span>
                 </div>
                 <ArrowRight size={14} className="text-foreground-muted" />
               </Link>
@@ -74,10 +79,10 @@ export function AccountSidebar({ activeTab, onLogout, className = '' }: AccountS
               <div className="w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold bg-brand-blue text-white shadow-xs select-none">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <Heart size={16} className="text-white" />
-                  <span className="truncate">Wishlist Saya</span>
+                  <span className="truncate">{t.wishlist}</span>
                 </div>
                 <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-white/20 text-white">
-                  Aktif
+                  {t.active}
                 </span>
               </div>
             ) : (
@@ -87,7 +92,7 @@ export function AccountSidebar({ activeTab, onLogout, className = '' }: AccountS
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <Heart size={16} className="text-brand-blue" />
-                  <span className="truncate">Wishlist Saya</span>
+                  <span className="truncate">{t.wishlist}</span>
                 </div>
                 <ArrowRight size={14} className="text-foreground-muted" />
               </Link>
@@ -98,10 +103,10 @@ export function AccountSidebar({ activeTab, onLogout, className = '' }: AccountS
               <div className="w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold bg-brand-blue text-white shadow-xs select-none">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <ListOrdered size={16} className="text-white" />
-                  <span className="truncate">Pesanan Saya</span>
+                  <span className="truncate">{t.orders}</span>
                 </div>
                 <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-white/20 text-white">
-                  Aktif
+                  {t.active}
                 </span>
               </div>
             ) : (
@@ -111,7 +116,7 @@ export function AccountSidebar({ activeTab, onLogout, className = '' }: AccountS
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <ListOrdered size={16} className="text-brand-blue" />
-                  <span className="truncate">Pesanan Saya</span>
+                  <span className="truncate">{t.orders}</span>
                 </div>
                 <ArrowRight size={14} className="text-foreground-muted" />
               </Link>
@@ -126,12 +131,12 @@ export function AccountSidebar({ activeTab, onLogout, className = '' }: AccountS
               <HelpCircle size={17} />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-foreground">Butuh Bantuan?</h4>
-              <p className="text-[11px] text-foreground-muted">Layanan pelanggan Embun</p>
+              <h4 className="text-xs font-bold text-foreground">{t.needHelp}</h4>
+              <p className="text-[11px] text-foreground-muted">{t.customerService}</p>
             </div>
           </div>
           <p className="text-[11.5px] text-foreground-muted leading-relaxed">
-            Punya pertanyaan seputar akun, pemesanan penginapan, atau perubahan data kontak?
+            {t.helpDesc}
           </p>
           <div className="space-y-2 pt-1">
             <a
@@ -141,7 +146,7 @@ export function AccountSidebar({ activeTab, onLogout, className = '' }: AccountS
               className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-full border border-border hover:border-emerald-500 hover:text-emerald-700 bg-surface/50 hover:bg-emerald-50/50 text-xs font-bold text-foreground transition-all cursor-pointer"
             >
               <MessageCircle size={14} className="text-emerald-600" />
-              <span>Chat WhatsApp CS</span>
+              <span>{t.chatCs}</span>
             </a>
             <a
               href="mailto:support@embun.app"
@@ -157,14 +162,15 @@ export function AccountSidebar({ activeTab, onLogout, className = '' }: AccountS
   );
 }
 
-export function AccountMobileNav({ activeTab, onLogout, className = '' }: AccountMobileNavProps) {
+export function AccountMobileNav({ activeTab, onLogout, className = '', lang = 'id' }: AccountMobileNavProps) {
+  const t = ACCOUNT_I18N[lang].nav;
   return (
     <div className={`lg:hidden flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 sm:-mx-8 sm:px-8 ${className}`}>
       {/* 1. Edit Profil */}
       {activeTab === 'profile' ? (
         <span className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold border bg-brand-blue text-white border-brand-blue shadow-xs">
           <User size={14} />
-          <span>Edit Profil</span>
+          <span>{t.editProfile}</span>
         </span>
       ) : (
         <Link
@@ -172,7 +178,7 @@ export function AccountMobileNav({ activeTab, onLogout, className = '' }: Accoun
           className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold border bg-white text-foreground border-border hover:bg-surface transition-colors"
         >
           <User size={14} className="text-brand-blue" />
-          <span>Edit Profil</span>
+          <span>{t.editProfile}</span>
         </Link>
       )}
 
@@ -180,7 +186,7 @@ export function AccountMobileNav({ activeTab, onLogout, className = '' }: Accoun
       {activeTab === 'wishlist' ? (
         <span className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold border bg-brand-blue text-white border-brand-blue shadow-xs">
           <Heart size={14} />
-          <span>Wishlist Saya</span>
+          <span>{t.wishlist}</span>
         </span>
       ) : (
         <Link
@@ -188,7 +194,7 @@ export function AccountMobileNav({ activeTab, onLogout, className = '' }: Accoun
           className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold border bg-white text-foreground border-border hover:bg-surface transition-colors"
         >
           <Heart size={14} className="text-brand-blue" />
-          <span>Wishlist Saya</span>
+          <span>{t.wishlist}</span>
         </Link>
       )}
 
@@ -196,7 +202,7 @@ export function AccountMobileNav({ activeTab, onLogout, className = '' }: Accoun
       {activeTab === 'orders' ? (
         <span className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold border bg-brand-blue text-white border-brand-blue shadow-xs">
           <ListOrdered size={14} />
-          <span>Pesanan Saya</span>
+          <span>{t.orders}</span>
         </span>
       ) : (
         <Link
@@ -204,21 +210,22 @@ export function AccountMobileNav({ activeTab, onLogout, className = '' }: Accoun
           className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold border bg-white text-foreground border-border hover:bg-surface transition-colors"
         >
           <ListOrdered size={14} className="text-brand-blue" />
-          <span>Pesanan Saya</span>
+          <span>{t.orders}</span>
         </Link>
       )}
     </div>
   );
 }
 
-export function AccountLogoutDialog({ isOpen, onClose, onConfirm }: AccountLogoutDialogProps) {
+export function AccountLogoutDialog({ isOpen, onClose, onConfirm, lang = 'id' }: AccountLogoutDialogProps) {
+  const t = ACCOUNT_I18N[lang].nav;
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-60 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150">
       <div className="w-full max-w-sm bg-white text-foreground rounded-3xl shadow-2xl border border-border p-6 text-center space-y-4 animate-in zoom-in-95 duration-150">
-        <h3 className="font-bold text-lg text-foreground">Keluar dari Akun?</h3>
+        <h3 className="font-bold text-lg text-foreground">{t.logoutDialogTitle}</h3>
         <p className="text-xs text-foreground-muted leading-relaxed">
-          Apakah Anda yakin ingin keluar dari akun Anda saat ini?
+          {t.logoutDialogDesc}
         </p>
         <div className="flex gap-2.5 pt-2">
           <button
@@ -226,14 +233,14 @@ export function AccountLogoutDialog({ isOpen, onClose, onConfirm }: AccountLogou
             onClick={onClose}
             className="flex-1 py-3 px-4 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-all cursor-pointer"
           >
-            Batal
+            {t.cancel}
           </button>
           <button
             type="button"
             onClick={onConfirm}
             className="flex-1 py-3 px-4 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
           >
-            Keluar
+            {t.logout}
           </button>
         </div>
       </div>

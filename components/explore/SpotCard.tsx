@@ -11,6 +11,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { resolveAssetUrl, rupiah } from '@/lib/api-client';
+import { type Language } from '@/lib/explore-i18n';
 
 export interface SpotData {
   id: string;
@@ -52,6 +53,7 @@ interface SpotCardProps {
   onToggleFavorite?: (spotId: string) => void;
   showBadge?: boolean;
   showRating?: boolean;
+  lang?: Language;
 }
 
 export function getPhotoCategoryScore(category?: string): number {
@@ -99,6 +101,7 @@ export function SpotCard({
   onToggleFavorite,
   showBadge = false,
   showRating = true,
+  lang = 'id',
 }: SpotCardProps) {
   const [photoIndex, setPhotoIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
@@ -256,7 +259,7 @@ export function SpotCard({
               className="px-2.5 py-0.5 rounded-full text-[9.5px] font-bold bg-brand-lime text-black border border-brand-lime/60 shadow-none flex items-center gap-1 hover:scale-105 transition-transform cursor-pointer"
             >
               <Compass size={10} />
-              Tur 360°
+              {lang === 'en' ? '360° Tour' : 'Tur 360°'}
             </button>
           ) : null}
         </div>
@@ -326,13 +329,13 @@ export function SpotCard({
           <div className="pt-0.5 flex items-baseline justify-between gap-2">
             <p className="text-sm text-foreground">
               <span className="text-xs font-normal text-foreground-muted mr-1">
-                mulai dari
+                {lang === 'en' ? 'from' : 'mulai dari'}
               </span>
               <span className="font-bold text-foreground">
                 {rupiah(startingPrice)}
               </span>
               <span className="text-[11px] font-normal text-foreground-muted ml-1">
-                / malam
+                {lang === 'en' ? '/ night' : '/ malam'}
               </span>
             </p>
           </div>

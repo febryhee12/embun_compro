@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { EXPLORE_I18N, type Language } from '@/lib/explore-i18n';
 
 export interface CategoryItem {
   id: string;
@@ -21,11 +22,13 @@ export const CATEGORIES: CategoryItem[] = [
 interface CategoryFilterBarProps {
   selectedCategory: string;
   onSelectCategory: (id: string) => void;
+  lang?: Language;
 }
 
 export function CategoryFilterBar({
   selectedCategory,
   onSelectCategory,
+  lang = 'id',
 }: CategoryFilterBarProps) {
   const [isVisibleMobile, setIsVisibleMobile] = useState(true);
   const [isAtTop, setIsAtTop] = useState(true);
@@ -74,6 +77,7 @@ export function CategoryFilterBar({
         >
           {CATEGORIES.map((cat) => {
             const isSelected = selectedCategory === cat.id;
+            const label = (EXPLORE_I18N[lang].categories as any)[cat.id] || cat.label;
             return (
               <button
                 key={cat.id}
@@ -86,7 +90,7 @@ export function CategoryFilterBar({
                 }`}
               >
                 <span className="whitespace-nowrap tracking-tight">
-                  {cat.label}
+                  {label}
                 </span>
               </button>
             );

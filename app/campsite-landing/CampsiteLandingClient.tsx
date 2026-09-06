@@ -36,6 +36,9 @@ import {
 import { SpotCard, type SpotData } from '@/components/explore/SpotCard';
 import { GuestAuthModal } from '@/components/explore/GuestAuthModal';
 import { ReviewsModal } from '@/components/reviews/ReviewsModal';
+import { ExploreFooter } from '@/components/explore/ExploreFooter';
+import { TranslatableBox } from '@/components/ui/TranslatableBox';
+import { SPOT_I18N, translateItemName, type Language } from '@/lib/spot-i18n';
 import {
   getStoredGuestProfile,
   getGuestToken,
@@ -380,6 +383,32 @@ function CampsiteLandingClientInner() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [isAppBannerDismissed, setIsAppBannerDismissed] = useState(false);
+
+  // Language state (defaults to 'id', persist in localStorage)
+  const [lang, setLang] = useState<Language>('id');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (window.location.pathname.startsWith('/en')) {
+        setLang('en');
+        return;
+      }
+      const savedLang = localStorage.getItem('embun_lang') as Language;
+      if (savedLang === 'id' || savedLang === 'en') {
+        setLang(savedLang);
+      }
+    }
+  }, []);
+
+  const toggleLanguage = () => {
+    const nextLang: Language = lang === 'id' ? 'en' : 'id';
+    setLang(nextLang);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('embun_lang', nextLang);
+    }
+  };
+
+  const t = SPOT_I18N[lang];
 
   const pannellumRef = useRef<any>(null);
 
@@ -772,8 +801,12 @@ function CampsiteLandingClientInner() {
               />
             </div>
             <div>
-              <p className="font-bold text-xs sm:text-sm leading-tight text-white">Aplikasi Embun</p>
-              <p className="text-[11px] text-white/75 leading-normal mt-0.5">Buka langsung di aplikasi</p>
+              <p className="font-bold text-xs sm:text-sm leading-tight text-white">
+                {lang === 'en' ? 'Embun App' : 'Aplikasi Embun'}
+              </p>
+              <p className="text-[11px] text-white/75 leading-normal mt-0.5">
+                {lang === 'en' ? 'Open directly in the app' : 'Buka langsung di aplikasi'}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -782,13 +815,13 @@ function CampsiteLandingClientInner() {
               onClick={handleOpenApp}
               className="px-4 py-2 rounded-full bg-brand-lime hover:bg-brand-lime/90 text-black font-bold text-xs active:scale-95 transition-all cursor-pointer shadow-xs shrink-0"
             >
-              Buka di App
+              {lang === 'en' ? 'Open in App' : 'Buka di App'}
             </button>
             <button
               type="button"
               onClick={() => setIsAppBannerDismissed(true)}
               className="p-1.5 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-              title="Tutup banner"
+              title={lang === 'en' ? 'Close banner' : 'Tutup banner'}
             >
               <X size={15} />
             </button>
@@ -826,22 +859,13 @@ function CampsiteLandingClientInner() {
             </span>
           </div>
 
-          {/* Kanan: Buka App, Bagikan, Favorit, Akun / Masuk */}
+          {/* Kanan: Bahasa, Bagikan, Favorit, Akun / Masuk */}
           <div className="flex items-center gap-2.5">
-            <button
-              type="button"
-              onClick={handleOpenApp}
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-lime hover:bg-brand-lime/90 text-black text-xs font-bold transition-all cursor-pointer shadow-2xs"
-              title="Buka langsung di Aplikasi Embun"
-            >
-              <Smartphone size={13} />
-              <span>Buka App</span>
-            </button>
             <button
               type="button"
               onClick={handleShare}
               className="p-2 rounded-full border border-border hover:bg-surface text-foreground transition-colors cursor-pointer"
-              title="Bagikan Halaman Ini"
+              title={t.header.share}
             >
               <Share2 size={16} />
             </button>
@@ -851,7 +875,7 @@ function CampsiteLandingClientInner() {
               className={`p-2 rounded-full border border-border hover:bg-surface transition-colors cursor-pointer ${
                 isFavorite ? 'text-red-500' : 'text-foreground'
               }`}
-              title={isFavorite ? 'Hapus dari Favorit' : 'Simpan ke Favorit'}
+              title={isFavorite ? t.header.unFavorite : t.header.favorite}
             >
               <Heart size={16} className={isFavorite ? 'fill-red-500' : ''} />
             </button>
@@ -882,7 +906,7 @@ function CampsiteLandingClientInner() {
               ) : (
                 <>
                   <User size={15} className="text-foreground-muted" />
-                  <span>Masuk</span>
+                  <span>{lang === 'en' ? 'Sign In' : 'Masuk'}</span>
                 </>
               )}
             </button>
@@ -914,7 +938,7 @@ function CampsiteLandingClientInner() {
               className="px-4 py-2 rounded-full text-xs font-bold bg-white/95 backdrop-blur-md text-foreground flex items-center gap-2 shadow-sm hover:bg-white transition-all cursor-pointer"
             >
               <Compass size={14} className="text-brand-blue" />
-              <span>Tur 360° Tersedia</span>
+              <span>{lang === 'en' ? '360° Tour Available' : 'Tur 360° Tersedia'}</span>
             </button>
           </div>
         )}
@@ -940,7 +964,7 @@ function CampsiteLandingClientInner() {
                   <span>{Number(campsite.rating).toFixed(1)}</span>
                 </div>
                 <span className="text-xs text-white/80 font-medium">
-                  ({campsite.reviewCount || 0} ulasan terverifikasi)
+                  ({campsite.reviewCount || 0} {lang === 'en' ? 'verified reviews' : 'ulasan terverifikasi'})
                 </span>
               </div>
             )}
@@ -952,13 +976,13 @@ function CampsiteLandingClientInner() {
       <div className="bg-surface/60 border-b border-border py-4">
         <div className="max-w-[2520px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs sm:text-sm text-foreground-muted">
           <div>
-            <span className="text-foreground font-bold">{allSpots.length} Unit Spot</span> Tersedia
+            <span className="text-foreground font-bold">{allSpots.length} {lang === 'en' ? 'Spot Units' : 'Unit Spot'}</span> {lang === 'en' ? 'Available' : 'Tersedia'}
           </div>
           <span className="text-border hidden sm:inline">•</span>
           {startingPrice > 0 && (
             <>
               <div>
-                Mulai dari <span className="text-foreground font-bold">{rupiah(startingPrice)}</span> / malam
+                {t.campsitePage.fromPerNight} <span className="text-foreground font-bold">{rupiah(startingPrice)}</span> {lang === 'en' ? '/ night' : '/ malam'}
               </div>
               <span className="text-border hidden sm:inline">•</span>
             </>
@@ -974,13 +998,23 @@ function CampsiteLandingClientInner() {
         {/* TENTANG KAWASAN */}
         <section className="space-y-3">
           <h2 className="font-extrabold text-xl text-foreground">
-            Tentang Kawasan {campsite.name}
+            {t.campsitePage.aboutCampsite(campsite.name)}
           </h2>
-          <div className="p-6 rounded-3xl bg-white border border-border leading-relaxed text-sm text-foreground/85 whitespace-pre-line">
-            {campsite.description ||
-              `${campsite.name} merupakan destinasi camping dan glamping pilihan di ${
-                campsite.city || 'Jawa Barat'
-              } dengan suasana asri, udara sejuk, dan fasilitas lengkap untuk liburan keluarga maupun komunitas Anda.`}
+          <div className="p-6 rounded-3xl bg-white border border-border leading-relaxed text-sm text-foreground/85">
+            <TranslatableBox
+              text={
+                campsite.description ||
+                (lang === 'en'
+                  ? `${campsite.name} is a premier camping and glamping destination in ${
+                      campsite.city || 'West Java'
+                    } featuring natural surroundings, refreshing weather, and complete amenities for families and outdoor enthusiasts.`
+                  : `${campsite.name} merupakan destinasi camping dan glamping pilihan di ${
+                      campsite.city || 'Jawa Barat'
+                    } dengan suasana asri, udara sejuk, dan fasilitas lengkap untuk liburan keluarga maupun komunitas Anda.`)
+              }
+              lang={lang}
+              textClassName="text-sm text-foreground/85 leading-relaxed"
+            />
           </div>
         </section>
 
@@ -988,7 +1022,7 @@ function CampsiteLandingClientInner() {
         {Array.isArray(campsite.facilities) && campsite.facilities.length > 0 && (
           <section className="space-y-4">
             <h2 className="font-extrabold text-xl text-foreground">
-              Fasilitas Utama Properti
+              {t.campsitePage.mainFacilities}
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-xs sm:text-sm text-foreground">
               {campsite.facilities.map((fac: any, idx: number) => {
@@ -1002,7 +1036,7 @@ function CampsiteLandingClientInner() {
                     className="flex items-center gap-3 p-3.5 rounded-2xl bg-surface/70 border border-border/80 shadow-2xs hover:bg-surface transition-colors"
                   >
                     {getFacilityIcon(facName, facIcon || fac.id)}
-                    <span className="font-medium truncate">{facName}</span>
+                    <span className="font-medium truncate">{translateItemName(facName, lang)}</span>
                   </div>
                 );
               })}
@@ -1015,10 +1049,10 @@ function CampsiteLandingClientInner() {
           <section className="space-y-3">
             <div>
               <h2 className="font-extrabold text-xl text-foreground">
-                Video Suasana Kawasan
+                {t.campsitePage.videoTitle}
               </h2>
               <p className="text-xs text-foreground-muted mt-0.5">
-                Tonton keindahan alam, suasana malam, dan aktivitas di {campsite.name}
+                {t.campsitePage.videoSubtitle(campsite.name)}
               </p>
             </div>
             <div className="relative aspect-video w-full rounded-3xl overflow-hidden shadow-lg border border-border bg-black">
@@ -1033,35 +1067,33 @@ function CampsiteLandingClientInner() {
           </section>
         )}
 
-        {/* ── ATURAN & KEBIJAKAN KAWASAN (DIPINDAHKAN KE ATAS, TEPAT DI BAWAH VIDEO) ── */}
+        {/* ── ATURAN & KEBIJAKAN KAWASAN ── */}
         {parsedRules.length > 0 && (
           <section className="space-y-3">
             <h2 className="font-extrabold text-xl text-foreground">
-              Aturan & Kebijakan Kawasan
+              {t.campsitePage.rulesTitle}
             </h2>
             <div className="p-6 rounded-3xl bg-white border border-border space-y-4 text-xs sm:text-sm">
               <h3 className="font-bold text-sm sm:text-base text-foreground flex items-center gap-2">
                 <ShieldCheck size={16} className="text-emerald-600" />
-                <span>Tata Tertib Menginap</span>
+                <span>{t.campsitePage.rulesSubtitle}</span>
               </h3>
-              <ul className="space-y-2.5 text-foreground/80 list-disc list-inside leading-relaxed">
-                {parsedRules.map((rule, rIdx) => (
-                  <li key={rIdx} className="leading-relaxed">
-                    {rule}
-                  </li>
-                ))}
-              </ul>
+              <TranslatableBox
+                items={parsedRules}
+                lang={lang}
+                listClassName="space-y-2.5 text-foreground/80 list-disc list-inside leading-relaxed"
+              />
               <div className="pt-3 border-t border-border/70 text-xs text-foreground-muted flex items-center gap-1.5">
                 <ShieldCheck size={14} className="text-brand-blue shrink-0" />
                 <span>
-                  Ketentuan pembatalan pesanan atau refund selengkapnya dapat dilihat di{' '}
+                  {t.campsitePage.refundNotice}{' '}
                   <a
-                    href="/id/kebijakan-refund/"
+                    href={`/${lang}/kebijakan-refund/`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-brand-blue font-bold hover:underline"
                   >
-                    Kebijakan Refund & Pembatalan Embun &rarr;
+                    {t.campsitePage.refundLinkText}
                   </a>
                 </span>
               </div>
@@ -1161,6 +1193,7 @@ function CampsiteLandingClientInner() {
                     key={spot.id}
                     spot={spotData}
                     showRating={false}
+                    lang={lang}
                     onSelectSpot={(s) => {
                       window.location.href = `/spot/${s.shareCode || s.id}`;
                     }}
@@ -1175,7 +1208,7 @@ function CampsiteLandingClientInner() {
         {campsite.mapImageUrl && (
           <section className="space-y-3">
             <h2 className="font-extrabold text-xl text-foreground">
-              Denah Peta Kawasan
+              {t.campsitePage.denahTitle}
             </h2>
             <div
               onClick={() => setShowFullMapModal(true)}
@@ -1189,7 +1222,7 @@ function CampsiteLandingClientInner() {
               <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                 <span className="px-4 py-2 rounded-xl bg-white/90 backdrop-blur-md text-foreground font-bold text-xs shadow-md flex items-center gap-1.5">
                   <Maximize2 size={13} />
-                  <span>Perbesar Denah Kawasan</span>
+                  <span>{t.campsitePage.expandDenah}</span>
                 </span>
               </div>
             </div>
@@ -1202,10 +1235,10 @@ function CampsiteLandingClientInner() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="font-extrabold text-xl text-foreground">
-                  Ulasan Tamu di {campsite.name}
+                  {t.campsitePage.reviewsTitle(campsite.name)}
                 </h2>
                 <p className="text-xs text-foreground-muted mt-0.5">
-                  Pengalaman nyata dari pengunjung terverifikasi
+                  {t.campsitePage.reviewsSubtitle}
                 </p>
               </div>
               {reviews.length > 0 && (
@@ -1214,7 +1247,7 @@ function CampsiteLandingClientInner() {
                   onClick={() => setShowReviewsModal(true)}
                   className="px-4 py-2 rounded-full border border-border bg-white hover:bg-surface text-xs font-bold text-foreground transition-all cursor-pointer shadow-2xs hover:shadow-xs inline-flex items-center justify-center"
                 >
-                  Lihat Semua
+                  {t.campsitePage.viewAll}
                 </button>
               )}
             </div>
@@ -1257,11 +1290,11 @@ function CampsiteLandingClientInner() {
                             </span>
                             <span className="text-[10px] text-foreground-muted">
                               {rev.createdAt
-                                ? new Date(rev.createdAt).toLocaleDateString('id-ID', {
+                                ? new Date(rev.createdAt).toLocaleDateString(lang === 'en' ? 'en-US' : 'id-ID', {
                                     month: 'short',
                                     year: 'numeric',
                                   })
-                                : 'Pengunjung Terverifikasi'}
+                                : t.campsitePage.verifiedGuest}
                               {(rev.spotName || rev.blockName) && ` · ${rev.spotName || rev.blockName}`}
                             </span>
                           </div>
@@ -1273,9 +1306,11 @@ function CampsiteLandingClientInner() {
                       </div>
 
                       {reviewText && (
-                        <p className="text-xs sm:text-sm text-foreground/85 leading-relaxed italic">
-                          &ldquo;{reviewText.trim()}&rdquo;
-                        </p>
+                        <TranslatableBox
+                          text={`“${reviewText.trim()}”`}
+                          lang={lang}
+                          textClassName="text-xs sm:text-sm text-foreground/85 leading-relaxed italic"
+                        />
                       )}
 
                       {rev.photoUrl && (
@@ -1296,29 +1331,8 @@ function CampsiteLandingClientInner() {
         )}
       </main>
 
-      {/* ── 5. FOOTER KHAS EMBUN EXPLORE (SESUAI GAMBAR 2) ── */}
-      <footer className="border-t border-border bg-surface py-8 sm:py-10 text-xs text-foreground-muted mt-auto relative">
-        <div className="max-w-[2520px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="font-black text-lg text-brand-blue tracking-tight">embun</span>
-            <span>© 2026 PT Alam Kelana Digital. Hak Cipta Dilindungi.</span>
-          </div>
-          <div className="flex items-center gap-6 pr-0 sm:pr-16 lg:pr-20">
-            <a href="/id/kebijakan-privasi/" className="hover:underline">
-              Privasi
-            </a>
-            <a href="/id/syarat-ketentuan/" className="hover:underline">
-              Syarat & Ketentuan
-            </a>
-            <a href="/id/kebijakan-refund/" className="hover:underline">
-              Kebijakan Refund
-            </a>
-            <a href="/id/mitra/" className="hover:underline">
-              Mitra Camp
-            </a>
-          </div>
-        </div>
-      </footer>
+      {/* ── 5. FOOTER KHAS EMBUN EXPLORE ── */}
+      <ExploreFooter lang={lang} onToggleLanguage={toggleLanguage} />
 
       {/* ── MODAL AUTH ── */}
       {isAuthOpen && (
@@ -1326,6 +1340,7 @@ function CampsiteLandingClientInner() {
           isOpen={isAuthOpen}
           onClose={() => setIsAuthOpen(false)}
           currentUser={currentUser}
+          lang={lang}
           onSuccess={(user) => setCurrentUser(user)}
           onLogout={() => setCurrentUser(null)}
         />
@@ -1414,6 +1429,7 @@ function CampsiteLandingClientInner() {
         onClose={() => setShowReviewsModal(false)}
         reviews={reviews}
         targetName={campsite?.name || 'Kawasan Campsite'}
+        lang={lang}
       />
     </div>
   );
