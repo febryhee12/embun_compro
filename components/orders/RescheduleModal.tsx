@@ -186,7 +186,7 @@ export function RescheduleModal({
             type="button"
             onClick={onClose}
             disabled={submitting}
-            className="p-2 rounded-full hover:bg-surface text-foreground-muted hover:text-foreground transition-colors cursor-pointer disabled:opacity-50"
+            className="p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 text-foreground-muted hover:text-foreground transition-colors cursor-pointer disabled:opacity-50"
             aria-label="Tutup"
           >
             <X size={18} />
@@ -196,7 +196,7 @@ export function RescheduleModal({
         {/* Modal Body */}
         <form onSubmit={handleSubmit} className="p-5 sm:p-6 overflow-y-auto space-y-5">
           {/* Jadwal Saat Ini */}
-          <div className="p-4 rounded-2xl bg-surface border border-border/70 space-y-2">
+          <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-background border border-border/70 space-y-2">
             <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted block">
               Jadwal Saat Ini
             </span>
@@ -222,7 +222,7 @@ export function RescheduleModal({
                 value={checkInStr}
                 onChange={(e) => setCheckInStr(e.target.value)}
                 required
-                className="w-full text-xs sm:text-sm px-4 py-3 rounded-2xl border border-border bg-white dark:bg-surface text-foreground focus:outline-none focus:ring-2 focus:ring-brand-blue/30 dark:focus:ring-brand-lime/30 focus:border-brand-blue dark:focus:border-brand-lime"
+                className="w-full text-xs sm:text-sm px-4 py-3 rounded-2xl border border-border bg-white dark:bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-brand-blue/30 dark:focus:ring-brand-lime/30 focus:border-brand-blue dark:focus:border-brand-lime [color-scheme:light] dark:[color-scheme:dark]"
               />
             </div>
             <p className="text-[11px] text-foreground-muted leading-relaxed">
@@ -339,14 +339,14 @@ export function RescheduleModal({
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="px-4 py-2.5 rounded-full border border-border bg-white dark:bg-surface hover:bg-surface text-foreground font-bold text-xs transition-colors cursor-pointer disabled:opacity-50"
+              className="px-4 py-2.5 rounded-full border border-border bg-white dark:bg-background hover:bg-neutral-100 dark:hover:bg-neutral-800 text-foreground font-bold text-xs transition-colors cursor-pointer disabled:opacity-50"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={submitting || quoteLoading || !quote?.available}
-              className="px-5 py-2.5 rounded-full bg-brand-blue dark:bg-brand-lime hover:bg-brand-blue-hover dark:hover:bg-brand-lime/90 text-white dark:text-black font-bold dark:font-black text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-5 py-2.5 rounded-full bg-brand-blue dark:bg-brand-lime hover:bg-brand-blue-hover dark:hover:bg-brand-lime/90 active:scale-95 text-white dark:text-black font-bold dark:font-black text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? (
                 <>
