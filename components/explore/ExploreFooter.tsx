@@ -80,7 +80,7 @@ export function ExploreFooter({ className, lang = 'id', onToggleLanguage }: Expl
             <div className="flex flex-col gap-1.5">
               <a
                 href="mailto:support@embun.app"
-                className="hover:text-brand-lime transition-colors"
+                className="hover:text-brand-blue dark:hover:text-brand-lime transition-colors"
               >
                 support@embun.app
               </a>
@@ -88,7 +88,7 @@ export function ExploreFooter({ className, lang = 'id', onToggleLanguage }: Expl
                 href="https://wa.me/6282131411919"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-brand-lime transition-colors"
+                className="hover:text-brand-blue dark:hover:text-brand-lime transition-colors"
               >
                 +62 821-3141-1919 (WA)
               </a>
@@ -101,16 +101,16 @@ export function ExploreFooter({ className, lang = 'id', onToggleLanguage }: Expl
               {t.policiesTitle}
             </p>
             <div className="flex flex-col gap-1.5">
-              <Link href={`/${lang}/kebijakan-privasi/`} className="hover:text-brand-lime transition-colors">
+              <Link href={`/${lang}/kebijakan-privasi/`} className="hover:text-brand-blue dark:hover:text-brand-lime transition-colors">
                 {t.privacyPolicy}
               </Link>
-              <Link href={`/${lang}/syarat-ketentuan/`} className="hover:text-brand-lime transition-colors">
+              <Link href={`/${lang}/syarat-ketentuan/`} className="hover:text-brand-blue dark:hover:text-brand-lime transition-colors">
                 {t.termsConditions}
               </Link>
-              <Link href={`/${lang}/kebijakan-refund/`} className="hover:text-brand-lime transition-colors">
+              <Link href={`/${lang}/kebijakan-refund/`} className="hover:text-brand-blue dark:hover:text-brand-lime transition-colors">
                 {t.refundPolicy}
               </Link>
-              <Link href={`/${lang}/mitra/`} className="hover:text-brand-lime transition-colors">
+              <Link href={`/${lang}/mitra/`} className="hover:text-brand-blue dark:hover:text-brand-lime transition-colors">
                 {t.campPartners}
               </Link>
             </div>
@@ -127,10 +127,10 @@ export function ExploreFooter({ className, lang = 'id', onToggleLanguage }: Expl
             <button
               type="button"
               onClick={handleToggle}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-surface hover:bg-surface-variant text-xs font-bold text-foreground shadow-2xs transition-all cursor-pointer hover:border-brand-lime hover:text-brand-lime"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-surface hover:bg-surface-variant text-xs font-bold text-foreground shadow-2xs transition-all cursor-pointer hover:border-brand-blue dark:hover:border-brand-lime hover:text-brand-blue dark:hover:text-brand-lime"
               title={lang === 'en' ? 'Ubah ke Bahasa Indonesia' : 'Switch to English'}
             >
-              <Globe size={14} className="text-brand-lime shrink-0" />
+              <Globe size={14} className="shrink-0" />
               <span>{lang === 'en' ? 'English (EN)' : 'Bahasa Indonesia (ID)'}</span>
             </button>
 
@@ -138,7 +138,7 @@ export function ExploreFooter({ className, lang = 'id', onToggleLanguage }: Expl
             <button
               type="button"
               onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-surface hover:bg-surface-variant text-xs font-bold text-foreground shadow-2xs transition-all cursor-pointer hover:border-brand-lime hover:text-brand-lime"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-surface hover:bg-surface-variant text-xs font-bold text-foreground shadow-2xs transition-all cursor-pointer hover:border-brand-blue dark:hover:border-brand-lime hover:text-brand-blue dark:hover:text-brand-lime"
               title={
                 mounted && resolvedTheme === 'dark'
                   ? lang === 'en'
@@ -153,12 +153,12 @@ export function ExploreFooter({ className, lang = 'id', onToggleLanguage }: Expl
               {mounted ? (
                 resolvedTheme === 'dark' ? (
                   <>
-                    <Sun size={14} className="text-brand-lime shrink-0" />
+                    <Sun size={14} className="shrink-0" />
                     <span>{lang === 'en' ? 'Dark Mode' : 'Mode Gelap'}</span>
                   </>
                 ) : (
                   <>
-                    <Moon size={14} className="text-foreground shrink-0" />
+                    <Moon size={14} className="shrink-0" />
                     <span>{lang === 'en' ? 'Light Mode' : 'Mode Terang'}</span>
                   </>
                 )

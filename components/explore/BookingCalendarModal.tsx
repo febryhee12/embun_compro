@@ -497,7 +497,7 @@ export function BookingCalendarModal({
           <button
             type="button"
             onClick={handleReset}
-            className="flex items-center gap-1.5 text-xs font-semibold text-foreground-muted hover:text-brand-lime cursor-pointer transition-colors shrink-0"
+            className="flex items-center gap-1.5 text-xs font-semibold text-foreground-muted hover:text-brand-blue dark:hover:text-brand-lime cursor-pointer transition-colors shrink-0"
           >
             <RotateCcw size={13} />
             <span>{lang === 'en' ? "Reset Dates" : "Reset Tanggal"}</span>
