@@ -192,7 +192,7 @@ export function PartnerFaqAndContact({
             {/* Left Column: Form inside White Rounded Card */}
             <div className="lg:col-span-7 flex flex-col">
               <Reveal delay={100} className="w-full h-full">
-                <div className="bg-white rounded-3xl p-6 sm:p-10 shadow-sm border border-black/5 flex flex-col justify-between h-full">
+                <div className="bg-white dark:bg-surface rounded-3xl p-6 sm:p-10 shadow-sm border border-black/5 dark:border-white/10 flex flex-col justify-between h-full">
                   {isSuccess ? (
                     <div
                       role="status"
@@ -243,7 +243,7 @@ export function PartnerFaqAndContact({
                             id="name"
                             type="text"
                             placeholder="Nama"
-                            className="w-full bg-[#f0f0f3] rounded-xl px-4 py-3 text-sm text-brand-black placeholder:text-foreground-muted/60 outline-none focus:ring-2 focus:ring-brand-blue/30 transition-all font-sans"
+                            className="w-full bg-[#f0f0f3] dark:bg-background/80 dark:border dark:border-white/10 rounded-xl px-4 py-3 text-sm text-brand-black placeholder:text-foreground-muted/60 outline-none focus:ring-2 focus:ring-brand-blue/30 dark:focus:ring-brand-lime/50 transition-all font-sans"
                           />
                           {errors.name && (
                             <p className="text-xs text-red-500 font-sans mt-0.5">
@@ -264,7 +264,7 @@ export function PartnerFaqAndContact({
                             id="email"
                             type="email"
                             placeholder="Email"
-                            className="w-full bg-[#f0f0f3] rounded-xl px-4 py-3 text-sm text-brand-black placeholder:text-foreground-muted/60 outline-none focus:ring-2 focus:ring-brand-blue/30 transition-all font-sans"
+                            className="w-full bg-[#f0f0f3] dark:bg-background/80 dark:border dark:border-white/10 rounded-xl px-4 py-3 text-sm text-brand-black placeholder:text-foreground-muted/60 outline-none focus:ring-2 focus:ring-brand-blue/30 dark:focus:ring-brand-lime/50 transition-all font-sans"
                           />
                           {errors.email && (
                             <p className="text-xs text-red-500 font-sans mt-0.5">
@@ -288,7 +288,7 @@ export function PartnerFaqAndContact({
                             id="phone"
                             type="tel"
                             placeholder="0800 0000 0000"
-                            className="w-full bg-[#f0f0f3] rounded-xl px-4 py-3 text-sm text-brand-black placeholder:text-foreground-muted/60 outline-none focus:ring-2 focus:ring-brand-blue/30 transition-all font-sans"
+                            className="w-full bg-[#f0f0f3] dark:bg-background/80 dark:border dark:border-white/10 rounded-xl px-4 py-3 text-sm text-brand-black placeholder:text-foreground-muted/60 outline-none focus:ring-2 focus:ring-brand-blue/30 dark:focus:ring-brand-lime/50 transition-all font-sans"
                           />
                           {errors.phone && (
                             <p className="text-xs text-red-500 font-sans mt-0.5">
@@ -309,7 +309,7 @@ export function PartnerFaqAndContact({
                             id="campsiteName"
                             type="text"
                             placeholder="Nama Campsite"
-                            className="w-full bg-[#f0f0f3] rounded-xl px-4 py-3 text-sm text-brand-black placeholder:text-foreground-muted/60 outline-none focus:ring-2 focus:ring-brand-blue/30 transition-all font-sans"
+                            className="w-full bg-[#f0f0f3] dark:bg-background/80 dark:border dark:border-white/10 rounded-xl px-4 py-3 text-sm text-brand-black placeholder:text-foreground-muted/60 outline-none focus:ring-2 focus:ring-brand-blue/30 dark:focus:ring-brand-lime/50 transition-all font-sans"
                           />
                           {errors.campsiteName && (
                             <p className="text-xs text-red-500 font-sans mt-0.5">
@@ -332,7 +332,7 @@ export function PartnerFaqAndContact({
                           id="message"
                           rows={4}
                           placeholder="Tulis pesan / kebutuhan Anda..."
-                          className="w-full bg-[#f0f0f3] rounded-xl px-4 py-3 text-sm text-brand-black placeholder:text-foreground-muted/60 outline-none focus:ring-2 focus:ring-brand-blue/30 transition-all resize-y min-h-[110px] font-sans"
+                          className="w-full bg-[#f0f0f3] dark:bg-background/80 dark:border dark:border-white/10 rounded-xl px-4 py-3 text-sm text-brand-black placeholder:text-foreground-muted/60 outline-none focus:ring-2 focus:ring-brand-blue/30 dark:focus:ring-brand-lime/50 transition-all resize-y min-h-[110px] font-sans"
                         />
                         {errors.message && (
                           <p className="text-xs text-red-500 font-sans mt-0.5">

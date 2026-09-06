@@ -37,9 +37,9 @@ export default function HowToJoin({
               key={index}
               as="article"
               delay={index * 100}
-              className="flex flex-col gap-5 rounded-2xl bg-white p-6 sm:p-8 shadow-sm border border-black/5 hover:shadow-md transition-shadow duration-300"
+              className="flex flex-col gap-5 rounded-2xl bg-white dark:bg-surface p-6 sm:p-8 shadow-sm border border-black/5 dark:border-white/10 hover:shadow-md transition-shadow duration-300"
             >
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-blue text-lg font-bold text-white shadow-xs">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-blue dark:bg-brand-lime text-lg font-bold text-white dark:text-black shadow-xs">
                 {index + 1}
               </div>
               <div>
