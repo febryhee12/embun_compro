@@ -160,7 +160,7 @@ export const i18n = {
         appStoreLead: 'Coming Soon',
         googlePlayLead: 'Get it on',
       },
-      featuresHeading: 'Camping seru anti ribet.',
+      featuresHeading: 'Camping made fun and hassle-free.',
       featuresSubcopy:
         'From searching for a spot to paying, everything can be done right from your fingertips without having to repeatedly call the campsite owner.',
       featuresComingSoonLabel: 'Coming Soon',
