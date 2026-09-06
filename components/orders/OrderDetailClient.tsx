@@ -49,7 +49,6 @@ import { GuestAuthModal } from '@/components/explore/GuestAuthModal';
 import { CompleteProfileModal } from '@/components/explore/CompleteProfileModal';
 import { InvoiceModal, InvoiceDocument } from '@/components/orders/InvoiceModal';
 import { CancelRefundModal } from '@/components/orders/CancelRefundModal';
-import { RescheduleModal } from '@/components/orders/RescheduleModal';
 import { ACCOUNT_I18N, type Language } from '@/lib/account-i18n';
 
 function getOrderBadge(order: any, lang: Language = 'id') {
@@ -257,7 +256,6 @@ export function OrderDetailClient() {
   const [isCompleteProfileOpen, setIsCompleteProfileOpen] = useState(false);
   const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
   const [isCancelRefundOpen, setIsCancelRefundOpen] = useState(false);
-  const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
 
   // Language state (defaults to 'id', persist in localStorage)
   const [lang, setLang] = useState<Language>('id');
@@ -423,20 +421,6 @@ export function OrderDetailClient() {
   const remainingBalance = Number(order?.remainingBalance) || 0;
   const isUnsettledDP = isPaid && isDP && (!order?.settledAt || remainingBalance > 0);
 
-  // Kelayakan Ubah Jadwal (Reschedule):
-  // Syarat: Status PAID, bukan DP belum lunas, belum pernah reschedule, dan minimal H-7 sebelum check-in
-  const canReschedule = React.useMemo(() => {
-    if (!order || order.status !== 'PAID') return false;
-    if (order.isRescheduled || order.bookings?.some((b: any) => b.isRescheduled || b.rescheduledAt)) return false;
-    if (isUnsettledDP) return false;
-    if (!booking?.checkIn) return false;
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-    const checkInDate = new Date(booking.checkIn);
-    checkInDate.setHours(0, 0, 0, 0);
-    const diffDays = Math.round((checkInDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-    return diffDays >= 7;
-  }, [order, isUnsettledDP, booking?.checkIn]);
 
   const isSettlementExpired = React.useMemo(() => {
     if (!isUnsettledDP) return false;
@@ -1278,42 +1262,27 @@ export function OrderDetailClient() {
                     )}
                   </div>
 
-                  {/* Tombol Aksi: Reschedule / Batal / Ajukan Refund */}
-                  {(canReschedule || canCancel) && (
+                  {/* Tombol Aksi: Batal / Ajukan Refund */}
+                  {canCancel && (
                     <div className="pt-3 border-t border-border/60 space-y-2 print:hidden">
-                      {/* Tombol Ubah Jadwal (Reschedule) */}
-                      {canReschedule && (
-                        <button
-                          type="button"
-                          onClick={() => setIsRescheduleOpen(true)}
-                          className="w-full py-3 px-4 rounded-full border border-brand-blue dark:border-brand-lime bg-white dark:bg-surface hover:bg-brand-blue/5 dark:hover:bg-brand-lime/10 text-brand-blue dark:text-brand-lime font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
-                        >
-                          <Calendar size={15} />
-                          <span>{t.rescheduleButton}</span>
-                        </button>
-                      )}
-
-                      {/* Tombol Batal / Ajukan Refund */}
-                      {canCancel && (
-                        <button
-                          type="button"
-                          onClick={() => setIsCancelRefundOpen(true)}
-                          className={`w-full py-3 px-4 rounded-full font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs ${
-                            isActuallyRefundEligible
-                              ? 'border border-rose-200 dark:border-rose-500/30 bg-rose-50/50 dark:bg-rose-500/10 hover:bg-rose-50 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400'
-                              : 'border border-border bg-white dark:bg-surface hover:bg-surface text-foreground-muted hover:text-rose-600 dark:hover:text-rose-400'
-                          }`}
-                        >
-                          <RotateCcw size={14} />
-                          <span>
-                            {isActuallyRefundEligible
-                              ? t.applyRefund
-                              : isPending
-                              ? t.cancelOrder
-                              : t.cancelOrderNoRefund}
-                          </span>
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => setIsCancelRefundOpen(true)}
+                        className={`w-full py-3 px-4 rounded-full font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs ${
+                          isActuallyRefundEligible
+                            ? 'border border-rose-200 dark:border-rose-500/30 bg-rose-50/50 dark:bg-rose-500/10 hover:bg-rose-50 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400'
+                            : 'border border-border bg-white dark:bg-surface hover:bg-surface text-foreground-muted hover:text-rose-600 dark:hover:text-rose-400'
+                        }`}
+                      >
+                        <RotateCcw size={14} />
+                        <span>
+                          {isActuallyRefundEligible
+                            ? t.applyRefund
+                            : isPending
+                            ? t.cancelOrder
+                            : t.cancelOrderNoRefund}
+                        </span>
+                      </button>
                     </div>
                   )}
 
@@ -1436,16 +1405,6 @@ export function OrderDetailClient() {
         <CancelRefundModal
           isOpen={isCancelRefundOpen}
           onClose={() => setIsCancelRefundOpen(false)}
-          order={order}
-          onSuccess={load}
-        />
-      )}
-
-      {/* Modal Ubah Jadwal (Reschedule) */}
-      {order && (
-        <RescheduleModal
-          isOpen={isRescheduleOpen}
-          onClose={() => setIsRescheduleOpen(false)}
           order={order}
           onSuccess={load}
         />
