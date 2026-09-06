@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, User, Menu, MapPin, Calendar, X, Check, Heart } from 'lucide-react';
+import { Search, User, Menu, MapPin, Calendar, X, Check, Heart, Sun, Moon } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { resolveAssetUrl } from '@/lib/api-client';
 import { EXPLORE_I18N, type Language } from '@/lib/explore-i18n';
 
@@ -54,6 +55,13 @@ export function ExploreHeader({
   }, [lang]);
 
   const t = EXPLORE_I18N[activeLang];
+  const { setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [isCityModalOpen, setIsCityModalOpen] = useState(false);
   const [isAppBannerDismissed, setIsAppBannerDismissed] = useState(false);
   const [citySearchQuery, setCitySearchQuery] = useState('');
@@ -195,7 +203,7 @@ export function ExploreHeader({
 
       <header
         ref={headerRef}
-        className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-border transition-all"
+        className="sticky top-0 z-40 bg-white/95 dark:bg-surface/95 backdrop-blur-md border-b border-border transition-all"
       >
         <div className="max-w-[2520px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 h-20 flex items-center justify-between gap-4">
           {/* Left: Official Brand Logo SVG */}
@@ -203,7 +211,12 @@ export function ExploreHeader({
             <img
               src="/images/logo/primary_blue.svg"
               alt="Embun"
-              className="h-7 w-auto object-contain transition-transform group-hover:scale-102"
+              className="h-7 w-auto object-contain transition-transform group-hover:scale-102 dark:hidden"
+            />
+            <img
+              src="/images/logo/primary_white.svg"
+              alt="Embun"
+              className="h-7 w-auto object-contain transition-transform group-hover:scale-102 hidden dark:block"
             />
             <span className="inline-block text-[10px] uppercase font-black tracking-wider px-2 py-0.5 rounded-full bg-brand-lime text-black border border-brand-lime/80 shadow-2xs">
               Explore
@@ -213,7 +226,7 @@ export function ExploreHeader({
           {/* Center: Airbnb-style Pill Search Bar (Desktop) */}
           {showSearch ? (
             <div className="flex-1 max-w-xl hidden md:flex items-center justify-center">
-              <div className="w-full flex items-center justify-between border border-border rounded-full py-1.5 px-4 shadow-2xs hover:shadow-md transition-all bg-white divide-x divide-border text-xs focus-within:ring-2 focus-within:ring-brand-blue/30 focus-within:border-brand-blue">
+              <div className="w-full flex items-center justify-between border border-border rounded-full py-1.5 px-4 shadow-2xs hover:shadow-md transition-all bg-white dark:bg-surface divide-x divide-border text-xs focus-within:ring-2 focus-within:ring-brand-blue/30 focus-within:border-brand-blue">
                 {/* City Filter Trigger */}
                 <button
                   type="button"
@@ -261,7 +274,7 @@ export function ExploreHeader({
             <div className="flex-1" />
           )}
 
-          {/* Right: User Avatar Menu, Wishlist */}
+          {/* Right: User Avatar Menu, Theme Toggle, Wishlist */}
           {showUserMenu ? (
             <div className="flex items-center gap-2 shrink-0">
               <Link
@@ -273,10 +286,37 @@ export function ExploreHeader({
                 <Heart size={16} className="text-foreground" />
               </Link>
 
+              {/* Dark / Light Mode Toggle Button */}
+              <button
+                type="button"
+                onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+                className="p-2 rounded-full border border-border hover:bg-surface text-foreground transition-all cursor-pointer flex items-center justify-center"
+                title={
+                  mounted && resolvedTheme === 'dark'
+                    ? activeLang === 'en'
+                      ? 'Switch to Light Mode'
+                      : 'Ganti ke Mode Terang'
+                    : activeLang === 'en'
+                    ? 'Switch to Dark Mode'
+                    : 'Ganti ke Mode Gelap'
+                }
+                aria-label="Toggle Dark Mode"
+              >
+                {mounted ? (
+                  resolvedTheme === 'dark' ? (
+                    <Sun size={16} className="text-brand-lime transition-transform rotate-0 scale-100" />
+                  ) : (
+                    <Moon size={16} className="text-foreground transition-transform rotate-0 scale-100" />
+                  )
+                ) : (
+                  <div className="w-4 h-4" />
+                )}
+              </button>
+
               <button
                 type="button"
                 onClick={onOpenAuth}
-                className="flex items-center gap-2 border border-border rounded-full py-1.5 px-3 hover:shadow-md transition-all bg-white cursor-pointer text-xs font-semibold text-foreground"
+                className="flex items-center gap-2 border border-border rounded-full py-1.5 px-3 hover:shadow-md transition-all bg-white dark:bg-surface cursor-pointer text-xs font-semibold text-foreground"
                 aria-label="Menu Pengguna"
               >
                 {currentUser ? (
@@ -320,7 +360,7 @@ export function ExploreHeader({
         {/* Mobile Search Bar (under logo) */}
         {showSearch && (
           <div className="md:hidden px-4 pb-3 flex items-center gap-2">
-            <div className="flex-1 flex items-center gap-2 border border-border rounded-full py-2.5 px-4 shadow-2xs bg-surface text-xs focus-within:ring-2 focus-within:ring-brand-blue/30 focus-within:border-brand-blue focus-within:bg-white transition-all">
+            <div className="flex-1 flex items-center gap-2 border border-border rounded-full py-2.5 px-4 shadow-2xs bg-surface text-xs focus-within:ring-2 focus-within:ring-brand-blue/30 focus-within:border-brand-blue focus-within:bg-white dark:focus-within:bg-surface transition-all">
               <Search size={15} className="text-brand-blue shrink-0" />
               <input
                 type="text"
@@ -370,7 +410,7 @@ export function ExploreHeader({
       {/* ── Modal Pilih Destinasi / Kota ── */}
       {isCityModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-sm bg-white text-foreground rounded-3xl shadow-2xl border border-border p-5 sm:p-6 space-y-4 animate-in zoom-in-95 duration-200">
+          <div className="w-full max-w-sm bg-white dark:bg-surface text-foreground rounded-3xl shadow-2xl border border-border p-5 sm:p-6 space-y-4 animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between pb-2 border-b border-border">
               <h3 className="font-bold text-sm text-foreground flex items-center gap-1.5">
                 <MapPin size={15} className="text-brand-blue" />
@@ -419,7 +459,7 @@ export function ExploreHeader({
             )}
 
             {/* Search City Input */}
-            <div className="flex items-center gap-2 border border-border rounded-2xl py-2 px-3 bg-surface text-xs focus-within:ring-2 focus-within:ring-brand-blue/30 focus-within:bg-white transition-all">
+            <div className="flex items-center gap-2 border border-border rounded-2xl py-2 px-3 bg-surface text-xs focus-within:ring-2 focus-within:ring-brand-blue/30 focus-within:bg-white dark:focus-within:bg-surface transition-all">
               <Search size={14} className="text-foreground-muted shrink-0" />
               <input
                 type="text"

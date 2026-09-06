@@ -44,6 +44,15 @@ export function ExploreFooter({ className, lang = 'id', onToggleLanguage }: Expl
                 width={130}
                 height={30}
                 unoptimized
+                className="dark:hidden"
+              />
+              <Image
+                src="/images/logo/model1_white.svg"
+                alt="Embun"
+                width={130}
+                height={30}
+                unoptimized
+                className="hidden dark:block"
               />
             </div>
             <div className="flex flex-col gap-1">

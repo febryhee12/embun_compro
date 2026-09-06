@@ -62,7 +62,7 @@ export function CategoryFilterBar({
 
   return (
     <div
-      className={`w-full border-b border-border bg-white/95 backdrop-blur-md sticky top-[var(--explore-header-height,130px)] md:top-20 z-30 py-3 shadow-xs transition-all duration-300 ease-in-out ${
+      className={`w-full border-b border-border bg-white/95 dark:bg-surface/95 backdrop-blur-md sticky top-[var(--explore-header-height,130px)] md:top-20 z-30 py-3 shadow-xs transition-all duration-300 ease-in-out ${
         isAtTop
           ? 'translate-y-0 opacity-100'
           : isVisibleMobile

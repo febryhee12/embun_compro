@@ -397,7 +397,7 @@ export function GuestAuthModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="w-full max-w-md bg-white text-foreground rounded-3xl shadow-2xl border border-border overflow-hidden min-h-[480px] flex flex-col justify-between p-6 sm:p-8 animate-in zoom-in-95 duration-200">
+      <div className="w-full max-w-md bg-white dark:bg-surface text-foreground rounded-3xl shadow-2xl border border-border overflow-hidden min-h-[480px] flex flex-col justify-between p-6 sm:p-8 animate-in zoom-in-95 duration-200">
         {/* Top Bar with Back Arrow */}
         <div className="flex items-center justify-start shrink-0">
           <button
@@ -450,19 +450,19 @@ export function GuestAuthModal({
               <div className="pt-6 space-y-2.5">
                 <a
                   href="/profile"
-                  className="w-full py-3.5 px-6 rounded-full border border-border bg-white hover:bg-surface text-foreground text-xs font-bold transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
+                  className="w-full py-3.5 px-6 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
                 >
                   <span>{t.editProfile}</span>
                 </a>
                 <a
                   href="/wishlist"
-                  className="w-full py-3.5 px-6 rounded-full border border-border bg-white hover:bg-surface text-foreground text-xs font-bold transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
+                  className="w-full py-3.5 px-6 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
                 >
                   <span>{t.wishlist}</span>
                 </a>
                 <a
                   href="/orders"
-                  className="w-full py-3.5 px-6 rounded-full border border-border bg-white hover:bg-surface text-foreground text-xs font-bold transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
+                  className="w-full py-3.5 px-6 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
                 >
                   <span>{t.orders}</span>
                 </a>
@@ -594,7 +594,7 @@ export function GuestAuthModal({
       {/* Logout Confirmation Dialog */}
       {showLogoutConfirm && (
         <div className="fixed inset-0 z-60 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150">
-          <div className="w-full max-w-sm bg-white text-foreground rounded-3xl shadow-2xl border border-border p-6 text-center space-y-4 animate-in zoom-in-95 duration-150">
+          <div className="w-full max-w-sm bg-white dark:bg-surface text-foreground rounded-3xl shadow-2xl border border-border p-6 text-center space-y-4 animate-in zoom-in-95 duration-150">
             <h3 className="font-bold text-lg text-foreground">
               {t.logoutModal.title}
             </h3>

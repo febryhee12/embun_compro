@@ -525,7 +525,7 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
     (selectedCity && selectedCity !== 'Semua Lokasi');
 
   return (
-    <div className="min-h-screen bg-white text-foreground flex flex-col selection:bg-brand-lime selection:text-black">
+    <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-brand-lime selection:text-black">
       {/* ═══ 1. AIRBNB-STYLE HEADER ═══ */}
       <ExploreHeader
         onOpenAuth={() => setIsAuthOpen(true)}
@@ -681,7 +681,7 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                         setSelectedCategory('plus');
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
-                      className="px-8 py-3 rounded-full border border-border bg-white hover:bg-surface text-foreground text-xs font-bold transition-all shadow-2xs hover:border-brand-blue hover:text-brand-blue cursor-pointer active:scale-95"
+                      className="px-8 py-3 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-all shadow-2xs hover:border-brand-blue hover:text-brand-blue cursor-pointer active:scale-95"
                     >
                       {t.sections.viewAll}
                     </button>
@@ -725,7 +725,7 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                         setSelectedCategory('nearby');
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
-                      className="px-8 py-3 rounded-full border border-border bg-white hover:bg-surface text-foreground text-xs font-bold transition-all shadow-2xs hover:border-brand-blue hover:text-brand-blue cursor-pointer active:scale-95"
+                      className="px-8 py-3 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-all shadow-2xs hover:border-brand-blue hover:text-brand-blue cursor-pointer active:scale-95"
                     >
                       {t.sections.viewAll}
                     </button>
@@ -804,7 +804,7 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                         <button
                           type="button"
                           onClick={() => handleSeeAllViewSpots(selectedViewTab)}
-                          className="px-8 py-3 rounded-full border border-border bg-white hover:bg-surface text-foreground text-xs font-bold transition-all shadow-2xs hover:border-brand-blue hover:text-brand-blue cursor-pointer active:scale-95"
+                          className="px-8 py-3 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-all shadow-2xs hover:border-brand-blue hover:text-brand-blue cursor-pointer active:scale-95"
                         >
                           {t.sections.viewAll}
                         </button>
@@ -842,7 +842,7 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                         onClick={() => {
                           window.location.href = `/campsite/${camp.slug || camp.id}`;
                         }}
-                        className="group p-4 rounded-3xl border border-border bg-white hover:shadow-lg transition-all cursor-pointer flex flex-col space-y-3"
+                        className="group p-4 rounded-3xl border border-border bg-surface hover:shadow-lg transition-all cursor-pointer flex flex-col space-y-3"
                       >
                         <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-surface">
                           {coverPhoto && !hasFailed ? (
@@ -865,7 +865,7 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                             </div>
                           )}
                           {(camp.reviewCount ?? 0) > 0 && (Number(camp.rating) || 0) > 0 && (
-                            <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-full text-[11px] font-bold text-foreground shadow-xs flex items-center gap-1">
+                            <div className="absolute top-3 right-3 bg-white/95 dark:bg-surface/95 backdrop-blur-xs px-2.5 py-1 rounded-full text-[11px] font-bold text-foreground shadow-xs flex items-center gap-1">
                               <Star
                                 size={12}
                                 className="fill-amber-500 text-amber-500"
@@ -904,7 +904,7 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                   <div className="flex justify-center pt-2">
                     <Link
                       href={`/${lang}/mitra/direktori`}
-                      className="px-8 py-3 rounded-full border border-border bg-white hover:bg-surface text-foreground text-xs font-bold transition-all shadow-2xs hover:border-brand-blue hover:text-brand-blue cursor-pointer active:scale-95 inline-flex items-center justify-center"
+                      className="px-8 py-3 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-all shadow-2xs hover:border-brand-blue hover:text-brand-blue cursor-pointer active:scale-95 inline-flex items-center justify-center"
                     >
                       {t.sections.viewAll}
                     </Link>
@@ -950,7 +950,7 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                       onClick={() =>
                         setVisibleOtherSpotsCount((prev) => prev + 10)
                       }
-                      className="px-8 py-3 rounded-full border border-border bg-white hover:bg-surface text-foreground text-xs font-bold transition-all shadow-2xs hover:border-brand-blue hover:text-brand-blue cursor-pointer active:scale-95"
+                      className="px-8 py-3 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-all shadow-2xs hover:border-brand-blue hover:text-brand-blue cursor-pointer active:scale-95"
                     >
                       {t.sections.showMore}
                     </button>
