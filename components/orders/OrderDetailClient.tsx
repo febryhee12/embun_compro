@@ -824,47 +824,47 @@ export function OrderDetailClient() {
                   </div>
                 ) : isCancelled ? (
                   /* KARTU STATUS DIBATALKAN */
-                  <div className="bg-red-50/70 dark:bg-red-950/20 rounded-3xl border border-red-200 dark:border-red-900/40 p-6 sm:p-7 shadow-2xs space-y-4">
+                  <div className="bg-white dark:bg-surface rounded-3xl border border-border p-6 sm:p-7 shadow-2xs space-y-4">
                     <div className="space-y-1.5">
-                      <div className="flex items-center gap-1.5 text-red-700 dark:text-red-400 bg-red-100/80 dark:bg-red-900/30 border border-red-200 dark:border-red-900/40 px-2.5 py-1 rounded-full w-fit">
-                        <XCircle size={14} />
+                      <div className="flex items-center gap-1.5 text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 px-2.5 py-1 rounded-full w-fit">
+                        <XCircle size={14} className="text-neutral-500 dark:text-neutral-400" />
                         <span className="text-[10.5px] uppercase font-bold tracking-wider">
                           {t.cancelledBadge}
                         </span>
                       </div>
-                      <h2 className="text-lg font-extrabold text-red-950 dark:text-red-200">
+                      <h2 className="text-lg font-extrabold text-foreground">
                         {t.cancelledTitle}
                       </h2>
-                      <p className="text-xs text-red-800/80 dark:text-red-300/80 max-w-md leading-relaxed">
+                      <p className="text-xs text-foreground-muted max-w-md leading-relaxed">
                         {t.cancelledDesc}
                       </p>
                     </div>
-                    <div className="p-3 rounded-2xl bg-white/90 dark:bg-surface border border-red-200 dark:border-red-900/40 text-red-700 dark:text-red-400 text-[11px] font-mono">
-                      {t.transactionNo} <span className="font-semibold">{order.id}</span>
+                    <div className="p-3 rounded-2xl bg-neutral-50 dark:bg-surface/50 border border-border text-foreground-muted text-[11px] font-mono">
+                      {t.transactionNo} <span className="font-semibold text-foreground">{order.id}</span>
                     </div>
                   </div>
                 ) : isPending ? (
                   /* KARTU STATUS MENUNGGU PEMBAYARAN */
-                  <div className="bg-amber-50/70 dark:bg-amber-950/20 rounded-3xl border border-amber-200/90 dark:border-amber-900/40 p-6 sm:p-7 shadow-2xs space-y-4">
+                  <div className="bg-white dark:bg-surface rounded-3xl border border-border p-6 sm:p-7 shadow-2xs space-y-4">
                     <div className="space-y-1.5">
-                      <div className="flex items-center gap-1.5 text-amber-800 dark:text-amber-300 bg-amber-100/80 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-900/40 px-2.5 py-1 rounded-full w-fit">
+                      <div className="flex items-center gap-1.5 text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-500/10 border border-amber-200/80 dark:border-amber-500/20 px-2.5 py-1 rounded-full w-fit">
                         <Clock size={14} />
                         <span className="text-[10.5px] uppercase font-bold tracking-wider">
                           {t.pendingBadge}
                         </span>
                       </div>
-                      <h2 className="text-lg font-extrabold text-amber-950 dark:text-amber-200">
+                      <h2 className="text-lg font-extrabold text-foreground">
                         {t.pendingTitle}
                       </h2>
-                      <p className="text-xs text-amber-900/80 dark:text-amber-300/80 max-w-md leading-relaxed">
+                      <p className="text-xs text-foreground-muted max-w-md leading-relaxed">
                         {t.pendingDesc}
                       </p>
                     </div>
 
-                    <div className="p-3 rounded-2xl bg-white/90 dark:bg-surface border border-amber-200 dark:border-amber-900/40 text-amber-900 dark:text-amber-300 text-[11px] font-mono flex items-center justify-between flex-wrap gap-2">
-                      <span>{t.transactionNo} <span className="font-semibold">{order.id}</span></span>
+                    <div className="p-3 rounded-2xl bg-neutral-50 dark:bg-surface/50 border border-border text-foreground-muted text-[11px] font-mono flex items-center justify-between flex-wrap gap-2">
+                      <span>{t.transactionNo} <span className="font-semibold text-foreground">{order.id}</span></span>
                       {order.paymentExpiresAt && (
-                        <span className="text-amber-700 dark:text-amber-400 font-sans">{t.paymentDeadline(formatDateDisplay(order.paymentExpiresAt, lang))}</span>
+                        <span className="text-amber-600 dark:text-amber-400 font-sans font-medium">{t.paymentDeadline(formatDateDisplay(order.paymentExpiresAt, lang))}</span>
                       )}
                     </div>
 
@@ -886,11 +886,11 @@ export function OrderDetailClient() {
                     2. CARD SKEMA DP 50% (JIKA BERLAKU)
                 ════════════════════════════════════════════════════════════════ */}
                 {isPaid && isDP && (
-                  <div className="bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/90 dark:border-amber-900/40 rounded-3xl p-6 sm:p-7 space-y-4">
-                    <div className="flex items-center justify-between border-b border-amber-200/60 dark:border-amber-900/40 pb-3">
+                  <div className="bg-white dark:bg-surface border border-border rounded-3xl p-6 sm:p-7 shadow-2xs space-y-4">
+                    <div className="flex items-center justify-between border-b border-border pb-3">
                       <div className="flex items-center gap-2">
                         <div className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
-                        <span className="text-xs font-bold uppercase tracking-wider text-amber-900 dark:text-amber-200">
+                        <span className="text-xs font-bold uppercase tracking-wider text-foreground">
                           {t.dpSchemeTitle}
                         </span>
                       </div>
@@ -906,15 +906,15 @@ export function OrderDetailClient() {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                      <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-surface border border-amber-200/50 dark:border-amber-900/40 space-y-1">
-                        <span className="text-amber-800/80 dark:text-amber-400/80 font-medium">{t.dpPaidOnline}</span>
+                      <div className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-surface/50 border border-border space-y-1">
+                        <span className="text-foreground-muted font-medium">{t.dpPaidOnline}</span>
                         <p className="text-base font-black text-foreground">
                           {rupiah(order.downPaymentAmount || order.totalAmount)}
                         </p>
                       </div>
-                      <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-surface border border-amber-200/50 dark:border-amber-900/40 space-y-1">
-                        <span className="text-amber-800/80 dark:text-amber-400/80 font-medium">{t.remainingBalanceLabel}</span>
-                        <p className="text-base font-black text-amber-900 dark:text-amber-300">
+                      <div className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-surface/50 border border-border space-y-1">
+                        <span className="text-foreground-muted font-medium">{t.remainingBalanceLabel}</span>
+                        <p className="text-base font-black text-foreground">
                           {rupiah(remainingBalance)}
                         </p>
                       </div>
