@@ -22,6 +22,9 @@ import {
   Clock,
   ShieldCheck,
   Layers,
+  Stone,
+  Sprout,
+  LandPlot,
   Flame,
   Camera,
   Droplets,
@@ -345,7 +348,32 @@ function getFacilityIcon(name?: string, id?: string) {
     lower.includes('hewan peliharaan')
   )
     return <Dog size={16} className={iconClass} />;
+  if (lower.includes('batu') || lower.includes('kerikil'))
+    return <Stone size={16} className={iconClass} />;
+  if (lower.includes('rumput'))
+    return <Sprout size={16} className={iconClass} />;
+  if (lower.includes('kayu') || lower.includes('deck') || lower.includes('semen'))
+    return <Layers size={16} className={iconClass} />;
+  if (lower.includes('tanah'))
+    return <LandPlot size={16} className={iconClass} />;
   return <CheckCircle2 size={16} className={iconClass} />;
+}
+
+function getSurfaceIcon(surfaceName?: string, className = 'text-brand-blue') {
+  const lower = (surfaceName || '').toLowerCase().trim();
+  if (lower.includes('batu') || lower.includes('kerikil')) {
+    return <Stone size={14} className={className} />;
+  }
+  if (lower.includes('rumput')) {
+    return <Sprout size={14} className={className} />;
+  }
+  if (lower.includes('kayu') || lower.includes('deck') || lower.includes('semen')) {
+    return <Layers size={14} className={className} />;
+  }
+  if (lower.includes('tanah')) {
+    return <LandPlot size={14} className={className} />;
+  }
+  return <Layers size={14} className={className} />;
 }
 
 function parseHtmlRules(htmlString?: string) {
@@ -2432,20 +2460,7 @@ export function SpotRedirectClient() {
                   {t.spot.plotAndUnitIn(campsite.name)}
                 </h2>
                 <p className="text-xs text-foreground-muted mt-1">
-                  {t.spot.maxGuests(effectiveMaxCapacity)}{' '}
-                  {(() => {
-                    const surface = getSpotSurface(activeSpot.facilities);
-                    if (surface) {
-                      return `· ${translateItemName(surface, lang)}`;
-                    }
-                    if (
-                      activeSpot.tentType &&
-                      activeSpot.tentType.toLowerCase() !== 'ground'
-                    ) {
-                      return `· ${translateItemName(activeSpot.tentType, lang)}`;
-                    }
-                    return '';
-                  })()}
+                  {t.spot.maxGuests(effectiveMaxCapacity)}
                 </p>
               </div>
             </div>
@@ -2463,7 +2478,7 @@ export function SpotRedirectClient() {
                   <div className="flex flex-wrap gap-2">
                     {surface ? (
                       <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-surface border border-border text-xs font-semibold text-foreground">
-                        <Tent size={14} className="text-brand-blue" />
+                        {getSurfaceIcon(surface)}
                         <span>{translateItemName(surface, lang)}</span>
                       </span>
                     ) : activeSpot.tentType ? (
