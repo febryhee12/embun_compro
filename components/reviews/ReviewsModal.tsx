@@ -115,14 +115,14 @@ export function ReviewsModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 animate-in fade-in duration-200">
-      <div className="w-full max-w-4xl bg-white text-foreground rounded-t-3xl sm:rounded-3xl shadow-2xl border border-border flex flex-col h-[90vh] sm:h-[85vh] max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="w-full max-w-4xl bg-white dark:bg-surface text-foreground rounded-t-3xl sm:rounded-3xl shadow-2xl border border-border flex flex-col h-[90vh] sm:h-[85vh] max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200">
         {/* ═══ MOBILE DRAG HANDLE STRIP ═══ */}
-        <div className="pt-3 pb-1 flex justify-center sm:hidden bg-white shrink-0">
-          <div className="w-12 h-1.5 bg-neutral-300 rounded-full" />
+        <div className="pt-3 pb-1 flex justify-center sm:hidden bg-white dark:bg-surface shrink-0">
+          <div className="w-12 h-1.5 bg-neutral-300 dark:bg-neutral-700 rounded-full" />
         </div>
 
         {/* ═══ TOP HEADER ═══ */}
-        <div className="px-5 py-3.5 sm:px-8 sm:py-5 border-b border-border flex items-center justify-between shrink-0 bg-white">
+        <div className="px-5 py-3.5 sm:px-8 sm:py-5 border-b border-border flex items-center justify-between shrink-0 bg-white dark:bg-surface">
           <div className="space-y-0.5 min-w-0 pr-3">
             <h2 className="text-base sm:text-lg font-bold text-foreground truncate">
               {lang === 'en'
@@ -139,7 +139,7 @@ export function ReviewsModal({
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full border border-border bg-neutral-100/90 hover:bg-neutral-200 text-foreground flex items-center justify-center transition-colors cursor-pointer shrink-0 shadow-2xs"
+            className="w-8 h-8 rounded-full border border-border bg-neutral-100/90 dark:bg-background hover:bg-neutral-200 dark:hover:bg-surface text-foreground flex items-center justify-center transition-colors cursor-pointer shrink-0 shadow-2xs"
             aria-label={lang === 'en' ? 'Close' : 'Tutup'}
           >
             <X size={16} className="text-foreground" />
@@ -147,9 +147,9 @@ export function ReviewsModal({
         </div>
 
         {/* ═══ MAIN MODAL BODY (AIRBNB 2-COLUMN ON DESKTOP) ═══ */}
-        <div className="flex-1 overflow-hidden grid grid-cols-1 md:grid-cols-12 divide-y md:divide-y-0 md:divide-x divide-border bg-white">
+        <div className="flex-1 overflow-hidden grid grid-cols-1 md:grid-cols-12 divide-y md:divide-y-0 md:divide-x divide-border bg-white dark:bg-surface">
           {/* SISI KIRI: RATING OVERVIEW, AIRBNB PROGRESS BARS & FILTER TABS (COL 5 DESKTOP) */}
-          <div className="md:col-span-5 p-5 sm:p-6 overflow-y-auto space-y-6 bg-white">
+          <div className="md:col-span-5 p-5 sm:p-6 overflow-y-auto space-y-6 bg-white dark:bg-surface">
             {/* Big Rating Summary */}
             <div className="space-y-2">
               <div className="flex items-baseline gap-2.5">
@@ -191,7 +191,7 @@ export function ReviewsModal({
                       }
                       className={`w-full flex items-center gap-2.5 py-1 px-1.5 rounded-xl transition-all cursor-pointer text-left group ${
                         isSelected
-                          ? 'bg-brand-blue/10 ring-1 ring-brand-blue/30 font-bold'
+                          ? 'bg-brand-blue/10 dark:bg-brand-lime/10 ring-1 ring-brand-blue/30 dark:ring-brand-lime/30 font-bold'
                           : 'hover:bg-surface'
                       }`}
                     >
@@ -202,10 +202,10 @@ export function ReviewsModal({
                       </span>
 
                       {/* Bar track */}
-                      <div className="flex-1 h-2 rounded-full bg-neutral-200 overflow-hidden relative">
+                      <div className="flex-1 h-2 rounded-full bg-neutral-200 dark:bg-neutral-800 overflow-hidden relative">
                         <div
                           className={`h-full rounded-full transition-all duration-300 ${
-                            isSelected ? 'bg-brand-blue' : 'bg-neutral-800'
+                            isSelected ? 'bg-brand-blue dark:bg-brand-lime' : 'bg-neutral-800 dark:bg-neutral-300'
                           }`}
                           style={{ width: `${percentage}%` }}
                         />
@@ -232,7 +232,7 @@ export function ReviewsModal({
                   <button
                     type="button"
                     onClick={handleResetFilters}
-                    className="text-brand-blue font-bold lowercase first-letter:uppercase hover:underline cursor-pointer flex items-center gap-1"
+                    className="text-brand-blue dark:text-brand-lime font-bold lowercase first-letter:uppercase hover:underline cursor-pointer flex items-center gap-1"
                   >
                     <RotateCcw size={10} />
                     <span>Reset</span>
@@ -246,8 +246,8 @@ export function ReviewsModal({
                   onClick={() => setSelectedStar(null)}
                   className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                     selectedStar === null
-                      ? 'bg-brand-blue text-white shadow-xs'
-                      : 'bg-white border border-border text-foreground hover:bg-surface'
+                      ? 'bg-brand-blue dark:bg-brand-lime text-white dark:text-black shadow-xs font-bold dark:font-black'
+                      : 'bg-white dark:bg-background border border-border text-foreground hover:bg-surface'
                   }`}
                 >
                   {lang === 'en' ? `All (${totalCount})` : `Semua (${totalCount})`}
@@ -268,15 +268,15 @@ export function ReviewsModal({
                       }
                       className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
                         isSelected
-                          ? 'bg-brand-blue text-white shadow-xs'
-                          : 'bg-white border border-border text-foreground hover:bg-surface'
+                          ? 'bg-brand-blue dark:bg-brand-lime text-white dark:text-black shadow-xs font-bold dark:font-black'
+                          : 'bg-white dark:bg-background border border-border text-foreground hover:bg-surface'
                       }`}
                     >
                       <Star
                         size={11}
                         className={
                           isSelected
-                            ? 'fill-white text-white'
+                            ? 'fill-white dark:fill-black text-white dark:text-black'
                             : 'fill-amber-400 text-amber-400'
                         }
                       />
@@ -284,7 +284,7 @@ export function ReviewsModal({
                       <span
                         className={`text-[10px] px-1.5 py-0.2 rounded-full ml-0.5 ${
                           isSelected
-                            ? 'bg-white/20 text-white'
+                            ? 'bg-white/20 dark:bg-black/20 text-white dark:text-black'
                             : 'bg-surface text-foreground-muted'
                         }`}
                       >
@@ -300,8 +300,8 @@ export function ReviewsModal({
                     onClick={() => setOnlyPhotos(!onlyPhotos)}
                     className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                       onlyPhotos
-                        ? 'bg-brand-blue text-white shadow-xs'
-                        : 'bg-white border border-border text-foreground hover:bg-surface'
+                        ? 'bg-brand-blue dark:bg-brand-lime text-white dark:text-black shadow-xs font-bold dark:font-black'
+                        : 'bg-white dark:bg-background border border-border text-foreground hover:bg-surface'
                     }`}
                   >
                     <Camera size={12} />
@@ -313,7 +313,7 @@ export function ReviewsModal({
           </div>
 
           {/* SISI KANAN: DAFTAR ULASAN (COL 7 DESKTOP) */}
-          <div className="md:col-span-7 p-5 sm:p-6 overflow-y-auto space-y-5 bg-white">
+          <div className="md:col-span-7 p-5 sm:p-6 overflow-y-auto space-y-5 bg-white dark:bg-surface">
             {/* Filter Status Badge / Counter */}
             <div className="flex items-center justify-between text-xs text-foreground-muted pb-2 border-b border-border/60">
               <span>
@@ -336,7 +336,7 @@ export function ReviewsModal({
                 <button
                   type="button"
                   onClick={handleResetFilters}
-                  className="text-brand-blue font-semibold hover:underline cursor-pointer"
+                  className="text-brand-blue dark:text-brand-lime font-semibold hover:underline cursor-pointer"
                 >
                   {lang === 'en' ? 'Show All' : 'Tampilkan Semua'}
                 </button>
@@ -362,7 +362,7 @@ export function ReviewsModal({
                 <button
                   type="button"
                   onClick={handleResetFilters}
-                  className="px-4 py-2 rounded-full bg-brand-blue text-white text-xs font-bold hover:bg-brand-blue-hover transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-full bg-brand-blue dark:bg-brand-lime text-white dark:text-black text-xs font-bold dark:font-black hover:bg-brand-blue-hover dark:hover:bg-brand-lime/90 transition-colors cursor-pointer"
                 >
                   {lang === 'en' ? 'Reset Filters' : 'Reset Filter'}
                 </button>
@@ -438,7 +438,7 @@ export function ReviewsModal({
                         </div>
 
                         {/* Rating Pill */}
-                        <div className="flex items-center gap-1 bg-white px-2.5 py-1 rounded-full border border-border text-xs font-bold text-foreground shrink-0 shadow-2xs">
+                        <div className="flex items-center gap-1 bg-white dark:bg-background px-2.5 py-1 rounded-full border border-border text-xs font-bold text-foreground shrink-0 shadow-2xs">
                           <Star size={12} className="fill-amber-400 text-amber-400" />
                           <span>{ratingVal.toFixed(1)}</span>
                         </div>
