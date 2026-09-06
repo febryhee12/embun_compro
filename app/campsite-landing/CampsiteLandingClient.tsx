@@ -45,6 +45,9 @@ import {
   fetchGuestWishlist,
   addToWishlist,
   removeFromWishlist,
+  resolveAssetUrl,
+  getCampsiteCoverCandidates,
+  getCampsiteCoverPhoto,
 } from '@/lib/api-client';
 
 function getFacilityIcon(name?: string, id?: string) {
@@ -256,17 +259,6 @@ interface ReviewItem {
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || 'https://api-staging.embun.app/api';
-
-function resolveAssetUrl(rawUrl?: string, fallback = ''): string {
-  if (!rawUrl || typeof rawUrl !== 'string') return fallback;
-  const trimmed = rawUrl.trim();
-  if (!trimmed) return fallback;
-  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-    return trimmed;
-  }
-  const cleanKey = trimmed.replace(/^\/+/, '');
-  return `https://media-staging.embun.app/${cleanKey}`;
-}
 
 function rupiah(num: number): string {
   try {
@@ -536,25 +528,25 @@ function CampsiteLandingClientInner() {
     fetchCampsite();
   }, []);
 
-  // Cover image
-  const coverImage = useMemo(() => {
-    if (campsite?.coverImageUrl) return campsite.coverImageUrl;
-    if (campsite?.mainImage) return campsite.mainImage;
-    if (Array.isArray(campsite?.photos) && campsite.photos.length > 0) {
-      const p = campsite.photos.find(
-        (x) =>
-          x?.url &&
-          (x.category?.toLowerCase() === 'home' ||
-            x.category?.toLowerCase() === 'cover' ||
-            x.category?.toLowerCase() === 'main' ||
-            x.category?.toLowerCase().includes('view') ||
-            x.category?.toLowerCase().includes('pemandangan')),
-      );
-      if (p?.url) return p.url;
-      if (campsite.photos[0]?.url) return campsite.photos[0].url;
+  // Cover images candidates and fallback logic
+  const [failedCoverUrls, setFailedCoverUrls] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    setFailedCoverUrls(new Set());
+  }, [campsite?.id]);
+
+  const coverCandidates = useMemo(() => {
+    return getCampsiteCoverCandidates(campsite);
+  }, [campsite]);
+
+  const activeCoverUrl = useMemo(() => {
+    for (const url of coverCandidates) {
+      if (!failedCoverUrls.has(url)) {
+        return url;
+      }
     }
     return '';
-  }, [campsite]);
+  }, [coverCandidates, failedCoverUrls]);
 
   // All active spots
   const allSpots = useMemo(() => {
@@ -921,18 +913,25 @@ function CampsiteLandingClientInner() {
 
       {/* ── 2. FULL-WIDTH PROPERTY HERO BANNER ── */}
       <section className="relative w-full h-[380px] sm:h-[480px] md:h-[540px] bg-black overflow-hidden">
-        {coverImage ? (
+        {activeCoverUrl ? (
           <img
-            src={resolveAssetUrl(coverImage)}
+            key={activeCoverUrl}
+            src={resolveAssetUrl(activeCoverUrl)}
             alt={campsite.name}
+            onError={() => {
+              setFailedCoverUrls((prev) => new Set(prev).add(activeCoverUrl));
+            }}
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-surface text-foreground-muted font-bold text-lg">
-            {campsite.name}
+          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-emerald-950 via-[#0841b5] to-slate-900 text-white p-6 text-center">
+            <span className="font-extrabold text-2xl sm:text-4xl drop-shadow-md">{campsite.name}</span>
+            <span className="text-sm text-white/80 mt-2 max-w-md">
+              {campsite.address || (lang === 'en' ? 'Nature Tourist Area' : 'Kawasan Wisata Alam')}
+            </span>
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/20 pointer-events-none" />
 
         {/* 360 Tour badge on top right if available */}
         {panoramaList.length > 0 && (

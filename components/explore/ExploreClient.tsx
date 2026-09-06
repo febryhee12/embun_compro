@@ -12,6 +12,7 @@ import {
   removeFromWishlist,
   resolveAssetUrl,
   rupiah,
+  getCampsiteCoverPhoto,
 } from '@/lib/api-client';
 import { ExploreHeader } from '@/components/explore/ExploreHeader';
 import { ExploreFooter } from '@/components/explore/ExploreFooter';
@@ -319,98 +320,6 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
   const [failedCampsiteImages, setFailedCampsiteImages] = useState<Set<string>>(
     new Set(),
   );
-
-  // Helper to get the official primary property photo of a campsite
-  const getCampsiteCoverPhoto = (camp: any): string => {
-    if (camp.coverImageUrl) return camp.coverImageUrl;
-    if (camp.mainImage) return camp.mainImage;
-
-    // 1. Check official campsite.photos first (category: 'home' > 'view' > 'camping_ground')
-    if (Array.isArray(camp.photos) && camp.photos.length > 0) {
-      const scored: Array<{ url: string; score: number }> = [];
-      camp.photos.forEach((p: any) => {
-        if (p?.url) {
-          const cat = (p.category || '').toLowerCase();
-          let score = 50;
-          if (cat === 'home' || cat === 'cover' || cat === 'main') {
-            score = 1;
-          } else if (
-            cat.includes('view') ||
-            cat.includes('pemandangan') ||
-            cat.includes('alam')
-          ) {
-            score = 2;
-          } else if (
-            cat.includes('camping_ground') ||
-            cat.includes('ground') ||
-            cat.includes('outdoor')
-          ) {
-            score = 3;
-          } else if (
-            cat.includes('toilet') ||
-            cat.includes('wc') ||
-            cat.includes('mandi')
-          ) {
-            score = 99;
-          }
-          scored.push({ url: p.url, score });
-        }
-      });
-
-      if (scored.length > 0) {
-        scored.sort((a, b) => a.score - b.score);
-        if (scored[0].score < 99) {
-          return scored[0].url;
-        }
-      }
-    }
-
-    // 2. Fallback to block photos if campsite photos are empty
-    if (Array.isArray(camp.blocks) && camp.blocks.length > 0) {
-      const scored: Array<{ url: string; score: number }> = [];
-      camp.blocks.forEach((b: any) => {
-        if (Array.isArray(b.photos)) {
-          b.photos.forEach((p: any) => {
-            if (p?.url) {
-              const cat = (p.category || '').toLowerCase();
-              let score = 50;
-              if (
-                cat.includes('mandi') ||
-                cat.includes('toilet') ||
-                cat.includes('wc')
-              )
-                score = 99;
-              else if (
-                cat.includes('luar') ||
-                cat.includes('pemandangan') ||
-                cat.includes('view') ||
-                cat.includes('alam')
-              )
-                score = 1;
-              else if (
-                cat.includes('utama') ||
-                cat.includes('tenda') ||
-                cat.includes('kamar')
-              )
-                score = 2;
-              scored.push({ url: p.url, score });
-            }
-          });
-        }
-        if (Array.isArray(b.images)) {
-          b.images.forEach((img: string) => {
-            if (img) scored.push({ url: img, score: 50 });
-          });
-        }
-      });
-      if (scored.length > 0) {
-        scored.sort((a, b) => a.score - b.score);
-        return scored[0].url;
-      }
-    }
-    if (camp.mapImageUrl) return camp.mapImageUrl;
-    return '';
-  };
 
   // Format dynamic location string: e.g. "KABUPATEN BANDUNG" -> "Bandung"
   const formatLocationName = (raw?: string): string => {

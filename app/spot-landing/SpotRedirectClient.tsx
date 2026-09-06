@@ -2850,7 +2850,7 @@ export function SpotRedirectClient() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-3.5">
                   {availableAddons.map((addon) => {
                     const qty = selectedAddons[addon.id] || 0;
                     const isTent = isTentAddon(addon);
@@ -2882,7 +2882,7 @@ export function SpotRedirectClient() {
                     return (
                       <div
                         key={addon.id}
-                        className={`p-3 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
+                        className={`p-3.5 sm:p-4 rounded-2xl border transition-all flex items-center justify-between gap-3 sm:gap-4 ${
                           isTentDisabled
                             ? 'border-border/60 bg-surface/30 opacity-75'
                             : qty > 0
@@ -2890,7 +2890,7 @@ export function SpotRedirectClient() {
                               : 'border-border bg-surface hover:bg-surface-variant/40'
                         }`}
                       >
-                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div className="flex items-center gap-3 sm:gap-3.5 min-w-0 flex-1">
                           {/* Addon Image Thumbnail */}
                           <div
                             onClick={() => setDetailAddon(addon)}
@@ -2909,40 +2909,40 @@ export function SpotRedirectClient() {
                             )}
                           </div>
 
-                          <div className="min-w-0 flex-1">
+                          <div className="min-w-0 flex-1 space-y-0.5">
                             <div className="flex items-center gap-1.5 flex-wrap">
                               <p
                                 onClick={() => setDetailAddon(addon)}
-                                className="font-bold text-foreground text-xs sm:text-[13px] truncate cursor-pointer hover:text-brand-blue dark:hover:text-brand-lime transition-colors"
+                                className="font-bold text-foreground text-xs sm:text-sm truncate cursor-pointer hover:text-brand-blue dark:hover:text-brand-lime transition-colors"
                               >
                                 {addon.name}
                               </p>
                               {isIncludedInPkg && (
-                                <span className="text-[9px] font-bold text-brand-blue dark:text-brand-lime bg-brand-blue/10 dark:bg-brand-lime/10 px-1.5 py-0.5 rounded-full">
+                                <span className="text-[9px] font-bold text-brand-blue dark:text-brand-lime bg-brand-blue/10 dark:bg-brand-lime/10 px-1.5 py-0.5 rounded-full shrink-0 whitespace-nowrap">
                                   {t.spot.includedInPackage}
                                 </span>
                               )}
                               {isTent && isTentPackage && !isIncludedInPkg && (
-                                <span className="text-[9px] font-semibold text-foreground-muted bg-surface px-1.5 py-0.5 rounded-full border border-border">
+                                <span className="text-[9px] font-semibold text-foreground-muted bg-surface px-1.5 py-0.5 rounded-full border border-border shrink-0 whitespace-nowrap">
                                   {t.spot.packageHasTent}
                                 </span>
                               )}
                               {isTent && !isTentPackage && (
-                                <span className="text-[9px] font-semibold text-foreground-muted bg-white dark:bg-surface px-1.5 py-0.5 rounded-full border border-border">
+                                <span className="text-[9px] font-semibold text-foreground-muted bg-white dark:bg-surface px-1.5 py-0.5 rounded-full border border-border shrink-0 whitespace-nowrap">
                                   {t.spot.maxTentNotice(kavlingCount)}
                                 </span>
                               )}
                             </div>
 
                             {cleanAddonDesc ? (
-                              <p className="text-[11px] text-foreground-muted truncate mt-0.5">
+                              <p className="text-[11px] sm:text-xs text-foreground-muted line-clamp-1">
                                 {cleanAddonDesc}
                               </p>
                             ) : null}
 
-                            <p className="text-xs font-extrabold text-brand-blue dark:text-brand-lime mt-1">
+                            <p className="text-xs sm:text-[13px] font-extrabold text-brand-blue dark:text-brand-lime pt-0.5 whitespace-nowrap">
                               +{rupiah(addon.price)}{' '}
-                              <span className="text-[10px] font-medium text-foreground-muted">
+                              <span className="text-[10px] sm:text-[11px] font-medium text-foreground-muted">
                                 {priceSuffix}
                               </span>
                             </p>
@@ -2950,33 +2950,35 @@ export function SpotRedirectClient() {
                         </div>
 
                         {isIncludedInPkg ? (
-                          <div className="text-[10.5px] font-bold text-brand-blue dark:text-brand-lime shrink-0 px-2.5 py-1 bg-brand-blue/10 dark:bg-brand-lime/10 rounded-full border border-brand-blue/20 dark:border-brand-lime/30">
+                          <div className="text-[10.5px] font-bold text-brand-blue dark:text-brand-lime shrink-0 px-2.5 py-1 bg-brand-blue/10 dark:bg-brand-lime/10 rounded-full border border-brand-blue/20 dark:border-brand-lime/30 whitespace-nowrap">
                             Included
                           </div>
                         ) : isTentDisabled ? (
-                          <div className="text-[10px] font-medium text-foreground-muted shrink-0 px-2 py-1 bg-surface rounded-full border border-border opacity-75">
+                          <div className="text-[10px] font-medium text-foreground-muted shrink-0 px-2 py-1 bg-surface rounded-full border border-border opacity-75 whitespace-nowrap">
                             {t.spot.locked}
                           </div>
                         ) : (
-                          <div className="flex items-center gap-2 shrink-0 bg-white dark:bg-surface border border-border p-1 rounded-full shadow-2xs">
+                          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 bg-white dark:bg-surface border border-border p-1 rounded-full shadow-2xs">
                             <button
                               type="button"
                               disabled={qty <= 0}
                               onClick={() => handleAddonQty(addon.id, -1)}
-                              className="w-7 h-7 rounded-full flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                              className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-foreground hover:bg-surface-variant disabled:opacity-25 cursor-pointer transition-all active:scale-95"
+                              aria-label="Kurangi"
                             >
-                              <Minus size={12} />
+                              <Minus size={13} />
                             </button>
-                            <span className="font-bold text-xs w-4 text-center text-foreground">
+                            <span className="font-bold text-xs sm:text-sm min-w-[20px] text-center text-foreground tabular-nums select-none">
                               {qty}
                             </span>
                             <button
                               type="button"
                               disabled={isMaxTentReached}
                               onClick={() => handleAddonQty(addon.id, 1)}
-                              className="w-7 h-7 rounded-full flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                              className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-foreground hover:bg-surface-variant disabled:opacity-25 cursor-pointer transition-all active:scale-95"
+                              aria-label="Tambah"
                             >
-                              <Plus size={12} />
+                              <Plus size={13} />
                             </button>
                           </div>
                         )}
@@ -2987,463 +2989,6 @@ export function SpotRedirectClient() {
               </div>
             )}
 
-            {/* ── SECTION: TENTANG KAWASAN & LOKASI CAMPSITE (PROPERTY DETAILS) ── */}
-            <div className="space-y-6 pb-8 border-b border-border">
-              {/* Property Cover Banner & Mitra Profile Header */}
-              <div className="rounded-3xl border border-border overflow-hidden bg-surface shadow-2xs">
-                {campsiteCoverPhoto ? (
-                  <div className="relative aspect-[16/9] sm:aspect-[21/8] w-full bg-surface overflow-hidden">
-                    <img
-                      src={resolveAssetUrl(campsiteCoverPhoto)}
-                      alt={campsite.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLElement).style.display = 'none';
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
-
-                    {/* Campsite Logo & Badge Overlay on Banner */}
-                    <div className="absolute bottom-4 left-4 sm:left-6 right-4 flex items-end justify-between gap-3 text-white">
-                      <div className="flex items-center gap-3.5">
-                        <div className="w-13 h-13 sm:w-16 sm:h-16 rounded-2xl bg-white dark:bg-surface border-2 border-white dark:border-border shadow-xl overflow-hidden flex items-center justify-center shrink-0">
-                          {campsite.logoUrl ? (
-                            <img
-                              src={resolveAssetUrl(campsite.logoUrl)}
-                              alt={campsite.name}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                (e.target as HTMLElement).style.display = 'none';
-                              }}
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-brand-blue dark:bg-brand-lime text-white dark:text-black flex items-center justify-center font-black text-xl">
-                              {campsite.name.charAt(0).toUpperCase()}
-                            </div>
-                          )}
-                        </div>
-                        <div className="space-y-0.5">
-                          <p className="text-[11px] sm:text-xs text-white/90 font-medium tracking-wide">
-                            {campsite.city || campsite.address || 'Indonesia'}
-                          </p>
-                          <h3 className="font-extrabold text-base sm:text-2xl text-white tracking-tight drop-shadow-md">
-                            {campsite.name}
-                          </h3>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="p-5 sm:p-6 bg-gradient-to-br from-brand-blue/10 dark:from-brand-lime/10 via-surface to-surface flex items-center gap-4">
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-brand-blue dark:bg-brand-lime text-white dark:text-black flex items-center justify-center font-bold text-2xl shrink-0 shadow-md overflow-hidden">
-                      {campsite.logoUrl ? (
-                        <img
-                          src={resolveAssetUrl(campsite.logoUrl)}
-                          alt={campsite.name}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLElement).style.display = 'none';
-                          }}
-                        />
-                      ) : (
-                        campsite.name.charAt(0).toUpperCase()
-                      )}
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-lg sm:text-xl text-foreground">
-                        {campsite.name}
-                      </h3>
-                      <p className="text-xs text-foreground-muted mt-0.5">
-                        {campsite.city || campsite.address || 'Indonesia'}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Description Body */}
-                <div className="p-4 sm:p-6 space-y-2">
-                  <h4 className="font-bold text-xs uppercase tracking-wider text-brand-blue dark:text-brand-lime">
-                    {t.areaAndLocation.aboutArea}
-                  </h4>
-                  <TranslatableBox
-                    text={
-                      campsite.description ||
-                      (lang === 'en'
-                        ? `${campsite.name} is a prime camping & glamping destination in ${campsite.city || 'West Java'} with pristine nature, cool weather, and complete facilities.`
-                        : `${campsite.name} merupakan destinasi camping dan glamping pilihan di ${campsite.city || 'Jawa Barat'} dengan suasana asri, udara sejuk, dan fasilitas lengkap untuk liburan Anda.`)
-                    }
-                    lang={lang}
-                    textClassName="text-xs sm:text-sm text-foreground/85 leading-relaxed"
-                  />
-                  {campsiteSpots.length > 1 && (
-                    <div className="pt-2">
-                      <a
-                        href={`/campsite/${campsite.slug || campsite.id}`}
-                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-blue/10 dark:bg-brand-lime/10 hover:bg-brand-blue/20 dark:hover:bg-brand-lime/20 text-brand-blue dark:text-brand-lime text-xs font-bold transition-all border border-brand-blue/20 dark:border-brand-lime/30 cursor-pointer shadow-2xs"
-                      >
-                        <span>{t.areaAndLocation.viewAllSpotsInCamp(campsite.name)}</span>
-                        <ArrowRight size={13} />
-                      </a>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Fasilitas Properti Campsite */}
-              {Array.isArray(campsite.facilities) &&
-                campsite.facilities.length > 0 && (
-                  <div className="space-y-3">
-                    <h4 className="font-bold text-sm text-foreground">
-                      {t.areaAndLocation.mainFacilities}
-                    </h4>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-xs text-foreground">
-                      {campsite.facilities.map((fac: any, idx: number) => {
-                        const facName =
-                          typeof fac === 'string'
-                            ? fac
-                            : fac.name || 'Fasilitas';
-                        const facIcon =
-                          typeof fac === 'object' ? fac.icon : null;
-                        return (
-                          <div
-                            key={fac.id || idx}
-                            className="flex items-center gap-2.5 p-3 rounded-2xl bg-surface border border-border/80"
-                          >
-                            {getFacilityIcon(facName, facIcon || fac.id)}
-                            <span className="font-medium truncate">
-                              {translateItemName(facName, lang)}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-              {/* Lokasi & Peta Akses Kawasan (Google Maps) */}
-              <div id="spot-location-map" className="space-y-3 pt-2 scroll-mt-28">
-                <div className="space-y-0.5">
-                  <h4 className="font-bold text-sm text-foreground">
-                    {t.areaAndLocation.locationAccess}
-                  </h4>
-                  <p className="text-xs text-foreground-muted">
-                    {campsite.name} ·{' '}
-                    {[campsite.address, campsite.city, campsite.province]
-                      .filter(Boolean)
-                      .join(', ')}
-                  </p>
-                </div>
-
-                {/* Multi-Marker Embun Partner Map & Access */}
-                {campsite.latitude &&
-                campsite.longitude &&
-                Number(campsite.latitude) !== 0 ? (
-                  <NearbyCampsitesMap
-                    currentCampsite={campsite}
-                    lang={lang}
-                  />
-                ) : null}
-
-                {/* Denah Resmi Kavling (If Available) */}
-                {campsite.mapImageUrl && (
-                  <div className="space-y-2 pt-1">
-                    <h5 className="text-xs font-bold text-foreground">
-                      {t.areaAndLocation.officialSitePlan}
-                    </h5>
-                    <div
-                      onClick={() => {
-                        setGalleryTab('map');
-                        setIsGalleryOpen(true);
-                      }}
-                      className="relative aspect-[16/9] w-full rounded-3xl overflow-hidden border border-border bg-surface cursor-pointer group shadow-2xs hover:border-brand-blue/60 dark:hover:border-brand-lime/60 transition-all"
-                    >
-                      <img
-                        src={resolveAssetUrl(campsite.mapImageUrl)}
-                        alt="Denah Kavling"
-                        className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
-                      />
-                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white font-bold text-xs gap-1.5">
-                        <Maximize2 size={16} />
-                        <span>{t.areaAndLocation.openFullSitePlan}</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Google Maps Button & Directions */}
-                <div className="pt-1">
-                  <a
-                    href={
-                      campsite.googleMapsUrl ||
-                      (campsite.latitude && campsite.longitude
-                        ? `https://www.google.com/maps/search/?api=1&query=${campsite.latitude},${campsite.longitude}`
-                        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                            campsite.name + ' ' + (campsite.address || ''),
-                          )}`)
-                    }
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-border bg-white dark:bg-surface hover:bg-surface text-xs font-bold text-brand-blue dark:text-brand-lime shadow-2xs hover:shadow-sm transition-all cursor-pointer"
-                  >
-                    <MapPin size={14} />
-                    <span>{t.areaAndLocation.openGoogleMaps}</span>
-                    <ExternalLink size={12} />
-                  </a>
-                </div>
-              </div>
-
-              {/* Aturan & Waktu Menginap */}
-              <div className="space-y-3">
-                <h4 className="font-bold text-sm text-foreground">
-                  {t.areaAndLocation.stayRulesAndPolicies}
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-foreground-muted leading-relaxed">
-                  <div className="p-4 rounded-2xl bg-surface border border-border space-y-1">
-                    <h5 className="font-bold text-foreground flex items-center gap-1.5">
-                      <Clock size={13} className="text-brand-blue dark:text-brand-lime" />
-                      <span>{t.areaAndLocation.stayHours}</span>
-                    </h5>
-                    <p>
-                      {t.areaAndLocation.checkInFrom}{' '}
-                      <strong>{campsite.checkInTime || '14:00'} WIB</strong>
-                    </p>
-                    <p>
-                      {t.areaAndLocation.checkOutBy}{' '}
-                      <strong>{campsite.checkOutTime || '12:00'} WIB</strong>
-                    </p>
-                  </div>
-
-                  <div className="p-4 rounded-2xl bg-surface border border-border space-y-1">
-                    <h5 className="font-bold text-foreground flex items-center gap-1.5">
-                      <MoonStar size={13} className="text-brand-blue dark:text-brand-lime" />
-                      <span>{t.areaAndLocation.quietHours}</span>
-                    </h5>
-                    <p>
-                      <strong>22:00 - 06:00 WIB</strong>
-                    </p>
-                    <p className="text-[11px]">
-                      {t.areaAndLocation.quietHoursNote}
-                    </p>
-                  </div>
-
-                  <div className="sm:col-span-2 p-4 rounded-2xl bg-surface border border-border space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <h5 className="font-bold text-foreground flex items-center gap-1.5">
-                        <ShieldCheck size={13} className="text-brand-blue dark:text-brand-lime" />
-                        <span>{t.areaAndLocation.cancellationPolicy}</span>
-                      </h5>
-                    </div>
-                    <CancellationPolicyBannerButton
-                      checkInDate={checkInDate}
-                      lang={lang}
-                      onClick={() => setShowCancellationModal(true)}
-                    />
-                  </div>
-                </div>
-
-                {/* Parsed Rules from CMS */}
-                {campsite.rules && (
-                  <div className="p-4 rounded-2xl bg-surface border border-border space-y-2 text-xs">
-                    <h5 className="font-bold text-foreground flex items-center gap-1.5">
-                      <ShieldCheck size={13} className="text-emerald-600" />
-                      <span>{t.areaAndLocation.rulesAndSafety}</span>
-                    </h5>
-                    <TranslatableBox
-                      items={parseHtmlRules(campsite.rules)}
-                      lang={lang}
-                      listClassName="space-y-1.5 text-foreground/80 list-disc list-inside"
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* ── SECTION: ULASAN TAMU (REAL GUEST REVIEWS) ── */}
-            <div className="space-y-6 pb-8 border-b border-border">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <Star size={20} className="fill-amber-500 text-amber-500" />
-                  <h3 className="font-bold text-xl text-foreground">
-                    {reviewAggregate && reviewAggregate.ratingCount > 0
-                      ? `${reviewAggregate.ratingAvg.toFixed(1)} · ${reviewAggregate.ratingCount} ${t.reviews.guestReviews}`
-                      : t.reviews.guestReviews}
-                  </h3>
-                </div>
-                {reviews.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setShowReviewsModal(true)}
-                    className="px-4 py-2 rounded-full border border-border bg-white dark:bg-surface hover:bg-surface dark:hover:bg-surface-variant text-xs font-bold text-foreground transition-all cursor-pointer shadow-2xs hover:shadow-xs inline-flex items-center justify-center"
-                  >
-                    {t.reviews.viewAll}
-                  </button>
-                )}
-              </div>
-
-              {reviews.length > 0 ? (
-                <div className="space-y-5">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {reviews.slice(0, 4).map((rev) => (
-                      <div
-                        key={rev.id}
-                        className="p-5 rounded-3xl bg-surface border border-border space-y-3 shadow-2xs"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-9 h-9 rounded-full bg-brand-blue/10 dark:bg-brand-lime/10 border border-border flex items-center justify-center font-bold text-xs text-brand-blue dark:text-brand-lime overflow-hidden shrink-0">
-                              {rev.authorPhotoUrl ? (
-                                <img
-                                  src={resolveAssetUrl(rev.authorPhotoUrl)}
-                                  alt={rev.maskedAuthorName || 'Tamu'}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                (rev.maskedAuthorName || 'Tamu')
-                                  .charAt(0)
-                                  .toUpperCase()
-                              )}
-                            </div>
-                            <div>
-                              <h4 className="font-bold text-xs text-foreground">
-                                {rev.maskedAuthorName || 'Tamu Embun'}
-                              </h4>
-                              <span className="text-[10px] text-foreground-muted">
-                                {new Date(rev.createdAt).toLocaleDateString(
-                                  lang === 'en' ? 'en-US' : 'id-ID',
-                                  {
-                                    month: 'long',
-                                    year: 'numeric',
-                                  },
-                                )}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1 bg-white dark:bg-surface px-2 py-1 rounded-full border border-border text-[11px] font-bold text-foreground">
-                            <Star
-                              size={11}
-                              className="fill-amber-500 text-amber-500"
-                            />
-                            <span>{rev.rating}</span>
-                          </div>
-                        </div>
-
-                        <TranslatableBox
-                          text={`“${(rev.message || '').trim()}”`}
-                          lang={lang}
-                          textClassName="text-xs text-foreground/90 leading-relaxed italic"
-                        />
-
-                        {rev.photoUrl && (
-                          <div className="w-20 h-20 rounded-xl overflow-hidden border border-border">
-                            <img
-                              src={resolveAssetUrl(rev.photoUrl)}
-                              alt="Foto ulasan"
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="p-6 rounded-3xl bg-surface border border-border text-center space-y-2">
-                  <Star size={28} className="mx-auto text-amber-500" />
-                  <p className="text-xs font-bold text-foreground">
-                    Belum ada ulasan tertulis
-                  </p>
-                  <p className="text-[11px] text-foreground-muted">
-                    Jadilah tamu pertama yang memberikan ulasan setelah selesai
-                    menginap!
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* ── SECTION: PROMOSI APLIKASI EMBUN ── */}
-            <div className="p-6 sm:p-8 rounded-3xl bg-[#0841b5] text-white space-y-4 shadow-md">
-              <div className="max-w-xl space-y-2.5">
-                <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-snug">
-                  {lang === 'en'
-                    ? 'Book Faster & More Complete on the Embun App'
-                    : 'Pesan Lebih Cepat & Lengkap di Aplikasi Embun'}
-                </h3>
-
-                <p className="text-xs sm:text-sm text-white/80 leading-relaxed">
-                  {lang === 'en'
-                    ? 'Enjoy the ultimate experience with seamless interactive 360° tours, interactive campsite & spot maps, group gathering features, and instant QR code e-tickets.'
-                    : 'Nikmati pengalaman maksimal dengan tur 360° interaktif yang mulus, peta interaktif spot & campsite, fitur gathering rombongan, dan e-tiket QR code instan.'}
-                </p>
-
-                <div className="flex flex-wrap items-center gap-3 pt-2">
-                  {/* App Store Button */}
-                  <a
-                    href={APP_STORE_HREF}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white transition-all shadow-xs active:scale-95 group cursor-pointer"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      width="20"
-                      height="20"
-                      aria-hidden="true"
-                      fill="currentColor"
-                    >
-                      <path d="M17.05 12.53c-.02-2.02 1.65-2.99 1.72-3.04-.94-1.37-2.4-1.56-2.92-1.58-1.24-.13-2.42.73-3.05.73-.63 0-1.6-.71-2.63-.69-1.35.02-2.6.79-3.29 2-1.4 2.43-.36 6.02 1.01 7.99.67.96 1.47 2.04 2.51 2 1.01-.04 1.39-.65 2.61-.65 1.22 0 1.56.65 2.63.63 1.09-.02 1.78-.98 2.44-1.95.77-1.12 1.09-2.2 1.11-2.26-.02-.01-2.13-.82-2.15-3.24zM15.04 6.34c.56-.68.94-1.62.83-2.56-.81.03-1.79.54-2.37 1.21-.52.6-.97 1.56-.85 2.48.9.07 1.83-.46 2.39-1.13z" />
-                    </svg>
-                    <div className="text-left">
-                      <span className="block text-[9px] text-white/70 uppercase font-medium leading-none">
-                        Download on
-                      </span>
-                      <span className="font-bold text-xs leading-tight">
-                        App Store
-                      </span>
-                    </div>
-                  </a>
-
-                  {/* Google Play Button */}
-                  <a
-                    href={GOOGLE_PLAY_HREF}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white transition-all shadow-xs active:scale-95 group cursor-pointer"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      width="18"
-                      height="18"
-                      aria-hidden="true"
-                    >
-                      <path
-                        d="M3.6 2.3c-.24.25-.38.63-.38 1.13v17.14c0 .5.14.88.38 1.13l.06.05L13 12.06v-.12L3.66 2.25l-.06.05z"
-                        fill="#00D0FF"
-                      />
-                      <path
-                        d="M16.5 15.56 13 12.06v-.12l3.5-3.5.08.05 4.15 2.36c1.18.67 1.18 1.77 0 2.45l-4.15 2.36-.08.05z"
-                        fill="#FFCE00"
-                      />
-                      <path
-                        d="M16.58 15.51 13 12l-9.4 9.4c.39.41 1.03.46 1.76.05l11.22-6.44"
-                        fill="#FF3D44"
-                      />
-                      <path
-                        d="M16.58 8.49 5.36 2.05C4.63 1.64 3.99 1.69 3.6 2.1L13 11.5l3.58-3.01z"
-                        fill="#00F076"
-                      />
-                    </svg>
-                    <div className="text-left">
-                      <span className="block text-[9px] text-white/70 uppercase font-medium leading-none">
-                        Get it on
-                      </span>
-                      <span className="font-bold text-xs leading-tight">
-                        Google Play
-                      </span>
-                    </div>
-                  </a>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* ── RIGHT COLUMN: STICKY BOOKING CARD (DESKTOP ONLY) OR 360 TOUR CARD ── */}
@@ -3928,6 +3473,469 @@ export function SpotRedirectClient() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* ════════════════════════════════════════════════════════════════════════
+            5. FULL-WIDTH PROPERTY, AMENITIES, MAP, & RULES
+        ════════════════════════════════════════════════════════════════════════ */}
+        <div className="space-y-12 pt-6 border-t border-border">
+          {/* ── SECTION: TENTANG KAWASAN & LOKASI CAMPSITE (PROPERTY DETAILS) ── */}
+            <div className="space-y-6 pb-8 border-b border-border">
+              {/* Property Cover Banner & Mitra Profile Header */}
+              <div className="rounded-3xl border border-border overflow-hidden bg-surface shadow-2xs">
+                {campsiteCoverPhoto ? (
+                  <div className="relative aspect-[16/9] sm:aspect-[21/8] w-full bg-surface overflow-hidden">
+                    <img
+                      src={resolveAssetUrl(campsiteCoverPhoto)}
+                      alt={campsite.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLElement).style.display = 'none';
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+
+                    {/* Campsite Logo & Badge Overlay on Banner */}
+                    <div className="absolute bottom-4 left-4 sm:left-6 right-4 flex items-end justify-between gap-3 text-white">
+                      <div className="flex items-center gap-3.5">
+                        <div className="w-13 h-13 sm:w-16 sm:h-16 rounded-2xl bg-white dark:bg-surface border-2 border-white dark:border-border shadow-xl overflow-hidden flex items-center justify-center shrink-0">
+                          {campsite.logoUrl ? (
+                            <img
+                              src={resolveAssetUrl(campsite.logoUrl)}
+                              alt={campsite.name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLElement).style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-brand-blue dark:bg-brand-lime text-white dark:text-black flex items-center justify-center font-black text-xl">
+                              {campsite.name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                        <div className="space-y-0.5">
+                          <p className="text-[11px] sm:text-xs text-white/90 font-medium tracking-wide">
+                            {campsite.city || campsite.address || 'Indonesia'}
+                          </p>
+                          <h3 className="font-extrabold text-base sm:text-2xl text-white tracking-tight drop-shadow-md">
+                            {campsite.name}
+                          </h3>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-5 sm:p-6 bg-gradient-to-br from-brand-blue/10 dark:from-brand-lime/10 via-surface to-surface flex items-center gap-4">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-brand-blue dark:bg-brand-lime text-white dark:text-black flex items-center justify-center font-bold text-2xl shrink-0 shadow-md overflow-hidden">
+                      {campsite.logoUrl ? (
+                        <img
+                          src={resolveAssetUrl(campsite.logoUrl)}
+                          alt={campsite.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        campsite.name.charAt(0).toUpperCase()
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg sm:text-xl text-foreground">
+                        {campsite.name}
+                      </h3>
+                      <p className="text-xs text-foreground-muted mt-0.5">
+                        {campsite.city || campsite.address || 'Indonesia'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Description Body */}
+                <div className="p-4 sm:p-6 space-y-2">
+                  <h4 className="font-bold text-xs uppercase tracking-wider text-brand-blue dark:text-brand-lime">
+                    {t.areaAndLocation.aboutArea}
+                  </h4>
+                  <TranslatableBox
+                    text={
+                      campsite.description ||
+                      (lang === 'en'
+                        ? `${campsite.name} is a prime camping & glamping destination in ${campsite.city || 'West Java'} with pristine nature, cool weather, and complete facilities.`
+                        : `${campsite.name} merupakan destinasi camping dan glamping pilihan di ${campsite.city || 'Jawa Barat'} dengan suasana asri, udara sejuk, dan fasilitas lengkap untuk liburan Anda.`)
+                    }
+                    lang={lang}
+                    textClassName="text-xs sm:text-sm text-foreground/85 leading-relaxed"
+                  />
+                  {campsiteSpots.length > 1 && (
+                    <div className="pt-2">
+                      <a
+                        href={`/campsite/${campsite.slug || campsite.id}`}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-blue/10 dark:bg-brand-lime/10 hover:bg-brand-blue/20 dark:hover:bg-brand-lime/20 text-brand-blue dark:text-brand-lime text-xs font-bold transition-all border border-brand-blue/20 dark:border-brand-lime/30 cursor-pointer shadow-2xs"
+                      >
+                        <span>{t.areaAndLocation.viewAllSpotsInCamp(campsite.name)}</span>
+                        <ArrowRight size={13} />
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Fasilitas Properti Campsite */}
+              {Array.isArray(campsite.facilities) &&
+                campsite.facilities.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="font-bold text-sm text-foreground">
+                      {t.areaAndLocation.mainFacilities}
+                    </h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 text-xs text-foreground">
+                      {campsite.facilities.map((fac: any, idx: number) => {
+                        const facName =
+                          typeof fac === 'string'
+                            ? fac
+                            : fac.name || 'Fasilitas';
+                        const facIcon =
+                          typeof fac === 'object' ? fac.icon : null;
+                        return (
+                          <div
+                            key={fac.id || idx}
+                            className="flex items-center gap-2.5 p-3 rounded-2xl bg-surface border border-border/80"
+                          >
+                            {getFacilityIcon(facName, facIcon || fac.id)}
+                            <span className="font-medium truncate">
+                              {translateItemName(facName, lang)}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+              {/* Lokasi & Peta Akses Kawasan (Google Maps) */}
+              <div id="spot-location-map" className="space-y-3 pt-2 scroll-mt-28">
+                <div className="space-y-0.5">
+                  <h4 className="font-bold text-sm text-foreground">
+                    {t.areaAndLocation.locationAccess}
+                  </h4>
+                  <p className="text-xs text-foreground-muted">
+                    {campsite.name} ·{' '}
+                    {[campsite.address, campsite.city, campsite.province]
+                      .filter(Boolean)
+                      .join(', ')}
+                  </p>
+                </div>
+
+                {/* Multi-Marker Embun Partner Map & Access */}
+                {campsite.latitude &&
+                campsite.longitude &&
+                Number(campsite.latitude) !== 0 ? (
+                  <NearbyCampsitesMap
+                    currentCampsite={campsite}
+                    lang={lang}
+                  />
+                ) : null}
+
+                {/* Denah Resmi Kavling (If Available) */}
+                {campsite.mapImageUrl && (
+                  <div className="space-y-2 pt-1">
+                    <h5 className="text-xs font-bold text-foreground">
+                      {t.areaAndLocation.officialSitePlan}
+                    </h5>
+                    <div
+                      onClick={() => {
+                        setGalleryTab('map');
+                        setIsGalleryOpen(true);
+                      }}
+                      className="relative aspect-[16/9] w-full rounded-3xl overflow-hidden border border-border bg-surface cursor-pointer group shadow-2xs hover:border-brand-blue/60 dark:hover:border-brand-lime/60 transition-all"
+                    >
+                      <img
+                        src={resolveAssetUrl(campsite.mapImageUrl)}
+                        alt="Denah Kavling"
+                        className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white font-bold text-xs gap-1.5">
+                        <Maximize2 size={16} />
+                        <span>{t.areaAndLocation.openFullSitePlan}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Google Maps Button & Directions */}
+                <div className="pt-1">
+                  <a
+                    href={
+                      campsite.googleMapsUrl ||
+                      (campsite.latitude && campsite.longitude
+                        ? `https://www.google.com/maps/search/?api=1&query=${campsite.latitude},${campsite.longitude}`
+                        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                            campsite.name + ' ' + (campsite.address || ''),
+                          )}`)
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-border bg-white dark:bg-surface hover:bg-surface text-xs font-bold text-brand-blue dark:text-brand-lime shadow-2xs hover:shadow-sm transition-all cursor-pointer"
+                  >
+                    <MapPin size={14} />
+                    <span>{t.areaAndLocation.openGoogleMaps}</span>
+                    <ExternalLink size={12} />
+                  </a>
+                </div>
+              </div>
+
+              {/* Aturan & Waktu Menginap */}
+              <div className="space-y-3">
+                <h4 className="font-bold text-sm text-foreground">
+                  {t.areaAndLocation.stayRulesAndPolicies}
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-foreground-muted leading-relaxed">
+                  <div className="p-4 rounded-2xl bg-surface border border-border space-y-1">
+                    <h5 className="font-bold text-foreground flex items-center gap-1.5">
+                      <Clock size={13} className="text-brand-blue dark:text-brand-lime" />
+                      <span>{t.areaAndLocation.stayHours}</span>
+                    </h5>
+                    <p>
+                      {t.areaAndLocation.checkInFrom}{' '}
+                      <strong>{campsite.checkInTime || '14:00'} WIB</strong>
+                    </p>
+                    <p>
+                      {t.areaAndLocation.checkOutBy}{' '}
+                      <strong>{campsite.checkOutTime || '12:00'} WIB</strong>
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-surface border border-border space-y-1">
+                    <h5 className="font-bold text-foreground flex items-center gap-1.5">
+                      <MoonStar size={13} className="text-brand-blue dark:text-brand-lime" />
+                      <span>{t.areaAndLocation.quietHours}</span>
+                    </h5>
+                    <p>
+                      <strong>22:00 - 06:00 WIB</strong>
+                    </p>
+                    <p className="text-[11px]">
+                      {t.areaAndLocation.quietHoursNote}
+                    </p>
+                  </div>
+
+                  <div className="sm:col-span-2 p-4 rounded-2xl bg-surface border border-border space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <h5 className="font-bold text-foreground flex items-center gap-1.5">
+                        <ShieldCheck size={13} className="text-brand-blue dark:text-brand-lime" />
+                        <span>{t.areaAndLocation.cancellationPolicy}</span>
+                      </h5>
+                    </div>
+                    <CancellationPolicyBannerButton
+                      checkInDate={checkInDate}
+                      lang={lang}
+                      onClick={() => setShowCancellationModal(true)}
+                    />
+                  </div>
+                </div>
+
+                {/* Parsed Rules from CMS */}
+                {campsite.rules && (
+                  <div className="p-4 rounded-2xl bg-surface border border-border space-y-2 text-xs">
+                    <h5 className="font-bold text-foreground flex items-center gap-1.5">
+                      <ShieldCheck size={13} className="text-emerald-600" />
+                      <span>{t.areaAndLocation.rulesAndSafety}</span>
+                    </h5>
+                    <TranslatableBox
+                      items={parseHtmlRules(campsite.rules)}
+                      lang={lang}
+                      listClassName="space-y-1.5 text-foreground/80 list-disc list-inside"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* ── SECTION: ULASAN TAMU (REAL GUEST REVIEWS) ── */}
+            <div className="space-y-6 pb-8 border-b border-border">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <Star size={20} className="fill-amber-500 text-amber-500" />
+                  <h3 className="font-bold text-xl text-foreground">
+                    {reviewAggregate && reviewAggregate.ratingCount > 0
+                      ? `${reviewAggregate.ratingAvg.toFixed(1)} · ${reviewAggregate.ratingCount} ${t.reviews.guestReviews}`
+                      : t.reviews.guestReviews}
+                  </h3>
+                </div>
+                {reviews.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowReviewsModal(true)}
+                    className="px-4 py-2 rounded-full border border-border bg-white dark:bg-surface hover:bg-surface dark:hover:bg-surface-variant text-xs font-bold text-foreground transition-all cursor-pointer shadow-2xs hover:shadow-xs inline-flex items-center justify-center"
+                  >
+                    {t.reviews.viewAll}
+                  </button>
+                )}
+              </div>
+
+              {reviews.length > 0 ? (
+                <div className="space-y-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {reviews.slice(0, 4).map((rev) => (
+                      <div
+                        key={rev.id}
+                        className="p-5 rounded-3xl bg-surface border border-border space-y-3 shadow-2xs"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-9 h-9 rounded-full bg-brand-blue/10 dark:bg-brand-lime/10 border border-border flex items-center justify-center font-bold text-xs text-brand-blue dark:text-brand-lime overflow-hidden shrink-0">
+                              {rev.authorPhotoUrl ? (
+                                <img
+                                  src={resolveAssetUrl(rev.authorPhotoUrl)}
+                                  alt={rev.maskedAuthorName || 'Tamu'}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                (rev.maskedAuthorName || 'Tamu')
+                                  .charAt(0)
+                                  .toUpperCase()
+                              )}
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-xs text-foreground">
+                                {rev.maskedAuthorName || 'Tamu Embun'}
+                              </h4>
+                              <span className="text-[10px] text-foreground-muted">
+                                {new Date(rev.createdAt).toLocaleDateString(
+                                  lang === 'en' ? 'en-US' : 'id-ID',
+                                  {
+                                    month: 'long',
+                                    year: 'numeric',
+                                  },
+                                )}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 bg-white dark:bg-surface px-2 py-1 rounded-full border border-border text-[11px] font-bold text-foreground">
+                            <Star
+                              size={11}
+                              className="fill-amber-500 text-amber-500"
+                            />
+                            <span>{rev.rating}</span>
+                          </div>
+                        </div>
+
+                        <TranslatableBox
+                          text={`“${(rev.message || '').trim()}”`}
+                          lang={lang}
+                          textClassName="text-xs text-foreground/90 leading-relaxed italic"
+                        />
+
+                        {rev.photoUrl && (
+                          <div className="w-20 h-20 rounded-xl overflow-hidden border border-border">
+                            <img
+                              src={resolveAssetUrl(rev.photoUrl)}
+                              alt="Foto ulasan"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="p-6 rounded-3xl bg-surface border border-border text-center space-y-2">
+                  <Star size={28} className="mx-auto text-amber-500" />
+                  <p className="text-xs font-bold text-foreground">
+                    Belum ada ulasan tertulis
+                  </p>
+                  <p className="text-[11px] text-foreground-muted">
+                    Jadilah tamu pertama yang memberikan ulasan setelah selesai
+                    menginap!
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* ── SECTION: PROMOSI APLIKASI EMBUN ── */}
+            <div className="p-6 sm:p-8 rounded-3xl bg-[#0841b5] text-white space-y-4 shadow-md">
+              <div className="max-w-xl space-y-2.5">
+                <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-snug">
+                  {lang === 'en'
+                    ? 'Book Faster & More Complete on the Embun App'
+                    : 'Pesan Lebih Cepat & Lengkap di Aplikasi Embun'}
+                </h3>
+
+                <p className="text-xs sm:text-sm text-white/80 leading-relaxed">
+                  {lang === 'en'
+                    ? 'Enjoy the ultimate experience with seamless interactive 360° tours, interactive campsite & spot maps, group gathering features, and instant QR code e-tickets.'
+                    : 'Nikmati pengalaman maksimal dengan tur 360° interaktif yang mulus, peta interaktif spot & campsite, fitur gathering rombongan, dan e-tiket QR code instan.'}
+                </p>
+
+                <div className="flex flex-wrap items-center gap-3 pt-2">
+                  {/* App Store Button */}
+                  <a
+                    href={APP_STORE_HREF}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white transition-all shadow-xs active:scale-95 group cursor-pointer"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      width="20"
+                      height="20"
+                      aria-hidden="true"
+                      fill="currentColor"
+                    >
+                      <path d="M17.05 12.53c-.02-2.02 1.65-2.99 1.72-3.04-.94-1.37-2.4-1.56-2.92-1.58-1.24-.13-2.42.73-3.05.73-.63 0-1.6-.71-2.63-.69-1.35.02-2.6.79-3.29 2-1.4 2.43-.36 6.02 1.01 7.99.67.96 1.47 2.04 2.51 2 1.01-.04 1.39-.65 2.61-.65 1.22 0 1.56.65 2.63.63 1.09-.02 1.78-.98 2.44-1.95.77-1.12 1.09-2.2 1.11-2.26-.02-.01-2.13-.82-2.15-3.24zM15.04 6.34c.56-.68.94-1.62.83-2.56-.81.03-1.79.54-2.37 1.21-.52.6-.97 1.56-.85 2.48.9.07 1.83-.46 2.39-1.13z" />
+                    </svg>
+                    <div className="text-left">
+                      <span className="block text-[9px] text-white/70 uppercase font-medium leading-none">
+                        Download on
+                      </span>
+                      <span className="font-bold text-xs leading-tight">
+                        App Store
+                      </span>
+                    </div>
+                  </a>
+
+                  {/* Google Play Button */}
+                  <a
+                    href={GOOGLE_PLAY_HREF}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white transition-all shadow-xs active:scale-95 group cursor-pointer"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      width="18"
+                      height="18"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M3.6 2.3c-.24.25-.38.63-.38 1.13v17.14c0 .5.14.88.38 1.13l.06.05L13 12.06v-.12L3.66 2.25l-.06.05z"
+                        fill="#00D0FF"
+                      />
+                      <path
+                        d="M16.5 15.56 13 12.06v-.12l3.5-3.5.08.05 4.15 2.36c1.18.67 1.18 1.77 0 2.45l-4.15 2.36-.08.05z"
+                        fill="#FFCE00"
+                      />
+                      <path
+                        d="M16.58 15.51 13 12l-9.4 9.4c.39.41 1.03.46 1.76.05l11.22-6.44"
+                        fill="#FF3D44"
+                      />
+                      <path
+                        d="M16.58 8.49 5.36 2.05C4.63 1.64 3.99 1.69 3.6 2.1L13 11.5l3.58-3.01z"
+                        fill="#00F076"
+                      />
+                    </svg>
+                    <div className="text-left">
+                      <span className="block text-[9px] text-white/70 uppercase font-medium leading-none">
+                        Get it on
+                      </span>
+                      <span className="font-bold text-xs leading-tight">
+                        Google Play
+                      </span>
+                    </div>
+                  </a>
+                </div>
+              </div>
+            </div>
         </div>
       </main>
  

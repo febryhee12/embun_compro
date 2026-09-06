@@ -404,7 +404,7 @@ export function NearbyCampsitesMap({
       </div>
 
       {/* Map Display Container */}
-      <div className="relative aspect-[16/9] sm:aspect-[21/9] min-h-[340px] w-full rounded-3xl overflow-hidden border border-border bg-surface shadow-2xs">
+      <div className="relative w-full h-[360px] sm:h-[420px] md:h-[480px] rounded-3xl overflow-hidden border border-border bg-surface shadow-2xs">
         {activeTab === 'interactive' ? (
           <>
             <div

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { CampsiteLandingClient } from '../../campsite-landing/CampsiteLandingClient';
+import { resolveAssetUrl, getCampsiteCoverPhoto } from '@/lib/asset-utils';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -28,17 +29,6 @@ export async function generateStaticParams() {
   }
 }
 
-function formatPhotoUrl(rawUrl?: string, fallback = ''): string {
-  if (!rawUrl || typeof rawUrl !== 'string') return fallback;
-  const trimmed = rawUrl.trim();
-  if (!trimmed) return fallback;
-  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-    return trimmed;
-  }
-  const cleanKey = trimmed.replace(/^\/+/, '');
-  return `https://media-staging.embun.app/${cleanKey}`;
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolved = await params;
   const targetId = (resolved?.id || '').trim().toLowerCase();
@@ -55,19 +45,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       const campsite = data?.campsite;
 
       if (campsite) {
-        const campPrimaryPhoto = formatPhotoUrl(
-          (campsite.photos || []).find(
-            (p: any) =>
-              p.category === 'home' ||
-              p.category === 'cover' ||
-              p.category === 'main',
-          )?.url ||
-            (campsite.photos || []).find((p: any) =>
-              (p.category || '').includes('view'),
-            )?.url ||
-            (campsite.photos || [])[0]?.url,
-          fallbackImage,
-        );
+        const cover = getCampsiteCoverPhoto(campsite);
+        const campPrimaryPhoto = cover ? resolveAssetUrl(cover) : fallbackImage;
 
         const title = `${campsite.name} — Profil Kawasan & Pilihan Spot Camping | Embun`;
         const description = `Jelajahi ${campsite.name} di ${

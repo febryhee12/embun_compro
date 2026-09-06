@@ -1,39 +1,7 @@
 'use client';
 
-export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'https://api-staging.embun.app/api';
-
-export function resolveAssetUrl(raw?: string): string {
-  if (!raw) return '';
-  const trimmed = raw.trim();
-  if (
-    trimmed.startsWith('http://') ||
-    trimmed.startsWith('https://') ||
-    trimmed.startsWith('data:')
-  ) {
-    return trimmed;
-  }
-  const cleanKey = trimmed.replace(/^\/+/, '');
-  if (
-    cleanKey.startsWith('campsites/') ||
-    cleanKey.startsWith('blocks/') ||
-    cleanKey.startsWith('photos/') ||
-    cleanKey.startsWith('panoramas/') ||
-    cleanKey.startsWith('partners/')
-  ) {
-    return `https://media-staging.embun.app/${cleanKey}`;
-  }
-  const cleanPath = `/${cleanKey}`;
-  const host = API_BASE_URL.replace(/\/api\/?$/, '');
-  return `${host}${cleanPath}`;
-}
-
-export const rupiah = (val?: number | string | null) => {
-  if (val == null || val === '') return 'Rp0';
-  const n = Number(val);
-  if (isNaN(n)) return 'Rp0';
-  return `Rp ${n.toLocaleString('id-ID')}`;
-};
+import { API_BASE_URL } from './asset-utils';
+export * from './asset-utils';
 
 /** Error carrying the HTTP status so callers can special-case 401 (needs re-auth). */
 export class ApiError extends Error {
