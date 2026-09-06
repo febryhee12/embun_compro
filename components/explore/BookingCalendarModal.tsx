@@ -288,10 +288,10 @@ export function BookingCalendarModal({
           key={dayStr}
           className={`h-10 w-10 sm:h-11 sm:w-11 relative flex items-center justify-center p-0 ${
             isInRange || isHovered
-              ? "bg-brand-blue/10 text-brand-blue"
+              ? "bg-brand-blue/10 dark:bg-brand-lime/15 text-brand-blue dark:text-brand-lime"
               : ""
-          } ${isStart && tempOut ? "rounded-l-full bg-brand-blue/10" : ""} ${
-            isEnd && tempIn ? "rounded-r-full bg-brand-blue/10" : ""
+          } ${isStart && tempOut ? "rounded-l-full bg-brand-blue/10 dark:bg-brand-lime/15" : ""} ${
+            isEnd && tempIn ? "rounded-r-full bg-brand-blue/10 dark:bg-brand-lime/15" : ""
           }`}
           onMouseEnter={() => !isDisabled && setHoveredDate(dayStr)}
           onMouseLeave={() => setHoveredDate(null)}
@@ -315,19 +315,19 @@ export function BookingCalendarModal({
             }
             className={`h-9 w-9 sm:h-10 sm:w-10 rounded-2xl flex items-center justify-center text-xs transition-all ${
               isStart || isEnd
-                ? "bg-brand-blue text-white font-bold shadow-md scale-105 rounded-full"
+                ? "bg-brand-blue dark:bg-brand-lime text-white dark:text-black font-bold dark:font-black shadow-md scale-105 rounded-full"
                 : isCheckoutChangeover
-                ? `border-2 border-neutral-800 bg-white font-bold hover:scale-105 cursor-pointer shadow-2xs ${
-                    isWeekend ? "text-red-500" : "text-foreground"
+                ? `border-2 border-neutral-800 dark:border-brand-lime bg-white dark:bg-surface font-bold hover:scale-105 cursor-pointer shadow-2xs ${
+                    isWeekend ? "text-red-500 dark:text-red-400" : "text-foreground"
                   }`
                 : isDisabled
                 ? isBooked
-                  ? "text-neutral-400 bg-neutral-100/80 line-through cursor-not-allowed opacity-60 rounded-full"
+                  ? "text-neutral-400 dark:text-neutral-500 bg-neutral-100/80 dark:bg-neutral-800/60 line-through cursor-not-allowed opacity-60 rounded-full"
                   : "text-foreground-muted/30 line-through cursor-not-allowed rounded-full"
                 : isInRange || isHovered
-                ? "text-brand-blue font-bold hover:bg-brand-blue/20 rounded-full"
+                ? "text-brand-blue dark:text-brand-lime font-bold hover:bg-brand-blue/20 dark:hover:bg-brand-lime/25 rounded-full"
                 : `${
-                    isWeekend ? "text-red-500 font-semibold" : "text-foreground"
+                    isWeekend ? "text-red-500 dark:text-red-400 font-semibold" : "text-foreground"
                   } hover:bg-surface hover:scale-105 cursor-pointer rounded-full`
             }`}
           >
@@ -364,13 +364,13 @@ export function BookingCalendarModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
-      <div className="bg-white text-foreground rounded-3xl shadow-2xl border border-border max-w-3xl w-full overflow-hidden flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200">
+      <div className="bg-white dark:bg-surface text-foreground rounded-3xl shadow-2xl border border-border max-w-3xl w-full overflow-hidden flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200">
         {/* Modal Top Header */}
-        <div className="p-4 sm:p-6 border-b border-border space-y-4 bg-surface/30">
+        <div className="p-4 sm:p-6 border-b border-border space-y-4 bg-surface/30 dark:bg-background/40">
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-brand-lime text-black border border-brand-lime/80 shadow-2xs">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-brand-lime text-black border border-brand-lime/80 shadow-2xs font-bold">
                   {nightsCount > 0
                     ? (lang === 'en'
                         ? `${nightsCount} Night${nightsCount > 1 ? 's' : ''}`
@@ -403,13 +403,13 @@ export function BookingCalendarModal({
           </div>
 
           {/* Quick Date Indicator Tabs */}
-          <div className="grid grid-cols-2 border border-border rounded-2xl p-1 bg-white shadow-2xs text-xs divide-x divide-border">
+          <div className="grid grid-cols-2 border border-border rounded-2xl p-1 bg-white dark:bg-background shadow-2xs text-xs divide-x divide-border">
             <button
               type="button"
               onClick={() => setActiveStep("checkIn")}
               className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl transition-all cursor-pointer font-semibold flex flex-col text-left ${
                 activeStep === "checkIn"
-                  ? "bg-brand-blue text-white shadow-xs"
+                  ? "bg-brand-blue dark:bg-brand-lime text-white dark:text-black shadow-xs font-bold dark:font-black"
                   : "text-foreground hover:bg-surface"
               }`}
             >
@@ -426,7 +426,7 @@ export function BookingCalendarModal({
               onClick={() => setActiveStep("checkOut")}
               className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl transition-all cursor-pointer font-semibold flex flex-col text-left ${
                 activeStep === "checkOut"
-                  ? "bg-brand-blue text-white shadow-xs"
+                  ? "bg-brand-blue dark:bg-brand-lime text-white dark:text-black shadow-xs font-bold dark:font-black"
                   : "text-foreground hover:bg-surface"
               }`}
             >
@@ -478,22 +478,22 @@ export function BookingCalendarModal({
           {/* Legend */}
           <div className="flex flex-wrap items-center justify-center gap-5 pt-3 border-t border-border/50 text-[11px] text-foreground-muted">
             <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded-full bg-brand-blue" />
+              <span className="w-3 h-3 rounded-full bg-brand-blue dark:bg-brand-lime" />
               <span>{lang === 'en' ? "Selected" : "Terpilih"}</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded-full bg-white border border-border" />
+              <span className="w-3 h-3 rounded-full bg-white dark:bg-surface border border-border" />
               <span>{lang === 'en' ? "Available" : "Tersedia"}</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="w-4 h-4 rounded-full bg-neutral-100 border border-neutral-200 text-neutral-400 line-through flex items-center justify-center text-[9px] font-bold">✕</span>
+              <span className="w-4 h-4 rounded-full bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-400 dark:text-neutral-500 line-through flex items-center justify-center text-[9px] font-bold">✕</span>
               <span>{lang === 'en' ? "Booked / Unavailable" : "Penuh / Dipesan"}</span>
             </div>
           </div>
         </div>
 
         {/* Modal Bottom Footer */}
-        <div className="p-4 sm:p-5 border-t border-border bg-surface/40 flex items-center justify-between gap-2 sm:gap-4 mt-auto">
+        <div className="p-4 sm:p-5 border-t border-border bg-surface/40 dark:bg-background/40 flex items-center justify-between gap-2 sm:gap-4 mt-auto">
           <button
             type="button"
             onClick={handleReset}
@@ -515,7 +515,7 @@ export function BookingCalendarModal({
               <button
                 type="button"
                 onClick={handleApply}
-                className="px-4 sm:px-5 py-2.5 rounded-2xl bg-brand-blue text-white text-xs font-bold hover:bg-brand-blue-hover shadow-md transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                className="px-4 sm:px-5 py-2.5 rounded-2xl bg-brand-blue dark:bg-brand-lime text-white dark:text-black text-xs font-bold dark:font-black hover:bg-brand-blue-hover dark:hover:bg-brand-lime/90 shadow-md transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
               >
                 <Check size={14} />
                 <span>

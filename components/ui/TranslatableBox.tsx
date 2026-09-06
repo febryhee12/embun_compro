@@ -87,17 +87,17 @@ export function TranslatableBox({
             type="button"
             onClick={handleToggle}
             disabled={isLoading}
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold text-brand-blue hover:text-brand-blue/80 hover:bg-brand-blue/5 transition-all cursor-pointer border border-brand-blue/20 active:scale-95 disabled:opacity-60 disabled:cursor-wait ${buttonClassName}`}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold text-brand-blue hover:text-brand-blue/80 hover:bg-brand-blue/5 dark:text-brand-lime dark:hover:text-brand-lime/90 dark:hover:bg-brand-lime/10 transition-all cursor-pointer border border-brand-blue/20 dark:border-brand-lime/30 active:scale-95 disabled:opacity-60 disabled:cursor-wait ${buttonClassName}`}
             title={isTranslated ? 'Show original (Bahasa Indonesia)' : 'Translate to English'}
           >
             {isLoading ? (
               <>
-                <Loader2 size={12} className="animate-spin text-brand-blue" />
+                <Loader2 size={12} className="animate-spin text-brand-blue dark:text-brand-lime" />
                 <span>Translating...</span>
               </>
             ) : (
               <>
-                <Languages size={13} className="text-brand-blue shrink-0" />
+                <Languages size={13} className="text-brand-blue dark:text-brand-lime shrink-0" />
                 <span>
                   {isTranslated
                     ? 'Show original (Bahasa Indonesia)'

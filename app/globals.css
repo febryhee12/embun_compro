@@ -232,4 +232,17 @@ div.pnlm-about-msg,
   transform: translateY(-1px) !important;
 }
 
+.dark .embun-leaflet-popup a.embun-popup-btn {
+  background-color: var(--brand-lime, #cbfd00) !important;
+  color: #000000 !important;
+  font-weight: 800 !important;
+  box-shadow: 0 3px 10px rgba(203, 253, 0, 0.25) !important;
+}
+
+.dark .embun-leaflet-popup a.embun-popup-btn:hover {
+  background-color: rgba(203, 253, 0, 0.9) !important;
+  color: #000000 !important;
+}
+
+
 

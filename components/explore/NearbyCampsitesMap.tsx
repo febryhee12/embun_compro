@@ -237,12 +237,12 @@ export function NearbyCampsitesMap({
           `
           : `
             <div class="relative flex flex-col items-center group cursor-pointer">
-              <div class="bg-white text-foreground text-[11px] font-semibold px-2.5 py-1 rounded-full shadow-md border border-brand-blue/30 hover:border-brand-blue flex items-center gap-1.5 whitespace-nowrap transition-transform duration-200 group-hover:scale-110">
-                <span class="w-1.5 h-1.5 rounded-full bg-brand-blue"></span>
+              <div class="bg-white dark:bg-[#0e1117] text-foreground text-[11px] font-semibold px-2.5 py-1 rounded-full shadow-md border border-brand-blue/30 dark:border-brand-lime/40 hover:border-brand-blue dark:hover:border-brand-lime flex items-center gap-1.5 whitespace-nowrap transition-transform duration-200 group-hover:scale-110">
+                <span class="w-1.5 h-1.5 rounded-full bg-brand-blue dark:bg-brand-lime"></span>
                 <span>${camp.name}</span>
                 <span class="text-[9px] text-foreground-muted font-normal">(${camp.distanceKm.toFixed(0)} km)</span>
               </div>
-              <div class="w-2 h-2 bg-white border-r border-b border-brand-blue/30 transform rotate-45 -mt-1"></div>
+              <div class="w-2 h-2 bg-white dark:bg-[#0e1117] border-r border-b border-brand-blue/30 dark:border-brand-lime/40 transform rotate-45 -mt-1"></div>
             </div>
           `;
 
@@ -287,7 +287,7 @@ export function NearbyCampsitesMap({
             ${
               !isCur
                 ? `<div class="pt-1">
-                     <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-brand-blue/10 text-brand-blue font-bold text-[10px]">
+                     <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-brand-blue/10 dark:bg-brand-lime/15 text-brand-blue dark:text-brand-lime font-bold text-[10px]">
                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
                          <circle cx="12" cy="12" r="10"></circle>
                          <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
@@ -370,8 +370,8 @@ export function NearbyCampsitesMap({
             onClick={() => setActiveTab('google')}
             className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'google'
-                ? 'bg-brand-blue text-white shadow-2xs'
-                : 'text-foreground hover:text-brand-blue'
+                ? 'bg-brand-blue dark:bg-brand-lime text-white dark:text-black shadow-2xs font-bold dark:font-black'
+                : 'text-foreground-muted hover:text-foreground dark:hover:text-brand-lime'
             }`}
           >
             <Navigation size={13} />
@@ -382,8 +382,8 @@ export function NearbyCampsitesMap({
             onClick={() => setActiveTab('interactive')}
             className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'interactive'
-                ? 'bg-brand-blue text-white shadow-2xs'
-                : 'text-foreground hover:text-brand-blue'
+                ? 'bg-brand-blue dark:bg-brand-lime text-white dark:text-black shadow-2xs font-bold dark:font-black'
+                : 'text-foreground-muted hover:text-foreground dark:hover:text-brand-lime'
             }`}
           >
             <Compass size={13} />
@@ -392,8 +392,8 @@ export function NearbyCampsitesMap({
               <span
                 className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
                   activeTab === 'interactive'
-                    ? 'bg-brand-lime text-black'
-                    : 'bg-brand-blue/10 text-brand-blue'
+                    ? 'bg-brand-lime dark:bg-black text-black dark:text-brand-lime'
+                    : 'bg-brand-blue/10 dark:bg-brand-lime/15 text-brand-blue dark:text-brand-lime'
                 }`}
               >
                 +{otherCampsites.length}
