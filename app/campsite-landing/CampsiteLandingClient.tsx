@@ -830,7 +830,7 @@ function CampsiteLandingClientInner() {
       )}
 
       {/* ── 1. HEADER KHAS EMBUN EXPLORE (SESUAI GAMBAR 1) ── */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-border transition-all">
+      <header className="sticky top-0 z-40 bg-white/95 dark:bg-background/95 backdrop-blur-md border-b border-border transition-all">
         <div className="max-w-[2520px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 h-20 flex items-center justify-between gap-4">
           {/* Logo Embun + Badge EXPLORE */}
           <div className="flex items-center gap-3">
@@ -842,7 +842,12 @@ function CampsiteLandingClientInner() {
               <img
                 src="/images/logo/primary_blue.svg"
                 alt="Embun"
-                className="h-7 w-auto object-contain transition-transform group-hover:scale-102"
+                className="h-7 w-auto object-contain transition-transform group-hover:scale-102 dark:hidden"
+              />
+              <img
+                src="/images/logo/model1_white.svg"
+                alt="Embun"
+                className="h-7 w-auto object-contain transition-transform group-hover:scale-102 hidden dark:block"
               />
               <span className="text-[10px] uppercase font-black tracking-wider px-2 py-0.5 rounded-full bg-brand-lime text-black border border-brand-lime/80 shadow-2xs">
                 Explore
@@ -852,7 +857,7 @@ function CampsiteLandingClientInner() {
 
           {/* Tengah: Pill Lokasi Kawasan (Desktop) */}
           <div className="hidden md:flex items-center gap-2 border border-border rounded-full py-1.5 px-4 shadow-2xs bg-surface text-xs text-foreground font-medium">
-            <MapPin size={13} className="text-brand-blue shrink-0" />
+            <MapPin size={13} className="text-brand-blue dark:text-brand-lime shrink-0" />
             <span className="font-bold">{campsite.name}</span>
             <span className="text-foreground-muted">
               · {campsite.address || campsite.city}
@@ -882,11 +887,11 @@ function CampsiteLandingClientInner() {
             <button
               type="button"
               onClick={() => setIsAuthOpen(true)}
-              className="flex items-center gap-2 border border-border rounded-full py-1.5 px-3 hover:shadow-sm transition-all bg-white text-xs font-semibold text-foreground cursor-pointer"
+              className="flex items-center gap-2 border border-border rounded-full py-1.5 px-3 hover:shadow-sm transition-all bg-white dark:bg-surface text-xs font-semibold text-foreground cursor-pointer"
             >
               {currentUser ? (
                 <>
-                  <div className="w-6 h-6 rounded-full bg-brand-blue text-white flex items-center justify-center font-bold text-[11px] overflow-hidden">
+                  <div className="w-6 h-6 rounded-full bg-brand-blue dark:bg-brand-lime text-white dark:text-black flex items-center justify-center font-bold text-[11px] overflow-hidden">
                     {currentUser?.avatarUrl || currentUser?.photoUrl ? (
                       <img
                         src={resolveAssetUrl(
@@ -1000,7 +1005,7 @@ function CampsiteLandingClientInner() {
           <h2 className="font-extrabold text-xl text-foreground">
             {t.campsitePage.aboutCampsite(campsite.name)}
           </h2>
-          <div className="p-6 rounded-3xl bg-white border border-border leading-relaxed text-sm text-foreground/85">
+          <div className="p-6 rounded-3xl bg-white dark:bg-surface border border-border leading-relaxed text-sm text-foreground/85">
             <TranslatableBox
               text={
                 campsite.description ||
@@ -1073,9 +1078,9 @@ function CampsiteLandingClientInner() {
             <h2 className="font-extrabold text-xl text-foreground">
               {t.campsitePage.rulesTitle}
             </h2>
-            <div className="p-6 rounded-3xl bg-white border border-border space-y-4 text-xs sm:text-sm">
+            <div className="p-6 rounded-3xl bg-white dark:bg-surface border border-border space-y-4 text-xs sm:text-sm">
               <h3 className="font-bold text-sm sm:text-base text-foreground flex items-center gap-2">
-                <ShieldCheck size={16} className="text-emerald-600" />
+                <ShieldCheck size={16} className="text-emerald-600 dark:text-emerald-400" />
                 <span>{t.campsitePage.rulesSubtitle}</span>
               </h3>
               <TranslatableBox
@@ -1084,14 +1089,14 @@ function CampsiteLandingClientInner() {
                 listClassName="space-y-2.5 text-foreground/80 list-disc list-inside leading-relaxed"
               />
               <div className="pt-3 border-t border-border/70 text-xs text-foreground-muted flex items-center gap-1.5">
-                <ShieldCheck size={14} className="text-brand-blue shrink-0" />
+                <ShieldCheck size={14} className="text-brand-blue dark:text-brand-lime shrink-0" />
                 <span>
                   {t.campsitePage.refundNotice}{' '}
                   <a
                     href={`/${lang}/kebijakan-refund/`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-brand-blue font-bold hover:underline"
+                    className="text-brand-blue dark:text-brand-lime font-bold hover:underline"
                   >
                     {t.campsitePage.refundLinkText}
                   </a>
@@ -1125,8 +1130,8 @@ function CampsiteLandingClientInner() {
                       onClick={() => setSelectedSpotType(type)}
                       className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                         isSelected
-                          ? 'bg-brand-blue text-white shadow-xs'
-                          : 'bg-white hover:bg-surface text-foreground-muted hover:text-foreground border border-border'
+                          ? 'bg-brand-blue dark:bg-brand-lime text-white dark:text-black shadow-xs font-bold'
+                          : 'bg-white dark:bg-surface hover:bg-surface text-foreground-muted hover:text-foreground border border-border'
                       }`}
                     >
                       {type === 'Tur 360°' ? '🌐 Tur 360°' : type}
@@ -1139,12 +1144,12 @@ function CampsiteLandingClientInner() {
 
           {/* Grid Kartu Spot — Standar SpotCard Compro Tanpa Bintang */}
           {filteredSpots.length === 0 ? (
-            <div className="p-12 text-center bg-white rounded-3xl border border-dashed border-border space-y-2">
+            <div className="p-12 text-center bg-white dark:bg-surface rounded-3xl border border-dashed border-border space-y-2">
               <p className="text-sm font-semibold text-foreground">Tidak ada spot untuk filter ini</p>
               <button
                 type="button"
                 onClick={() => setSelectedSpotType('Semua')}
-                className="text-xs text-brand-blue font-bold hover:underline cursor-pointer"
+                className="text-xs text-brand-blue dark:text-brand-lime font-bold hover:underline cursor-pointer"
               >
                 Tampilkan Semua Spot
               </button>
@@ -1220,7 +1225,7 @@ function CampsiteLandingClientInner() {
                 className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-102"
               />
               <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                <span className="px-4 py-2 rounded-xl bg-white/90 backdrop-blur-md text-foreground font-bold text-xs shadow-md flex items-center gap-1.5">
+                <span className="px-4 py-2 rounded-xl bg-white/90 dark:bg-black/80 backdrop-blur-md text-foreground font-bold text-xs shadow-md flex items-center gap-1.5">
                   <Maximize2 size={13} />
                   <span>{t.campsitePage.expandDenah}</span>
                 </span>
@@ -1245,7 +1250,7 @@ function CampsiteLandingClientInner() {
                 <button
                   type="button"
                   onClick={() => setShowReviewsModal(true)}
-                  className="px-4 py-2 rounded-full border border-border bg-white hover:bg-surface text-xs font-bold text-foreground transition-all cursor-pointer shadow-2xs hover:shadow-xs inline-flex items-center justify-center"
+                  className="px-4 py-2 rounded-full border border-border bg-white dark:bg-surface hover:bg-surface text-xs font-bold text-foreground transition-all cursor-pointer shadow-2xs hover:shadow-xs inline-flex items-center justify-center"
                 >
                   {t.campsitePage.viewAll}
                 </button>
@@ -1268,12 +1273,12 @@ function CampsiteLandingClientInner() {
                 return (
                   <div
                     key={rev.id || idx}
-                    className="p-5 rounded-3xl bg-white border border-border space-y-2.5 flex flex-col justify-between"
+                    className="p-5 rounded-3xl bg-white dark:bg-surface border border-border space-y-2.5 flex flex-col justify-between"
                   >
                     <div className="space-y-2.5">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-brand-blue/10 text-brand-blue font-bold text-xs flex items-center justify-center overflow-hidden shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-brand-blue/10 dark:bg-brand-lime/10 text-brand-blue dark:text-brand-lime font-bold text-xs flex items-center justify-center overflow-hidden shrink-0">
                             {rev.authorPhotoUrl || rev.guestAvatar ? (
                               <img
                                 src={resolveAssetUrl(rev.authorPhotoUrl || rev.guestAvatar)}

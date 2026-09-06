@@ -360,7 +360,7 @@ function getFacilityIcon(name?: string, id?: string) {
   return <CheckCircle2 size={16} className={iconClass} />;
 }
 
-function getSurfaceIcon(surfaceName?: string, className = 'text-brand-blue') {
+function getSurfaceIcon(surfaceName?: string, className = 'text-brand-blue dark:text-brand-lime') {
   const lower = (surfaceName || '').toLowerCase().trim();
   if (lower.includes('batu') || lower.includes('kerikil')) {
     return <Stone size={14} className={className} />;
@@ -1965,8 +1965,8 @@ export function SpotRedirectClient() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-12 h-12 rounded-full border-3 border-brand-blue border-t-transparent animate-spin mb-4" />
+      <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-12 h-12 rounded-full border-3 border-brand-blue dark:border-brand-lime border-t-transparent animate-spin mb-4" />
         <p className="text-xs font-bold text-foreground-muted uppercase tracking-widest animate-pulse">
           Memuat Detail Spot & Campsite...
         </p>
@@ -1976,7 +1976,7 @@ export function SpotRedirectClient() {
 
   if (error || !activeSpot || !campsite) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center max-w-md mx-auto">
+      <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-6 text-center max-w-md mx-auto">
         <div className="w-16 h-16 rounded-3xl bg-surface border border-border flex items-center justify-center text-foreground-muted mb-4 shadow-sm">
           <Tent size={28} />
         </div>
@@ -1989,7 +1989,7 @@ export function SpotRedirectClient() {
         </p>
         <a
           href="https://embun.app/explore"
-          className="px-6 py-2.5 rounded-full bg-brand-blue text-white text-xs font-bold shadow-md hover:bg-brand-blue/90 transition-all"
+          className="px-6 py-2.5 rounded-full bg-brand-blue text-white dark:bg-brand-lime dark:text-black dark:font-bold text-xs font-bold shadow-md hover:bg-brand-blue/90 dark:hover:bg-brand-lime/90 transition-all"
         >
           Jelajahi Spot Lainnya
         </a>
@@ -1998,7 +1998,7 @@ export function SpotRedirectClient() {
   }
 
   return (
-    <div className="min-h-screen bg-white text-foreground selection:bg-brand-lime selection:text-black flex flex-col">
+    <div className="min-h-screen bg-background text-foreground selection:bg-brand-lime selection:text-black flex flex-col">
       {/* Mobile Smart App Banner: Memungkinkan tamu langsung membuka aplikasi jika ada di HP */}
       {!isAppBannerDismissed && (
         <div className="md:hidden bg-slate-950 text-white px-4 py-2.5 flex items-center justify-between text-xs border-b border-white/10 relative z-30">
@@ -2042,7 +2042,7 @@ export function SpotRedirectClient() {
       {/* ════════════════════════════════════════════════════════════════════════
           1. AIRBNB TOP NAVBAR
       ════════════════════════════════════════════════════════════════════════ */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-border transition-all">
+      <header className="sticky top-0 z-40 bg-white/95 dark:bg-background/95 backdrop-blur-md border-b border-border transition-all">
         <div className="max-w-[2520px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 h-16 sm:h-20 flex items-center justify-between gap-2.5 sm:gap-4">
           {/* Logo & Explore Badge */}
           <div className="flex items-center gap-3">
@@ -2054,7 +2054,12 @@ export function SpotRedirectClient() {
               <img
                 src="/images/logo/primary_blue.svg"
                 alt="Embun"
-                className="h-6 sm:h-7 w-auto object-contain transition-transform group-hover:scale-102"
+                className="h-6 sm:h-7 w-auto object-contain transition-transform group-hover:scale-102 dark:hidden"
+              />
+              <img
+                src="/images/logo/model1_white.svg"
+                alt="Embun"
+                className="h-6 sm:h-7 w-auto object-contain transition-transform group-hover:scale-102 hidden dark:block"
               />
               <span className="text-[10px] uppercase font-black tracking-wider px-2 py-0.5 rounded-full bg-brand-lime text-black border border-brand-lime/80 shadow-2xs">
                 Explore
@@ -2064,7 +2069,7 @@ export function SpotRedirectClient() {
 
           {/* Center: Campsite Location pill (desktop) */}
           <div className="hidden md:flex items-center gap-2 border border-border rounded-full py-1.5 px-4 shadow-2xs bg-surface text-xs text-foreground font-medium">
-            <MapPin size={13} className="text-brand-blue shrink-0" />
+            <MapPin size={13} className="text-brand-blue dark:text-brand-lime shrink-0" />
             <span className="font-bold">{campsite.name}</span>
             <span className="text-foreground-muted">
               · {campsite.address || campsite.city}
@@ -2094,11 +2099,11 @@ export function SpotRedirectClient() {
             <button
               type="button"
               onClick={() => setIsAuthOpen(true)}
-              className="flex items-center gap-2 border border-border rounded-full py-1.5 px-3 hover:shadow-sm transition-all bg-white text-xs font-semibold text-foreground cursor-pointer"
+              className="flex items-center gap-2 border border-border rounded-full py-1.5 px-3 hover:shadow-sm transition-all bg-white dark:bg-surface text-xs font-semibold text-foreground cursor-pointer"
             >
               {currentUser ? (
                 <>
-                  <div className="w-6 h-6 rounded-full bg-brand-blue text-white flex items-center justify-center font-bold text-[11px] overflow-hidden">
+                  <div className="w-6 h-6 rounded-full bg-brand-blue dark:bg-brand-lime text-white dark:text-black flex items-center justify-center font-bold text-[11px] overflow-hidden">
                     {currentUser?.avatarUrl || currentUser?.photoUrl ? (
                       <img
                         src={resolveAssetUrl(
@@ -2133,7 +2138,7 @@ export function SpotRedirectClient() {
         {/* Title & Metadata Header */}
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-brand-blue bg-brand-blue/10 px-2.5 py-0.5 rounded-full border border-brand-blue/20">
+            <span className="text-xs font-bold uppercase tracking-wider text-brand-blue dark:text-brand-lime bg-brand-blue/10 dark:bg-brand-lime/10 px-2.5 py-0.5 rounded-full border border-brand-blue/20 dark:border-brand-lime/30">
               {campsite.name}
             </span>
             {activeSpot.isEmbunPlus && (
@@ -2169,7 +2174,7 @@ export function SpotRedirectClient() {
                     size={14}
                     className="text-brand-lime fill-brand-lime"
                   />
-                  <span className="text-brand-blue">{t.spot.newBadge}</span>
+                  <span className="text-brand-blue dark:text-brand-lime">{t.spot.newBadge}</span>
                   <span className="text-foreground-muted font-normal">
                     {lang === 'en' ? '· No reviews yet' : '· Belum ada ulasan'}
                   </span>
@@ -2184,7 +2189,7 @@ export function SpotRedirectClient() {
                     el.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }
                 }}
-                className="underline decoration-foreground/30 hover:decoration-foreground font-medium text-foreground cursor-pointer transition-colors text-left"
+                className="underline decoration-foreground/30 hover:decoration-foreground hover:text-brand-blue dark:hover:text-brand-lime font-medium text-foreground cursor-pointer transition-colors text-left"
                 title={lang === 'en' ? 'Scroll to location map' : 'Lihat peta lokasi kawasan'}
               >
                 {campsite.city || campsite.address || 'Indonesia'}
@@ -2195,7 +2200,7 @@ export function SpotRedirectClient() {
               <button
                 type="button"
                 onClick={handleShare}
-                className="flex items-center gap-1.5 hover:text-foreground font-semibold cursor-pointer underline text-xs"
+                className="flex items-center gap-1.5 text-foreground hover:text-brand-blue dark:hover:text-brand-lime font-semibold cursor-pointer underline text-xs transition-colors"
               >
                 <Share2 size={13} />
                 <span>{t.header.share}</span>
@@ -2203,10 +2208,10 @@ export function SpotRedirectClient() {
               <button
                 type="button"
                 onClick={handleCopyLink}
-                className="flex items-center gap-1.5 hover:text-foreground font-semibold cursor-pointer underline text-xs"
+                className="flex items-center gap-1.5 text-foreground hover:text-brand-blue dark:hover:text-brand-lime font-semibold cursor-pointer underline text-xs transition-colors"
               >
                 {copied ? (
-                  <Check size={13} className="text-emerald-600" />
+                  <Check size={13} className="text-emerald-600 dark:text-emerald-400" />
                 ) : (
                   <Copy size={13} />
                 )}
@@ -2450,7 +2455,7 @@ export function SpotRedirectClient() {
                 setGalleryTab('photos');
                 setIsGalleryOpen(true);
               }}
-              className="px-3.5 py-2 rounded-xl bg-white/95 backdrop-blur-sm text-foreground text-xs font-bold shadow-lg border border-border flex items-center gap-1.5 hover:bg-white hover:scale-103 transition-all cursor-pointer"
+              className="px-3.5 py-2 rounded-xl bg-white/95 dark:bg-surface/90 backdrop-blur-sm text-foreground text-xs font-bold shadow-lg border border-border flex items-center gap-1.5 hover:bg-white dark:hover:bg-surface hover:scale-103 transition-all cursor-pointer"
             >
               <Grid size={14} />
               <span>{t.spot.showAllPhotos(spotPhotos.length)}</span>
@@ -2494,7 +2499,7 @@ export function SpotRedirectClient() {
                       </span>
                     ) : activeSpot.tentType ? (
                       <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-surface border border-border text-xs font-semibold text-foreground">
-                        <Tent size={14} className="text-brand-blue" />
+                        <Tent size={14} className="text-brand-blue dark:text-brand-lime" />
                         <span>{translateItemName(activeSpot.tentType, lang)}</span>
                       </span>
                     ) : null}
@@ -2502,7 +2507,7 @@ export function SpotRedirectClient() {
                       activeSpot.viewOptions.map((v, vIdx) => (
                         <span
                           key={vIdx}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-brand-blue/5 border border-brand-blue/20 text-xs font-semibold text-brand-blue"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-brand-blue/5 dark:bg-brand-lime/10 border border-brand-blue/20 dark:border-brand-lime/30 text-xs font-semibold text-brand-blue dark:text-brand-lime"
                         >
                           <Trees size={14} />
                           <span>{translateItemName(v, lang)}</span>
@@ -2594,34 +2599,34 @@ export function SpotRedirectClient() {
                 >
                   <div className="space-y-1">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted flex items-center gap-1.5">
-                      <Calendar size={13} className="text-brand-blue" />
+                      <Calendar size={13} className="text-brand-blue dark:text-brand-lime" />
                       <span>Check-In</span>
                     </span>
-                    <div className={`font-bold text-sm sm:text-base group-hover:text-brand-blue transition-colors ${checkInDate ? 'text-foreground' : 'text-foreground-muted'}`}>
+                    <div className={`font-bold text-sm sm:text-base group-hover:text-brand-blue dark:group-hover:text-brand-lime transition-colors ${checkInDate ? 'text-foreground' : 'text-foreground-muted'}`}>
                       {formatDateDisplay(checkInDate)}
                     </div>
                   </div>
 
                   <div className="space-y-1 border-l border-border pl-4">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted flex items-center gap-1.5">
-                      <Calendar size={13} className="text-brand-blue" />
+                      <Calendar size={13} className="text-brand-blue dark:text-brand-lime" />
                       <span>Check-Out</span>
                     </span>
-                    <div className={`font-bold text-sm sm:text-base group-hover:text-brand-blue transition-colors ${checkOutDate ? 'text-foreground' : 'text-foreground-muted'}`}>
+                    <div className={`font-bold text-sm sm:text-base group-hover:text-brand-blue dark:group-hover:text-brand-lime transition-colors ${checkOutDate ? 'text-foreground' : 'text-foreground-muted'}`}>
                       {formatDateDisplay(checkOutDate)}
                     </div>
                   </div>
                 </div>
 
                 {/* Bottom: Guest counter */}
-                <div className="px-4 py-3 sm:px-5 sm:py-3.5 border-t border-border bg-white flex items-center justify-between">
+                <div className="px-4 py-3 sm:px-5 sm:py-3.5 border-t border-border bg-white dark:bg-surface flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-1.5">
                       <span className="block text-[9px] font-bold uppercase tracking-wider text-foreground-muted">
                         {t.spot.guestsTitle}
                       </span>
                       {selectedPackage?.name && (
-                        <span className="text-[9.5px] font-bold text-brand-blue bg-brand-blue/10 px-1.5 py-0.5 rounded-md">
+                        <span className="text-[9.5px] font-bold text-brand-blue dark:text-brand-lime bg-brand-blue/10 dark:bg-brand-lime/10 px-1.5 py-0.5 rounded-md">
                           {selectedPackage.name}
                         </span>
                       )}
@@ -2630,7 +2635,7 @@ export function SpotRedirectClient() {
                       {t.spot.guestsCountWithMax(guestCount, effectiveMaxCapacity)}
                     </span>
                     {extraPersonInfo && extraPersonInfo.count > 0 && extraPersonInfo.unitPrice > 0 ? (
-                      <span className="block text-[10.5px] sm:text-[11px] text-brand-blue font-semibold mt-0.5">
+                      <span className="block text-[10.5px] sm:text-[11px] text-brand-blue dark:text-brand-lime font-semibold mt-0.5">
                         {lang === 'en'
                           ? `+${rupiah(extraPersonInfo.unitPrice)}/extra guest/night (${extraPersonInfo.count} extra)`
                           : `+${rupiah(extraPersonInfo.unitPrice)}/tamu ekstra/malam (${extraPersonInfo.count} tamu tambahan)`}
@@ -2648,7 +2653,7 @@ export function SpotRedirectClient() {
                       type="button"
                       disabled={guestCount <= 1}
                       onClick={() => setGuestCount(Math.max(1, guestCount - 1))}
-                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-border flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer active:scale-95 transition-all"
+                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-border bg-white dark:bg-surface flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer active:scale-95 transition-all"
                       aria-label="Kurangi Tamu"
                     >
                       <Minus size={13} />
@@ -2664,7 +2669,7 @@ export function SpotRedirectClient() {
                           Math.min(effectiveMaxCapacity, guestCount + 1),
                         )
                       }
-                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-border flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer active:scale-95 transition-all"
+                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-border bg-white dark:bg-surface flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer active:scale-95 transition-all"
                       aria-label="Tambah Tamu"
                     >
                       <Plus size={13} />
@@ -2729,8 +2734,8 @@ export function SpotRedirectClient() {
                           onClick={() => setSelectedPackageId(pkg.id || null)}
                           className={`p-4 rounded-3xl border-2 transition-all cursor-pointer flex flex-col justify-between gap-3 relative group ${
                             isSelected
-                              ? 'border-brand-blue bg-brand-blue/5 shadow-md ring-2 ring-brand-blue/20'
-                              : 'border-border bg-surface hover:border-brand-blue/40 hover:bg-surface-variant/40'
+                              ? 'border-brand-blue dark:border-brand-lime bg-brand-blue/5 dark:bg-brand-lime/10 shadow-md ring-2 ring-brand-blue/20 dark:ring-brand-lime/30'
+                              : 'border-border bg-surface hover:border-brand-blue/40 dark:hover:border-brand-lime/40 hover:bg-surface-variant/40'
                           }`}
                         >
                           <div className="flex items-start gap-3.5">
@@ -2743,7 +2748,7 @@ export function SpotRedirectClient() {
                                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                 />
                               ) : (
-                                <div className="w-full h-full flex items-center justify-center text-brand-blue bg-brand-blue/8">
+                                <div className="w-full h-full flex items-center justify-center text-brand-blue dark:text-brand-lime bg-brand-blue/8 dark:bg-brand-lime/10">
                                   <Tent size={28} />
                                 </div>
                               )}
@@ -2758,14 +2763,14 @@ export function SpotRedirectClient() {
                             {/* Package Info */}
                             <div className="flex-1 min-w-0">
                               <div className="flex items-start justify-between gap-2">
-                                <h4 className="font-bold text-sm text-foreground group-hover:text-brand-blue transition-colors">
+                                <h4 className="font-bold text-sm text-foreground group-hover:text-brand-blue dark:group-hover:text-brand-lime transition-colors">
                                   {pkg.name}
                                 </h4>
                                 <div
                                   className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all shrink-0 ${
                                     isSelected
-                                      ? 'border-brand-blue bg-brand-blue text-white'
-                                      : 'border-border bg-white'
+                                      ? 'border-brand-blue dark:border-brand-lime bg-brand-blue dark:bg-brand-lime text-white dark:text-black'
+                                      : 'border-border bg-white dark:bg-surface'
                                   }`}
                                 >
                                   {isSelected && (
@@ -2775,7 +2780,7 @@ export function SpotRedirectClient() {
                               </div>
 
                               {isTentIncluded && (
-                                <span className="inline-block text-[10px] font-bold text-brand-blue bg-brand-blue/10 px-2 py-0.5 rounded-full border border-brand-blue/20 mt-1">
+                                <span className="inline-block text-[10px] font-bold text-brand-blue dark:text-brand-lime bg-brand-blue/10 dark:bg-brand-lime/10 px-2 py-0.5 rounded-full border border-brand-blue/20 dark:border-brand-lime/30 mt-1">
                                   {t.spot.includesTent}
                                 </span>
                               )}
@@ -2793,7 +2798,7 @@ export function SpotRedirectClient() {
                                     e.stopPropagation();
                                     setDetailPackage(pkg);
                                   }}
-                                  className="text-[11px] font-bold text-brand-blue hover:text-brand-blue/80 hover:underline flex items-center gap-1 cursor-pointer"
+                                  className="text-[11px] font-bold text-brand-blue dark:text-brand-lime hover:text-brand-blue/80 dark:hover:text-brand-lime/80 hover:underline flex items-center gap-1 cursor-pointer"
                                 >
                                   <span>{t.spot.viewPackageDetails}</span>
                                   <ChevronRight size={12} />
@@ -2804,7 +2809,7 @@ export function SpotRedirectClient() {
 
                           <div className="flex flex-wrap items-baseline justify-between gap-1 pt-2.5 border-t border-border/80 text-xs">
                             <div>
-                              <span className="text-base font-extrabold text-brand-blue">
+                              <span className="text-base font-extrabold text-brand-blue dark:text-brand-lime">
                                 {rupiah(pkgPrice)}
                               </span>
                               <span className="text-[10.5px] text-foreground-muted">
@@ -2813,7 +2818,7 @@ export function SpotRedirectClient() {
                               </span>
                             </div>
                             <div className="flex flex-col items-end gap-0.5">
-                              <span className="text-[10.5px] font-bold text-foreground bg-white px-2 py-0.5 rounded-full border border-border">
+                              <span className="text-[10.5px] font-bold text-foreground bg-white dark:bg-surface px-2 py-0.5 rounded-full border border-border">
                                 {lang === 'en'
                                   ? `Incl. ${pkg.baseCapacity || 1} (Max. ${pkg.maxOccupancy || pkg.baseCapacity || activeSpot.maxCapacity})`
                                   : `Termasuk ${pkg.baseCapacity || 1} (Maks. ${pkg.maxOccupancy || pkg.baseCapacity || activeSpot.maxCapacity})`}
@@ -2882,7 +2887,7 @@ export function SpotRedirectClient() {
                           isTentDisabled
                             ? 'border-border/60 bg-surface/30 opacity-75'
                             : qty > 0
-                              ? 'border-brand-blue/60 bg-brand-blue/5 ring-1 ring-brand-blue/20'
+                              ? 'border-brand-blue/60 dark:border-brand-lime/60 bg-brand-blue/5 dark:bg-brand-lime/10 ring-1 ring-brand-blue/20 dark:ring-brand-lime/30'
                               : 'border-border bg-surface hover:bg-surface-variant/40'
                         }`}
                       >
@@ -2899,7 +2904,7 @@ export function SpotRedirectClient() {
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                               />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-brand-blue/70 bg-brand-blue/5">
+                              <div className="w-full h-full flex items-center justify-center text-brand-blue/70 dark:text-brand-lime/70 bg-brand-blue/5 dark:bg-brand-lime/10">
                                 <Package size={22} />
                               </div>
                             )}
@@ -2909,12 +2914,12 @@ export function SpotRedirectClient() {
                             <div className="flex items-center gap-1.5 flex-wrap">
                               <p
                                 onClick={() => setDetailAddon(addon)}
-                                className="font-bold text-foreground text-xs sm:text-[13px] truncate cursor-pointer hover:text-brand-blue transition-colors"
+                                className="font-bold text-foreground text-xs sm:text-[13px] truncate cursor-pointer hover:text-brand-blue dark:hover:text-brand-lime transition-colors"
                               >
                                 {addon.name}
                               </p>
                               {isIncludedInPkg && (
-                                <span className="text-[9px] font-bold text-brand-blue bg-brand-blue/10 px-1.5 py-0.5 rounded-full">
+                                <span className="text-[9px] font-bold text-brand-blue dark:text-brand-lime bg-brand-blue/10 dark:bg-brand-lime/10 px-1.5 py-0.5 rounded-full">
                                   {t.spot.includedInPackage}
                                 </span>
                               )}
@@ -2924,7 +2929,7 @@ export function SpotRedirectClient() {
                                 </span>
                               )}
                               {isTent && !isTentPackage && (
-                                <span className="text-[9px] font-semibold text-foreground-muted bg-white px-1.5 py-0.5 rounded-full border border-border">
+                                <span className="text-[9px] font-semibold text-foreground-muted bg-white dark:bg-surface px-1.5 py-0.5 rounded-full border border-border">
                                   {t.spot.maxTentNotice(kavlingCount)}
                                 </span>
                               )}
@@ -2936,7 +2941,7 @@ export function SpotRedirectClient() {
                               </p>
                             ) : null}
 
-                            <p className="text-xs font-extrabold text-brand-blue mt-1">
+                            <p className="text-xs font-extrabold text-brand-blue dark:text-brand-lime mt-1">
                               +{rupiah(addon.price)}{' '}
                               <span className="text-[10px] font-medium text-foreground-muted">
                                 {priceSuffix}
@@ -2946,7 +2951,7 @@ export function SpotRedirectClient() {
                         </div>
 
                         {isIncludedInPkg ? (
-                          <div className="text-[10.5px] font-bold text-brand-blue shrink-0 px-2.5 py-1 bg-brand-blue/10 rounded-full border border-brand-blue/20">
+                          <div className="text-[10.5px] font-bold text-brand-blue dark:text-brand-lime shrink-0 px-2.5 py-1 bg-brand-blue/10 dark:bg-brand-lime/10 rounded-full border border-brand-blue/20 dark:border-brand-lime/30">
                             Included
                           </div>
                         ) : isTentDisabled ? (
@@ -2954,7 +2959,7 @@ export function SpotRedirectClient() {
                             {t.spot.locked}
                           </div>
                         ) : (
-                          <div className="flex items-center gap-2 shrink-0 bg-white border border-border p-1 rounded-full shadow-2xs">
+                          <div className="flex items-center gap-2 shrink-0 bg-white dark:bg-surface border border-border p-1 rounded-full shadow-2xs">
                             <button
                               type="button"
                               disabled={qty <= 0}
@@ -3002,7 +3007,7 @@ export function SpotRedirectClient() {
                     {/* Campsite Logo & Badge Overlay on Banner */}
                     <div className="absolute bottom-4 left-4 sm:left-6 right-4 flex items-end justify-between gap-3 text-white">
                       <div className="flex items-center gap-3.5">
-                        <div className="w-13 h-13 sm:w-16 sm:h-16 rounded-2xl bg-white border-2 border-white shadow-xl overflow-hidden flex items-center justify-center shrink-0">
+                        <div className="w-13 h-13 sm:w-16 sm:h-16 rounded-2xl bg-white dark:bg-surface border-2 border-white dark:border-border shadow-xl overflow-hidden flex items-center justify-center shrink-0">
                           {campsite.logoUrl ? (
                             <img
                               src={resolveAssetUrl(campsite.logoUrl)}
@@ -3013,7 +3018,7 @@ export function SpotRedirectClient() {
                               }}
                             />
                           ) : (
-                            <div className="w-full h-full bg-brand-blue text-white flex items-center justify-center font-black text-xl">
+                            <div className="w-full h-full bg-brand-blue dark:bg-brand-lime text-white dark:text-black flex items-center justify-center font-black text-xl">
                               {campsite.name.charAt(0).toUpperCase()}
                             </div>
                           )}
@@ -3030,8 +3035,8 @@ export function SpotRedirectClient() {
                     </div>
                   </div>
                 ) : (
-                  <div className="p-5 sm:p-6 bg-gradient-to-br from-brand-blue/10 via-surface to-surface flex items-center gap-4">
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-brand-blue text-white flex items-center justify-center font-bold text-2xl shrink-0 shadow-md overflow-hidden">
+                  <div className="p-5 sm:p-6 bg-gradient-to-br from-brand-blue/10 dark:from-brand-lime/10 via-surface to-surface flex items-center gap-4">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-brand-blue dark:bg-brand-lime text-white dark:text-black flex items-center justify-center font-bold text-2xl shrink-0 shadow-md overflow-hidden">
                       {campsite.logoUrl ? (
                         <img
                           src={resolveAssetUrl(campsite.logoUrl)}
@@ -3058,7 +3063,7 @@ export function SpotRedirectClient() {
 
                 {/* Description Body */}
                 <div className="p-4 sm:p-6 space-y-2">
-                  <h4 className="font-bold text-xs uppercase tracking-wider text-brand-blue">
+                  <h4 className="font-bold text-xs uppercase tracking-wider text-brand-blue dark:text-brand-lime">
                     {t.areaAndLocation.aboutArea}
                   </h4>
                   <TranslatableBox
@@ -3075,7 +3080,7 @@ export function SpotRedirectClient() {
                     <div className="pt-2">
                       <a
                         href={`/campsite/${campsite.slug || campsite.id}`}
-                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-blue/10 hover:bg-brand-blue/20 text-brand-blue text-xs font-bold transition-all border border-brand-blue/20 cursor-pointer shadow-2xs"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-blue/10 dark:bg-brand-lime/10 hover:bg-brand-blue/20 dark:hover:bg-brand-lime/20 text-brand-blue dark:text-brand-lime text-xs font-bold transition-all border border-brand-blue/20 dark:border-brand-lime/30 cursor-pointer shadow-2xs"
                       >
                         <span>{t.areaAndLocation.viewAllSpotsInCamp(campsite.name)}</span>
                         <ArrowRight size={13} />
@@ -3151,7 +3156,7 @@ export function SpotRedirectClient() {
                         setGalleryTab('map');
                         setIsGalleryOpen(true);
                       }}
-                      className="relative aspect-[16/9] w-full rounded-3xl overflow-hidden border border-border bg-surface cursor-pointer group shadow-2xs hover:border-brand-blue/60 transition-all"
+                      className="relative aspect-[16/9] w-full rounded-3xl overflow-hidden border border-border bg-surface cursor-pointer group shadow-2xs hover:border-brand-blue/60 dark:hover:border-brand-lime/60 transition-all"
                     >
                       <img
                         src={resolveAssetUrl(campsite.mapImageUrl)}
@@ -3179,7 +3184,7 @@ export function SpotRedirectClient() {
                     }
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-border bg-white hover:bg-surface text-xs font-bold text-brand-blue shadow-2xs hover:shadow-sm transition-all cursor-pointer"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-border bg-white dark:bg-surface hover:bg-surface text-xs font-bold text-brand-blue dark:text-brand-lime shadow-2xs hover:shadow-sm transition-all cursor-pointer"
                   >
                     <MapPin size={14} />
                     <span>{t.areaAndLocation.openGoogleMaps}</span>
@@ -3196,7 +3201,7 @@ export function SpotRedirectClient() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-foreground-muted leading-relaxed">
                   <div className="p-4 rounded-2xl bg-surface border border-border space-y-1">
                     <h5 className="font-bold text-foreground flex items-center gap-1.5">
-                      <Clock size={13} className="text-brand-blue" />
+                      <Clock size={13} className="text-brand-blue dark:text-brand-lime" />
                       <span>{t.areaAndLocation.stayHours}</span>
                     </h5>
                     <p>
@@ -3211,7 +3216,7 @@ export function SpotRedirectClient() {
 
                   <div className="p-4 rounded-2xl bg-surface border border-border space-y-1">
                     <h5 className="font-bold text-foreground flex items-center gap-1.5">
-                      <MoonStar size={13} className="text-brand-blue" />
+                      <MoonStar size={13} className="text-brand-blue dark:text-brand-lime" />
                       <span>{t.areaAndLocation.quietHours}</span>
                     </h5>
                     <p>
@@ -3225,7 +3230,7 @@ export function SpotRedirectClient() {
                   <div className="sm:col-span-2 p-4 rounded-2xl bg-surface border border-border space-y-2.5">
                     <div className="flex items-center justify-between">
                       <h5 className="font-bold text-foreground flex items-center gap-1.5">
-                        <ShieldCheck size={13} className="text-brand-blue" />
+                        <ShieldCheck size={13} className="text-brand-blue dark:text-brand-lime" />
                         <span>{t.areaAndLocation.cancellationPolicy}</span>
                       </h5>
                     </div>
@@ -3269,7 +3274,7 @@ export function SpotRedirectClient() {
                   <button
                     type="button"
                     onClick={() => setShowReviewsModal(true)}
-                    className="px-4 py-2 rounded-full border border-border bg-white hover:bg-surface text-xs font-bold text-foreground transition-all cursor-pointer shadow-2xs hover:shadow-xs inline-flex items-center justify-center"
+                    className="px-4 py-2 rounded-full border border-border bg-white dark:bg-surface hover:bg-surface dark:hover:bg-surface-variant text-xs font-bold text-foreground transition-all cursor-pointer shadow-2xs hover:shadow-xs inline-flex items-center justify-center"
                   >
                     {t.reviews.viewAll}
                   </button>
@@ -3286,7 +3291,7 @@ export function SpotRedirectClient() {
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-9 h-9 rounded-full bg-brand-blue/10 border border-border flex items-center justify-center font-bold text-xs text-brand-blue overflow-hidden shrink-0">
+                            <div className="w-9 h-9 rounded-full bg-brand-blue/10 dark:bg-brand-lime/10 border border-border flex items-center justify-center font-bold text-xs text-brand-blue dark:text-brand-lime overflow-hidden shrink-0">
                               {rev.authorPhotoUrl ? (
                                 <img
                                   src={resolveAssetUrl(rev.authorPhotoUrl)}
@@ -3314,7 +3319,7 @@ export function SpotRedirectClient() {
                               </span>
                             </div>
                           </div>
-                          <div className="flex items-center gap-1 bg-white px-2 py-1 rounded-full border border-border text-[11px] font-bold text-foreground">
+                          <div className="flex items-center gap-1 bg-white dark:bg-surface px-2 py-1 rounded-full border border-border text-[11px] font-bold text-foreground">
                             <Star
                               size={11}
                               className="fill-amber-500 text-amber-500"
@@ -3445,8 +3450,8 @@ export function SpotRedirectClient() {
           {/* ── RIGHT COLUMN: STICKY BOOKING CARD (DESKTOP ONLY) OR 360 TOUR CARD ── */}
           <div className="hidden lg:block lg:col-span-5 xl:col-span-4">
             {isTour360Only ? (
-              <div className="sticky top-24 bg-white rounded-3xl border border-border shadow-xl p-6 space-y-4 text-center">
-                <div className="w-14 h-14 rounded-2xl bg-brand-blue/10 text-brand-blue flex items-center justify-center mx-auto">
+              <div className="sticky top-24 bg-white dark:bg-surface rounded-3xl border border-border shadow-xl p-6 space-y-4 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-brand-blue/10 dark:bg-brand-lime/10 text-brand-blue dark:text-brand-lime flex items-center justify-center mx-auto">
                   <Compass size={28} />
                 </div>
                 <div>
@@ -3468,7 +3473,7 @@ export function SpotRedirectClient() {
                       setIsGalleryOpen(true);
                       setGalleryTab('360');
                     }}
-                    className="w-full py-3.5 px-6 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
+                    className="w-full py-3.5 px-6 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white dark:bg-brand-lime dark:text-black dark:hover:bg-brand-lime/90 font-bold dark:font-black text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
                   >
                     <Compass size={16} />
                     <span>Buka Tur 360° ({panoramaList.length} Area)</span>
@@ -3477,14 +3482,14 @@ export function SpotRedirectClient() {
                 <div className="pt-2 border-t border-border">
                   <a
                     href="/explore"
-                    className="text-xs font-bold text-brand-blue hover:underline"
+                    className="text-xs font-bold text-brand-blue dark:text-brand-lime hover:underline"
                   >
                     ← Kembali ke Embun Explore
                   </a>
                 </div>
               </div>
             ) : (
-              <div className="sticky top-24 bg-white rounded-3xl border border-border shadow-xl p-5 space-y-3.5">
+              <div className="sticky top-24 bg-white dark:bg-surface rounded-3xl border border-border shadow-xl p-5 space-y-3.5">
                 {/* Header Price & Rating */}
                 <div className="flex items-baseline justify-between border-b border-border pb-3">
                   <div>
@@ -3510,7 +3515,7 @@ export function SpotRedirectClient() {
                         size={13}
                         className="text-brand-lime fill-brand-lime"
                       />
-                      <span className="text-brand-blue">{t.spot.newBadge}</span>
+                      <span className="text-brand-blue dark:text-brand-lime">{t.spot.newBadge}</span>
                     </div>
                   )}
                 </div>
@@ -3521,7 +3526,7 @@ export function SpotRedirectClient() {
                     <div className="space-y-1.5 relative">
                       <label className="text-[11px] font-bold text-foreground flex items-center justify-between">
                         <span>{t.spot.packageOptionsTitleShort}</span>
-                        <span className="text-[10px] font-semibold text-brand-blue truncate max-w-[140px]">
+                        <span className="text-[10px] font-semibold text-brand-blue dark:text-brand-lime truncate max-w-[140px]">
                           {selectedPackage?.name}
                         </span>
                       </label>
@@ -3532,7 +3537,7 @@ export function SpotRedirectClient() {
                           onClick={() =>
                             setIsPackageDropdownOpen(!isPackageDropdownOpen)
                           }
-                          className="w-full p-2 rounded-2xl border border-border hover:border-brand-blue bg-white hover:bg-surface/50 text-left flex items-center justify-between transition-all cursor-pointer shadow-2xs group"
+                          className="w-full p-2 rounded-2xl border border-border hover:border-brand-blue dark:hover:border-brand-lime bg-white dark:bg-surface hover:bg-surface/50 text-left flex items-center justify-between transition-all cursor-pointer shadow-2xs group"
                         >
                           <div className="flex items-center gap-2.5 min-w-0 pr-2">
                             <div className="w-10 h-10 rounded-xl overflow-hidden bg-surface-variant shrink-0 border border-border/70 relative">
@@ -3543,16 +3548,16 @@ export function SpotRedirectClient() {
                                   className="w-full h-full object-cover"
                                 />
                               ) : (
-                                <div className="w-full h-full flex items-center justify-center text-brand-blue bg-brand-blue/8">
+                                <div className="w-full h-full flex items-center justify-center text-brand-blue dark:text-brand-lime bg-brand-blue/8 dark:bg-brand-lime/10">
                                   <Tent size={18} />
                                 </div>
                               )}
                             </div>
                             <div className="min-w-0">
-                              <span className="font-extrabold text-xs text-foreground block truncate group-hover:text-brand-blue transition-colors">
+                              <span className="font-extrabold text-xs text-foreground block truncate group-hover:text-brand-blue dark:group-hover:text-brand-lime transition-colors">
                                 {selectedPackage?.name || t.spot.selectPackage}
                               </span>
-                              <span className="text-[11px] font-bold text-brand-blue block mt-0.5">
+                              <span className="text-[11px] font-bold text-brand-blue dark:text-brand-lime block mt-0.5">
                                 {rupiah(spotPricePerNight)}{' '}
                                 <span className="text-[10px] text-foreground-muted font-normal">
                                   {t.spot.perNight} · {t.spot.maxGuests(effectiveMaxCapacity)}
@@ -3564,7 +3569,7 @@ export function SpotRedirectClient() {
                             size={16}
                             className={`text-foreground-muted transition-transform shrink-0 ${
                               isPackageDropdownOpen
-                                ? 'rotate-180 text-brand-blue'
+                                ? 'rotate-180 text-brand-blue dark:text-brand-lime'
                                 : ''
                             }`}
                           />
@@ -3576,7 +3581,7 @@ export function SpotRedirectClient() {
                               className="fixed inset-0 z-20"
                               onClick={() => setIsPackageDropdownOpen(false)}
                             />
-                            <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-border rounded-2xl shadow-xl z-30 p-1.5 space-y-1 max-h-64 overflow-y-auto">
+                            <div className="absolute top-full left-0 right-0 mt-1.5 bg-white dark:bg-surface border border-border rounded-2xl shadow-xl z-30 p-1.5 space-y-1 max-h-64 overflow-y-auto">
                               {activeSpot.pricingPackages.map((pkg) => {
                                 const isSelected =
                                   (selectedPackage?.id ||
@@ -3603,7 +3608,7 @@ export function SpotRedirectClient() {
                                     }}
                                     className={`w-full p-2 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between ${
                                       isSelected
-                                        ? 'border-brand-blue bg-brand-blue/5 text-foreground'
+                                        ? 'border-brand-blue dark:border-brand-lime bg-brand-blue/5 dark:bg-brand-lime/10 text-foreground'
                                         : 'border-transparent hover:bg-surface/80 text-foreground'
                                     }`}
                                   >
@@ -3616,7 +3621,7 @@ export function SpotRedirectClient() {
                                             className="w-full h-full object-cover"
                                           />
                                         ) : (
-                                          <div className="w-full h-full flex items-center justify-center text-brand-blue bg-brand-blue/8">
+                                          <div className="w-full h-full flex items-center justify-center text-brand-blue dark:text-brand-lime bg-brand-blue/8 dark:bg-brand-lime/10">
                                             <Tent size={16} />
                                           </div>
                                         )}
@@ -3629,7 +3634,7 @@ export function SpotRedirectClient() {
                                           {isSelected && (
                                             <CheckCircle2
                                               size={13}
-                                              className="text-brand-blue shrink-0"
+                                              className="text-brand-blue dark:text-brand-lime shrink-0"
                                             />
                                           )}
                                         </div>
@@ -3638,7 +3643,7 @@ export function SpotRedirectClient() {
                                         </span>
                                       </div>
                                     </div>
-                                    <span className="font-extrabold text-xs text-brand-blue shrink-0 whitespace-nowrap">
+                                    <span className="font-extrabold text-xs text-brand-blue dark:text-brand-lime shrink-0 whitespace-nowrap">
                                       {rupiah(pkgPrice)}
                                     </span>
                                   </button>
@@ -3665,7 +3670,7 @@ export function SpotRedirectClient() {
                       <span
                         className={`font-bold text-xs block mt-0.5 transition-colors ${
                           checkInDate
-                            ? 'text-foreground group-hover:text-brand-blue'
+                            ? 'text-foreground group-hover:text-brand-blue dark:group-hover:text-brand-lime'
                             : 'text-foreground-muted'
                         }`}
                       >
@@ -3679,7 +3684,7 @@ export function SpotRedirectClient() {
                       <span
                         className={`font-bold text-xs block mt-0.5 transition-colors ${
                           checkOutDate
-                            ? 'text-foreground group-hover:text-brand-blue'
+                            ? 'text-foreground group-hover:text-brand-blue dark:group-hover:text-brand-lime'
                             : 'text-foreground-muted'
                         }`}
                       >
@@ -3689,7 +3694,7 @@ export function SpotRedirectClient() {
                   </div>
 
                   {/* Guest Counter in Sidebar */}
-                  <div className="p-2.5 bg-white flex items-center justify-between">
+                  <div className="p-2.5 bg-white dark:bg-surface flex items-center justify-between">
                     <div>
                       <span className="block text-[9px] font-bold uppercase tracking-wider text-foreground-muted">
                         {t.spot.guestsTitle}
@@ -3698,7 +3703,7 @@ export function SpotRedirectClient() {
                         {t.spot.guestsCountWithMax(guestCount, effectiveMaxCapacity)}
                       </span>
                       {extraPersonInfo && extraPersonInfo.count > 0 && extraPersonInfo.unitPrice > 0 ? (
-                        <span className="block text-[10px] text-brand-blue font-semibold mt-0.5">
+                        <span className="block text-[10px] text-brand-blue dark:text-brand-lime font-semibold mt-0.5">
                           {lang === 'en'
                             ? `+${rupiah(extraPersonInfo.unitPrice)}/extra guest/night`
                             : `+${rupiah(extraPersonInfo.unitPrice)}/tamu ekstra/malam`}
@@ -3716,7 +3721,7 @@ export function SpotRedirectClient() {
                         type="button"
                         disabled={guestCount <= 1}
                         onClick={() => setGuestCount(Math.max(1, guestCount - 1))}
-                        className="w-6 h-6 rounded-full border border-border flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                        className="w-6 h-6 rounded-full border border-border bg-white dark:bg-surface flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
                       >
                         <Minus size={11} />
                       </button>
@@ -3731,7 +3736,7 @@ export function SpotRedirectClient() {
                             Math.min(effectiveMaxCapacity, guestCount + 1),
                           )
                         }
-                        className="w-6 h-6 rounded-full border border-border flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                        className="w-6 h-6 rounded-full border border-border bg-white dark:bg-surface flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
                       >
                         <Plus size={11} />
                       </button>
@@ -3814,7 +3819,7 @@ export function SpotRedirectClient() {
 
                       <div className="flex justify-between items-baseline pt-2 border-t border-border font-bold text-sm text-foreground">
                         <span>{t.spot.totalBill}</span>
-                        <span className="text-base text-brand-blue font-extrabold shrink-0 whitespace-nowrap">
+                        <span className="text-base text-brand-blue dark:text-brand-lime font-extrabold shrink-0 whitespace-nowrap">
                           {rupiah(grandTotal)}
                         </span>
                       </div>
@@ -3828,14 +3833,14 @@ export function SpotRedirectClient() {
                           onClick={() => setPaymentScheme('DP_50')}
                           className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
                             paymentScheme === 'DP_50'
-                              ? 'border-brand-blue bg-brand-blue/5 ring-2 ring-brand-blue/20'
+                              ? 'border-brand-blue dark:border-brand-lime bg-brand-blue/5 dark:bg-brand-lime/10 ring-2 ring-brand-blue/20 dark:ring-brand-lime/30'
                               : 'border-border bg-surface/50 hover:bg-surface'
                           }`}
                         >
                           <span className="block text-[11px] font-bold text-foreground">
                             {t.spot.dp50}
                           </span>
-                          <span className="block text-xs font-extrabold text-brand-blue mt-0.5">
+                          <span className="block text-xs font-extrabold text-brand-blue dark:text-brand-lime mt-0.5">
                             {rupiah(dp50Total)}
                           </span>
                         </button>
@@ -3845,14 +3850,14 @@ export function SpotRedirectClient() {
                           onClick={() => setPaymentScheme('FULL')}
                           className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
                             paymentScheme === 'FULL'
-                              ? 'border-brand-blue bg-brand-blue/5 ring-2 ring-brand-blue/20'
+                              ? 'border-brand-blue dark:border-brand-lime bg-brand-blue/5 dark:bg-brand-lime/10 ring-2 ring-brand-blue/20 dark:ring-brand-lime/30'
                               : 'border-border bg-surface/50 hover:bg-surface'
                           }`}
                         >
                           <span className="block text-[11px] font-bold text-foreground">
                             {t.spot.payFull}
                           </span>
-                          <span className="block text-xs font-extrabold text-brand-blue mt-0.5">
+                          <span className="block text-xs font-extrabold text-brand-blue dark:text-brand-lime mt-0.5">
                             {rupiah(grandTotal)}
                           </span>
                         </button>
@@ -3871,7 +3876,7 @@ export function SpotRedirectClient() {
                       </span>
                     </div>
                     <div className="p-3 rounded-2xl bg-surface/70 border border-border/80 text-[11.5px] text-foreground-muted leading-relaxed flex items-start gap-2">
-                      <Info size={15} className="text-brand-blue shrink-0 mt-0.5" />
+                      <Info size={15} className="text-brand-blue dark:text-brand-lime shrink-0 mt-0.5" />
                       <span>
                         {t.spot.selectDatesHelp}
                       </span>
@@ -3880,7 +3885,7 @@ export function SpotRedirectClient() {
                 )}
 
                 {orderError && (
-                  <div className="p-2.5 rounded-2xl bg-red-50 border border-red-200 text-red-600 text-xs font-semibold">
+                  <div className="p-2.5 rounded-2xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 text-xs font-semibold">
                     {orderError}
                   </div>
                 )}
@@ -3896,7 +3901,7 @@ export function SpotRedirectClient() {
                     <button
                       type="button"
                       onClick={handleProceedBooking}
-                      className="w-full py-3.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                      className="w-full py-3.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover dark:bg-brand-lime dark:text-black dark:hover:bg-brand-lime/90 text-white font-bold dark:font-black text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
                     >
                       <span>{t.spot.continueBooking(rupiah(paymentAmountToPay))}</span>
                     </button>
@@ -3904,7 +3909,7 @@ export function SpotRedirectClient() {
                     <button
                       type="button"
                       onClick={() => setIsCalendarOpen(true)}
-                      className="w-full py-3.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                      className="w-full py-3.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover dark:bg-brand-lime dark:text-black dark:hover:bg-brand-lime/90 text-white font-bold dark:font-black text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
                     >
                       <Calendar size={15} />
                       <span>{t.spot.selectStayDates}</span>
@@ -3915,7 +3920,7 @@ export function SpotRedirectClient() {
                     <button
                       type="button"
                       onClick={() => setShowCancellationModal(true)}
-                      className="text-brand-blue font-semibold hover:underline cursor-pointer"
+                      className="text-brand-blue dark:text-brand-lime font-semibold hover:underline cursor-pointer"
                     >
                       {t.spot.cancellationPolicy}
                     </button>
@@ -3934,7 +3939,7 @@ export function SpotRedirectClient() {
           5. MOBILE STICKY BOTTOM BAR
       ════════════════════════════════════════════════════════════════════════ */}
       {!isTour360Only && (
-        <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-border p-4 shadow-xl">
+        <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-surface/95 backdrop-blur-md border-t border-border p-4 shadow-xl">
           <div className="flex items-center justify-between gap-4">
             <div
               onClick={() => setIsCalendarOpen(true)}
@@ -3945,7 +3950,7 @@ export function SpotRedirectClient() {
               </span>
               <span className="text-xs text-foreground-muted"> {t.spot.perNight}</span>
               {checkInDate && checkOutDate ? (
-                <p className="text-[10.5px] text-brand-blue font-bold group-hover:underline flex items-center gap-1">
+                <p className="text-[10.5px] text-brand-blue dark:text-brand-lime font-bold group-hover:underline flex items-center gap-1">
                   <span>{t.spot.nightsCount(nights)}</span>
                   <span>
                     ({formatDateDisplay(checkInDate)} -{' '}
@@ -3953,7 +3958,7 @@ export function SpotRedirectClient() {
                   </span>
                 </p>
               ) : (
-                <p className="text-[10.5px] text-brand-blue font-bold group-hover:underline flex items-center gap-1">
+                <p className="text-[10.5px] text-brand-blue dark:text-brand-lime font-bold group-hover:underline flex items-center gap-1">
                   <span>{t.dates.selectDatesPrompt}</span>
                   <ArrowRight size={11} />
                 </p>
@@ -3969,7 +3974,7 @@ export function SpotRedirectClient() {
                   setIsCalendarOpen(true);
                 }
               }}
-              className="px-6 py-3 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-xs font-bold shadow-md cursor-pointer flex items-center gap-1.5 transition-all active:scale-[0.98]"
+              className="px-6 py-3 rounded-full bg-brand-blue hover:bg-brand-blue-hover dark:bg-brand-lime dark:text-black dark:hover:bg-brand-lime/90 text-white font-bold dark:font-black text-xs shadow-md cursor-pointer flex items-center gap-1.5 transition-all active:scale-[0.98]"
             >
               <span>{checkInDate && checkOutDate ? (lang === 'en' ? 'Book' : 'Pesan') : (lang === 'en' ? 'Select Dates' : 'Pilih Tanggal')}</span>
               <ArrowRight size={14} />
@@ -4221,9 +4226,9 @@ export function SpotRedirectClient() {
       ════════════════════════════════════════════════════════════════════════ */}
       {detailPackage && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white text-foreground rounded-3xl border border-border w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col">
+          <div className="bg-white dark:bg-surface text-foreground rounded-3xl border border-border w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-5 border-b border-border sticky top-0 bg-white/95 backdrop-blur-sm z-10">
+            <div className="flex items-center justify-between p-5 border-b border-border sticky top-0 bg-white/95 dark:bg-surface/95 backdrop-blur-sm z-10">
               <div className="min-w-0 pr-3">
                 <h3 className="font-extrabold text-base sm:text-lg text-foreground truncate">
                   {lang === 'en' ? 'Package Details: ' : 'Detail Paket: '}
@@ -4253,7 +4258,7 @@ export function SpotRedirectClient() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-brand-blue bg-brand-blue/5">
+                  <div className="w-full h-full flex items-center justify-center text-brand-blue dark:text-brand-lime bg-brand-blue/5 dark:bg-brand-lime/10">
                     <Tent size={48} />
                   </div>
                 )}
@@ -4281,7 +4286,7 @@ export function SpotRedirectClient() {
                     <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
                       {lang === 'en' ? 'Max Capacity' : 'Kapasitas Maksimal'}
                     </span>
-                    <span className="font-bold text-brand-blue px-2.5 py-0.5 rounded-full bg-brand-blue/10 text-xs">
+                    <span className="font-bold text-brand-blue dark:text-brand-lime px-2.5 py-0.5 rounded-full bg-brand-blue/10 dark:bg-brand-lime/10 text-xs">
                       {t.spot.maxGuests(
                         detailPackage.maxOccupancy ||
                           detailPackage.baseCapacity ||
@@ -4402,7 +4407,7 @@ export function SpotRedirectClient() {
                 detailPackage.tentPackageAddonId) && (
                 <div className="space-y-2.5">
                   <h4 className="font-bold text-sm text-foreground flex items-center gap-1.5">
-                    <CheckCircle2 size={16} className="text-brand-blue" />
+                    <CheckCircle2 size={16} className="text-brand-blue dark:text-brand-lime" />
                     <span>
                       {lang === 'en'
                         ? 'Included Amenities & Gear:'
@@ -4411,9 +4416,9 @@ export function SpotRedirectClient() {
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {detailPackage.tentPackageAddonId && (
-                      <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-brand-blue/5 border border-brand-blue/20 text-xs">
-                        <Tent size={16} className="text-brand-blue shrink-0" />
-                        <span className="font-bold text-brand-blue">
+                      <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-brand-blue/5 dark:bg-brand-lime/10 border border-brand-blue/20 dark:border-brand-lime/30 text-xs">
+                        <Tent size={16} className="text-brand-blue dark:text-brand-lime shrink-0" />
+                        <span className="font-bold text-brand-blue dark:text-brand-lime">
                           {lang === 'en'
                             ? 'Physical Tent & Setup'
                             : 'Tenda Fisik & Pemasangan'}
@@ -4441,7 +4446,7 @@ export function SpotRedirectClient() {
                                   className="w-full h-full object-cover"
                                 />
                               ) : (
-                                <div className="w-full h-full flex items-center justify-center text-brand-blue bg-brand-blue/5">
+                                <div className="w-full h-full flex items-center justify-center text-brand-blue dark:text-brand-lime bg-brand-blue/5 dark:bg-brand-lime/10">
                                   <Package size={14} />
                                 </div>
                               )}
@@ -4477,7 +4482,7 @@ export function SpotRedirectClient() {
                   setSelectedPackageId(detailPackage.id || null);
                   setDetailPackage(null);
                 }}
-                className="px-6 py-2.5 rounded-xl bg-brand-blue hover:bg-brand-blue/90 text-white text-xs font-extrabold shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
+                className="px-6 py-2.5 rounded-xl bg-brand-blue hover:bg-brand-blue/90 dark:bg-brand-lime dark:text-black dark:hover:bg-brand-lime/90 text-white text-xs font-extrabold dark:font-black shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
               >
                 <Check size={14} strokeWidth={3} />
                 <span>{lang === 'en' ? 'Select This Package' : 'Pilih Paket Ini'}</span>
@@ -4492,14 +4497,14 @@ export function SpotRedirectClient() {
       ════════════════════════════════════════════════════════════════════════ */}
       {detailAddon && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white text-foreground rounded-3xl border border-border w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col">
+          <div className="bg-white dark:bg-surface text-foreground rounded-3xl border border-border w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-5 border-b border-border sticky top-0 bg-white/95 backdrop-blur-sm z-10">
+            <div className="flex items-center justify-between p-5 border-b border-border sticky top-0 bg-white/95 dark:bg-surface/95 backdrop-blur-sm z-10">
               <div className="min-w-0 pr-3">
                 <h3 className="font-extrabold text-base text-foreground truncate max-w-[280px]">
                   {detailAddon.name}
                 </h3>
-                <span className="text-[11px] font-semibold text-brand-blue uppercase tracking-wider">
+                <span className="text-[11px] font-semibold text-brand-blue dark:text-brand-lime uppercase tracking-wider">
                   {detailAddon.category || 'Perlengkapan'}
                 </span>
               </div>
@@ -4523,7 +4528,7 @@ export function SpotRedirectClient() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-brand-blue bg-brand-blue/5">
+                  <div className="w-full h-full flex items-center justify-center text-brand-blue dark:text-brand-lime bg-brand-blue/5 dark:bg-brand-lime/10">
                     <Package size={48} />
                   </div>
                 )}
@@ -4535,7 +4540,7 @@ export function SpotRedirectClient() {
                   <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted block">
                     {lang === 'en' ? 'Rental Rate' : 'Harga Sewa'}
                   </span>
-                  <span className="text-xl font-extrabold text-brand-blue">
+                  <span className="text-xl font-extrabold text-brand-blue dark:text-brand-lime">
                     {rupiah(detailAddon.price)}
                   </span>
                   <span className="text-xs text-foreground-muted">
@@ -4543,7 +4548,7 @@ export function SpotRedirectClient() {
                   </span>
                 </div>
                 {detailAddon.stock !== null && detailAddon.stock !== undefined && (
-                  <span className="text-xs font-semibold text-foreground-muted bg-white px-2.5 py-1 rounded-full border border-border">
+                  <span className="text-xs font-semibold text-foreground-muted bg-white dark:bg-surface px-2.5 py-1 rounded-full border border-border">
                     {lang === 'en' ? 'Stock: ' : 'Stok: '}{detailAddon.stock}
                   </span>
                 )}
@@ -4569,7 +4574,7 @@ export function SpotRedirectClient() {
             <div className="p-4 border-t border-border bg-surface/50 flex items-center justify-between gap-3 sticky bottom-0">
               <span className="text-xs font-bold text-foreground">
                 {lang === 'en' ? 'Quantity: ' : 'Jumlah: '}
-                <span className="text-brand-blue font-extrabold">
+                <span className="text-brand-blue dark:text-brand-lime font-extrabold">
                   {selectedAddons[detailAddon.id] || 0}
                 </span>
               </span>
@@ -4578,21 +4583,21 @@ export function SpotRedirectClient() {
                   type="button"
                   disabled={!selectedAddons[detailAddon.id]}
                   onClick={() => handleAddonQty(detailAddon.id, -1)}
-                  className="w-8 h-8 rounded-full border border-border bg-white flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                  className="w-8 h-8 rounded-full border border-border bg-white dark:bg-surface flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
                 >
                   <Minus size={14} />
                 </button>
                 <button
                   type="button"
                   onClick={() => handleAddonQty(detailAddon.id, 1)}
-                  className="w-8 h-8 rounded-full border border-border bg-white flex items-center justify-center text-foreground hover:bg-surface cursor-pointer"
+                  className="w-8 h-8 rounded-full border border-border bg-white dark:bg-surface flex items-center justify-center text-foreground hover:bg-surface cursor-pointer"
                 >
                   <Plus size={14} />
                 </button>
                 <button
                   type="button"
                   onClick={() => setDetailAddon(null)}
-                  className="ml-2 px-4 py-2 rounded-xl bg-brand-blue hover:bg-brand-blue/90 text-white text-xs font-bold cursor-pointer"
+                  className="ml-2 px-4 py-2 rounded-xl bg-brand-blue hover:bg-brand-blue/90 dark:bg-brand-lime dark:text-black dark:hover:bg-brand-lime/90 text-white font-bold dark:font-black text-xs cursor-pointer"
                 >
                   {lang === 'en' ? 'Done' : 'Selesai'}
                 </button>
@@ -4607,7 +4612,7 @@ export function SpotRedirectClient() {
       ════════════════════════════════════════════════════════════════════════ */}
       {isMobileBookingOpen && (
         <div className="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end justify-center animate-in fade-in duration-200">
-          <div className="bg-white text-foreground rounded-t-3xl border-t border-border w-full max-w-lg max-h-[92vh] overflow-y-auto p-5 space-y-5 shadow-2xl animate-in slide-in-from-bottom duration-200">
+          <div className="bg-white dark:bg-surface text-foreground rounded-t-3xl border-t border-border w-full max-w-lg max-h-[92vh] overflow-y-auto p-5 space-y-5 shadow-2xl animate-in slide-in-from-bottom duration-200">
             {/* Drag Handle */}
             <div className="w-12 h-1.5 bg-border rounded-full mx-auto -mt-1 mb-2" />
 
@@ -4637,7 +4642,7 @@ export function SpotRedirectClient() {
                 <div className="space-y-1.5 relative">
                   <label className="text-xs font-bold text-foreground flex items-center justify-between">
                     <span>{t.spot.packageOptionsTitleShort}</span>
-                    <span className="text-[11px] font-semibold text-brand-blue truncate max-w-[140px]">
+                    <span className="text-[11px] font-semibold text-brand-blue dark:text-brand-lime truncate max-w-[140px]">
                       {selectedPackage?.name}
                     </span>
                   </label>
@@ -4650,7 +4655,7 @@ export function SpotRedirectClient() {
                           !isMobilePackageDropdownOpen,
                         )
                       }
-                      className="w-full p-2.5 rounded-2xl border border-border hover:border-brand-blue bg-white text-left flex items-center justify-between transition-all cursor-pointer shadow-2xs group"
+                      className="w-full p-2.5 rounded-2xl border border-border hover:border-brand-blue dark:hover:border-brand-lime bg-white dark:bg-surface text-left flex items-center justify-between transition-all cursor-pointer shadow-2xs group"
                     >
                       <div className="flex items-center gap-2.5 min-w-0 pr-2">
                         <div className="w-10 h-10 rounded-xl overflow-hidden bg-surface-variant shrink-0 border border-border/70 relative">
@@ -4661,16 +4666,16 @@ export function SpotRedirectClient() {
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-brand-blue bg-brand-blue/8">
+                            <div className="w-full h-full flex items-center justify-center text-brand-blue dark:text-brand-lime bg-brand-blue/8 dark:bg-brand-lime/10">
                               <Tent size={18} />
                             </div>
                           )}
                         </div>
                         <div className="min-w-0">
-                          <span className="font-extrabold text-xs text-foreground block truncate group-hover:text-brand-blue transition-colors">
+                          <span className="font-extrabold text-xs text-foreground block truncate group-hover:text-brand-blue dark:group-hover:text-brand-lime transition-colors">
                             {selectedPackage?.name || t.spot.selectPackage}
                           </span>
-                          <span className="text-[11.5px] font-bold text-brand-blue block mt-0.5">
+                          <span className="text-[11.5px] font-bold text-brand-blue dark:text-brand-lime block mt-0.5">
                             {rupiah(spotPricePerNight)}{' '}
                             <span className="text-[10.5px] text-foreground-muted font-normal">
                               {t.spot.perNight} · {t.spot.maxGuests(effectiveMaxCapacity)}
@@ -4682,7 +4687,7 @@ export function SpotRedirectClient() {
                         size={18}
                         className={`text-foreground-muted transition-transform shrink-0 ${
                           isMobilePackageDropdownOpen
-                            ? 'rotate-180 text-brand-blue'
+                            ? 'rotate-180 text-brand-blue dark:text-brand-lime'
                             : ''
                         }`}
                       />
@@ -4694,7 +4699,7 @@ export function SpotRedirectClient() {
                           className="fixed inset-0 z-20"
                           onClick={() => setIsMobilePackageDropdownOpen(false)}
                         />
-                        <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-border rounded-2xl shadow-xl z-30 p-1.5 space-y-1 max-h-60 overflow-y-auto">
+                        <div className="absolute top-full left-0 right-0 mt-1.5 bg-white dark:bg-surface border border-border rounded-2xl shadow-xl z-30 p-1.5 space-y-1 max-h-60 overflow-y-auto">
                           {activeSpot.pricingPackages.map((pkg) => {
                             const isSelected =
                               (selectedPackage?.id ||
@@ -4720,7 +4725,7 @@ export function SpotRedirectClient() {
                                 }}
                                 className={`w-full p-2 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between ${
                                   isSelected
-                                    ? 'border-brand-blue bg-brand-blue/5 text-foreground'
+                                    ? 'border-brand-blue dark:border-brand-lime bg-brand-blue/5 dark:bg-brand-lime/10 text-foreground'
                                     : 'border-transparent hover:bg-surface/80 text-foreground'
                                 }`}
                               >
@@ -4733,7 +4738,7 @@ export function SpotRedirectClient() {
                                         className="w-full h-full object-cover"
                                       />
                                     ) : (
-                                      <div className="w-full h-full flex items-center justify-center text-brand-blue bg-brand-blue/8">
+                                      <div className="w-full h-full flex items-center justify-center text-brand-blue dark:text-brand-lime bg-brand-blue/8 dark:bg-brand-lime/10">
                                         <Tent size={16} />
                                       </div>
                                     )}
@@ -4746,7 +4751,7 @@ export function SpotRedirectClient() {
                                       {isSelected && (
                                         <CheckCircle2
                                           size={13}
-                                          className="text-brand-blue shrink-0"
+                                          className="text-brand-blue dark:text-brand-lime shrink-0"
                                         />
                                       )}
                                     </div>
@@ -4755,7 +4760,7 @@ export function SpotRedirectClient() {
                                     </span>
                                   </div>
                                 </div>
-                                <span className="font-extrabold text-xs text-brand-blue shrink-0 whitespace-nowrap">
+                                <span className="font-extrabold text-xs text-brand-blue dark:text-brand-lime shrink-0 whitespace-nowrap">
                                   {rupiah(pkgPrice)}
                                 </span>
                               </button>
@@ -4801,7 +4806,7 @@ export function SpotRedirectClient() {
               </div>
 
               {/* Guest Counter */}
-              <div className="p-3 bg-white flex items-center justify-between">
+              <div className="p-3 bg-white dark:bg-surface flex items-center justify-between">
                 <div>
                   <span className="block text-[9.5px] font-bold uppercase tracking-wider text-foreground-muted">
                     {t.spot.guestsTitle}
@@ -4815,7 +4820,7 @@ export function SpotRedirectClient() {
                     type="button"
                     disabled={guestCount <= 1}
                     onClick={() => setGuestCount(Math.max(1, guestCount - 1))}
-                    className="w-7 h-7 rounded-full border border-border flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                    className="w-7 h-7 rounded-full border border-border bg-white dark:bg-surface flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
                   >
                     <Minus size={12} />
                   </button>
@@ -4830,7 +4835,7 @@ export function SpotRedirectClient() {
                         Math.min(effectiveMaxCapacity, guestCount + 1),
                       )
                     }
-                    className="w-7 h-7 rounded-full border border-border flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                    className="w-7 h-7 rounded-full border border-border bg-white dark:bg-surface flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
                   >
                     <Plus size={12} />
                   </button>
@@ -4874,7 +4879,7 @@ export function SpotRedirectClient() {
                           isTentDisabled
                             ? 'border-border/60 bg-surface/20 opacity-70'
                             : qty > 0
-                            ? 'border-brand-blue/50 bg-brand-blue/5 shadow-2xs'
+                            ? 'border-brand-blue/50 dark:border-brand-lime/50 bg-brand-blue/5 dark:bg-brand-lime/10 shadow-2xs'
                             : 'border-border bg-surface/40 hover:bg-surface/70'
                         }`}
                       >
@@ -4887,7 +4892,7 @@ export function SpotRedirectClient() {
                                 className="w-full h-full object-cover"
                               />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-brand-blue/70 bg-brand-blue/5">
+                              <div className="w-full h-full flex items-center justify-center text-brand-blue/70 dark:text-brand-lime/70 bg-brand-blue/5 dark:bg-brand-lime/10">
                                 <Package size={16} />
                               </div>
                             )}
@@ -4898,7 +4903,7 @@ export function SpotRedirectClient() {
                                 {addon.name}
                               </p>
                             {isIncludedInPkg && (
-                              <span className="text-[9px] font-bold text-brand-blue bg-brand-blue/10 px-1.5 py-0.5 rounded-full">
+                              <span className="text-[9px] font-bold text-brand-blue dark:text-brand-lime bg-brand-blue/10 dark:bg-brand-lime/10 px-1.5 py-0.5 rounded-full">
                                 {t.spot.includedInPackage}
                               </span>
                             )}
@@ -4913,7 +4918,7 @@ export function SpotRedirectClient() {
                               </span>
                             )}
                           </div>
-                          <p className="text-[10.5px] text-brand-blue font-bold mt-0.5">
+                          <p className="text-[10.5px] text-brand-blue dark:text-brand-lime font-bold mt-0.5">
                             +{rupiah(addon.price)}{' '}
                             <span className="text-[9.5px] font-normal text-foreground-muted">
                               {priceSuffix}
@@ -4923,7 +4928,7 @@ export function SpotRedirectClient() {
                       </div>
 
                         {isIncludedInPkg ? (
-                          <div className="text-[10px] font-bold text-brand-blue shrink-0 px-2 py-1 bg-brand-blue/10 rounded-full border border-brand-blue/20">
+                          <div className="text-[10px] font-bold text-brand-blue dark:text-brand-lime shrink-0 px-2 py-1 bg-brand-blue/10 dark:bg-brand-lime/10 rounded-full border border-brand-blue/20 dark:border-brand-lime/30">
                             Included
                           </div>
                         ) : isTentDisabled ? (
@@ -4936,19 +4941,19 @@ export function SpotRedirectClient() {
                               type="button"
                               disabled={qty <= 0}
                               onClick={() => handleAddonQty(addon.id, -1)}
-                              className="w-7 h-7 rounded-full border border-border bg-white flex items-center justify-center text-foreground hover:bg-surface active:scale-95 transition-transform disabled:opacity-30 cursor-pointer shadow-2xs"
+                              className="w-7 h-7 rounded-full border border-border bg-white dark:bg-surface flex items-center justify-center text-foreground hover:bg-surface active:scale-95 transition-transform disabled:opacity-30 cursor-pointer shadow-2xs"
                               aria-label="Kurang"
                             >
                               <Minus size={13} />
                             </button>
-                            <span className={`font-extrabold text-xs w-3 text-center ${qty > 0 ? 'text-brand-blue' : 'text-foreground'}`}>
+                            <span className={`font-extrabold text-xs w-3 text-center ${qty > 0 ? 'text-brand-blue dark:text-brand-lime' : 'text-foreground'}`}>
                               {qty}
                             </span>
                             <button
                               type="button"
                               disabled={isMaxTentReached}
                               onClick={() => handleAddonQty(addon.id, 1)}
-                              className="w-7 h-7 rounded-full border border-border bg-white flex items-center justify-center text-foreground hover:bg-surface active:scale-95 transition-transform disabled:opacity-30 cursor-pointer shadow-2xs"
+                              className="w-7 h-7 rounded-full border border-border bg-white dark:bg-surface flex items-center justify-center text-foreground hover:bg-surface active:scale-95 transition-transform disabled:opacity-30 cursor-pointer shadow-2xs"
                               aria-label="Tambah"
                             >
                               <Plus size={13} />
@@ -5037,7 +5042,7 @@ export function SpotRedirectClient() {
 
                   <div className="flex justify-between items-baseline pt-2 border-t border-border font-bold text-sm text-foreground">
                     <span>{t.spot.totalBill}</span>
-                    <span className="text-base text-brand-blue font-extrabold shrink-0 whitespace-nowrap">
+                    <span className="text-base text-brand-blue dark:text-brand-lime font-extrabold shrink-0 whitespace-nowrap">
                       {rupiah(grandTotal)}
                     </span>
                   </div>
@@ -5054,14 +5059,14 @@ export function SpotRedirectClient() {
                       onClick={() => setPaymentScheme('DP_50')}
                       className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
                         paymentScheme === 'DP_50'
-                          ? 'border-brand-blue bg-brand-blue/5 ring-2 ring-brand-blue/20'
+                          ? 'border-brand-blue dark:border-brand-lime bg-brand-blue/5 dark:bg-brand-lime/10 ring-2 ring-brand-blue/20 dark:ring-brand-lime/30'
                           : 'border-border bg-surface/50 hover:bg-surface'
                       }`}
                     >
                       <span className="block text-xs font-bold text-foreground">
                         {t.spot.dp50}
                       </span>
-                      <span className="block text-xs font-extrabold text-brand-blue mt-0.5">
+                      <span className="block text-xs font-extrabold text-brand-blue dark:text-brand-lime mt-0.5">
                         {rupiah(dp50Total)}
                       </span>
                     </button>
@@ -5071,14 +5076,14 @@ export function SpotRedirectClient() {
                       onClick={() => setPaymentScheme('FULL')}
                       className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
                         paymentScheme === 'FULL'
-                          ? 'border-brand-blue bg-brand-blue/5 ring-2 ring-brand-blue/20'
+                          ? 'border-brand-blue dark:border-brand-lime bg-brand-blue/5 dark:bg-brand-lime/10 ring-2 ring-brand-blue/20 dark:ring-brand-lime/30'
                           : 'border-border bg-surface/50 hover:bg-surface'
                       }`}
                     >
                       <span className="block text-xs font-bold text-foreground">
                         {t.spot.payFull}
                       </span>
-                      <span className="block text-xs font-extrabold text-brand-blue mt-0.5">
+                      <span className="block text-xs font-extrabold text-brand-blue dark:text-brand-lime mt-0.5">
                         {rupiah(grandTotal)}
                       </span>
                     </button>
@@ -5097,7 +5102,7 @@ export function SpotRedirectClient() {
                   </span>
                 </div>
                 <div className="p-3 rounded-2xl bg-surface/70 border border-border/80 text-[11.5px] text-foreground-muted leading-relaxed flex items-start gap-2">
-                  <Info size={15} className="text-brand-blue shrink-0 mt-0.5" />
+                  <Info size={15} className="text-brand-blue dark:text-brand-lime shrink-0 mt-0.5" />
                   <span>
                     {t.spot.selectDatesHelp}
                   </span>
@@ -5106,7 +5111,7 @@ export function SpotRedirectClient() {
             )}
 
             {orderError && (
-              <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-red-600 text-xs font-semibold">
+              <div className="p-3 rounded-2xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 text-xs font-semibold">
                 {orderError}
               </div>
             )}
@@ -5122,7 +5127,7 @@ export function SpotRedirectClient() {
                 <button
                   type="button"
                   onClick={handleProceedBooking}
-                  className="w-full py-3.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                  className="w-full py-3.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover dark:bg-brand-lime dark:text-black dark:hover:bg-brand-lime/90 text-white font-bold dark:font-black text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
                 >
                   <span>{t.spot.continueBooking(rupiah(paymentAmountToPay))}</span>
                 </button>
@@ -5130,7 +5135,7 @@ export function SpotRedirectClient() {
                 <button
                   type="button"
                   onClick={() => setIsCalendarOpen(true)}
-                  className="w-full py-3.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                  className="w-full py-3.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover dark:bg-brand-lime dark:text-black dark:hover:bg-brand-lime/90 text-white font-bold dark:font-black text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
                 >
                   <Calendar size={15} />
                   <span>{t.spot.selectStayDates}</span>
@@ -5141,7 +5146,7 @@ export function SpotRedirectClient() {
                 <button
                   type="button"
                   onClick={() => setShowCancellationModal(true)}
-                  className="text-brand-blue font-semibold hover:underline cursor-pointer"
+                  className="text-brand-blue dark:text-brand-lime font-semibold hover:underline cursor-pointer"
                 >
                   {t.spot.cancellationPolicy}
                 </button>
