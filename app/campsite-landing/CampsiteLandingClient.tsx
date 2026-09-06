@@ -32,11 +32,13 @@ import {
   Baby,
   Rabbit,
   Dog,
+  ExternalLink,
 } from 'lucide-react';
 import { SpotCard, type SpotData } from '@/components/explore/SpotCard';
 import { GuestAuthModal } from '@/components/explore/GuestAuthModal';
 import { ReviewsModal } from '@/components/reviews/ReviewsModal';
 import { ExploreFooter } from '@/components/explore/ExploreFooter';
+import { NearbyCampsitesMap } from '@/components/explore/NearbyCampsitesMap';
 import { TranslatableBox } from '@/components/ui/TranslatableBox';
 import { SPOT_I18N, translateItemName, type Language } from '@/lib/spot-i18n';
 import {
@@ -223,6 +225,9 @@ interface CampsiteDetail {
   checkInTime?: string;
   checkOutTime?: string;
   youtube?: string;
+  latitude?: number | string;
+  longitude?: number | string;
+  googleMapsUrl?: string;
   rules?: string;
   facilities?: Array<{ id: string; name: string; icon?: string } | string>;
   blocks?: SpotItem[];
@@ -1067,6 +1072,50 @@ function CampsiteLandingClientInner() {
                 allowFullScreen
                 className="w-full h-full border-0"
               />
+            </div>
+          </section>
+        )}
+
+        {/* ── LOKASI & PETA AKSES KAWASAN (GOOGLE MAPS) ── */}
+        {campsite.latitude &&
+        campsite.longitude &&
+        Number(campsite.latitude) !== 0 && (
+          <section id="campsite-location-map" className="space-y-3 scroll-mt-24">
+            <div>
+              <h2 className="font-extrabold text-xl text-foreground">
+                {lang === 'en' ? 'Location & Area Access' : 'Lokasi & Akses Kawasan'}
+              </h2>
+              <p className="text-xs text-foreground-muted mt-0.5">
+                {campsite.name} ·{' '}
+                {[campsite.address, campsite.city, campsite.province]
+                  .filter(Boolean)
+                  .join(', ')}
+              </p>
+            </div>
+
+            <NearbyCampsitesMap
+              currentCampsite={campsite}
+              lang={lang}
+            />
+
+            <div className="pt-1">
+              <a
+                href={
+                  campsite.googleMapsUrl ||
+                  (campsite.latitude && campsite.longitude
+                    ? `https://www.google.com/maps/search/?api=1&query=${campsite.latitude},${campsite.longitude}`
+                    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                        campsite.name + ' ' + (campsite.address || ''),
+                      )}`)
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-border bg-white dark:bg-surface hover:bg-surface text-xs font-bold text-brand-blue dark:text-brand-lime shadow-2xs hover:shadow-sm transition-all cursor-pointer"
+              >
+                <MapPin size={14} />
+                <span>{lang === 'en' ? 'Open in Google Maps' : 'Buka di Google Maps'}</span>
+                <ExternalLink size={12} />
+              </a>
             </div>
           </section>
         )}
