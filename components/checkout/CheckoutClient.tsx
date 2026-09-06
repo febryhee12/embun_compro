@@ -473,10 +473,12 @@ export function CheckoutClient() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
           {/* ════════════════════════════════════════════════════════════════
               KOLOM KIRI: FORM & DATA PEMESANAN (AIRBNB STYLE)
+              Di mobile: Tampil di bawah Ringkasan (order-2 lg:order-1), diakhiri tombol Konfirmasi & Bayar di paling bawah.
+              Di desktop: Tampil di kolom kiri (lg:col-span-7).
           ════════════════════════════════════════════════════════════════ */}
-          <div className="lg:col-span-7 space-y-6">
-            {/* 1. Perjalanan Anda */}
-            <div className="bg-white dark:bg-surface rounded-3xl border border-border p-6 shadow-2xs space-y-4">
+          <div className="lg:col-span-7 space-y-6 order-2 lg:order-1">
+            {/* 1. Perjalanan Anda (Khusus desktop; di mobile sudah tercakup rapi di kartu ringkasan unit di atas) */}
+            <div className="hidden lg:block bg-white dark:bg-surface rounded-3xl border border-border p-6 shadow-2xs space-y-4">
               <h2 className="text-base font-extrabold text-foreground">{t.tripSection.title}</h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
@@ -528,7 +530,7 @@ export function CheckoutClient() {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder={t.contactSection.fullNamePlaceholder}
-                    className="w-full px-4 py-3 rounded-2xl border border-border focus:border-brand-blue dark:focus:border-brand-lime focus:outline-hidden text-sm bg-surface/40 dark:bg-background/60 text-foreground transition-colors"
+                    className="w-full px-4 py-3 rounded-2xl border border-border focus:border-brand-blue dark:focus:border-brand-lime focus:outline-none focus:ring-2 focus:ring-brand-blue/20 dark:focus:ring-brand-lime/20 text-sm bg-surface/40 dark:bg-background/60 text-foreground transition-colors"
                   />
                 </div>
 
@@ -552,7 +554,7 @@ export function CheckoutClient() {
                           setPhone(val ? `08${val.startsWith('8') ? val.slice(1) : val}` : '');
                         }}
                         placeholder={t.contactSection.phonePlaceholder}
-                        className="w-full pl-20 pr-4 py-3 rounded-2xl border border-border focus:border-brand-blue dark:focus:border-brand-lime focus:outline-hidden text-sm bg-surface/40 dark:bg-background/60 text-foreground transition-colors font-mono"
+                        className="w-full pl-20 pr-4 py-3 rounded-2xl border border-border focus:border-brand-blue dark:focus:border-brand-lime focus:outline-none focus:ring-2 focus:ring-brand-blue/20 dark:focus:ring-brand-lime/20 text-sm bg-surface/40 dark:bg-background/60 text-foreground transition-colors font-mono"
                       />
                     </div>
                   </div>
@@ -565,7 +567,7 @@ export function CheckoutClient() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder={t.contactSection.emailPlaceholder}
-                      className="w-full px-4 py-3 rounded-2xl border border-border focus:border-brand-blue dark:focus:border-brand-lime focus:outline-hidden text-sm bg-surface/40 dark:bg-background/60 text-foreground transition-colors"
+                      className="w-full px-4 py-3 rounded-2xl border border-border focus:border-brand-blue dark:focus:border-brand-lime focus:outline-none focus:ring-2 focus:ring-brand-blue/20 dark:focus:ring-brand-lime/20 text-sm bg-surface/40 dark:bg-background/60 text-foreground transition-colors"
                     />
                   </div>
                 </div>
@@ -579,7 +581,7 @@ export function CheckoutClient() {
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                     placeholder={t.contactSection.addressPlaceholder}
-                    className="w-full px-4 py-3 rounded-2xl border border-border focus:border-brand-blue dark:focus:border-brand-lime focus:outline-hidden text-sm bg-surface/40 dark:bg-background/60 text-foreground transition-colors"
+                    className="w-full px-4 py-3 rounded-2xl border border-border focus:border-brand-blue dark:focus:border-brand-lime focus:outline-none focus:ring-2 focus:ring-brand-blue/20 dark:focus:ring-brand-lime/20 text-sm bg-surface/40 dark:bg-background/60 text-foreground transition-colors"
                   />
                 </div>
               </div>
@@ -644,7 +646,7 @@ export function CheckoutClient() {
                 onChange={(e) => setBookingNote(e.target.value)}
                 placeholder={t.notesSection.placeholder}
                 maxLength={500}
-                className="w-full px-4 py-3 rounded-2xl border border-border focus:border-brand-blue dark:focus:border-brand-lime focus:outline-hidden text-sm bg-surface/40 dark:bg-background/60 text-foreground transition-colors resize-none placeholder:text-foreground-muted/60"
+                className="w-full px-4 py-3 rounded-2xl border border-border focus:border-brand-blue dark:focus:border-brand-lime focus:outline-none focus:ring-2 focus:ring-brand-blue/20 dark:focus:ring-brand-lime/20 text-sm bg-surface/40 dark:bg-background/60 text-foreground transition-colors resize-none placeholder:text-foreground-muted/60"
               />
               <div className="flex justify-end text-[11px] text-foreground-muted">
                 <span>{bookingNote.length}/500</span>
@@ -794,8 +796,10 @@ export function CheckoutClient() {
 
           {/* ════════════════════════════════════════════════════════════════
               KOLOM KANAN: STICKY ORDER SUMMARY (AIRBNB STYLE)
+              Di mobile: Tampil pertama di atas (order-1 lg:order-2) agar tamu melihat rincian unit & harga terlebih dahulu.
+              Di desktop: Berada di kolom kanan yang sticky (lg:col-span-5).
           ════════════════════════════════════════════════════════════════ */}
-          <div className="lg:col-span-5 lg:sticky lg:top-24">
+          <div className="lg:col-span-5 lg:sticky lg:top-24 order-1 lg:order-2">
             <div className="bg-white dark:bg-surface rounded-3xl border border-border p-6 shadow-2xs space-y-5">
               {/* Unit Header */}
               <div className="flex items-start gap-4 pb-4 border-b border-border/70">
