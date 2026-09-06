@@ -154,12 +154,12 @@ export function ExploreFooter({ className, lang = 'id', onToggleLanguage }: Expl
                 resolvedTheme === 'dark' ? (
                   <>
                     <Sun size={14} className="shrink-0" />
-                    <span>{lang === 'en' ? 'Dark Mode' : 'Mode Gelap'}</span>
+                    <span>{lang === 'en' ? 'Light Mode' : 'Mode Terang'}</span>
                   </>
                 ) : (
                   <>
                     <Moon size={14} className="shrink-0" />
-                    <span>{lang === 'en' ? 'Light Mode' : 'Mode Terang'}</span>
+                    <span>{lang === 'en' ? 'Dark Mode' : 'Mode Gelap'}</span>
                   </>
                 )
               ) : (
