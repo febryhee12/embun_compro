@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, User, Menu, MapPin, Calendar, X, Check, Heart, Sun, Moon } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { Search, User, Menu, MapPin, Calendar, X, Check, Heart } from 'lucide-react';
 import { resolveAssetUrl } from '@/lib/api-client';
 import { EXPLORE_I18N, type Language } from '@/lib/explore-i18n';
 
@@ -55,13 +54,6 @@ export function ExploreHeader({
   }, [lang]);
 
   const t = EXPLORE_I18N[activeLang];
-  const { setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   const [isCityModalOpen, setIsCityModalOpen] = useState(false);
   const [isAppBannerDismissed, setIsAppBannerDismissed] = useState(false);
   const [citySearchQuery, setCitySearchQuery] = useState('');
@@ -285,33 +277,6 @@ export function ExploreHeader({
               >
                 <Heart size={16} className="text-foreground" />
               </Link>
-
-              {/* Dark / Light Mode Toggle Button */}
-              <button
-                type="button"
-                onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-                className="p-2 rounded-full border border-border hover:bg-surface text-foreground transition-all cursor-pointer flex items-center justify-center"
-                title={
-                  mounted && resolvedTheme === 'dark'
-                    ? activeLang === 'en'
-                      ? 'Switch to Light Mode'
-                      : 'Ganti ke Mode Terang'
-                    : activeLang === 'en'
-                    ? 'Switch to Dark Mode'
-                    : 'Ganti ke Mode Gelap'
-                }
-                aria-label="Toggle Dark Mode"
-              >
-                {mounted ? (
-                  resolvedTheme === 'dark' ? (
-                    <Sun size={16} className="text-brand-lime transition-transform rotate-0 scale-100" />
-                  ) : (
-                    <Moon size={16} className="text-foreground transition-transform rotate-0 scale-100" />
-                  )
-                ) : (
-                  <div className="w-4 h-4" />
-                )}
-              </button>
 
               <button
                 type="button"

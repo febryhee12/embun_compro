@@ -612,7 +612,7 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                   setSelectedCategory('all');
                   setSelectedCity('');
                 }}
-                className="text-xs font-bold text-brand-blue hover:underline cursor-pointer"
+                className="text-xs font-bold text-brand-blue dark:text-brand-lime hover:underline cursor-pointer"
               >
                 {t.sections.resetFilter}
               </button>
@@ -681,7 +681,7 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                         setSelectedCategory('plus');
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
-                      className="px-8 py-3 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-all shadow-2xs hover:border-brand-blue hover:text-brand-blue cursor-pointer active:scale-95"
+                      className="px-8 py-3 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-all shadow-2xs hover:border-brand-blue dark:hover:border-brand-lime hover:text-brand-blue dark:hover:text-brand-lime cursor-pointer active:scale-95"
                     >
                       {t.sections.viewAll}
                     </button>
@@ -725,7 +725,7 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                         setSelectedCategory('nearby');
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
-                      className="px-8 py-3 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-all shadow-2xs hover:border-brand-blue hover:text-brand-blue cursor-pointer active:scale-95"
+                      className="px-8 py-3 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-all shadow-2xs hover:border-brand-blue dark:hover:border-brand-lime hover:text-brand-blue dark:hover:text-brand-lime cursor-pointer active:scale-95"
                     >
                       {t.sections.viewAll}
                     </button>
@@ -804,7 +804,7 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                         <button
                           type="button"
                           onClick={() => handleSeeAllViewSpots(selectedViewTab)}
-                          className="px-8 py-3 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-all shadow-2xs hover:border-brand-blue hover:text-brand-blue cursor-pointer active:scale-95"
+                          className="px-8 py-3 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-all shadow-2xs hover:border-brand-blue dark:hover:border-brand-lime hover:text-brand-blue dark:hover:text-brand-lime cursor-pointer active:scale-95"
                         >
                           {t.sections.viewAll}
                         </button>
@@ -879,7 +879,7 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                         </div>
 
                         <div className="space-y-1">
-                          <h4 className="font-bold text-base text-foreground group-hover:text-brand-blue transition-colors">
+                          <h4 className="font-bold text-base text-foreground group-hover:text-brand-blue dark:group-hover:text-brand-lime transition-colors">
                             {camp.name}
                           </h4>
                           <p className="text-xs text-foreground-muted line-clamp-1">
@@ -891,7 +891,7 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                           <span className="text-foreground-muted">
                             {lang === 'en' ? 'View all spots' : 'Lihat semua kavling'}
                           </span>
-                          <span className="font-bold text-brand-blue transition-colors">
+                          <span className="font-bold text-brand-blue dark:text-brand-lime transition-colors">
                             {lang === 'en' ? 'Explore Campsite' : 'Eksplorasi Spot'}
                           </span>
                         </div>
@@ -904,7 +904,7 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                   <div className="flex justify-center pt-2">
                     <Link
                       href={`/${lang}/mitra/direktori`}
-                      className="px-8 py-3 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-all shadow-2xs hover:border-brand-blue hover:text-brand-blue cursor-pointer active:scale-95 inline-flex items-center justify-center"
+                      className="px-8 py-3 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-all shadow-2xs hover:border-brand-blue dark:hover:border-brand-lime hover:text-brand-blue dark:hover:text-brand-lime cursor-pointer active:scale-95 inline-flex items-center justify-center"
                     >
                       {t.sections.viewAll}
                     </Link>
@@ -950,7 +950,7 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                       onClick={() =>
                         setVisibleOtherSpotsCount((prev) => prev + 10)
                       }
-                      className="px-8 py-3 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-all shadow-2xs hover:border-brand-blue hover:text-brand-blue cursor-pointer active:scale-95"
+                      className="px-8 py-3 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-all shadow-2xs hover:border-brand-blue dark:hover:border-brand-lime hover:text-brand-blue dark:hover:text-brand-lime cursor-pointer active:scale-95"
                     >
                       {t.sections.showMore}
                     </button>
