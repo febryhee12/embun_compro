@@ -441,8 +441,8 @@ export function GuestAuthModal({
                   {currentUser.fullName || t.defaultGuestName}
                 </h3>
                 <p className="text-xs text-foreground-muted">
-                  {currentUser.phone ||
-                    currentUser.email ||
+                  {currentUser.email ||
+                    currentUser.phone ||
                     t.verifiedAccount}
                 </p>
               </div>
