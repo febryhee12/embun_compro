@@ -7,9 +7,6 @@ import {
   Loader2,
   CheckCircle2,
   Camera,
-  User,
-  Phone,
-  MapPin,
   Mail,
   AlertCircle,
   ShieldCheck,
@@ -400,9 +397,8 @@ export function ProfileClient() {
                     )}
 
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                        <User size={13} className="text-brand-blue dark:text-brand-lime" />
-                        <span>{t.fullName}</span>
+                      <label className="text-xs font-bold text-foreground block">
+                        {t.fullName}
                       </label>
                       <input
                         type="text"
@@ -417,9 +413,8 @@ export function ProfileClient() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                        <Phone size={13} className="text-emerald-600 dark:text-emerald-400" />
-                        <span>{t.whatsapp}</span>
+                      <label className="text-xs font-bold text-foreground block">
+                        {t.whatsapp}
                       </label>
                       <div className="relative flex items-center">
                         <div className="absolute left-3.5 flex items-center gap-1 text-xs font-bold text-foreground pointer-events-none select-none border-r border-border pr-2.5 py-1">
@@ -445,9 +440,8 @@ export function ProfileClient() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                        <MapPin size={13} className="text-brand-blue dark:text-brand-lime" />
-                        <span>{t.address}</span>
+                      <label className="text-xs font-bold text-foreground block">
+                        {t.address}
                       </label>
                       <textarea
                         value={address}
