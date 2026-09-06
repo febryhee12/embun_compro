@@ -81,6 +81,10 @@ interface LegalLink {
 
 const getLegalLinks = (lang: string): LegalLink[] => [
   {
+    href: `/${lang}/explore`,
+    label: lang === 'en' ? 'Explore' : 'Jelajah',
+  },
+  {
     href: `/${lang}/kebijakan-privasi`,
     label: lang === 'en' ? 'Privacy Policy' : 'Kebijakan Privasi',
   },

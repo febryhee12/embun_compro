@@ -24,6 +24,10 @@ import {
  */
 const getNavLinks = (lang: string) => [
   {
+    href: `/${lang}/explore`,
+    label: lang === 'en' ? 'Explore' : 'Jelajah',
+  },
+  {
     href: `/${lang}/mitra`,
     label: lang === 'en' ? 'Become a Partner' : 'Gabung jadi mitra',
   },
@@ -166,7 +170,7 @@ export function SiteHeader() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       window.history.pushState(null, '', targetPath);
     } else {
-      if (href.endsWith('/mitra') || href.endsWith('/mitra/')) {
+      if (href.endsWith('/mitra') || href.endsWith('/mitra/') || href.includes('/explore')) {
         e.preventDefault();
         window.location.assign(href);
       }
