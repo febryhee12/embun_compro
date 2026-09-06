@@ -50,7 +50,11 @@ export function CallToAction(props: Partial<PartnerCtaProps> = {}) {
           </h2>
           <p className="mt-6 text-base sm:text-lg text-foreground-muted leading-relaxed">{subcopy}</p>
           <div className="mt-8">
-            <CTAButton href={ctaHref} label={ctaLabel} />
+            <CTAButton
+              href={ctaHref}
+              label={ctaLabel}
+              className="!bg-[#cbfd00] hover:!bg-[#b8e600] !text-[#0841b5] !font-bold rounded-xl px-8 py-3.5 text-base transition-all duration-200 shadow-sm active:scale-95 border-none cursor-pointer"
+            />
           </div>
         </div>
       </Container>
