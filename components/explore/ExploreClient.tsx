@@ -612,7 +612,7 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                   setSelectedCategory('all');
                   setSelectedCity('');
                 }}
-                className="text-xs font-bold text-brand-blue dark:text-brand-lime hover:underline cursor-pointer"
+                className="text-xs font-bold text-brand-lime hover:text-white cursor-pointer transition-colors"
               >
                 {t.sections.resetFilter}
               </button>
