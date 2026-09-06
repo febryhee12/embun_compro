@@ -795,15 +795,6 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                             {camp.address || (lang === 'en' ? 'Nature Tourist Area' : 'Kawasan Wisata Alam')}
                           </p>
                         </div>
-
-                        <div className="pt-2 border-t border-border flex items-center justify-between text-xs">
-                          <span className="text-foreground-muted">
-                            {lang === 'en' ? 'View all spots' : 'Lihat semua kavling'}
-                          </span>
-                          <span className="font-bold text-brand-blue dark:text-brand-lime transition-colors">
-                            {lang === 'en' ? 'Explore Campsite' : 'Eksplorasi Spot'}
-                          </span>
-                        </div>
                       </div>
                     );
                   })}
