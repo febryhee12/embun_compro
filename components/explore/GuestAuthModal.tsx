@@ -466,15 +466,13 @@ export function GuestAuthModal({
                 >
                   <span>{t.orders}</span>
                 </a>
-                <div className="pt-3">
-                  <button
-                    type="button"
-                    onClick={() => setShowLogoutConfirm(true)}
-                    className="w-full py-3.5 px-6 rounded-full border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
-                  >
-                    <span>{t.logout}</span>
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowLogoutConfirm(true)}
+                  className="w-full py-3.5 px-6 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground hover:text-red-500 dark:hover:text-red-400 text-xs font-bold transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
+                >
+                  <span>{t.logout}</span>
+                </button>
               </div>
             </div>
           ) : (
@@ -494,7 +492,7 @@ export function GuestAuthModal({
               </div>
 
               {error && (
-                <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs text-center font-semibold">
+                <div className="p-3 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-400 text-xs text-center font-semibold">
                   {error}
                 </div>
               )}
@@ -561,7 +559,7 @@ export function GuestAuthModal({
               {t.consentPrefix}
               <a
                 href={`/${activeLang}/kebijakan-privasi/`}
-                className="text-brand-blue font-semibold hover:underline"
+                className="text-brand-blue dark:text-brand-lime font-semibold hover:underline"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -570,7 +568,7 @@ export function GuestAuthModal({
               ,{' '}
               <a
                 href={`/${activeLang}/syarat-ketentuan/`}
-                className="text-brand-blue font-semibold hover:underline"
+                className="text-brand-blue dark:text-brand-lime font-semibold hover:underline"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -579,7 +577,7 @@ export function GuestAuthModal({
               {t.and}
               <a
                 href={`/${activeLang}/kebijakan-refund/`}
-                className="text-brand-blue font-semibold hover:underline"
+                className="text-brand-blue dark:text-brand-lime font-semibold hover:underline"
                 target="_blank"
                 rel="noopener noreferrer"
               >

@@ -491,7 +491,7 @@ export function ProfileClient() {
                   <button
                     type="button"
                     onClick={() => setShowLogoutConfirm(true)}
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-full border border-red-200 dark:border-red-500/30 bg-red-50/60 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold transition-all flex items-center justify-center cursor-pointer shrink-0 shadow-2xs active:scale-95"
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground hover:text-red-500 dark:hover:text-red-400 text-xs font-bold transition-all flex items-center justify-center cursor-pointer shrink-0 shadow-2xs active:scale-95"
                   >
                     {t.logoutButton}
                   </button>
