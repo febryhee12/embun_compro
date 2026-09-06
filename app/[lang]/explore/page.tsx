@@ -22,14 +22,14 @@ export async function generateMetadata({
       : 'Jelajahi Spot Camping & Glamping Terbaik | Embun Explore',
     description: isEn
       ? 'Discover and book prime glamping, cabins, and scenic camping spots in Indonesia with Embun. Features interactive 360° virtual tours.'
-      : 'Temukan dan pesan glamping, kabin, dan spot camping terbaik di Indonesia lewat Embun. Dilengkapi tur virtual 360° dan pembayaran DP 50%.',
+      : 'Temukan dan pesan glamping, kabin, dan spot camping terbaik di Indonesia lewat Embun. Dilengkapi tur virtual 360°.',
     openGraph: {
       title: isEn
         ? 'Explore Best Camping & Glamping Spots | Embun Explore'
         : 'Jelajahi Spot Camping & Glamping Terbaik | Embun Explore',
       description: isEn
         ? 'Discover and book prime glamping, cabins, and scenic camping spots in Indonesia with Embun. Features interactive 360° virtual tours.'
-        : 'Temukan dan pesan glamping, kabin, dan spot camping terbaik di Indonesia lewat Embun. Dilengkapi tur virtual 360° dan pembayaran DP 50%.',
+        : 'Temukan dan pesan glamping, kabin, dan spot camping terbaik di Indonesia lewat Embun. Dilengkapi tur virtual 360°.',
       url: `https://embun.app/${lang}/explore`,
       siteName: 'Embun',
       locale: isEn ? 'en_US' : 'id_ID',
