@@ -175,7 +175,7 @@ export function AccountMobileNav({ activeTab, onLogout, className = '', lang = '
       ) : (
         <Link
           href="/profile"
-          className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold border bg-white dark:bg-surface text-foreground border-border hover:bg-surface transition-colors"
+          className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold border bg-white dark:bg-surface text-foreground border-border hover:border-brand-blue dark:hover:border-brand-lime hover:text-brand-blue dark:hover:text-brand-lime hover:bg-brand-blue/5 dark:hover:bg-brand-lime/10 transition-all"
         >
           <User size={14} className="text-brand-blue dark:text-brand-lime" />
           <span>{t.editProfile}</span>
@@ -191,7 +191,7 @@ export function AccountMobileNav({ activeTab, onLogout, className = '', lang = '
       ) : (
         <Link
           href="/wishlist"
-          className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold border bg-white dark:bg-surface text-foreground border-border hover:bg-surface transition-colors"
+          className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold border bg-white dark:bg-surface text-foreground border-border hover:border-brand-blue dark:hover:border-brand-lime hover:text-brand-blue dark:hover:text-brand-lime hover:bg-brand-blue/5 dark:hover:bg-brand-lime/10 transition-all"
         >
           <Heart size={14} className="text-brand-blue dark:text-brand-lime" />
           <span>{t.wishlist}</span>
@@ -207,7 +207,7 @@ export function AccountMobileNav({ activeTab, onLogout, className = '', lang = '
       ) : (
         <Link
           href="/orders"
-          className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold border bg-white dark:bg-surface text-foreground border-border hover:bg-surface transition-colors"
+          className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold border bg-white dark:bg-surface text-foreground border-border hover:border-brand-blue dark:hover:border-brand-lime hover:text-brand-blue dark:hover:text-brand-lime hover:bg-brand-blue/5 dark:hover:bg-brand-lime/10 transition-all"
         >
           <ListOrdered size={14} className="text-brand-blue dark:text-brand-lime" />
           <span>{t.orders}</span>
@@ -231,7 +231,7 @@ export function AccountLogoutDialog({ isOpen, onClose, onConfirm, lang = 'id' }:
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 py-3 px-4 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-all cursor-pointer"
+            className="flex-1 py-3 px-4 rounded-full border border-border hover:border-brand-blue dark:hover:border-brand-lime hover:text-brand-blue dark:hover:text-brand-lime bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-all cursor-pointer"
           >
             {t.cancel}
           </button>

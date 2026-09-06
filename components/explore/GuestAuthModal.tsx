@@ -450,26 +450,26 @@ export function GuestAuthModal({
               <div className="pt-6 space-y-2.5">
                 <a
                   href="/profile"
-                  className="w-full py-3.5 px-6 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
+                  className="w-full py-3.5 px-6 rounded-full border border-border hover:border-brand-blue dark:hover:border-brand-lime hover:text-brand-blue dark:hover:text-brand-lime bg-surface hover:bg-brand-blue/5 dark:hover:bg-brand-lime/10 text-foreground text-xs font-bold transition-all flex items-center justify-center cursor-pointer shadow-2xs group"
                 >
                   <span>{t.editProfile}</span>
                 </a>
                 <a
                   href="/wishlist"
-                  className="w-full py-3.5 px-6 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
+                  className="w-full py-3.5 px-6 rounded-full border border-border hover:border-brand-blue dark:hover:border-brand-lime hover:text-brand-blue dark:hover:text-brand-lime bg-surface hover:bg-brand-blue/5 dark:hover:bg-brand-lime/10 text-foreground text-xs font-bold transition-all flex items-center justify-center cursor-pointer shadow-2xs group"
                 >
                   <span>{t.wishlist}</span>
                 </a>
                 <a
                   href="/orders"
-                  className="w-full py-3.5 px-6 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
+                  className="w-full py-3.5 px-6 rounded-full border border-border hover:border-brand-blue dark:hover:border-brand-lime hover:text-brand-blue dark:hover:text-brand-lime bg-surface hover:bg-brand-blue/5 dark:hover:bg-brand-lime/10 text-foreground text-xs font-bold transition-all flex items-center justify-center cursor-pointer shadow-2xs group"
                 >
                   <span>{t.orders}</span>
                 </a>
                 <button
                   type="button"
                   onClick={() => setShowLogoutConfirm(true)}
-                  className="w-full py-3.5 px-6 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground hover:text-red-500 dark:hover:text-red-400 text-xs font-bold transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
+                  className="w-full py-3.5 px-6 rounded-full border border-border hover:border-red-500/60 dark:hover:border-red-500/60 bg-surface hover:bg-red-500/10 text-foreground hover:text-red-500 dark:hover:text-red-400 text-xs font-bold transition-all flex items-center justify-center cursor-pointer shadow-2xs group"
                 >
                   <span>{t.logout}</span>
                 </button>
@@ -603,7 +603,7 @@ export function GuestAuthModal({
               <button
                 type="button"
                 onClick={() => setShowLogoutConfirm(false)}
-                className="flex-1 py-3 px-4 rounded-full border border-border bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-all cursor-pointer"
+                className="flex-1 py-3 px-4 rounded-full border border-border hover:border-brand-blue dark:hover:border-brand-lime hover:text-brand-blue dark:hover:text-brand-lime bg-surface hover:bg-surface-variant text-foreground text-xs font-bold transition-all cursor-pointer"
               >
                 {t.logoutModal.cancel}
               </button>
