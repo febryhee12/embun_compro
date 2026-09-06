@@ -378,7 +378,7 @@ export function ExploreHeader({
           <div className="w-full max-w-sm bg-white dark:bg-surface text-foreground rounded-3xl shadow-2xl border border-border p-5 sm:p-6 space-y-4 animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between pb-2 border-b border-border">
               <h3 className="font-bold text-sm text-foreground flex items-center gap-1.5">
-                <MapPin size={15} className="text-brand-blue" />
+                <MapPin size={15} className="text-brand-blue dark:text-brand-lime" />
                 <span>
                   {activeLang === 'en'
                     ? 'Select Destination / Region'
@@ -400,7 +400,7 @@ export function ExploreHeader({
               type="button"
               disabled={geoLoading}
               onClick={handleGetCurrentLocation}
-              className="w-full py-2.5 px-3.5 rounded-2xl bg-brand-blue/10 hover:bg-brand-blue/20 text-brand-blue text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer border border-brand-blue/20"
+              className="w-full py-2.5 px-3.5 rounded-2xl bg-brand-blue/10 hover:bg-brand-blue/20 text-brand-blue dark:bg-brand-lime/15 dark:hover:bg-brand-lime/25 dark:text-brand-lime dark:border-brand-lime/30 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer border border-brand-blue/20"
             >
               <MapPin
                 size={14}
@@ -424,7 +424,7 @@ export function ExploreHeader({
             )}
 
             {/* Search City Input */}
-            <div className="flex items-center gap-2 border border-border rounded-2xl py-2 px-3 bg-surface text-xs focus-within:ring-2 focus-within:ring-brand-blue/30 focus-within:bg-white dark:focus-within:bg-surface transition-all">
+            <div className="flex items-center gap-2 border border-border rounded-2xl py-2 px-3 bg-surface text-xs focus-within:ring-2 focus-within:ring-brand-blue/30 dark:focus-within:ring-brand-lime/30 focus-within:bg-white dark:focus-within:bg-surface transition-all">
               <Search size={14} className="text-foreground-muted shrink-0" />
               <input
                 type="text"
@@ -464,7 +464,7 @@ export function ExploreHeader({
                     }}
                     className={`py-2.5 px-3 rounded-2xl text-xs font-semibold transition-all flex items-center justify-between cursor-pointer ${
                       isSelected
-                        ? 'bg-brand-blue text-white shadow-xs font-bold'
+                        ? 'bg-brand-blue dark:bg-brand-lime text-white dark:text-black shadow-xs font-bold dark:font-black'
                         : 'bg-surface hover:bg-surface-variant text-foreground border border-border/80'
                     }`}
                   >
