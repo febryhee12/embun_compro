@@ -751,9 +751,9 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                         onClick={() => {
                           window.location.href = `/campsite/${camp.slug || camp.id}`;
                         }}
-                        className="group p-4 rounded-3xl border border-border bg-surface hover:shadow-lg transition-all cursor-pointer flex flex-col space-y-3"
+                        className="group rounded-3xl border border-border bg-surface hover:shadow-lg transition-all cursor-pointer flex flex-col overflow-hidden"
                       >
-                        <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-surface">
+                        <div className="relative aspect-[16/10] w-full overflow-hidden bg-surface">
                           {coverPhoto && !hasFailed ? (
                             <img
                               src={resolveAssetUrl(coverPhoto)}
@@ -787,7 +787,7 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                           </div>
                         </div>
 
-                        <div className="space-y-1">
+                        <div className="p-4 space-y-1">
                           <h4 className="font-bold text-base text-foreground group-hover:text-brand-blue dark:group-hover:text-brand-lime transition-colors">
                             {camp.name}
                           </h4>
