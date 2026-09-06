@@ -197,17 +197,6 @@ export function SiteFooter() {
             </div>
           </div>
 
-          {/* Entitas Perusahaan (Alamat dihapus sesuai instruksi) */}
-          <div className="flex flex-col gap-1.5 max-w-sm text-xs text-foreground-muted">
-            <p className="font-semibold text-brand-black dark:text-foreground text-sm">
-              PT Alam Kelana Digital
-            </p>
-            <p className="leading-relaxed text-foreground-muted">
-              {lang === 'en'
-                ? 'Official platform for discovering and booking verified campsites in Indonesia.'
-                : 'Platform resmi pencarian dan reservasi campsite terverifikasi di Indonesia.'}
-            </p>
-          </div>
 
           {/* Legal Page links */}
           <nav aria-label={lang === 'en' ? 'Legal links' : 'Tautan legal'}>

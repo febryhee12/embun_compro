@@ -16,7 +16,7 @@ export default function HowToJoin({
   if (!steps.length) return null;
 
   return (
-    <Section id="how-to-join" style={{ backgroundColor: '#EFF3FB' }} className="py-16 lg:py-24">
+    <Section id="how-to-join" variant="none" className="bg-[#EFF3FB] dark:bg-[#0d131f] py-16 lg:py-24 transition-colors">
       <Container>
         <Reveal delay={0}>
           <div className="mx-auto max-w-3xl text-center">

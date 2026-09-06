@@ -3,7 +3,7 @@ import type { CSSProperties, ReactNode } from 'react';
 export interface SectionProps {
   children: ReactNode;
   /** Visual background variant. */
-  variant?: 'default' | 'muted' | 'dark';
+  variant?: 'default' | 'muted' | 'dark' | 'none';
   /** Anchor id for in-page navigation. */
   id?: string;
   className?: string;
@@ -27,6 +27,7 @@ const VARIANT_STYLE: Record<NonNullable<SectionProps['variant']>, CSSProperties>
     backgroundColor: 'var(--surface-dark)',
     color: 'var(--foreground-on-dark)',
   },
+  none: {},
 };
 
 export default function Section({

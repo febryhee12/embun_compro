@@ -235,20 +235,28 @@ export function SiteHeader() {
           <div className="hidden md:flex md:items-center md:gap-6 lg:gap-8">
             <nav aria-label="Navigasi utama">
               <ul className="flex items-center gap-6 lg:gap-8">
-                {navLinks.map((link) => (
-                  <li key={link.href}>
-                    <Link
-                      href={link.href}
-                      onClick={(e) => handleNavClick(e, link.href)}
-                      className={[
-                        'text-sm font-medium text-foreground transition-colors hover:text-brand-blue rounded-sm',
-                        FOCUS_VISIBLE_CLASS,
-                      ].join(' ')}
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
+                {navLinks.map((link) => {
+                  const isActive =
+                    pathname === link.href ||
+                    (link.href !== `/${lang}` && pathname?.startsWith(link.href));
+                  return (
+                    <li key={link.href}>
+                      <Link
+                        href={link.href}
+                        onClick={(e) => handleNavClick(e, link.href)}
+                        className={[
+                          'text-sm font-medium transition-colors rounded-sm',
+                          isActive
+                            ? 'text-brand-blue dark:text-brand-lime font-bold'
+                            : 'text-foreground hover:text-brand-blue dark:hover:text-brand-lime',
+                          FOCUS_VISIBLE_CLASS,
+                        ].join(' ')}
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
             </nav>
 
@@ -307,20 +315,28 @@ export function SiteHeader() {
               }
             >
               <ul className="flex flex-col gap-1 pt-2">
-                {navLinks.map((link) => (
-                  <li key={link.href}>
-                    <Link
-                      href={link.href}
-                      onClick={(e) => handleNavClick(e, link.href)}
-                      className={[
-                        'block rounded-sm px-1 py-3 text-base font-medium text-foreground transition-colors hover:text-brand-blue',
-                        FOCUS_VISIBLE_CLASS,
-                      ].join(' ')}
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
+                {navLinks.map((link) => {
+                  const isActive =
+                    pathname === link.href ||
+                    (link.href !== `/${lang}` && pathname?.startsWith(link.href));
+                  return (
+                    <li key={link.href}>
+                      <Link
+                        href={link.href}
+                        onClick={(e) => handleNavClick(e, link.href)}
+                        className={[
+                          'block rounded-sm px-1 py-3 text-base font-medium transition-colors',
+                          isActive
+                            ? 'text-brand-blue dark:text-brand-lime font-bold'
+                            : 'text-foreground hover:text-brand-blue dark:hover:text-brand-lime',
+                          FOCUS_VISIBLE_CLASS,
+                        ].join(' ')}
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  );
+                })}
                 <li className="flex items-center justify-between border-t border-foreground/10 pt-4 pb-2 mt-2">
                   <span className="text-base font-medium text-foreground">
                     {lang === 'en' ? 'Language' : 'Bahasa'}
@@ -328,7 +344,7 @@ export function SiteHeader() {
                   <Link
                     href={switchHref}
                     className={[
-                      'px-4 py-2 text-sm font-bold text-foreground transition-colors hover:text-brand-blue rounded-md border border-foreground/20 bg-transparent',
+                      'px-4 py-2 text-sm font-bold text-foreground transition-colors hover:text-brand-blue dark:hover:text-brand-lime rounded-md border border-foreground/20 bg-transparent',
                       FOCUS_VISIBLE_CLASS,
                     ].join(' ')}
                     aria-label="Switch language"

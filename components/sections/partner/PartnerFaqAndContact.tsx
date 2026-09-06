@@ -96,8 +96,8 @@ export function PartnerFaqAndContact({
   return (
     <Section
       id="faq"
-      style={{ backgroundColor: '#EFF3FB' }}
-      className="py-16 lg:py-24"
+      variant="none"
+      className="bg-[#EFF3FB] dark:bg-[#0d131f] py-16 lg:py-24 transition-colors"
     >
       <Container>
         {/* Upper Part: FAQ Accordion */}

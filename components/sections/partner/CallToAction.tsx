@@ -42,7 +42,7 @@ export function CallToAction(props: Partial<PartnerCtaProps> = {}) {
   };
 
   return (
-    <Section id="cta" style={{ backgroundColor: '#FAFEE8' }} className="py-16 lg:py-24">
+    <Section id="cta" variant="none" className="bg-[#FAFEE8] dark:bg-[#0c140e] py-16 lg:py-24 transition-colors">
       <Container>
         <div className="max-w-2xl text-left">
           <h2 className="font-sans text-3xl font-bold tracking-tight text-brand-black sm:text-4xl lg:text-5xl leading-[1.2]">

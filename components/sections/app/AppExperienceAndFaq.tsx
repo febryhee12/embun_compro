@@ -84,8 +84,8 @@ export function AppExperienceAndFaq({
   return (
     <Section
       id="experience-faq"
-      style={{ backgroundColor: '#EFF3FB' }}
-      className="py-16 lg:py-24"
+      variant="none"
+      className="bg-[#EFF3FB] dark:bg-[#0d131f] py-16 lg:py-24 transition-colors"
     >
       <Container>
         {/* Upper Part: Screenshots & App Value Prop */}
@@ -155,11 +155,11 @@ export function AppExperienceAndFaq({
 
                 return (
                   <Reveal key={item.question} delay={index * 80}>
-                    <div className="border-b border-black/10 py-4 first:pt-0">
+                    <div className="border-b border-black/10 dark:border-white/10 py-4 first:pt-0">
                       <button
                         onClick={() => toggleIndex(index)}
                         type="button"
-                        className="flex w-full items-center justify-between text-left font-sans text-base sm:text-lg font-semibold text-brand-black transition-colors hover:text-brand-blue py-1 group"
+                        className="flex w-full items-center justify-between text-left font-sans text-base sm:text-lg font-semibold text-brand-black transition-colors hover:text-brand-blue dark:hover:text-brand-lime py-1 group"
                         aria-expanded={isOpen}
                       >
                         <span className="pr-4">{item.question}</span>
