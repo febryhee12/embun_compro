@@ -1,9 +1,11 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useParams, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Mail, Phone, MapPin, Globe } from 'lucide-react';
+import { Mail, Globe, Sun, Moon } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { Container } from '@/components/ui/Container';
 
 function InstagramIcon(props: React.SVGProps<SVGSVGElement>) {
@@ -120,10 +122,17 @@ export function SiteFooter() {
     ? pathname.replace(`/${lang}`, `/${switchLang}`)
     : `/${switchLang}`;
 
+  const { setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-[#FAFEE8] text-brand-black">
+    <footer className="bg-[#FAFEE8] dark:bg-surface text-brand-black dark:text-foreground border-t border-black/10 dark:border-white/10 transition-colors">
       <Container>
         <div className="flex flex-col gap-6 py-12 md:flex-row md:items-start md:justify-between">
           {/* Logo + tagline */}
@@ -134,6 +143,15 @@ export function SiteFooter() {
               width={158}
               height={36}
               unoptimized
+              className="dark:hidden"
+            />
+            <Image
+              src="/images/logo/model1_white.svg"
+              alt="Embun"
+              width={158}
+              height={36}
+              unoptimized
+              className="hidden dark:block"
             />
             <p className="mt-3 text-sm text-foreground-muted">
               {lang === 'en'
@@ -146,7 +164,7 @@ export function SiteFooter() {
                 href="https://instagram.com/embun.app"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-foreground-muted transition-colors hover:text-brand-blue focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-lime focus-visible:outline-offset-2 rounded-sm"
+                className="text-foreground-muted transition-colors hover:text-brand-blue dark:hover:text-brand-lime focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-lime focus-visible:outline-offset-2 rounded-sm"
                 aria-label="Instagram Embun"
               >
                 <InstagramIcon className="h-5 w-5" />
@@ -155,14 +173,14 @@ export function SiteFooter() {
                 href="https://x.com/embunapp"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-foreground-muted transition-colors hover:text-brand-blue focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-lime focus-visible:outline-offset-2 rounded-sm"
+                className="text-foreground-muted transition-colors hover:text-brand-blue dark:hover:text-brand-lime focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-lime focus-visible:outline-offset-2 rounded-sm"
                 aria-label="X (Twitter) Embun"
               >
                 <XIcon className="h-5 w-5" />
               </a>
               <a
                 href="mailto:support@embun.app"
-                className="text-foreground-muted transition-colors hover:text-brand-blue focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-lime focus-visible:outline-offset-2 rounded-sm"
+                className="text-foreground-muted transition-colors hover:text-brand-blue dark:hover:text-brand-lime focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-lime focus-visible:outline-offset-2 rounded-sm"
                 aria-label="Email Embun Support"
               >
                 <Mail className="h-5 w-5" />
@@ -171,7 +189,7 @@ export function SiteFooter() {
                 href="https://wa.me/6282131411919"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-foreground-muted transition-colors hover:text-brand-blue focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-lime focus-visible:outline-offset-2 rounded-sm"
+                className="text-foreground-muted transition-colors hover:text-brand-blue dark:hover:text-brand-lime focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-lime focus-visible:outline-offset-2 rounded-sm"
                 aria-label="WhatsApp Embun"
               >
                 <WhatsAppIcon className="h-5 w-5" />
@@ -179,13 +197,15 @@ export function SiteFooter() {
             </div>
           </div>
 
-          {/* Kontak & Alamat Perusahaan */}
-          <div className="flex flex-col gap-2 max-w-sm text-xs text-foreground-muted">
-            <p className="font-semibold text-brand-black text-sm">
+          {/* Entitas Perusahaan (Alamat dihapus sesuai instruksi) */}
+          <div className="flex flex-col gap-1.5 max-w-sm text-xs text-foreground-muted">
+            <p className="font-semibold text-brand-black dark:text-foreground text-sm">
               PT Alam Kelana Digital
             </p>
-            <p className="leading-relaxed">
-              Jl. Vila regensi 2 blok EA 13 No.16, Gelam Jaya, Pasar Kemis, Kabupaten Tangerang 15560, Banten, Indonesia
+            <p className="leading-relaxed text-foreground-muted">
+              {lang === 'en'
+                ? 'Official platform for discovering and booking verified campsites in Indonesia.'
+                : 'Platform resmi pencarian dan reservasi campsite terverifikasi di Indonesia.'}
             </p>
           </div>
 
@@ -196,7 +216,7 @@ export function SiteFooter() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="rounded-sm text-sm text-foreground-muted transition-colors hover:text-brand-blue"
+                    className="rounded-sm text-sm text-foreground-muted transition-colors hover:text-brand-blue dark:hover:text-brand-lime"
                   >
                     {link.label}
                   </Link>
@@ -206,26 +226,60 @@ export function SiteFooter() {
           </nav>
         </div>
 
-        {/* Copyright, Location & Language Switcher */}
-        <div className="flex flex-col gap-4 border-t border-black/10 py-6 md:flex-row md:items-center md:justify-between">
+        {/* Copyright, Pemilih Bahasa & Switch Mode Tema */}
+        <div className="flex flex-col gap-4 border-t border-black/10 dark:border-white/10 py-6 md:flex-row md:items-center md:justify-between">
           <p className="text-xs text-foreground-muted">
             © {year} Embun | PT Alam Kelana Digital.{' '}
             {lang === 'en'
               ? 'All rights reserved.'
               : 'Seluruh hak cipta dilindungi.'}
           </p>
-          <div className="flex items-center gap-4 flex-wrap">
-            <p className="text-xs text-foreground-muted">
-              Kabupaten Tangerang, Indonesia
-            </p>
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* Language Switcher */}
             <Link
               href={switchHref}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-black/15 bg-white/90 hover:bg-white text-xs font-bold text-brand-black shadow-2xs transition-all cursor-pointer hover:border-brand-blue hover:text-brand-blue"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-black/15 dark:border-white/15 bg-white/90 dark:bg-surface hover:bg-white dark:hover:bg-neutral-800 text-xs font-bold text-brand-black dark:text-foreground shadow-2xs transition-all cursor-pointer hover:border-brand-blue dark:hover:border-brand-lime hover:text-brand-blue dark:hover:text-brand-lime"
               title={lang === 'en' ? 'Ubah ke Bahasa Indonesia' : 'Switch to English'}
             >
-              <Globe size={14} className="text-brand-blue shrink-0" />
+              <Globe size={14} className="text-brand-blue dark:text-brand-lime shrink-0" />
               <span>{lang === 'en' ? 'English (EN)' : 'Bahasa Indonesia (ID)'}</span>
             </Link>
+
+            {/* Dark Mode Toggle Switcher */}
+            <button
+              type="button"
+              onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-black/15 dark:border-white/15 bg-white/90 dark:bg-surface hover:bg-white dark:hover:bg-neutral-800 text-xs font-bold text-brand-black dark:text-foreground shadow-2xs transition-all cursor-pointer hover:border-brand-blue dark:hover:border-brand-lime hover:text-brand-blue dark:hover:text-brand-lime"
+              title={
+                mounted && resolvedTheme === 'dark'
+                  ? lang === 'en'
+                    ? 'Switch to Light Mode'
+                    : 'Ganti ke Mode Terang'
+                  : lang === 'en'
+                  ? 'Switch to Dark Mode'
+                  : 'Ganti ke Mode Gelap'
+              }
+              aria-label="Toggle Theme"
+            >
+              {mounted ? (
+                resolvedTheme === 'dark' ? (
+                  <>
+                    <Sun size={14} className="text-brand-lime shrink-0" />
+                    <span>{lang === 'en' ? 'Light Mode' : 'Mode Terang'}</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon size={14} className="text-brand-blue shrink-0" />
+                    <span>{lang === 'en' ? 'Dark Mode' : 'Mode Gelap'}</span>
+                  </>
+                )
+              ) : (
+                <>
+                  <Sun size={14} className="shrink-0" />
+                  <span>Mode</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
       </Container>
