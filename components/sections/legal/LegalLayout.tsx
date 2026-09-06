@@ -81,7 +81,8 @@ export function LegalLayout({ title, lastUpdated, isEn = false, children }: Lega
             '[&_li]:leading-[1.7]',
             '[&_strong]:font-semibold [&_strong]:text-foreground',
             '[&_em]:italic',
-            '[&_a]:text-brand-blue [&_a]:underline [&_a]:transition-colors [&_a]:hover:text-brand-blue-hover',
+            '[&_a]:text-emerald-600 dark:[&_a]:text-brand-lime [&_a]:no-underline [&_a]:font-semibold [&_a]:transition-colors hover:[&_a]:opacity-80',
+            'legal-content',
           ].join(' ')}
         >
           {children}

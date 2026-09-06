@@ -77,6 +77,42 @@
   --radius-md: var(--radius-md);
 }
 
+::selection {
+  background-color: #cbfd00;
+  color: #000000;
+}
+
+::-moz-selection {
+  background-color: #cbfd00;
+  color: #000000;
+}
+
+*::selection {
+  background-color: #cbfd00;
+  color: #000000;
+}
+
+*::-moz-selection {
+  background-color: #cbfd00;
+  color: #000000;
+}
+
+.legal-content a {
+  color: #059669;
+  text-decoration: none !important;
+  font-weight: 600;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.legal-content a:hover {
+  opacity: 0.8;
+  text-decoration: none !important;
+}
+
+.dark .legal-content a {
+  color: var(--brand-lime, #cbfd00) !important;
+}
+
 html {
   /* Lets plain `<a href="#section">` anchors (e.g. Hero/CTA buttons) smooth
      scroll to in-page sections without requiring client-side JS. */

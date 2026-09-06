@@ -377,7 +377,7 @@ export function PartnerFaqAndContact({
                         </button>
                         <p className="text-[11px] text-foreground-muted font-sans mt-1">
                           Kami akan menghubungi Anda segera.<br />
-                          Atau hubungi kami di <a href="mailto:support@embun.app" className="text-brand-blue hover:underline font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-lime focus-visible:outline-offset-2 rounded-sm">support@embun.app</a>
+                          Atau hubungi kami di <a href="mailto:support@embun.app" className="text-emerald-600 dark:text-brand-lime no-underline hover:opacity-80 font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-lime focus-visible:outline-offset-2 rounded-sm">support@embun.app</a>
                         </p>
                       </div>
                     </form>

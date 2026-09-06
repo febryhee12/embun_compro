@@ -92,7 +92,7 @@ export function ContactForm({ onSubmitOverride }: ContactFormProps) {
       >
         <h3 className="font-serif text-3xl text-foreground">Terima kasih!</h3>
         <p className="text-foreground-muted">
-          Pesan Anda telah terkirim. Kami akan menghubungi Anda segera. Atau hubungi kami di <a href="mailto:support@embun.app" className="text-brand-blue hover:underline font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-lime focus-visible:outline-offset-2 rounded-sm">support@embun.app</a>.
+          Pesan Anda telah terkirim. Kami akan menghubungi Anda segera. Atau hubungi kami di <a href="mailto:support@embun.app" className="text-emerald-600 dark:text-brand-lime no-underline hover:opacity-80 font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-lime focus-visible:outline-offset-2 rounded-sm">support@embun.app</a>.
         </p>
       </div>
     );
@@ -202,7 +202,7 @@ export function ContactForm({ onSubmitOverride }: ContactFormProps) {
 
       <p className="mt-4 text-center font-serif text-sm italic text-foreground-muted">
         Kami akan menghubungi Anda segera.<br />
-        <span className="not-italic font-sans text-xs mt-1 block">Atau hubungi kami di <a href="mailto:support@embun.app" className="text-brand-blue hover:underline font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-lime focus-visible:outline-offset-2 rounded-sm">support@embun.app</a></span>
+        <span className="not-italic font-sans text-xs mt-1 block">Atau hubungi kami di <a href="mailto:support@embun.app" className="text-emerald-600 dark:text-brand-lime no-underline hover:opacity-80 font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-lime focus-visible:outline-offset-2 rounded-sm">support@embun.app</a></span>
       </p>
     </form>
   );
