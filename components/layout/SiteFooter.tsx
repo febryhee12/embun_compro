@@ -234,7 +234,10 @@ export function SiteFooter() {
               ? 'All rights reserved.'
               : 'Seluruh hak cipta dilindungi.'}
           </p>
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-3.5 flex-wrap">
+            <p className="text-xs text-foreground-muted">
+              Kabupaten Tangerang, Indonesia
+            </p>
             {/* Language Switcher */}
             <Link
               href={switchHref}
