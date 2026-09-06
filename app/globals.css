@@ -36,17 +36,17 @@
 }
 
 .dark {
-  --background: #0b0f17;        /* Deep night obsidian canvas */
-  --surface: #141b26;           /* Elevated night cards & headers */
-  --surface-dark: #070a10;      /* Deepest tone */
+  --background: #08090b;        /* OpenRouter ultra-deep obsidian canvas */
+  --surface: #0e1117;           /* OpenRouter elevated night cards & headers */
+  --surface-dark: #050608;      /* Deepest pitch tone */
   
-  --brand-black: #f0f6fc;
+  --brand-black: #fafaff;
   
-  --foreground: #f0f6fc;
-  --foreground-muted: #94a3b8;
-  --foreground-placeholder: #64748b;
+  --foreground: #fafaff;        /* Crisp high-contrast white */
+  --foreground-muted: #8b949e;  /* Neutral slate secondary text */
+  --foreground-placeholder: #525a66;
   
-  --border: #222d3d;
+  --border: #1d212a;            /* Clean hairline border */
   --border-focus: var(--brand-lime);
   --error: var(--error-on-dark);
 }

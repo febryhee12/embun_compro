@@ -226,7 +226,7 @@ export function ExploreHeader({
           {/* Center: Airbnb-style Pill Search Bar (Desktop) */}
           {showSearch ? (
             <div className="flex-1 max-w-xl hidden md:flex items-center justify-center">
-              <div className="w-full flex items-center justify-between border border-border rounded-full py-1.5 px-4 shadow-2xs hover:shadow-md transition-all bg-white dark:bg-surface divide-x divide-border text-xs focus-within:ring-2 focus-within:ring-brand-blue/30 focus-within:border-brand-blue">
+              <div className="w-full flex items-center justify-between border border-border dark:border-white/10 rounded-full py-1.5 px-4 shadow-2xs hover:shadow-md transition-all bg-white dark:bg-[#0e1117] divide-x divide-border dark:divide-white/10 text-xs focus-within:ring-2 focus-within:ring-brand-blue/30 dark:focus-within:ring-brand-lime/30 focus-within:border-brand-blue dark:focus-within:border-brand-lime">
                 {/* City Filter Trigger */}
                 <button
                   type="button"
@@ -235,9 +235,9 @@ export function ExploreHeader({
                     setGeoError(null);
                     setIsCityModalOpen(true);
                   }}
-                  className="px-3 py-1 text-left font-semibold text-foreground truncate hover:text-brand-blue transition-colors flex-1 flex items-center gap-1.5 cursor-pointer outline-none"
+                  className="px-3 py-1 text-left font-semibold text-foreground truncate hover:text-brand-blue dark:hover:text-brand-lime transition-colors flex-1 flex items-center gap-1.5 cursor-pointer outline-none"
                 >
-                  <MapPin size={13} className="text-brand-blue shrink-0" />
+                  <MapPin size={13} className="text-brand-blue dark:text-brand-lime shrink-0" />
                   <span className="truncate">
                     {selectedCity || t.header.allLocations}
                   </span>
@@ -263,7 +263,7 @@ export function ExploreHeader({
                       <X size={13} />
                     </button>
                   ) : (
-                    <div className="w-7 h-7 rounded-full bg-brand-blue text-white flex items-center justify-center shadow-xs shrink-0">
+                    <div className="w-7 h-7 rounded-full bg-brand-blue dark:bg-brand-lime text-white dark:text-black flex items-center justify-center shadow-xs shrink-0 font-bold">
                       <Search size={13} />
                     </div>
                   )}
@@ -360,8 +360,8 @@ export function ExploreHeader({
         {/* Mobile Search Bar (under logo) */}
         {showSearch && (
           <div className="md:hidden px-4 pb-3 flex items-center gap-2">
-            <div className="flex-1 flex items-center gap-2 border border-border rounded-full py-2.5 px-4 shadow-2xs bg-surface text-xs focus-within:ring-2 focus-within:ring-brand-blue/30 focus-within:border-brand-blue focus-within:bg-white dark:focus-within:bg-surface transition-all">
-              <Search size={15} className="text-brand-blue shrink-0" />
+            <div className="flex-1 flex items-center gap-2 border border-border dark:border-white/10 rounded-full py-2.5 px-4 shadow-2xs bg-surface dark:bg-[#0e1117] text-xs focus-within:ring-2 focus-within:ring-brand-blue/30 dark:focus-within:ring-brand-lime/30 focus-within:border-brand-blue dark:focus-within:border-brand-lime transition-all">
+              <Search size={15} className="text-brand-blue dark:text-brand-lime shrink-0" />
               <input
                 type="text"
                 placeholder={t.header.searchPlaceholder}
@@ -391,13 +391,13 @@ export function ExploreHeader({
               }}
               className={`px-3.5 py-2.5 rounded-full border text-xs font-semibold shrink-0 transition-all flex items-center gap-1 cursor-pointer ${
                 selectedCity
-                  ? 'bg-brand-blue text-white border-brand-blue font-bold shadow-2xs'
-                  : 'bg-surface hover:bg-surface-variant text-foreground border-border'
+                  ? 'bg-brand-blue dark:bg-brand-lime text-white dark:text-black border-brand-blue dark:border-brand-lime font-bold shadow-2xs'
+                  : 'bg-surface dark:bg-[#0e1117] hover:bg-surface-variant text-foreground border-border dark:border-white/10'
               }`}
             >
               <MapPin
                 size={13}
-                className={selectedCity ? 'text-white' : 'text-brand-blue'}
+                className={selectedCity ? 'text-white dark:text-black' : 'text-brand-blue dark:text-brand-lime'}
               />
               <span className="max-w-[70px] truncate">
                 {selectedCity || (activeLang === 'en' ? 'Location' : 'Lokasi')}

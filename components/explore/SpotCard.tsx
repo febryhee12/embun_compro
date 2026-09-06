@@ -213,7 +213,7 @@ export function SpotCard({
       className="group flex flex-col space-y-3 cursor-pointer no-underline text-foreground"
     >
       {/* 1. Photo Carousel Box */}
-      <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-surface border border-border shadow-2xs group-hover:shadow-md transition-shadow">
+      <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-surface dark:bg-[#0e1117] border border-border dark:border-white/10 shadow-2xs group-hover:shadow-md group-hover:border-border-focus/40 dark:group-hover:border-white/20 transition-all">
         {currentPhotoUrl ? (
           <img
             src={resolveAssetUrl(currentPhotoUrl)}
@@ -304,7 +304,7 @@ export function SpotCard({
       <div className="space-y-0.5 text-xs">
         {/* Title & Rating */}
         <div className="flex items-baseline justify-between gap-2">
-          <h4 className="font-bold text-sm text-foreground truncate group-hover:text-brand-blue transition-colors">
+          <h4 className="font-bold text-sm text-foreground truncate group-hover:text-brand-blue dark:group-hover:text-brand-lime transition-colors">
             {spot.name}
           </h4>
           {showRating &&
