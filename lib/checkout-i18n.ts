@@ -52,7 +52,7 @@ export const CHECKOUT_I18N = {
         ` Check-in mulai pukul ${inTime} WIB, check-out maksimal pukul ${outTime} WIB.`,
       rescheduleLabel: 'Kebijakan Ubah Jadwal:',
       rescheduleDesc:
-        ' Reschedule dapat diajukan minimal H-7 sebelum tanggal check-in untuk pesanan yang telah lunas.',
+        ' Perubahan tanggal menginap dapat diajukan minimal H-7 sebelum check-in khusus melalui aplikasi Embun (App) untuk pesanan yang telah lunas.',
       cancellationLabel: 'Kebijakan Pembatalan & Refund:',
       cancellationDesc:
         ' Pengajuan pembatalan atau pengembalian dana tunduk pada syarat dan tenggat waktu resmi. ',
@@ -157,7 +157,7 @@ export const CHECKOUT_I18N = {
         ` Check-in from ${inTime} WIB, check-out until ${outTime} WIB.`,
       rescheduleLabel: 'Reschedule Policy:',
       rescheduleDesc:
-        ' Rescheduling can be requested at least 7 days before check-in date for fully paid bookings.',
+        ' Rescheduling stay dates can be requested at least 7 days before check-in exclusively via the Embun App for fully paid bookings.',
       cancellationLabel: 'Cancellation & Refund Policy:',
       cancellationDesc:
         ' Cancellation or refund requests are subject to official terms and deadlines. ',
