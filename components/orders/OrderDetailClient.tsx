@@ -743,7 +743,7 @@ export function OrderDetailClient() {
 
                       {/* QR Code Container Check-in */}
                       <div className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white dark:bg-surface border border-border shadow-xs shrink-0 self-center sm:self-auto">
-                        <div className="w-44 h-44 sm:w-48 sm:h-48 bg-surface flex items-center justify-center rounded-2xl p-2.5 border border-border/60 relative overflow-hidden">
+                        <div className="w-44 h-44 sm:w-48 sm:h-48 bg-white flex items-center justify-center rounded-2xl p-3 border border-border/80 shadow-2xs relative overflow-hidden">
                           {isUnsettledDP ? (
                             <>
                               <DummyQrPlaceholder className="w-full h-full object-contain filter blur-md opacity-25 select-none pointer-events-none scale-105 text-neutral-800" />
@@ -769,7 +769,7 @@ export function OrderDetailClient() {
                           </span>
                         ) : (
                           <span className="text-[11px] font-bold text-foreground-muted flex items-center gap-1.5">
-                            <QrCode size={13} className="text-brand-blue" />
+                            <QrCode size={13} className="text-brand-blue dark:text-brand-lime" />
                             {t.qrScanNotice}
                           </span>
                         )}

@@ -1563,7 +1563,9 @@ export function SpotRedirectClient() {
       );
       if (accomLines.length > 0) {
         return accomLines.map((l: any) => ({
-          label: l.label,
+          label: (l.label || '')
+            .replace(/\s*\(\d+\s*(malam|nights?)\)/gi, '')
+            .trim() || l.label,
           unitPrice: Number(l.unitPrice),
           quantity: Number(l.quantity),
           amount: Number(l.amount),
@@ -3360,7 +3362,7 @@ export function SpotRedirectClient() {
                               className="flex justify-between items-center text-[11px]"
                             >
                               <span className="text-foreground-muted/80">
-                                {line.label} ({rupiah(line.unitPrice)} ×{' '}
+                                {(line.label || '').replace(/\s*\(\d+\s*(malam|nights?)\)/gi, '').trim() || line.label} ({rupiah(line.unitPrice)} ×{' '}
                                 {line.quantity} {lang === 'en' ? 'nights' : 'malam'})
                               </span>
                               <span className="font-semibold text-foreground shrink-0">
@@ -5066,7 +5068,7 @@ export function SpotRedirectClient() {
                           className="flex justify-between items-center text-[11px]"
                         >
                           <span className="text-foreground-muted/80">
-                            {line.label} ({rupiah(line.unitPrice)} ×{' '}
+                            {(line.label || '').replace(/\s*\(\d+\s*(malam|nights?)\)/gi, '').trim() || line.label} ({rupiah(line.unitPrice)} ×{' '}
                             {line.quantity} {lang === 'en' ? 'nights' : 'malam'})
                           </span>
                           <span className="font-semibold text-foreground shrink-0">
