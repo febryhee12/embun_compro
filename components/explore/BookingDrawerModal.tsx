@@ -475,7 +475,7 @@ export function BookingDrawerModal({
   return (
     <>
       <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-        <div className="w-full max-w-4xl bg-white text-foreground rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[94vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200">
+        <div className="w-full max-w-4xl bg-white dark:bg-surface text-foreground rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[94vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200">
           {/* Top Header */}
           <div className="px-6 py-4 border-b border-border flex items-center justify-between shrink-0">
             <div>
@@ -990,15 +990,15 @@ export function BookingDrawerModal({
           </div>
 
           {/* Sticky Bottom Action Bar */}
-          <div className="p-4 sm:p-5 border-t border-border bg-white flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+          <div className="p-4 sm:p-5 border-t border-border bg-white dark:bg-surface flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
             <div>
               <p className="text-[11px] text-foreground-muted">
                 Total Pembayaran ({totalNights} Malam{addonsTotal > 0 ? ' + Add-on' : ''})
               </p>
-              <p className="text-xl font-black text-brand-blue">
+              <p className="text-xl font-black text-brand-blue dark:text-brand-lime">
                 {rupiah(payAmount)}
                 {paymentOption === 'dp50' && (
-                  <span className="text-xs font-semibold text-emerald-700 ml-1.5">
+                  <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 ml-1.5">
                     (DP 50%)
                   </span>
                 )}

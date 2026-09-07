@@ -370,7 +370,7 @@ export function NearbyCampsitesMap({
             onClick={() => setActiveTab('google')}
             className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'google'
-                ? 'bg-brand-blue dark:bg-brand-lime text-white dark:text-black shadow-2xs font-bold dark:font-black'
+                ? 'bg-brand-blue dark:bg-brand-lime text-white dark:text-brand-blue shadow-2xs font-bold'
                 : 'text-foreground-muted hover:text-foreground dark:hover:text-brand-lime'
             }`}
           >
@@ -382,7 +382,7 @@ export function NearbyCampsitesMap({
             onClick={() => setActiveTab('interactive')}
             className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'interactive'
-                ? 'bg-brand-blue dark:bg-brand-lime text-white dark:text-black shadow-2xs font-bold dark:font-black'
+                ? 'bg-brand-blue dark:bg-brand-lime text-white dark:text-brand-blue shadow-2xs font-bold'
                 : 'text-foreground-muted hover:text-foreground dark:hover:text-brand-lime'
             }`}
           >

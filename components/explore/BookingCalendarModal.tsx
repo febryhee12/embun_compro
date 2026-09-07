@@ -370,13 +370,13 @@ export function BookingCalendarModal({
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-brand-lime text-black border border-brand-lime/80 shadow-2xs font-bold">
-                  {nightsCount > 0
-                    ? (lang === 'en'
-                        ? `${nightsCount} Night${nightsCount > 1 ? 's' : ''}`
-                        : `${nightsCount} Malam`)
-                    : (lang === 'en' ? "Select Dates" : "Pilih Tanggal")}
-                </span>
+                {nightsCount > 0 && (
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-brand-lime text-black border border-brand-lime/80 shadow-2xs">
+                    {lang === 'en'
+                      ? `${nightsCount} Night${nightsCount > 1 ? 's' : ''}`
+                      : `${nightsCount} Malam`}
+                  </span>
+                )}
                 <h3 className="font-bold text-base sm:text-lg text-foreground tracking-tight">
                   {lang === 'en' ? "Set Stay Dates" : "Atur Jadwal Menginap"}
                 </h3>

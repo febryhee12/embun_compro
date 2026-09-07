@@ -1178,7 +1178,7 @@ function CampsiteLandingClientInner() {
                       onClick={() => setSelectedSpotType(type)}
                       className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                         isSelected
-                          ? 'bg-brand-blue dark:bg-brand-lime text-white dark:text-black shadow-xs font-bold'
+                          ? 'bg-brand-blue dark:bg-brand-lime text-white dark:text-brand-blue shadow-xs font-bold'
                           : 'bg-white dark:bg-surface hover:bg-surface text-foreground-muted hover:text-foreground border border-border'
                       }`}
                     >

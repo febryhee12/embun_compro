@@ -422,7 +422,7 @@ export function OrdersClient() {
                         onClick={() => setActiveTab(item.id)}
                         className={`shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer border ${
                           isActive
-                            ? 'bg-brand-blue dark:bg-brand-lime text-white dark:text-black border-brand-blue dark:border-brand-lime shadow-xs font-bold dark:font-black'
+                            ? 'bg-brand-blue dark:bg-brand-lime text-white dark:text-brand-blue border-brand-blue dark:border-brand-lime shadow-xs font-bold'
                             : 'bg-white dark:bg-surface text-foreground-muted border-border hover:bg-surface hover:text-foreground'
                         }`}
                       >
@@ -430,7 +430,7 @@ export function OrdersClient() {
                         <span
                           className={`px-2 py-0.5 rounded-full text-[10.5px] font-bold ${
                             isActive
-                              ? 'bg-white/20 text-white dark:bg-black/15 dark:text-black'
+                              ? 'bg-brand-blue/10 text-brand-blue dark:bg-black/15 dark:text-black'
                               : 'bg-surface text-foreground-muted border border-border/60'
                           }`}
                         >

@@ -163,8 +163,8 @@ export function CompleteProfileModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-      <div className="w-full max-w-lg bg-white text-foreground rounded-t-3xl sm:rounded-3xl shadow-2xl border border-border overflow-hidden flex flex-col p-6 sm:p-8 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+      <div className="w-full max-w-lg bg-white dark:bg-surface text-foreground rounded-t-3xl sm:rounded-3xl shadow-2xl border border-border overflow-hidden flex flex-col p-6 sm:p-8 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
         {/* Header Bar */}
         <div className="flex items-center justify-end pb-1">
           <button
@@ -188,7 +188,7 @@ export function CompleteProfileModal({
         </div>
 
         {error && (
-          <div className="p-3 mb-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold">
+          <div className="p-3 mb-4 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-400 text-xs font-semibold">
             {error}
           </div>
         )}
@@ -206,7 +206,7 @@ export function CompleteProfileModal({
               onChange={(e) => setFullName(e.target.value)}
               placeholder={t.fullNamePlaceholder}
               required
-              className="w-full px-4 py-3 rounded-2xl border border-border bg-surface/30 focus:bg-white text-sm text-foreground outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all"
+              className="w-full px-4 py-3 rounded-2xl border border-border bg-surface/30 dark:bg-surface-dark focus:bg-white dark:focus:bg-surface-dark text-sm text-foreground placeholder:text-foreground-placeholder outline-none focus:ring-2 focus:ring-brand-blue/30 dark:focus:ring-brand-lime/30 focus:border-brand-blue dark:focus:border-brand-lime transition-all"
             />
           </div>
 
@@ -231,7 +231,7 @@ export function CompleteProfileModal({
                 }}
                 placeholder={t.phonePlaceholder}
                 required
-                className="w-full pl-20 pr-4 py-3 rounded-2xl border border-border bg-surface/30 focus:bg-white text-sm text-foreground outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all font-mono"
+                className="w-full pl-20 pr-4 py-3 rounded-2xl border border-border bg-surface/30 dark:bg-surface-dark focus:bg-white dark:focus:bg-surface-dark text-sm text-foreground placeholder:text-foreground-placeholder outline-none focus:ring-2 focus:ring-brand-blue/30 dark:focus:ring-brand-lime/30 focus:border-brand-blue dark:focus:border-brand-lime transition-all font-mono"
               />
             </div>
           </div>
@@ -247,7 +247,7 @@ export function CompleteProfileModal({
               placeholder={t.addressPlaceholder}
               rows={2}
               required
-              className="w-full px-4 py-3 rounded-2xl border border-border bg-surface/30 focus:bg-white text-sm text-foreground outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all resize-none"
+              className="w-full px-4 py-3 rounded-2xl border border-border bg-surface/30 dark:bg-surface-dark focus:bg-white dark:focus:bg-surface-dark text-sm text-foreground placeholder:text-foreground-placeholder outline-none focus:ring-2 focus:ring-brand-blue/30 dark:focus:ring-brand-lime/30 focus:border-brand-blue dark:focus:border-brand-lime transition-all resize-none"
             />
           </div>
 
@@ -256,7 +256,7 @@ export function CompleteProfileModal({
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 px-6 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md hover:shadow-lg disabled:opacity-60"
+              className="w-full py-3.5 px-6 rounded-full bg-brand-blue hover:bg-brand-blue-hover dark:bg-brand-lime dark:text-black dark:hover:bg-brand-lime/90 text-white font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md hover:shadow-lg disabled:opacity-60"
             >
               {loading ? <Loader2 size={16} className="animate-spin" /> : null}
               <span>{loading ? t.saving : t.saveAndContinue}</span>

@@ -672,7 +672,7 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                         onClick={() => setSelectedViewTab(v.id)}
                         className={`px-4 py-2 rounded-full text-xs font-semibold shrink-0 transition-all cursor-pointer outline-none select-none ${
                           isSelected
-                            ? 'bg-brand-blue dark:bg-brand-lime text-white dark:text-black shadow-2xs font-bold dark:font-black'
+                            ? 'bg-brand-blue dark:bg-brand-lime text-white dark:text-brand-blue shadow-2xs font-bold'
                             : 'bg-surface hover:bg-surface-variant text-foreground-muted hover:text-foreground border border-border/80 dark:hover:border-white/20'
                         }`}
                       >
