@@ -497,19 +497,19 @@ export function GuestAuthModal({
                 </div>
               )}
 
-              {/* Action Buttons: Authentic Embun Lime Pill Buttons with Brand Blue Text/Icons */}
+              {/* Action Buttons: Authentic Embun Buttons (Biru Embun in Light Mode, Lime in Dark Mode) */}
               <div className="space-y-3.5">
                 {/* Google Sign In */}
                 <button
                   type="button"
                   onClick={handleGoogleSignIn}
                   disabled={loadingProvider !== null}
-                  className="w-full py-4 px-6 rounded-full bg-[#cefb0a] hover:bg-[#bfe80a] text-[#0841b5] font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-3 cursor-pointer shadow-xs hover:shadow-md disabled:opacity-50 active:scale-[0.99]"
+                  className="w-full py-4 px-6 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white dark:bg-brand-lime dark:hover:bg-brand-lime/90 dark:text-black font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-3 cursor-pointer shadow-md hover:shadow-lg disabled:opacity-50 active:scale-[0.99]"
                 >
                   {loadingProvider === 'google' ? (
                     <Loader2
                       size={18}
-                      className="animate-spin text-[#0841b5]"
+                      className="animate-spin text-white dark:text-black"
                     />
                   ) : (
                     <svg
@@ -530,12 +530,12 @@ export function GuestAuthModal({
                   type="button"
                   onClick={handleAppleSignIn}
                   disabled={loadingProvider !== null}
-                  className="w-full py-4 px-6 rounded-full bg-[#cefb0a] hover:bg-[#bfe80a] text-[#0841b5] font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-3 cursor-pointer shadow-xs hover:shadow-md disabled:opacity-50 active:scale-[0.99]"
+                  className="w-full py-4 px-6 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white dark:bg-brand-lime dark:hover:bg-brand-lime/90 dark:text-black font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-3 cursor-pointer shadow-md hover:shadow-lg disabled:opacity-50 active:scale-[0.99]"
                 >
                   {loadingProvider === 'apple' ? (
                     <Loader2
                       size={18}
-                      className="animate-spin text-[#0841b5]"
+                      className="animate-spin text-white dark:text-black"
                     />
                   ) : (
                     <svg
