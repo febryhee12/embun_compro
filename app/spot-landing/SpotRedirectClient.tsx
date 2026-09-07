@@ -1674,13 +1674,22 @@ export function SpotRedirectClient() {
     return sum;
   }, [selectedAddons, availableAddons, nights]);
 
-  // Biaya Layanan & Pajak (Admin + Layanan + PPN 12%)
-  const totalServiceAndTaxFee = useMemo(() => {
-    const base =
-      (platformFee.adminFeeFlat || 4000) + (platformFee.serviceFeeFlat || 2000);
-    const tax = Math.round(base * ((platformFee.taxPct || 12) / 100));
-    return base + tax;
+  // Biaya Admin & Biaya Layanan + PPN
+  const adminFee = useMemo(() => {
+    return Number(platformFee.adminFeeFlat ?? 4000);
+  }, [platformFee.adminFeeFlat]);
+
+  const serviceAndTaxFee = useMemo(() => {
+    const admin = Number(platformFee.adminFeeFlat ?? 4000);
+    const service = Number(platformFee.serviceFeeFlat ?? 2000);
+    const taxPct = Number(platformFee.taxPct ?? 12);
+    const tax = Math.round((admin + service) * (taxPct / 100));
+    return service + tax;
   }, [platformFee]);
+
+  const totalServiceAndTaxFee = useMemo(() => {
+    return adminFee + serviceAndTaxFee;
+  }, [adminFee, serviceAndTaxFee]);
 
   // Hubungkan dengan Authoritative Pricing Engine (/api/public/quote)
   useEffect(() => {
@@ -1892,6 +1901,8 @@ export function SpotRedirectClient() {
       selectedAddons,
       activeAddonsList,
       addonsTotal: addonTotal,
+      adminFee,
+      serviceAndTaxFee,
       totalServiceAndTaxFee,
       grandTotal,
       dp50Total,
@@ -2676,6 +2687,29 @@ export function SpotRedirectClient() {
                   </div>
                 </div>
               </div>
+
+              {/* Clean App Promo Callout */}
+              <div className="p-3.5 sm:p-4 rounded-2xl border border-border bg-surface dark:bg-surface-variant/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <h4 className="font-bold text-xs sm:text-sm text-foreground">
+                    {lang === 'en'
+                      ? 'Reservation on the App for Better Rates'
+                      : 'Pesan di Aplikasi untuk Harga Lebih Hemat'}
+                  </h4>
+                  <p className="text-[11px] sm:text-xs text-foreground-muted leading-relaxed">
+                    {lang === 'en'
+                      ? 'Access offers and exclusive promotions on the Embun app.'
+                      : 'Dapatkan penawaran dan promo eksklusif di aplikasi Embun.'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleOpenApp}
+                  className="shrink-0 py-2 px-3.5 rounded-xl border border-border hover:border-foreground/30 bg-background dark:bg-surface text-foreground font-semibold text-xs transition-all cursor-pointer text-center active:scale-98"
+                >
+                  {lang === 'en' ? 'Open in App' : 'Buka di Aplikasi'}
+                </button>
+              </div>
             </div>
 
             {/* ── SECTION: PILIHAN PAKET PENGINAPAN ── */}
@@ -3064,6 +3098,29 @@ export function SpotRedirectClient() {
                   )}
                 </div>
 
+                {/* Clean App Promo Callout */}
+                <div className="p-3.5 rounded-2xl border border-border bg-surface/60 dark:bg-surface-variant/30 space-y-2">
+                  <div className="space-y-0.5">
+                    <h4 className="font-bold text-xs text-foreground">
+                      {lang === 'en'
+                        ? 'Reservation on the App for Better Rates'
+                        : 'Pesan di Aplikasi untuk Harga Lebih Hemat'}
+                    </h4>
+                    <p className="text-[11px] text-foreground-muted leading-relaxed">
+                      {lang === 'en'
+                        ? 'Access offers and exclusive promotions on the Embun app.'
+                        : 'Dapatkan penawaran dan promo eksklusif di aplikasi Embun.'}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleOpenApp}
+                    className="w-full py-2 px-3 rounded-xl border border-border hover:border-foreground/30 bg-background dark:bg-surface text-foreground font-semibold text-xs transition-all cursor-pointer text-center active:scale-98"
+                  >
+                    {lang === 'en' ? 'Open in App' : 'Buka di Aplikasi'}
+                  </button>
+                </div>
+
                 {/* Package Selector Dropdown (Sidebar) */}
                 {Array.isArray(activeSpot.pricingPackages) &&
                   activeSpot.pricingPackages.length > 1 && (
@@ -3354,12 +3411,23 @@ export function SpotRedirectClient() {
                         </div>
                       )}
 
-                      <div className="flex justify-between items-center gap-4 pt-1 border-t border-border/50">
-                        <span className="text-foreground-muted">{t.spot.serviceAndTaxFee}</span>
-                        <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right">
-                          +{rupiah(totalServiceAndTaxFee)}
-                        </span>
-                      </div>
+                      {adminFee > 0 && (
+                        <div className="flex justify-between items-center gap-4 pt-1 border-t border-border/50">
+                          <span className="text-foreground-muted">{t.spot.adminFee}</span>
+                          <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right">
+                            +{rupiah(adminFee)}
+                          </span>
+                        </div>
+                      )}
+
+                      {serviceAndTaxFee > 0 && (
+                        <div className="flex justify-between items-center gap-4 pt-1 border-t border-border/50">
+                          <span className="text-foreground-muted">{t.spot.serviceAndTaxFee}</span>
+                          <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right">
+                            +{rupiah(serviceAndTaxFee)}
+                          </span>
+                        </div>
+                      )}
 
                       <div className="flex justify-between items-baseline pt-2 border-t border-border font-bold text-sm text-foreground">
                         <span>{t.spot.totalBill}</span>
@@ -3946,7 +4014,21 @@ export function SpotRedirectClient() {
           5. MOBILE STICKY BOTTOM BAR
       ════════════════════════════════════════════════════════════════════════ */}
       {!isTour360Only && (
-        <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-surface/95 backdrop-blur-md border-t border-border p-4 shadow-xl">
+        <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-surface/95 backdrop-blur-md border-t border-border p-3.5 sm:p-4 shadow-xl space-y-2.5">
+          <div className="flex items-center justify-between gap-2 text-[11px] text-foreground-muted border-b border-border/60 pb-2">
+            <span className="truncate">
+              {lang === 'en'
+                ? 'Reservation on the App for Better Rates'
+                : 'Pesan di Aplikasi untuk Harga Lebih Hemat'}
+            </span>
+            <button
+              type="button"
+              onClick={handleOpenApp}
+              className="shrink-0 font-bold text-foreground hover:underline text-[11px] cursor-pointer"
+            >
+              {lang === 'en' ? 'Open in App' : 'Buka di Aplikasi'}
+            </button>
+          </div>
           <div className="flex items-center justify-between gap-4">
             <div
               onClick={() => setIsCalendarOpen(true)}
@@ -3964,12 +4046,7 @@ export function SpotRedirectClient() {
                     {formatDateDisplay(checkOutDate)})
                   </span>
                 </p>
-              ) : (
-                <p className="text-[10.5px] text-brand-blue dark:text-brand-lime font-bold group-hover:underline flex items-center gap-1">
-                  <span>{t.dates.selectDatesPrompt}</span>
-                  <ArrowRight size={11} />
-                </p>
-              )}
+              ) : null}
             </div>
 
             <button
@@ -4028,9 +4105,9 @@ export function SpotRedirectClient() {
               </span>
             </div>
 
-            {/* Gallery Tabs */}
+            {/* Gallery Tabs (hidden on mobile view per user request) */}
             {!isTour360Only && (
-              <div className="flex items-center gap-2">
+              <div className="hidden sm:flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setGalleryTab('photos')}
@@ -5040,12 +5117,23 @@ export function SpotRedirectClient() {
                     </div>
                   )}
 
-                  <div className="flex justify-between items-center gap-4 pt-1 border-t border-border/50">
-                    <span className="text-foreground-muted">{t.spot.serviceAndTaxFee}</span>
-                    <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right">
-                      +{rupiah(totalServiceAndTaxFee)}
-                    </span>
-                  </div>
+                  {adminFee > 0 && (
+                    <div className="flex justify-between items-center gap-4 pt-1 border-t border-border/50">
+                      <span className="text-foreground-muted">{t.spot.adminFee}</span>
+                      <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right">
+                        +{rupiah(adminFee)}
+                      </span>
+                    </div>
+                  )}
+
+                  {serviceAndTaxFee > 0 && (
+                    <div className="flex justify-between items-center gap-4 pt-1 border-t border-border/50">
+                      <span className="text-foreground-muted">{t.spot.serviceAndTaxFee}</span>
+                      <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right">
+                        +{rupiah(serviceAndTaxFee)}
+                      </span>
+                    </div>
+                  )}
 
                   <div className="flex justify-between items-baseline pt-2 border-t border-border font-bold text-sm text-foreground">
                     <span>{t.spot.totalBill}</span>

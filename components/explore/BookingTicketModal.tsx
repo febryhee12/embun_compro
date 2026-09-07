@@ -51,6 +51,7 @@ interface BookingTicketModalProps {
     paymentScheme: "DP_50" | "FULL";
     spotPrice: number;
     addons: Array<{ name: string; price: number; qty: number }>;
+    adminFee?: number;
     serviceFee: number;
     grandTotal: number;
     paidAmount: number;
@@ -171,7 +172,7 @@ function DummyQrPlaceholder({ className = '' }: { className?: string }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in duration-200">
-      <div className="bg-white text-foreground rounded-3xl shadow-2xl border border-border w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-200">
+      <div className="bg-white dark:bg-surface text-foreground rounded-3xl shadow-2xl border border-border w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-200">
         {/* Header Modal Bar */}
         <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-surface/50">
           <div className="flex items-center gap-2">
@@ -202,15 +203,15 @@ function DummyQrPlaceholder({ className = '' }: { className?: string }) {
         {/* Modal Scrollable Content */}
         <div className="p-6 overflow-y-auto space-y-6 flex-1 text-xs" ref={printableRef}>
           {/* Success Banner */}
-          <div className="p-5 rounded-3xl bg-emerald-50 border border-emerald-200/80 flex items-start gap-4">
+          <div className="p-5 rounded-3xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200/80 dark:border-emerald-500/20 flex items-start gap-4">
             <div className="w-10 h-10 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-xs">
               <CheckCircle2 size={24} />
             </div>
             <div className="space-y-1 flex-1">
-              <h3 className="font-extrabold text-base text-emerald-900">
+              <h3 className="font-extrabold text-base text-emerald-900 dark:text-emerald-300">
                 Pemesanan Anda Berhasil!
               </h3>
-              <p className="text-emerald-800 leading-relaxed text-xs">
+              <p className="text-emerald-800 dark:text-emerald-400 leading-relaxed text-xs">
                 E-tiket resmi dan rincian invoice telah terbit. Tunjukkan kode booking atau QR code ini kepada petugas saat check-in di lokasi.
               </p>
             </div>
@@ -223,13 +224,13 @@ function DummyQrPlaceholder({ className = '' }: { className?: string }) {
                 Kode Booking Resmi
               </span>
               <div className="flex items-center gap-2 justify-center sm:justify-start">
-                <span className="text-2xl font-black text-brand-blue tracking-wider font-mono">
+                <span className="text-2xl font-black text-brand-blue dark:text-brand-lime tracking-wider font-mono">
                   {shortCode}
                 </span>
                 <button
                   type="button"
                   onClick={handleCopyCode}
-                  className="p-1.5 rounded-xl border border-border bg-white hover:bg-surface text-foreground-muted hover:text-foreground cursor-pointer transition-colors"
+                  className="p-1.5 rounded-xl border border-border bg-white dark:bg-surface hover:bg-surface text-foreground-muted hover:text-foreground cursor-pointer transition-colors"
                   title="Salin Kode"
                 >
                   {copied ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
@@ -397,12 +398,29 @@ function DummyQrPlaceholder({ className = '' }: { className?: string }) {
                 </div>
               ))}
 
-              <div className="flex justify-between text-foreground-muted">
-                <span>Biaya Layanan & Pajak</span>
-                <span className="font-semibold text-foreground">
-                  +{rupiah(orderData.serviceFee)}
-                </span>
-              </div>
+              {orderData.adminFee != null && orderData.adminFee > 0 ? (
+                <>
+                  <div className="flex justify-between text-foreground-muted">
+                    <span>Biaya Admin</span>
+                    <span className="font-semibold text-foreground">
+                      +{rupiah(orderData.adminFee)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-foreground-muted">
+                    <span>Biaya Layanan + PPN</span>
+                    <span className="font-semibold text-foreground">
+                      +{rupiah(orderData.serviceFee - orderData.adminFee)}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <div className="flex justify-between text-foreground-muted">
+                  <span>Biaya Layanan + PPN</span>
+                  <span className="font-semibold text-foreground">
+                    +{rupiah(orderData.serviceFee)}
+                  </span>
+                </div>
+              )}
 
               <div className="flex justify-between items-baseline pt-2 border-t border-border font-bold text-sm text-foreground">
                 <span>Total Tagihan Keseluruhan</span>
@@ -436,7 +454,7 @@ function DummyQrPlaceholder({ className = '' }: { className?: string }) {
             href="https://apps.apple.com/app/embun"
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white text-xs font-bold shadow-md cursor-pointer transition-all"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-brand-blue hover:bg-brand-blue-hover dark:bg-brand-lime dark:text-black dark:hover:bg-brand-lime/90 text-white font-bold text-xs shadow-md cursor-pointer transition-all"
           >
             <Smartphone size={14} />
             <span>Kelola di Aplikasi Embun</span>
@@ -445,7 +463,7 @@ function DummyQrPlaceholder({ className = '' }: { className?: string }) {
           <button
             type="button"
             onClick={onClose}
-            className="w-full sm:w-auto px-6 py-2.5 rounded-full border border-border bg-white hover:bg-surface text-foreground text-xs font-bold transition-all cursor-pointer"
+            className="w-full sm:w-auto px-6 py-2.5 rounded-full border border-border bg-white dark:bg-surface hover:bg-surface text-foreground text-xs font-bold transition-all cursor-pointer"
           >
             Selesai & Tutup
           </button>

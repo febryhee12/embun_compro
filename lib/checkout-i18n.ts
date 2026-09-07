@@ -84,7 +84,8 @@ export const CHECKOUT_I18N = {
       extraGuestsFormula: (count: number, price: string, nights: number) =>
         `${count} orang × ${price} × ${nights} malam`,
       additionalAddonsTitle: 'Perlengkapan Tambahan:',
-      serviceAndTaxFee: 'Biaya Layanan & Pajak',
+      adminFee: 'Biaya Admin',
+      serviceAndTaxFee: 'Biaya Layanan + PPN',
       totalBill: 'Total Tagihan',
       dpPaidNow: 'Dibayar Sekarang (DP 50% + Fee)',
       dpRemaining: 'Sisa Pelunasan di H-1',
@@ -191,7 +192,8 @@ export const CHECKOUT_I18N = {
       extraGuestsFormula: (count: number, price: string, nights: number) =>
         `${count} ${count > 1 ? 'guests' : 'guest'} × ${price} × ${nights} ${nights > 1 ? 'nights' : 'night'}`,
       additionalAddonsTitle: 'Additional Equipment:',
-      serviceAndTaxFee: 'Service Fee & Tax',
+      adminFee: 'Admin Fee',
+      serviceAndTaxFee: 'Service Fee + VAT',
       totalBill: 'Total Amount',
       dpPaidNow: 'Pay Now (50% DP + Fee)',
       dpRemaining: 'Remaining Balance at D-1',

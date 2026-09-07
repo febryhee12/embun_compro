@@ -77,6 +77,8 @@ interface CheckoutDraft {
   selectedAddons: Record<string, number>;
   activeAddonsList: Array<{ id: string; name: string; price: number; qty: number }>;
   addonsTotal: number;
+  adminFee?: number;
+  serviceAndTaxFee?: number;
   totalServiceAndTaxFee: number;
   grandTotal: number;
   paymentAmountToPay: number;
@@ -898,12 +900,32 @@ export function CheckoutClient() {
                   </div>
                 )}
 
-                <div className="flex justify-between items-center gap-4 pt-1 border-t border-border/50">
-                  <span className="text-foreground-muted">{t.summary.serviceAndTaxFee}</span>
-                  <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right">
-                    +{rupiah(draft.totalServiceAndTaxFee)}
-                  </span>
-                </div>
+                {draft.adminFee != null && draft.adminFee > 0 ? (
+                  <>
+                    <div className="flex justify-between items-center gap-4 pt-1 border-t border-border/50">
+                      <span className="text-foreground-muted">{t.summary.adminFee}</span>
+                      <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right">
+                        +{rupiah(draft.adminFee)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center gap-4 pt-1 border-t border-border/50">
+                      <span className="text-foreground-muted">{t.summary.serviceAndTaxFee}</span>
+                      <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right">
+                        +{rupiah(
+                          draft.serviceAndTaxFee ??
+                            draft.totalServiceAndTaxFee - draft.adminFee,
+                        )}
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex justify-between items-center gap-4 pt-1 border-t border-border/50">
+                    <span className="text-foreground-muted">{t.summary.serviceAndTaxFee}</span>
+                    <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right">
+                      +{rupiah(draft.totalServiceAndTaxFee)}
+                    </span>
+                  </div>
+                )}
 
                 <div className="pt-3 border-t border-border flex justify-between items-center text-sm">
                   <span className="font-extrabold text-foreground">{t.summary.totalBill}</span>
