@@ -63,13 +63,16 @@ interface CheckoutDraft {
     id: string;
     name: string;
     tentType?: string;
+    nonRefundable?: boolean;
   };
   selectedPackage: {
     id: string;
     name: string;
     price: number;
     pricingModel?: string;
+    nonRefundable?: boolean;
   };
+  nonRefundable?: boolean;
   checkInDate: string;
   checkOutDate: string;
   nights: number;
@@ -145,6 +148,13 @@ export function CheckoutClient() {
   const [cancellingOldOrder, setCancellingOldOrder] = useState(false);
   const [showCancellationModal, setShowCancellationModal] = useState(false);
   const [lang, setLang] = useState<'id' | 'en'>('id');
+
+  const isNonRefundable = Boolean(
+    draft?.nonRefundable ??
+    draft?.spot?.nonRefundable ??
+    draft?.selectedPackage?.nonRefundable ??
+    false
+  );
 
   const t = CHECKOUT_I18N[lang];
 
@@ -542,6 +552,7 @@ export function CheckoutClient() {
               <div className="pt-1">
                 <CancellationPolicyBannerButton
                   checkInDate={draft.checkInDate}
+                  nonRefundable={isNonRefundable}
                   onClick={() => setShowCancellationModal(true)}
                   lang={lang}
                 />
@@ -868,6 +879,7 @@ export function CheckoutClient() {
               {/* Cancellation Policy Banner (Matches Image 3) */}
               <CancellationPolicyBannerButton
                 checkInDate={draft.checkInDate}
+                nonRefundable={isNonRefundable}
                 onClick={() => setShowCancellationModal(true)}
                 lang={lang}
               />
@@ -1052,6 +1064,7 @@ export function CheckoutClient() {
         isOpen={showCancellationModal}
         onClose={() => setShowCancellationModal(false)}
         checkInDate={draft?.checkInDate}
+        nonRefundable={isNonRefundable}
         lang={lang}
       />
     </div>

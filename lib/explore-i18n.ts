@@ -26,6 +26,7 @@ export const EXPLORE_I18N = {
       Ground: 'Ground',
     },
     views: {
+      all: 'Semua',
       pantai: 'Pemandangan Pantai / Laut',
       danau: 'Pemandangan Danau',
       sungai: 'Pemandangan Sungai',
@@ -101,6 +102,7 @@ export const EXPLORE_I18N = {
       Ground: 'Ground',
     },
     views: {
+      all: 'All',
       pantai: 'Beach / Coastal View',
       danau: 'Lake View',
       sungai: 'River View',

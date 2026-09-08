@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Info, X, Calendar, ChevronRight } from 'lucide-react';
+import { Info, X, Calendar, ChevronRight, ShieldAlert } from 'lucide-react';
 
 export interface RefundTier {
   label: string;
@@ -28,7 +28,10 @@ export function computeRefundPolicy(
   if (nonRefundable) {
     return {
       refundable: false,
-      summaryLabel: 'Non-Refundable',
+      summaryLabel:
+        lang === 'en'
+          ? 'Non-Refundable'
+          : 'Tidak Dapat Direfund (Non-Refundable)',
       headerTitle:
         lang === 'en'
           ? 'Non-Refundable'
@@ -273,6 +276,24 @@ export function CancellationPolicyModal({
             </p>
           </div>
 
+          {!policy.refundable && (
+            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3 text-xs text-amber-900 dark:text-amber-200">
+              <ShieldAlert size={18} className="shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+              <div className="space-y-1">
+                <p className="font-bold text-amber-800 dark:text-amber-300">
+                  {lang === 'en'
+                    ? 'Unit / Spot Non-Refundable'
+                    : 'Unit / Spot Tidak Dapat Direfund'}
+                </p>
+                <p className="leading-relaxed text-[11.5px] text-foreground-muted">
+                  {lang === 'en'
+                    ? 'This unit has been designated as non-refundable by the host. Once confirmed and paid, cancellations are not eligible for a refund.'
+                    : 'Spot ini telah ditetapkan oleh pengelola sebagai non-refundable. Setelah pemesanan dibayar, pengajuan pembatalan tidak berhak atas pengembalian dana.'}
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Table */}
           {policy.tiers.length > 0 && (
             <div className="space-y-2 pt-2">
@@ -346,11 +367,25 @@ export function CancellationPolicyBannerButton({
     <button
       type="button"
       onClick={onClick}
-      className={`w-full flex items-center justify-between p-3 rounded-2xl bg-surface/60 hover:bg-surface dark:bg-surface/80 dark:hover:bg-surface border border-border/80 text-left transition-all cursor-pointer group shadow-2xs ${className}`}
+      className={`w-full flex items-center justify-between p-3 rounded-2xl ${
+        nonRefundable
+          ? 'bg-amber-500/10 hover:bg-amber-500/15 border-amber-500/30 text-left'
+          : 'bg-surface/60 hover:bg-surface dark:bg-surface/80 dark:hover:bg-surface border-border/80 text-left'
+      } border transition-all cursor-pointer group shadow-2xs ${className}`}
     >
       <div className="flex items-center gap-2.5 text-xs">
-        <Calendar size={15} className="text-neutral-700 dark:text-brand-lime shrink-0" />
-        <span className="font-semibold text-foreground group-hover:text-brand-blue dark:group-hover:text-brand-lime transition-colors">
+        {nonRefundable ? (
+          <ShieldAlert size={15} className="text-amber-600 dark:text-amber-400 shrink-0" />
+        ) : (
+          <Calendar size={15} className="text-neutral-700 dark:text-brand-lime shrink-0" />
+        )}
+        <span
+          className={`font-semibold transition-colors ${
+            nonRefundable
+              ? 'text-amber-800 dark:text-amber-300 font-bold'
+              : 'text-foreground group-hover:text-brand-blue dark:group-hover:text-brand-lime'
+          }`}
+        >
           {policy.summaryLabel}
         </span>
       </div>

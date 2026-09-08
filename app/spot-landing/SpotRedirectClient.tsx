@@ -21,6 +21,7 @@ import {
   Sparkles,
   Clock,
   ShieldCheck,
+  ShieldAlert,
   Layers,
   Stone,
   Sprout,
@@ -133,6 +134,7 @@ interface PricingPackageItem {
   extraPersonFee?: number;
   isFree?: boolean;
   addonRules?: any[];
+  nonRefundable?: boolean;
 }
 
 export interface VehicleLineItem {
@@ -168,6 +170,8 @@ interface SpotItem {
   isEmbunPlus?: boolean;
   shareCode?: string;
   status?: string;
+  nonRefundable?: boolean;
+  refundPolicy?: any;
 }
 
 interface CampsiteDetail {
@@ -925,6 +929,12 @@ export function SpotRedirectClient() {
   const hasVehiclePricing = useMemo(() => {
     return isFreeLand && (motorcyclePrice > 0 || carPrice > 0);
   }, [isFreeLand, motorcyclePrice, carPrice]);
+
+  const isSpotNonRefundable = useMemo(() => {
+    if (selectedPackage?.nonRefundable === true) return true;
+    if (activeSpot?.nonRefundable === true) return true;
+    return false;
+  }, [selectedPackage, activeSpot]);
 
   // Max capacity based on selected package
   const effectiveMaxCapacity = useMemo(() => {
@@ -2062,13 +2072,16 @@ export function SpotRedirectClient() {
         id: activeSpot.id,
         name: activeSpot.name,
         tentType: activeSpot.tentType,
+        nonRefundable: isSpotNonRefundable,
       },
       selectedPackage: {
         id: selectedPackage.id,
         name: selectedPackage.name,
         price: spotPricePerNight,
         pricingModel: selectedPackage.pricingModel,
+        nonRefundable: Boolean(selectedPackage.nonRefundable),
       },
+      nonRefundable: isSpotNonRefundable,
       checkInDate,
       checkOutDate,
       nights,
@@ -2687,6 +2700,17 @@ export function SpotRedirectClient() {
                 const surface = getSpotSurface(activeSpot.facilities);
                 return (
                   <div className="flex flex-wrap gap-2">
+                    {isSpotNonRefundable ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs font-bold text-amber-800 dark:text-amber-300">
+                        <ShieldAlert size={14} className="text-amber-600 dark:text-amber-400" />
+                        <span>{lang === 'en' ? 'Non-Refundable' : 'Tidak Dapat Direfund'}</span>
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
+                        <ShieldCheck size={14} className="text-emerald-600 dark:text-emerald-400" />
+                        <span>{lang === 'en' ? 'Standard Refund' : 'Ikut Kebijakan Embun'}</span>
+                      </span>
+                    )}
                     {surface ? (
                       <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-surface border border-border text-xs font-semibold text-foreground">
                         {getSurfaceIcon(surface)}
@@ -3877,6 +3901,7 @@ export function SpotRedirectClient() {
                 <div className="space-y-2.5 pt-1">
                   <CancellationPolicyBannerButton
                     checkInDate={checkInDate}
+                    nonRefundable={isSpotNonRefundable}
                     lang={lang}
                     onClick={() => setShowCancellationModal(true)}
                   />
@@ -4166,6 +4191,7 @@ export function SpotRedirectClient() {
                     </div>
                     <CancellationPolicyBannerButton
                       checkInDate={checkInDate}
+                      nonRefundable={isSpotNonRefundable}
                       lang={lang}
                       onClick={() => setShowCancellationModal(true)}
                     />
@@ -4814,6 +4840,27 @@ export function SpotRedirectClient() {
                       )}
                     </>
                   )}
+                  {/* Kebijakan Refund Paket/Spot */}
+                  <div className="flex items-center justify-between pt-1 border-t border-dashed border-border/60">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
+                      {lang === 'en' ? 'Refund Policy' : 'Kebijakan Refund'}
+                    </span>
+                    <span
+                      className={`font-bold text-xs px-2.5 py-0.5 rounded-full ${
+                        detailPackage.nonRefundable || activeSpot.nonRefundable
+                          ? 'bg-amber-500/10 text-amber-800 dark:text-amber-300'
+                          : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+                      }`}
+                    >
+                      {detailPackage.nonRefundable || activeSpot.nonRefundable
+                        ? lang === 'en'
+                          ? 'Non-Refundable'
+                          : 'Tidak Dapat Direfund'
+                        : lang === 'en'
+                        ? 'Standard Embun Policy'
+                        : 'Ikut Kebijakan Embun'}
+                    </span>
+                  </div>
                 </div>
                 <div>
                   <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted block mb-2">
@@ -5777,6 +5824,7 @@ export function SpotRedirectClient() {
             <div className="space-y-2.5 pt-2">
               <CancellationPolicyBannerButton
                 checkInDate={checkInDate}
+                nonRefundable={isSpotNonRefundable}
                 lang={lang}
                 onClick={() => setShowCancellationModal(true)}
               />
@@ -5916,6 +5964,7 @@ export function SpotRedirectClient() {
         isOpen={showCancellationModal}
         onClose={() => setShowCancellationModal(false)}
         checkInDate={checkInDate}
+        nonRefundable={isSpotNonRefundable}
         lang={lang}
       />
     </div>

@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 
 export const VIEW_SECTIONS = [
+  { id: 'all', label: 'Semua' },
   { id: 'pantai', label: 'Pemandangan Pantai / Laut' },
   { id: 'danau', label: 'Pemandangan Danau' },
   { id: 'sungai', label: 'Pemandangan Sungai' },
@@ -45,6 +46,8 @@ export const VIEW_SECTIONS = [
 ];
 
 export const matchesSpotView = (spot: SpotData, viewId: string): boolean => {
+  if (viewId === 'all') return true;
+
   const rawViews = spot.viewOptions || (spot as any).view_options || [];
   const spotViews: string[] = Array.isArray(rawViews)
     ? rawViews.map((v: any) => String(v || '').toLowerCase().trim())
@@ -369,7 +372,7 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
   }, [nearbySpots]);
 
   // Section 3: Pilihan Berdasarkan Pemandangan Alam
-  const [selectedViewTab, setSelectedViewTab] = useState('sungai');
+  const [selectedViewTab, setSelectedViewTab] = useState('all');
 
   const spotsByView = useMemo(() => {
     return allSpots.filter((s) => matchesSpotView(s, selectedViewTab));
@@ -381,7 +384,7 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
   }, [spotsByView]);
 
   const handleSeeAllViewSpots = (viewId: string) => {
-    setSelectedCategory(`view:${viewId}`);
+    setSelectedCategory(viewId === 'all' ? 'all' : `view:${viewId}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
