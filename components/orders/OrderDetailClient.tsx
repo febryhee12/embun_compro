@@ -1407,6 +1407,7 @@ export function OrderDetailClient() {
           onClose={() => setIsCancelRefundOpen(false)}
           order={order}
           onSuccess={load}
+          lang={lang}
         />
       )}
     </div>
