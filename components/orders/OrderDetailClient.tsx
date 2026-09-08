@@ -241,6 +241,22 @@ function formatSettlementDeadline(
   }
 }
 
+function formatPaymentChannel(channel?: string | null) {
+  if (!channel) return '-';
+  const c = channel.toUpperCase();
+  if (c.includes('BCA')) return 'BCA Virtual Account';
+  if (c.includes('MANDIRI')) return 'Mandiri Virtual Account';
+  if (c.includes('BNI')) return 'BNI Virtual Account';
+  if (c.includes('BRI')) return 'BRI Virtual Account';
+  if (c.includes('PERMATA')) return 'Permata Virtual Account';
+  if (c.includes('QRIS')) return 'QRIS';
+  if (c.includes('GOPAY')) return 'GoPay';
+  if (c.includes('SHOPEEPAY')) return 'ShopeePay';
+  if (c.includes('OVO')) return 'OVO';
+  if (c.includes('DANA')) return 'DANA';
+  return channel;
+}
+
 export function OrderDetailClient() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('id');
@@ -262,12 +278,18 @@ export function OrderDetailClient() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      const urlLang = searchParams.get('lang');
+      if (urlLang === 'en' || urlLang === 'id') {
+        setLang(urlLang);
+        localStorage.setItem('embun_lang', urlLang);
+        return;
+      }
       const savedLang = localStorage.getItem('embun_lang');
       if (savedLang === 'en' || savedLang === 'id') {
         setLang(savedLang);
       }
     }
-  }, []);
+  }, [searchParams]);
 
   const handleToggleLanguage = () => {
     const nextLang: Language = lang === 'id' ? 'en' : 'id';
@@ -323,15 +345,24 @@ export function OrderDetailClient() {
           clearGuestSession();
           setAuthRequired(true);
         } else {
-          setError('Tautan pelunasan ini tidak valid atau sudah kedaluwarsa.');
+          setError(
+            lang === 'en'
+              ? 'This settlement link is invalid or has expired.'
+              : 'Tautan pelunasan ini tidak valid atau sudah kedaluwarsa.',
+          );
         }
       } else {
-        setError(err.message || 'Gagal memuat detail pesanan.');
+        setError(
+          err.message ||
+            (lang === 'en'
+              ? 'Failed to load order details.'
+              : 'Gagal memuat detail pesanan.'),
+        );
       }
     } finally {
       setLoading(false);
     }
-  }, [orderId, payToken]);
+  }, [orderId, payToken, lang]);
 
   useEffect(() => {
     void load();
@@ -356,7 +387,11 @@ export function OrderDetailClient() {
         paymentInit?.redirectUrl ||
         paymentInit?.invoiceUrl;
       if (!paymentUrl) {
-        throw new Error('Gagal mendapatkan URL pembayaran.');
+        throw new Error(
+          lang === 'en'
+            ? 'Failed to retrieve payment URL.'
+            : 'Gagal mendapatkan URL pembayaran.',
+        );
       }
       initiatePayment(paymentUrl);
       await syncOrderStatus(orderId).catch(() => {});
@@ -366,7 +401,12 @@ export function OrderDetailClient() {
         clearGuestSession();
         setAuthRequired(true);
       } else {
-        setError(err.message || 'Gagal memulai pembayaran.');
+        setError(
+          err.message ||
+            (lang === 'en'
+              ? 'Failed to initiate payment.'
+              : 'Gagal memulai pembayaran.'),
+        );
       }
     } finally {
       setPaying(false);
@@ -382,12 +422,21 @@ export function OrderDetailClient() {
       const res = await initiateSettlementPayment(orderId, payToken);
       const paymentUrl = res?.invoiceUrl || res?.snapRedirectUrl || res?.redirectUrl;
       if (!paymentUrl) {
-        throw new Error('Gagal membuat invoice pelunasan.');
+        throw new Error(
+          lang === 'en'
+            ? 'Failed to create settlement invoice.'
+            : 'Gagal membuat invoice pelunasan.',
+        );
       }
       initiatePayment(paymentUrl);
       await load();
     } catch (err: any) {
-      setError(err.message || 'Gagal memproses pelunasan DP.');
+      setError(
+        err.message ||
+          (lang === 'en'
+            ? 'Failed to process DP settlement.'
+            : 'Gagal memproses pelunasan DP.'),
+      );
     } finally {
       setSettling(false);
     }
@@ -1242,7 +1291,7 @@ export function OrderDetailClient() {
                     )}
 
                     <div className="pt-3 border-t border-border flex justify-between items-center text-sm">
-                      <span className="font-bold text-foreground">{t.totalTransaction}</span>
+                      <span className="font-bold text-foreground">{t.totalPayment}</span>
                       <span className="text-base font-black text-brand-blue dark:text-brand-lime">
                         {rupiah(order.totalAmount)}
                       </span>
@@ -1260,6 +1309,24 @@ export function OrderDetailClient() {
                         </div>
                       </div>
                     )}
+
+                    {/* Status & Metode Pembayaran */}
+                    <div className="pt-2.5 border-t border-border/60 space-y-1.5 text-xs">
+                      <div className="flex justify-between items-center">
+                        <span className="text-foreground-muted">{t.paymentStatusLabel}</span>
+                        <span className="font-semibold text-foreground">
+                          {badge?.label || order.status}
+                        </span>
+                      </div>
+                      {(order.paymentChannel || order.paymentMethod) && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-foreground-muted">{t.paymentMethodLabel}</span>
+                          <span className="font-semibold text-foreground">
+                            {formatPaymentChannel(order.paymentChannel || order.paymentMethod)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Tombol Aksi: Batal / Ajukan Refund */}
@@ -1347,7 +1414,7 @@ export function OrderDetailClient() {
 
       {/* ═══ FOOTER RESMI EXPLORE ═══ */}
       <div className="print:hidden">
-        <ExploreFooter lang={lang} />
+        <ExploreFooter lang={lang} onToggleLanguage={handleToggleLanguage} />
       </div>
 
       {/* Guest Auth Modal */}
@@ -1383,6 +1450,7 @@ export function OrderDetailClient() {
             addonLines={addonLines}
             nights={nights}
             shortCode={shortCode}
+            lang={lang}
           />
         </div>
       )}
@@ -1397,6 +1465,7 @@ export function OrderDetailClient() {
           addonLines={addonLines}
           nights={nights}
           shortCode={shortCode}
+          lang={lang}
         />
       )}
 

@@ -3,6 +3,7 @@
 import React from 'react';
 import { X, Printer } from 'lucide-react';
 import { rupiah } from '@/lib/api-client';
+import { type Language } from '@/lib/account-i18n';
 
 export interface AddonLine {
   name: string;
@@ -18,6 +19,7 @@ export interface InvoiceDocumentProps {
   addonLines: AddonLine[];
   nights: number;
   shortCode: string;
+  lang?: Language;
 }
 
 export interface InvoiceModalProps extends InvoiceDocumentProps {
@@ -25,8 +27,87 @@ export interface InvoiceModalProps extends InvoiceDocumentProps {
   onClose: () => void;
 }
 
-function formatChannel(code?: string, method?: string): string {
-  if (method === 'CASH') return 'Tunai di lokasi';
+const INVOICE_I18N = {
+  id: {
+    invoiceTitle: 'INVOICE',
+    invoiceNumber: (no: string) => `No. ${no}`,
+    createdOn: (date: string) => `Dibuat: ${date}`,
+    billedTo: 'Ditagihkan Kepada',
+    location: 'Lokasi',
+    payment: 'Pembayaran',
+    paymentStatus: 'Status Pembayaran',
+    cashOnSite: 'Tunai di lokasi',
+    dpPaidOn: (date: string) => `DP 50% Dibayar: ${date}`,
+    paidOn: (date: string) => `Lunas: ${date}`,
+    awaitingPayment: 'Menunggu Pembayaran',
+    thSpot: 'Spot / Kavling',
+    thPackage: 'Paket',
+    thQty: 'Qty',
+    thCheckIn: 'Check-in',
+    thCheckOut: 'Check-out',
+    thGuests: 'Tamu',
+    thSubtotal: 'Subtotal',
+    defaultSpot: 'Spot',
+    defaultPackage: 'Paket Standar',
+    defaultAddon: 'Layanan Tambahan',
+    nightUnit: (n: number) => `${n} malam`,
+    guestUnit: (n: number) => `${n} Tamu`,
+    subtotalRental: 'Subtotal (Harga Sewa)',
+    adminFee: 'Biaya Admin',
+    serviceFee: 'Biaya Layanan',
+    vat: 'PPN',
+    promoDiscount: (code: string) => `Diskon Promo (${code})`,
+    remainingRentalBalance: 'Sisa Pokok Sewa (Dibayar di H-1)',
+    totalPaymentDP: 'Total Pembayaran (DP 50%)',
+    totalPayment: 'Total Pembayaran',
+    footerThanks: 'Terima kasih telah memesan melalui embun.',
+    footerLegal: 'Invoice ini diterbitkan secara otomatis dan sah tanpa tanda tangan.',
+    modalTitle: 'Invoice Resmi Embun',
+    printBtn: 'Cetak / Unduh PDF',
+    close: 'Tutup',
+  },
+  en: {
+    invoiceTitle: 'INVOICE',
+    invoiceNumber: (no: string) => `No. ${no}`,
+    createdOn: (date: string) => `Created: ${date}`,
+    billedTo: 'Billed To',
+    location: 'Location',
+    payment: 'Payment',
+    paymentStatus: 'Payment Status',
+    cashOnSite: 'Cash on site',
+    dpPaidOn: (date: string) => `50% DP Paid: ${date}`,
+    paidOn: (date: string) => `Paid in Full: ${date}`,
+    awaitingPayment: 'Awaiting Payment',
+    thSpot: 'Spot / Unit',
+    thPackage: 'Package',
+    thQty: 'Qty',
+    thCheckIn: 'Check-in',
+    thCheckOut: 'Check-out',
+    thGuests: 'Guests',
+    thSubtotal: 'Subtotal',
+    defaultSpot: 'Spot',
+    defaultPackage: 'Standard Package',
+    defaultAddon: 'Additional Service',
+    nightUnit: (n: number) => `${n} nights`,
+    guestUnit: (n: number) => `${n} Guests`,
+    subtotalRental: 'Subtotal (Rental Price)',
+    adminFee: 'Admin Fee',
+    serviceFee: 'Service Fee',
+    vat: 'VAT',
+    promoDiscount: (code: string) => `Promo Discount (${code})`,
+    remainingRentalBalance: 'Remaining Rental Balance (Due on D-1)',
+    totalPaymentDP: 'Total Payment (50% Down Payment)',
+    totalPayment: 'Total Payment',
+    footerThanks: 'Thank you for booking through Embun.',
+    footerLegal: 'This invoice is computer generated and valid without signature.',
+    modalTitle: 'Official Embun Invoice',
+    printBtn: 'Print / Download PDF',
+    close: 'Close',
+  },
+};
+
+function formatChannel(code?: string, method?: string, lang: Language = 'id'): string {
+  if (method === 'CASH') return lang === 'en' ? 'Cash on site' : 'Tunai di lokasi';
   if (!code || !code.trim()) return 'Virtual Account';
   const lower = code.toLowerCase().trim();
   if (lower.startsWith('bank_transfer:')) {
@@ -55,11 +136,11 @@ function formatChannel(code?: string, method?: string): string {
   }
 }
 
-function formatLongDate(dateStr?: string | Date | null): string {
+function formatLongDate(dateStr?: string | Date | null, lang: Language = 'id'): string {
   if (!dateStr) return '-';
   try {
     const d = new Date(dateStr);
-    return d.toLocaleDateString('id-ID', {
+    return d.toLocaleDateString(lang === 'en' ? 'en-US' : 'id-ID', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
@@ -69,11 +150,11 @@ function formatLongDate(dateStr?: string | Date | null): string {
   }
 }
 
-function formatShortDate(dateStr?: string | Date | null): string {
+function formatShortDate(dateStr?: string | Date | null, lang: Language = 'id'): string {
   if (!dateStr) return '-';
   try {
     const d = new Date(dateStr);
-    return d.toLocaleDateString('id-ID', {
+    return d.toLocaleDateString(lang === 'en' ? 'en-US' : 'id-ID', {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
@@ -93,18 +174,20 @@ export function InvoiceDocument({
   addonLines,
   nights,
   shortCode,
+  lang = 'id',
 }: InvoiceDocumentProps) {
   if (!order) return null;
 
+  const t = INVOICE_I18N[lang] || INVOICE_I18N.id;
   const campsite = order.campsite;
   const isDP = Boolean(order.isDownPayment);
   const remainingBalance = Number(order.remainingBalance) || 0;
   const isUnsettledDp = isDP && (!order.settledAt || remainingBalance > 0);
 
-  const channelStr = formatChannel(order.paymentChannel, order.paymentMethod);
+  const channelStr = formatChannel(order.paymentChannel, order.paymentMethod, lang);
   const paymentStr =
     order.paymentMethod === 'CASH'
-      ? 'Tunai di lokasi'
+      ? t.cashOnSite
       : channelStr.length > 0
       ? channelStr
       : 'Virtual Account';
@@ -124,7 +207,6 @@ export function InvoiceDocument({
     : Math.max(0, (Number(order.totalAmount) || 0) - serviceFees + promoDiscount);
 
   // Hanya add-on berbayar (amount > 0) yang merupakan tagihan terpisah di invoice.
-  // Add-on bawaan paket (amount = 0) sudah termasuk dalam harga paket/kavling di atas.
   const paidAddonLines = addonLines.filter((a) => (Number(a.amount) || 0) > 0);
   const totalPaidAddons = paidAddonLines.reduce(
     (s, a) => s + (Number(a.amount) || 0),
@@ -152,13 +234,13 @@ export function InvoiceDocument({
 
         <div className="text-right space-y-1">
           <h1 className="text-2xl font-black tracking-widest text-[#0841B5]">
-            INVOICE
+            {t.invoiceTitle}
           </h1>
           <p className="text-[11px] font-bold text-neutral-900">
-            No. {shortCode}
+            {t.invoiceNumber(shortCode)}
           </p>
           <p className="text-[10px] text-neutral-500">
-            Dibuat: {formatLongDate(order.createdAt)}
+            {t.createdOn(formatLongDate(order.createdAt, lang))}
           </p>
         </div>
       </div>
@@ -168,10 +250,10 @@ export function InvoiceDocument({
         {/* Kolom 1: Ditagihkan kepada */}
         <div className="space-y-1">
           <span className="text-[8.5px] font-bold tracking-wider text-neutral-400 uppercase block">
-            Ditagihkan Kepada
+            {t.billedTo}
           </span>
           <p className="font-bold text-neutral-900 text-xs">
-            {order.guestName || 'Tamu Embun'}
+            {order.guestName || (lang === 'en' ? 'Embun Guest' : 'Tamu Embun')}
           </p>
           {order.guestPhone && (
             <p className="text-[10px] text-neutral-600">{order.guestPhone}</p>
@@ -181,7 +263,7 @@ export function InvoiceDocument({
         {/* Kolom 2: Lokasi */}
         <div className="space-y-1">
           <span className="text-[8.5px] font-bold tracking-wider text-neutral-400 uppercase block">
-            Lokasi
+            {t.location}
           </span>
           <p className="font-bold text-neutral-900 text-xs">
             {campsite?.name || '-'}
@@ -194,18 +276,18 @@ export function InvoiceDocument({
         {/* Kolom 3: Pembayaran */}
         <div className="space-y-1">
           <span className="text-[8.5px] font-bold tracking-wider text-neutral-400 uppercase block">
-            Pembayaran
+            {t.payment}
           </span>
           <p className="font-bold text-neutral-900 text-xs">{paymentStr}</p>
           {order.paidAt ? (
             <p className="text-[10px] text-neutral-600">
               {isDP && isUnsettledDp
-                ? `DP 50% Dibayar: ${formatLongDate(order.paidAt)}`
-                : `Lunas: ${formatLongDate(order.paidAt)}`}
+                ? t.dpPaidOn(formatLongDate(order.paidAt, lang))
+                : t.paidOn(formatLongDate(order.paidAt, lang))}
             </p>
           ) : (
             <p className="text-[10px] text-amber-700 font-medium">
-              Menunggu Pembayaran
+              {t.awaitingPayment}
             </p>
           )}
         </div>
@@ -216,30 +298,30 @@ export function InvoiceDocument({
         <table className="w-full text-left border-collapse text-[10.5px]">
           <thead>
             <tr className="bg-[#F3F4F6] text-neutral-800 border-b border-[#E5E7EB]">
-              <th className="py-2.5 px-3 font-bold">Spot / Kavling</th>
-              <th className="py-2.5 px-3 font-bold">Paket</th>
-              <th className="py-2.5 px-2 font-bold text-center">Qty</th>
-              <th className="py-2.5 px-3 font-bold">Check-in</th>
-              <th className="py-2.5 px-3 font-bold">Check-out</th>
-              <th className="py-2.5 px-2 font-bold text-center">Tamu</th>
-              <th className="py-2.5 px-3 font-bold text-right">Subtotal</th>
+              <th className="py-2.5 px-3 font-bold">{t.thSpot}</th>
+              <th className="py-2.5 px-3 font-bold">{t.thPackage}</th>
+              <th className="py-2.5 px-2 font-bold text-center">{t.thQty}</th>
+              <th className="py-2.5 px-3 font-bold">{t.thCheckIn}</th>
+              <th className="py-2.5 px-3 font-bold">{t.thCheckOut}</th>
+              <th className="py-2.5 px-2 font-bold text-center">{t.thGuests}</th>
+              <th className="py-2.5 px-3 font-bold text-right">{t.thSubtotal}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#E5E7EB]">
             {/* Baris Unit Akomodasi Utama */}
             <tr>
               <td className="py-3 px-3 font-medium text-neutral-900">
-                {booking?.block?.name || 'Spot'}
+                {booking?.block?.name || t.defaultSpot}
               </td>
               <td className="py-3 px-3 text-neutral-700">
-                {booking?.packageName || 'Paket Standar'}
+                {booking?.packageName || t.defaultPackage}
               </td>
               <td className="py-3 px-2 text-center text-neutral-700">1</td>
               <td className="py-3 px-3 text-neutral-700">
-                {formatShortDate(booking?.checkIn)}
+                {formatShortDate(booking?.checkIn, lang)}
               </td>
               <td className="py-3 px-3 text-neutral-700">
-                {formatShortDate(booking?.checkOut)}
+                {formatShortDate(booking?.checkOut, lang)}
               </td>
               <td className="py-3 px-2 text-center text-neutral-700">
                 {(booking?.adultCount || 2) + (booking?.childCount || 0)}
@@ -256,11 +338,11 @@ export function InvoiceDocument({
                   {addon.name}
                 </td>
                 <td className="py-2.5 px-3 text-neutral-500 italic">
-                  Layanan Tambahan
+                  {t.defaultAddon}
                 </td>
                 <td className="py-2.5 px-2 text-center text-neutral-700">
                   {addon.quantity}
-                  {addon.perNight ? ` × ${nights} malam` : ''}
+                  {addon.perNight ? ` × ${t.nightUnit(nights)}` : ''}
                 </td>
                 <td className="py-2.5 px-3 text-neutral-400 text-center">-</td>
                 <td className="py-2.5 px-3 text-neutral-400 text-center">-</td>
@@ -279,7 +361,7 @@ export function InvoiceDocument({
         <div className="w-full sm:w-72 space-y-1.5 text-[10.5px]">
           {/* Subtotal (Harga Sewa) */}
           <div className="flex justify-between text-neutral-700">
-            <span>Subtotal (Harga Sewa)</span>
+            <span>{t.subtotalRental}</span>
             <span className="font-semibold text-neutral-900 font-mono">
               {rupiah(fullRental)}
             </span>
@@ -288,7 +370,7 @@ export function InvoiceDocument({
           {/* Biaya Admin */}
           {order.guestAdminFee > 0 && (
             <div className="flex justify-between text-neutral-700">
-              <span>Biaya Admin</span>
+              <span>{t.adminFee}</span>
               <span className="font-semibold text-neutral-900 font-mono">
                 {rupiah(order.guestAdminFee)}
               </span>
@@ -298,7 +380,7 @@ export function InvoiceDocument({
           {/* Biaya Layanan */}
           {order.guestServiceFee > 0 && (
             <div className="flex justify-between text-neutral-700">
-              <span>Biaya Layanan</span>
+              <span>{t.serviceFee}</span>
               <span className="font-semibold text-neutral-900 font-mono">
                 {rupiah(order.guestServiceFee)}
               </span>
@@ -308,7 +390,7 @@ export function InvoiceDocument({
           {/* PPN */}
           {order.guestTaxFee > 0 && (
             <div className="flex justify-between text-neutral-700">
-              <span>PPN</span>
+              <span>{t.vat}</span>
               <span className="font-semibold text-neutral-900 font-mono">
                 {rupiah(order.guestTaxFee)}
               </span>
@@ -318,7 +400,7 @@ export function InvoiceDocument({
           {/* Diskon Promo */}
           {promoDiscount > 0 && (
             <div className="flex justify-between text-emerald-700">
-              <span>Diskon Promo ({order.promoCode || 'Voucher'})</span>
+              <span>{t.promoDiscount(order.promoCode || 'Voucher')}</span>
               <span className="font-semibold font-mono">
                 - {rupiah(promoDiscount)}
               </span>
@@ -328,7 +410,7 @@ export function InvoiceDocument({
           {/* Sisa Pokok Sewa (Khusus DP Belum Dilunasi) */}
           {isUnsettledDp && (
             <div className="flex justify-between text-[#B45309] font-medium">
-              <span>Sisa Pokok Sewa (Dibayar di H-1)</span>
+              <span>{t.remainingRentalBalance}</span>
               <span className="font-bold font-mono">
                 - {rupiah(remainingBalance)}
               </span>
@@ -338,9 +420,7 @@ export function InvoiceDocument({
           {/* Kotak Total Pembayaran Abu-abu (#F3F4F6) */}
           <div className="bg-[#F3F4F6] p-2.5 rounded-lg mt-2.5 flex justify-between items-center border border-[#E5E7EB]">
             <span className="font-bold text-xs text-neutral-900">
-              {isUnsettledDp
-                ? 'Total Pembayaran (DP 50%)'
-                : 'Total Pembayaran'}
+              {isUnsettledDp ? t.totalPaymentDP : t.totalPayment}
             </span>
             <span className="text-sm font-extrabold text-[#0841B5] font-mono">
               {rupiah(order.totalAmount)}
@@ -351,10 +431,8 @@ export function InvoiceDocument({
 
       {/* 5. FOOTER (Divider + Disclaimer Resmi Sah Tanpa Tanda Tangan) */}
       <div className="border-t border-[#E5E7EB] mt-10 pt-4 space-y-0.5 text-[9.5px] text-neutral-500">
-        <p>Terima kasih telah memesan melalui embun.</p>
-        <p>
-          Invoice ini diterbitkan secara otomatis dan sah tanpa tanda tangan.
-        </p>
+        <p>{t.footerThanks}</p>
+        <p>{t.footerLegal}</p>
       </div>
     </div>
   );
@@ -371,8 +449,11 @@ export function InvoiceModal({
   addonLines,
   nights,
   shortCode,
+  lang = 'id',
 }: InvoiceModalProps) {
   if (!isOpen || !order) return null;
+
+  const t = INVOICE_I18N[lang] || INVOICE_I18N.id;
 
   const handlePrint = () => {
     window.print();
@@ -386,7 +467,7 @@ export function InvoiceModal({
         <div className="px-6 py-4 border-b border-border/80 flex items-center justify-between bg-surface/50 shrink-0">
           <div className="flex items-center gap-2.5">
             <span className="font-extrabold text-sm text-foreground">
-              Invoice Resmi Embun
+              {t.modalTitle}
             </span>
             <span className="text-[11px] font-mono text-foreground-muted bg-surface border border-border px-2 py-0.5 rounded-md font-bold">
               {shortCode}
@@ -400,13 +481,13 @@ export function InvoiceModal({
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-brand-blue hover:bg-brand-blue-hover dark:bg-brand-lime dark:text-black dark:hover:bg-brand-lime/90 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
             >
               <Printer size={14} />
-              <span>Cetak / Unduh PDF</span>
+              <span>{t.printBtn}</span>
             </button>
             <button
               type="button"
               onClick={onClose}
               className="p-2 rounded-full hover:bg-surface text-foreground-muted hover:text-foreground transition-colors cursor-pointer"
-              title="Tutup"
+              title={t.close}
             >
               <X size={18} />
             </button>
@@ -421,6 +502,7 @@ export function InvoiceModal({
             addonLines={addonLines}
             nights={nights}
             shortCode={shortCode}
+            lang={lang}
           />
         </div>
       </div>

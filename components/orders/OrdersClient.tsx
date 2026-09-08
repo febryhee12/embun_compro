@@ -137,6 +137,12 @@ export function OrdersClient() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      const urlLang = new URLSearchParams(window.location.search).get('lang');
+      if (urlLang === 'en' || urlLang === 'id') {
+        setLang(urlLang);
+        localStorage.setItem('embun_lang', urlLang);
+        return;
+      }
       const savedLang = localStorage.getItem('embun_lang');
       if (savedLang === 'en' || savedLang === 'id') {
         setLang(savedLang);
@@ -564,7 +570,7 @@ export function OrdersClient() {
       </main>
 
       {/* ═══ FOOTER RESMI RESMI EXPLORE ═══ */}
-      <ExploreFooter lang={lang} />
+      <ExploreFooter lang={lang} onToggleLanguage={handleToggleLanguage} />
 
       {/* Guest Auth Modal */}
       <GuestAuthModal
