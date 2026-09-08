@@ -2689,29 +2689,6 @@ export function SpotRedirectClient() {
                   </div>
                 </div>
               </div>
-
-              {/* Clean App Promo Callout */}
-              <div className="p-3.5 sm:p-4 rounded-2xl border border-border bg-surface dark:bg-surface-variant/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="space-y-0.5">
-                  <h4 className="font-bold text-xs sm:text-sm text-foreground">
-                    {lang === 'en'
-                      ? 'Reservation on the App for Better Rates'
-                      : 'Pesan di Aplikasi untuk Harga Lebih Hemat'}
-                  </h4>
-                  <p className="text-[11px] sm:text-xs text-foreground-muted leading-relaxed">
-                    {lang === 'en'
-                      ? 'Access offers and exclusive promotions on the Embun app.'
-                      : 'Dapatkan penawaran dan promo eksklusif di aplikasi Embun.'}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleOpenApp}
-                  className="shrink-0 py-2 px-3.5 rounded-xl border border-border hover:border-foreground/30 bg-background dark:bg-surface text-foreground font-semibold text-xs transition-all cursor-pointer text-center active:scale-98"
-                >
-                  {lang === 'en' ? 'Open in App' : 'Buka di Aplikasi'}
-                </button>
-              </div>
             </div>
 
             {/* ── SECTION: PILIHAN PAKET PENGINAPAN ── */}
@@ -3098,29 +3075,6 @@ export function SpotRedirectClient() {
                       <span className="text-brand-blue dark:text-brand-lime">{t.spot.newBadge}</span>
                     </div>
                   )}
-                </div>
-
-                {/* Clean App Promo Callout */}
-                <div className="p-3.5 rounded-2xl border border-border bg-surface/60 dark:bg-surface-variant/30 space-y-2">
-                  <div className="space-y-0.5">
-                    <h4 className="font-bold text-xs text-foreground">
-                      {lang === 'en'
-                        ? 'Reservation on the App for Better Rates'
-                        : 'Pesan di Aplikasi untuk Harga Lebih Hemat'}
-                    </h4>
-                    <p className="text-[11px] text-foreground-muted leading-relaxed">
-                      {lang === 'en'
-                        ? 'Access offers and exclusive promotions on the Embun app.'
-                        : 'Dapatkan penawaran dan promo eksklusif di aplikasi Embun.'}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleOpenApp}
-                    className="w-full py-2 px-3 rounded-xl border border-border hover:border-foreground/30 bg-background dark:bg-surface text-foreground font-semibold text-xs transition-all cursor-pointer text-center active:scale-98"
-                  >
-                    {lang === 'en' ? 'Open in App' : 'Buka di Aplikasi'}
-                  </button>
                 </div>
 
                 {/* Package Selector Dropdown (Sidebar) */}
@@ -4016,21 +3970,7 @@ export function SpotRedirectClient() {
           5. MOBILE STICKY BOTTOM BAR
       ════════════════════════════════════════════════════════════════════════ */}
       {!isTour360Only && (
-        <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-surface/95 backdrop-blur-md border-t border-border p-3.5 sm:p-4 shadow-xl space-y-2.5">
-          <div className="flex items-center justify-between gap-2 text-[11px] text-foreground-muted border-b border-border/60 pb-2">
-            <span className="truncate">
-              {lang === 'en'
-                ? 'Reservation on the App for Better Rates'
-                : 'Pesan di Aplikasi untuk Harga Lebih Hemat'}
-            </span>
-            <button
-              type="button"
-              onClick={handleOpenApp}
-              className="shrink-0 font-bold text-foreground hover:underline text-[11px] cursor-pointer"
-            >
-              {lang === 'en' ? 'Open in App' : 'Buka di Aplikasi'}
-            </button>
-          </div>
+        <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-surface/95 backdrop-blur-md border-t border-border p-3.5 sm:p-4 shadow-xl">
           <div className="flex items-center justify-between gap-4">
             <div
               onClick={() => setIsCalendarOpen(true)}
