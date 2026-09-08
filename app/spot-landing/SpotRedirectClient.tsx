@@ -163,6 +163,9 @@ interface SpotItem {
   images?: string[];
   photos?: PhotoItem[];
   panoramaPhotos?: PanoramaItem[] | any;
+  linkedPanoramaSpotId?: string | null;
+  linkedPanoramaYaw?: number | null;
+  linkedPanoramaPitch?: number | null;
   facilities?: string[];
   viewOptions?: string[];
   specificNotes?: string;
@@ -1126,7 +1129,109 @@ export function SpotRedirectClient() {
     const list: PanoramaItem[] = [];
     const addedUrls = new Set<string>();
 
-    // 1. Check activeSpot.panoramaPhotos
+    // Helper to find a campsite panorama spot by id
+    const findCampsitePano = (targetId: string) => {
+      // 1. Check campsite.panoramaSpots
+      if (Array.isArray((campsite as any)?.panoramaSpots)) {
+        const found = (campsite as any).panoramaSpots.find(
+          (p: any) => p.id === targetId,
+        );
+        if (found) {
+          return {
+            id: found.id,
+            label: found.label || found.description || 'Tur 360° Kawasan',
+            imageUrl: found.imageUrl || found.url,
+            hotspots: found.hotspots || [],
+            yaw: found.yaw,
+            pitch: found.pitch,
+          };
+        }
+      }
+      // 2. Check campsite.maps[].markers
+      if (Array.isArray(campsite?.maps)) {
+        for (const m of campsite.maps) {
+          if (Array.isArray(m.markers)) {
+            const found = m.markers.find(
+              (marker: any) =>
+                marker.id === targetId &&
+                (marker.type === 'panorama' || marker.panoramaImageUrl),
+            );
+            if (found) {
+              return {
+                id: found.id,
+                label: found.label || 'Tur 360° Kawasan',
+                imageUrl: (
+                  found.panoramaImageUrl ||
+                  found.imageUrl ||
+                  ''
+                ).trim(),
+                hotspots: found.panoramaHotspots || found.hotspots || [],
+                yaw: found.panoramaYaw,
+                pitch: found.panoramaPitch,
+              };
+            }
+          }
+        }
+      }
+      // 3. Check campsite.mapMarkers
+      if (Array.isArray(campsite?.mapMarkers)) {
+        const found = campsite.mapMarkers.find(
+          (marker: any) =>
+            marker.id === targetId &&
+            (marker.type === 'panorama' || marker.panoramaImageUrl),
+        );
+        if (found) {
+          return {
+            id: found.id,
+            label: found.label || 'Tur 360° Kawasan',
+            imageUrl: (
+              found.panoramaImageUrl ||
+              found.imageUrl ||
+              ''
+            ).trim(),
+            hotspots: found.panoramaHotspots || found.hotspots || [],
+            yaw: found.panoramaYaw,
+            pitch: found.panoramaPitch,
+          };
+        }
+      }
+      return null;
+    };
+
+    // 1. Check activeSpot.linkedPanoramaSpotId (highest priority: linked outdoor panorama with exact camera angle)
+    if (activeSpot?.linkedPanoramaSpotId) {
+      const linkedPano = findCampsitePano(activeSpot.linkedPanoramaSpotId);
+      if (
+        linkedPano &&
+        linkedPano.imageUrl &&
+        !addedUrls.has(linkedPano.imageUrl)
+      ) {
+        addedUrls.add(linkedPano.imageUrl);
+        list.push({
+          id: linkedPano.id,
+          label: `${activeSpot.name} (View 360°)`,
+          imageUrl: linkedPano.imageUrl,
+          category: 'panorama_linked',
+          hotspots: linkedPano.hotspots,
+          yaw:
+            activeSpot.linkedPanoramaYaw !== undefined &&
+            activeSpot.linkedPanoramaYaw !== null
+              ? Number(activeSpot.linkedPanoramaYaw)
+              : linkedPano.yaw !== undefined
+                ? Number(linkedPano.yaw)
+                : 0,
+          pitch:
+            activeSpot.linkedPanoramaPitch !== undefined &&
+            activeSpot.linkedPanoramaPitch !== null
+              ? Number(activeSpot.linkedPanoramaPitch)
+              : linkedPano.pitch !== undefined
+                ? Number(linkedPano.pitch)
+                : 0,
+        });
+      }
+    }
+
+    // 2. Check activeSpot.panoramaPhotos (interior photos of this spot)
     if (activeSpot && Array.isArray(activeSpot.panoramaPhotos)) {
       activeSpot.panoramaPhotos.forEach((p: any) => {
         const url = p?.imageUrl || p?.url;
@@ -1134,128 +1239,21 @@ export function SpotRedirectClient() {
           addedUrls.add(url);
           list.push({
             id: p.id || String(Math.random()),
-            label: p.label || p.category || `${activeSpot.name} (360°)`,
+            label:
+              p.label || p.category || `${activeSpot.name} (Interior 360°)`,
             imageUrl: url,
-            category: p.category,
+            category: p.category || 'interior_360',
+            yaw: p.yaw !== undefined && p.yaw !== null ? Number(p.yaw) : 0,
+            pitch:
+              p.pitch !== undefined && p.pitch !== null ? Number(p.pitch) : 0,
+            hotspots: p.hotspots || [],
           });
         }
       });
     }
 
-    // 2. Check campsite.panoramaSpots
-    if (Array.isArray((campsite as any)?.panoramaSpots)) {
-      (campsite as any).panoramaSpots.forEach((p: any) => {
-        const url = p?.imageUrl || p?.url;
-        if (url && !addedUrls.has(url)) {
-          addedUrls.add(url);
-          list.push({
-            id: p.id || String(Math.random()),
-            label: p.label || p.description || 'Tur 360° Kawasan',
-            imageUrl: url,
-            category: 'panorama_campsite',
-          });
-        }
-      });
-    }
-
-    // 3. Check all other spots in campsite for 360 photos
-    if (Array.isArray(campsite?.blocks)) {
-      campsite?.blocks.forEach((b: any) => {
-        if (Array.isArray(b.panoramaPhotos)) {
-          b.panoramaPhotos.forEach((p: any) => {
-            const url = p?.imageUrl || p?.url;
-            if (url && !addedUrls.has(url)) {
-              addedUrls.add(url);
-              list.push({
-                id: p.id || String(Math.random()),
-                label: p.label || `${b.name} (360°)`,
-                imageUrl: url,
-                category: p.category,
-              });
-            }
-          });
-        }
-      });
-    }
-
-    // 4. Check campsite.photos for 360/panorama category
-    if (Array.isArray(campsite?.photos)) {
-      campsite?.photos.forEach((p) => {
-        if (
-          p.category?.toLowerCase().includes('360') ||
-          p.category?.toLowerCase().includes('panorama')
-        ) {
-          if (p.url && !addedUrls.has(p.url)) {
-            addedUrls.add(p.url);
-            list.push({
-              id: p.id,
-              label: 'Tur 360° Area Camp',
-              imageUrl: p.url,
-              category: p.category,
-            });
-          }
-        }
-      });
-    }
-
-    // 5. Check campsite.maps[].markers for 360 photos
-    if (Array.isArray(campsite?.maps)) {
-      campsite?.maps.forEach((m: any) => {
-        if (Array.isArray(m.markers)) {
-          m.markers.forEach((marker: any) => {
-            const img = (
-              marker.panoramaImageUrl ||
-              marker.imageUrl ||
-              ''
-            ).trim();
-            if (
-              (marker.type === 'panorama' || marker.panoramaImageUrl) &&
-              img &&
-              !addedUrls.has(img)
-            ) {
-              addedUrls.add(img);
-              list.push({
-                id: marker.id || String(Math.random()),
-                label: marker.label || 'Tur 360° Kawasan',
-                imageUrl: img,
-                category: 'panorama_campsite',
-                hotspots: marker.panoramaHotspots || marker.hotspots || [],
-                yaw: marker.panoramaYaw,
-                pitch: marker.panoramaPitch,
-              });
-            }
-          });
-        }
-      });
-    }
-
-    // 6. Check campsite.mapMarkers for 360 photos
-    if (Array.isArray(campsite?.mapMarkers)) {
-      campsite?.mapMarkers.forEach((marker: any) => {
-        const img = (
-          marker.panoramaImageUrl ||
-          marker.imageUrl ||
-          ''
-        ).trim();
-        if (
-          (marker.type === 'panorama' || marker.panoramaImageUrl) &&
-          img &&
-          !addedUrls.has(img)
-        ) {
-          addedUrls.add(img);
-          list.push({
-            id: marker.id || String(Math.random()),
-            label: marker.label || 'Tur 360° Kawasan',
-            imageUrl: img,
-            category: 'panorama_campsite',
-            hotspots: marker.panoramaHotspots || marker.hotspots || [],
-            yaw: marker.panoramaYaw,
-            pitch: marker.panoramaPitch,
-          });
-        }
-      });
-    }
-
+    // Catatan: Jika spot TIDAK memiliki linked panorama dan TIDAK memiliki foto 360 interior,
+    // list tetap kosong agar TIDAK salah nembak ke panorama titik/spot lain!
     return list;
   }, [activeSpot, campsite]);
 
