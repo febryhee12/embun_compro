@@ -169,6 +169,8 @@ export async function createRealOrder(payload: {
     checkIn: string;
     checkOut: string;
     adultCount: number;
+    motorcycleCount?: number;
+    carCount?: number;
     addons?: Array<{ addonId: string; quantity: number }>;
   }>;
 }) {
@@ -487,6 +489,8 @@ export interface QuotePayload {
   checkIn: string; // YYYY-MM-DD
   checkOut: string; // YYYY-MM-DD
   adultCount: number;
+  motorcycleCount?: number;
+  carCount?: number;
   addons?: QuoteAddonItem[];
 }
 

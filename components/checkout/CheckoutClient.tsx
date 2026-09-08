@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -57,6 +57,7 @@ interface CheckoutDraft {
     googleMapsUrl?: string;
     checkInTime?: string;
     checkOutTime?: string;
+    allowDownPayment?: boolean;
   };
   spot: {
     id: string;
@@ -67,11 +68,24 @@ interface CheckoutDraft {
     id: string;
     name: string;
     price: number;
+    pricingModel?: string;
   };
   checkInDate: string;
   checkOutDate: string;
   nights: number;
   guestCount: number;
+  motorcycleCount?: number;
+  carCount?: number;
+  motorcyclePrice?: number;
+  carPrice?: number;
+  vehicleLines?: Array<{
+    code: string;
+    label: string;
+    unitPrice: number;
+    quantity: number;
+    amount: number;
+    count: number;
+  }>;
   paymentScheme: 'DP_50' | 'FULL';
   spotPricePerNight: number;
   selectedAddons: Record<string, number>;
@@ -228,8 +242,22 @@ export function CheckoutClient() {
   }
 
   // Hitung ulang nominal jika skema bayar diubah di checkout
-  const isDP = paymentScheme === 'DP_50';
   const cleanRental = draft.spotPricePerNight * draft.nights + draft.addonsTotal;
+  const canUseDownPayment = useMemo(() => {
+    if (!draft.campsite?.allowDownPayment) return false;
+    if (cleanRental <= 200000) return false;
+    if (!draft.checkInDate) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const checkIn = new Date(draft.checkInDate);
+    checkIn.setHours(0, 0, 0, 0);
+    const diff = Math.round(
+      (checkIn.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+    );
+    return diff >= 3;
+  }, [draft.campsite?.allowDownPayment, draft.checkInDate, cleanRental]);
+
+  const isDP = paymentScheme === 'DP_50' && canUseDownPayment;
   const dpAmount = Math.round(cleanRental * 0.5);
   const remainingBalance = isDP ? cleanRental - dpAmount : 0;
   const currentPayable = isDP
@@ -303,6 +331,8 @@ export function CheckoutClient() {
             checkIn: draft.checkInDate,
             checkOut: draft.checkOutDate,
             adultCount: draft.guestCount,
+            motorcycleCount: draft.motorcycleCount ?? 0,
+            carCount: draft.carCount ?? 0,
             addons,
           },
         ],
@@ -854,13 +884,42 @@ export function CheckoutClient() {
                       {draft.selectedPackage.name}
                     </span>
                     <span className="text-[11px] text-foreground-muted/70 block mt-0.5">
-                      {t.summary.spotPriceFormula(rupiah(draft.spotPricePerNight), draft.nights)}
+                      {(draft.selectedPackage.pricingModel || '').toUpperCase() === 'FREE_LAND'
+                        ? `${rupiah(draft.spotPricePerNight)} × ${draft.guestCount} ${lang === 'en' ? 'guests' : 'tamu'}${draft.nights > 1 ? ` × ${draft.nights} ${lang === 'en' ? 'nights' : 'malam'}` : ''}`
+                        : t.summary.spotPriceFormula(rupiah(draft.spotPricePerNight), draft.nights)
+                      }
                     </span>
                   </div>
                   <span className="font-semibold text-foreground shrink-0 whitespace-nowrap text-right pt-0.5">
-                    {rupiah(draft.spotPricePerNight * draft.nights)}
+                    {rupiah(
+                      (draft.selectedPackage.pricingModel || '').toUpperCase() === 'FREE_LAND'
+                        ? draft.spotPricePerNight * draft.guestCount * draft.nights
+                        : draft.spotPricePerNight * draft.nights
+                    )}
                   </span>
                 </div>
+
+                {/* Vehicle Lines */}
+                {draft.vehicleLines && draft.vehicleLines.length > 0 && (
+                  <div className="space-y-1.5 pt-1 border-t border-border/50">
+                    <span className="text-[11px] font-semibold text-foreground-muted block">
+                      {lang === 'en' ? 'Vehicles' : 'Biaya Kendaraan'}
+                    </span>
+                    {draft.vehicleLines.map((v, vIdx) => (
+                      <div key={vIdx} className="flex justify-between items-center gap-3 text-[11.5px] pl-2">
+                        <span className="text-foreground-muted truncate">
+                          {v.code === 'MOTORCYCLE'
+                            ? `${lang === 'en' ? 'Motorcycle' : 'Motor'} (${rupiah(v.unitPrice)} × ${v.count} unit × ${draft.nights} ${lang === 'en' ? 'nights' : 'malam'})`
+                            : `${lang === 'en' ? 'Car' : 'Mobil'} (${rupiah(v.unitPrice)} × ${v.count} unit × ${draft.nights} ${lang === 'en' ? 'nights' : 'malam'})`
+                          }
+                        </span>
+                        <span className="font-medium text-foreground shrink-0 whitespace-nowrap text-right">
+                          +{rupiah(v.amount)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {draft.extraPersonInfo && draft.extraPersonInfo.amount > 0 && (
                   <div className="flex justify-between items-start gap-4 pt-1 border-t border-border/50">

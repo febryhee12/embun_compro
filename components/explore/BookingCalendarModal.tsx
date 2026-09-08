@@ -91,7 +91,10 @@ export function BookingCalendarModal({
   const monthNames = lang === 'en' ? MONTH_NAMES_EN : MONTH_NAMES_ID;
   const dayNames = lang === 'en' ? DAY_NAMES_EN : DAY_NAMES_ID;
 
-  const todayStr = useMemo(() => new Date().toISOString().split("T")[0], []);
+  const todayStr = useMemo(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }, []);
   const bookedSet = useMemo(() => new Set(bookedDates || []), [bookedDates]);
 
   // Temporary selection states
@@ -254,6 +257,7 @@ export function BookingCalendarModal({
         day,
       ).padStart(2, "0")}`;
       const isPast = dayStr < todayStr;
+      const isToday = dayStr === todayStr;
       const isBooked = bookedSet.has(dayStr);
 
       // Half-open check-out logic:
@@ -267,6 +271,9 @@ export function BookingCalendarModal({
         isSelectableAsCheckout(tempIn, dayStr);
 
       const isDisabled = isPast || (isBooked && !isCheckoutChangeover);
+      // Penanda hari ini hanya aktif saat tamu belum memilih tanggal (tempIn & tempOut kosong),
+      // agar tidak terlihat seperti ter-select dan otomatis sembunyi saat tamu klik tanggal lain.
+      const showTodayIndicator = isToday && !tempIn && !tempOut && !isDisabled;
       const isStart = dayStr === tempIn;
       const isEnd = dayStr === tempOut;
       const isInRange =
@@ -301,7 +308,13 @@ export function BookingCalendarModal({
             disabled={isDisabled}
             onClick={() => handleDateClick(dayStr)}
             title={
-              isCheckoutChangeover
+              isStart || isEnd
+                ? isToday
+                  ? (lang === 'en' ? "Today (Selected)" : "Hari Ini (Terpilih)")
+                  : (lang === 'en' ? "Selected date" : "Tanggal terpilih")
+                : showTodayIndicator
+                ? (lang === 'en' ? "Today" : "Hari Ini")
+                : isCheckoutChangeover
                 ? (lang === 'en'
                     ? "Check-out Date Available (Guest Changeover Day)"
                     : "Tanggal Check-out Tersedia (Hari Pergantian Tamu)")
@@ -317,7 +330,7 @@ export function BookingCalendarModal({
               isStart || isEnd
                 ? "bg-brand-blue dark:bg-brand-lime text-white dark:text-black font-bold dark:font-black shadow-md scale-105 rounded-full"
                 : isCheckoutChangeover
-                ? `border-2 border-neutral-800 dark:border-brand-lime bg-white dark:bg-surface font-bold hover:scale-105 cursor-pointer shadow-2xs ${
+                ? `border-2 border-neutral-800 dark:border-brand-lime bg-white dark:bg-surface font-bold hover:scale-105 cursor-pointer shadow-2xs rounded-full ${
                     isWeekend ? "text-red-500 dark:text-red-400" : "text-foreground"
                   }`
                 : isDisabled
@@ -326,6 +339,10 @@ export function BookingCalendarModal({
                   : "text-foreground-muted/30 line-through cursor-not-allowed rounded-full"
                 : isInRange || isHovered
                 ? "text-brand-blue dark:text-brand-lime font-bold hover:bg-brand-blue/20 dark:hover:bg-brand-lime/25 rounded-full"
+                : showTodayIndicator
+                ? `border border-brand-blue/70 dark:border-brand-lime/70 font-semibold rounded-full hover:bg-surface hover:scale-105 cursor-pointer ${
+                    isWeekend ? "text-red-500 dark:text-red-400" : "text-foreground"
+                  }`
                 : `${
                     isWeekend ? "text-red-500 dark:text-red-400 font-semibold" : "text-foreground"
                   } hover:bg-surface hover:scale-105 cursor-pointer rounded-full`
@@ -476,10 +493,14 @@ export function BookingCalendarModal({
           </div>
 
           {/* Legend */}
-          <div className="flex flex-wrap items-center justify-center gap-5 pt-3 border-t border-border/50 text-[11px] text-foreground-muted">
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-5 pt-3 border-t border-border/50 text-[11px] text-foreground-muted">
             <div className="flex items-center gap-1.5">
               <span className="w-3 h-3 rounded-full bg-brand-blue dark:bg-brand-lime" />
               <span>{lang === 'en' ? "Selected" : "Terpilih"}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-3.5 h-3.5 rounded-full border border-brand-blue/70 dark:border-brand-lime/70" />
+              <span>{lang === 'en' ? "Today" : "Hari Ini"}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-3 h-3 rounded-full bg-white dark:bg-surface border border-border" />

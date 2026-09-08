@@ -130,6 +130,10 @@ export const SPOT_I18N = {
       tour360Count: (n: number) => `Tur 360° (${n})`,
       showAllPhotos: (n: number) => `Tampilkan Semua ${n} Foto`,
       nightsCount: (n: number) => `${n} malam`,
+      vehiclesTitle: 'Pilihan Kendaraan (Opsional)',
+      motorcycle: 'Motor (Roda Dua)',
+      car: 'Mobil (Roda Empat)',
+      landFeePerGuest: 'Biaya Lahan per Tamu',
     },
     dates: {
       stayDatesTitle: 'Waktu Menginap & Durasi',
@@ -250,6 +254,10 @@ export const SPOT_I18N = {
       tour360Count: (n: number) => `360° Tour (${n})`,
       showAllPhotos: (n: number) => `Show All ${n} Photos`,
       nightsCount: (n: number) => `${n} nights`,
+      vehiclesTitle: 'Vehicles (Optional)',
+      motorcycle: 'Motorcycle (2 Wheels)',
+      car: 'Car (4 Wheels)',
+      landFeePerGuest: 'Land Fee per Guest',
     },
     dates: {
       stayDatesTitle: 'Stay Dates & Duration',

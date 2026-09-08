@@ -48,6 +48,7 @@ import {
   Bath,
   Zap,
   Car,
+  Bike,
   MoonStar,
   Coffee,
   Waves,
@@ -124,12 +125,23 @@ interface PricingPackageItem {
   weekendRate?: number | string;
   holidayRate?: number | string;
   perGuestRate?: number | string;
+  motorcycleCharge?: number | string;
+  carCharge?: number | string;
   minGuestCount?: number;
   maxOccupancy?: number;
   baseCapacity?: number;
   extraPersonFee?: number;
   isFree?: boolean;
   addonRules?: any[];
+}
+
+export interface VehicleLineItem {
+  code: string;
+  label: string;
+  unitPrice: number;
+  quantity: number;
+  amount: number;
+  count: number;
 }
 
 interface SpotItem {
@@ -198,6 +210,7 @@ interface CampsiteDetail {
   youtube?: string | null;
   holidays?: Array<{ id?: string; date: string | Date; label?: string }>;
   weekendDays?: number[];
+  allowDownPayment?: boolean;
 }
 
 interface ReviewItem {
@@ -471,11 +484,19 @@ function getPackageRateForCategory(
     if (pkg.flatRateMode && pkg.flatRate != null && pkg.flatRate !== '') {
       return Number(pkg.flatRate);
     }
+    if ((pkg.pricingModel || '').toUpperCase() === 'FREE_LAND' && pkg.perGuestRate != null && pkg.perGuestRate !== '') {
+      // If weekday/weekend rates are not explicitly set, default to perGuestRate
+      if (category === 'holiday' && pkg.holidayRate != null) return Number(pkg.holidayRate);
+      if (category === 'weekend' && pkg.weekendRate != null) return Number(pkg.weekendRate);
+      if (category === 'weekday' && pkg.weekdayRate != null) return Number(pkg.weekdayRate);
+      return Number(pkg.perGuestRate);
+    }
     if (category === 'holiday') {
       return Number(
         pkg.holidayRate ??
           pkg.weekendRate ??
           pkg.weekdayRate ??
+          pkg.perGuestRate ??
           spot?.holidayPrice ??
           spot?.weekendPrice ??
           spot?.weekdayPrice ??
@@ -486,12 +507,18 @@ function getPackageRateForCategory(
       return Number(
         pkg.weekendRate ??
           pkg.weekdayRate ??
+          pkg.perGuestRate ??
           spot?.weekendPrice ??
           spot?.weekdayPrice ??
           0,
       );
     }
-    return Number(pkg.weekdayRate ?? spot?.weekdayPrice ?? 0);
+    return Number(
+      pkg.weekdayRate ??
+        pkg.perGuestRate ??
+        spot?.weekdayPrice ??
+        0,
+    );
   }
 
   if (spot) {
@@ -647,6 +674,8 @@ export function SpotRedirectClient() {
   const [isAddonsExpanded, setIsAddonsExpanded] = useState(false);
   const [isMobileBookingOpen, setIsMobileBookingOpen] = useState(false);
   const [guestCount, setGuestCount] = useState(2);
+  const [motorcycleCount, setMotorcycleCount] = useState(0);
+  const [carCount, setCarCount] = useState(0);
   const [paymentScheme, setPaymentScheme] = useState<'DP_50' | 'FULL'>('FULL');
   const [selectedAddons, setSelectedAddons] = useState<Record<string, number>>(
     {},
@@ -719,6 +748,8 @@ export function SpotRedirectClient() {
               setSelectedPackageId(spot.pricingPackages[0].id);
             }
             if (draft.paymentScheme) setPaymentScheme(draft.paymentScheme);
+            if (draft.motorcycleCount != null) setMotorcycleCount(draft.motorcycleCount);
+            if (draft.carCount != null) setCarCount(draft.carCount);
             if (draft.selectedAddons) setSelectedAddons(draft.selectedAddons);
             return true;
           }
@@ -879,22 +910,60 @@ export function SpotRedirectClient() {
     );
   }, [activeSpot, selectedPackageId]);
 
+  const isFreeLand = useMemo(() => {
+    return (selectedPackage?.pricingModel || '').toUpperCase() === 'FREE_LAND';
+  }, [selectedPackage]);
+
+  const motorcyclePrice = useMemo(() => {
+    return Number(selectedPackage?.motorcycleCharge ?? 0);
+  }, [selectedPackage]);
+
+  const carPrice = useMemo(() => {
+    return Number(selectedPackage?.carCharge ?? 0);
+  }, [selectedPackage]);
+
+  const hasVehiclePricing = useMemo(() => {
+    return isFreeLand && (motorcyclePrice > 0 || carPrice > 0);
+  }, [isFreeLand, motorcyclePrice, carPrice]);
+
   // Max capacity based on selected package
   const effectiveMaxCapacity = useMemo(() => {
+    if (isFreeLand) {
+      return (
+        selectedPackage?.maxOccupancy ||
+        activeSpot?.maxCapacity ||
+        99
+      );
+    }
     return (
       selectedPackage?.maxOccupancy ||
       selectedPackage?.baseCapacity ||
       activeSpot?.maxCapacity ||
       10
     );
-  }, [selectedPackage, activeSpot]);
+  }, [selectedPackage, activeSpot, isFreeLand]);
+
+  const effectiveMinGuests = useMemo(() => {
+    return selectedPackage?.minGuestCount || 1;
+  }, [selectedPackage]);
 
   // Auto-cap guest count jika ganti paket dengan kapasitas maksimal yang lebih kecil
   useEffect(() => {
     if (guestCount > effectiveMaxCapacity) {
       setGuestCount(effectiveMaxCapacity);
     }
-  }, [effectiveMaxCapacity, guestCount]);
+    if (guestCount < effectiveMinGuests) {
+      setGuestCount(effectiveMinGuests);
+    }
+  }, [effectiveMaxCapacity, effectiveMinGuests, guestCount]);
+
+  // Reset vehicle counts if switching away from FREE_LAND or if package has no vehicle pricing
+  useEffect(() => {
+    if (!hasVehiclePricing) {
+      setMotorcycleCount(0);
+      setCarCount(0);
+    }
+  }, [hasVehiclePricing]);
 
   // Sync check-in & check-out cross-validation
   const nights = useMemo(() => {
@@ -1599,10 +1668,14 @@ export function SpotRedirectClient() {
       const rate = Number(selectedPackage.flatRate);
       return [
         {
-          label: 'Semua hari',
+          label: isFreeLand
+            ? lang === 'en'
+              ? 'Land fee per guest'
+              : 'Biaya lahan per orang'
+            : 'Semua hari',
           unitPrice: rate,
-          quantity: nights,
-          amount: rate * nights,
+          quantity: isFreeLand ? guestCount : nights,
+          amount: isFreeLand ? rate * guestCount * nights : rate * nights,
         },
       ];
     }
@@ -1632,7 +1705,7 @@ export function SpotRedirectClient() {
           label: labels[cat],
           unitPrice,
           quantity: cnt,
-          amount: unitPrice * cnt,
+          amount: isFreeLand ? unitPrice * cnt * guestCount : unitPrice * cnt,
         });
       }
     });
@@ -1646,7 +1719,78 @@ export function SpotRedirectClient() {
     selectedPackage,
     activeSpot,
     campsite?.holidays,
+    isFreeLand,
+    guestCount,
+    lang,
   ]);
+
+  // Vehicle lines calculation for FREE_LAND packages
+  const vehicleLines = useMemo<VehicleLineItem[]>(() => {
+    if (!hasVehiclePricing) return [];
+
+    if (serverQuote?.lines && Array.isArray(serverQuote.lines)) {
+      const vLines = serverQuote.lines.filter(
+        (l: any) =>
+          (l.code === 'MOTORCYCLE' || l.code === 'CAR') && Number(l.amount) > 0,
+      );
+      if (vLines.length > 0) {
+        return vLines.map((l: any) => ({
+          code: l.code,
+          label: l.label,
+          unitPrice: Number(l.unitPrice),
+          quantity: Number(l.quantity),
+          amount: Number(l.amount),
+          count: l.code === 'MOTORCYCLE' ? motorcycleCount : carCount,
+        }));
+      }
+    }
+
+    const res: Array<{
+      code: string;
+      label: string;
+      unitPrice: number;
+      quantity: number;
+      amount: number;
+      count: number;
+    }> = [];
+
+    if (motorcycleCount > 0 && motorcyclePrice > 0) {
+      res.push({
+        code: 'MOTORCYCLE',
+        label: lang === 'en' ? 'Motorcycle fee' : 'Biaya motor per malam',
+        unitPrice: motorcyclePrice,
+        quantity: motorcycleCount * Math.max(1, nights),
+        amount: motorcyclePrice * motorcycleCount * Math.max(1, nights),
+        count: motorcycleCount,
+      });
+    }
+
+    if (carCount > 0 && carPrice > 0) {
+      res.push({
+        code: 'CAR',
+        label: lang === 'en' ? 'Car fee' : 'Biaya mobil per malam',
+        unitPrice: carPrice,
+        quantity: carCount * Math.max(1, nights),
+        amount: carPrice * carCount * Math.max(1, nights),
+        count: carCount,
+      });
+    }
+
+    return res;
+  }, [
+    hasVehiclePricing,
+    serverQuote,
+    motorcycleCount,
+    carCount,
+    motorcyclePrice,
+    carPrice,
+    nights,
+    lang,
+  ]);
+
+  const vehicleTotal = useMemo(() => {
+    return vehicleLines.reduce((sum: number, v: { amount: number }) => sum + v.amount, 0);
+  }, [vehicleLines]);
 
   // Helper to check if an addon is charged per night
   const isAddonPerNight = (addon: any) => {
@@ -1720,6 +1864,8 @@ export function SpotRedirectClient() {
           checkIn: checkInDate,
           checkOut: checkOutDate,
           adultCount: guestCount,
+          motorcycleCount: hasVehiclePricing ? motorcycleCount : 0,
+          carCount: hasVehiclePricing ? carCount : 0,
           addons: addonsPayload,
         });
         if (!cancelled) {
@@ -1743,11 +1889,15 @@ export function SpotRedirectClient() {
     checkInDate,
     checkOutDate,
     guestCount,
+    hasVehiclePricing,
+    motorcycleCount,
+    carCount,
     selectedAddons,
   ]);
 
   // Biaya Orang Tambahan (Extra Person) berdasarkan kuota paket
   const extraPersonInfo = useMemo(() => {
+    if (isFreeLand) return null;
     if (serverQuote?.lines) {
       const extraLine = serverQuote.lines.find(
         (l: any) => l.code === 'EXTRA_PERSON',
@@ -1774,9 +1924,9 @@ export function SpotRedirectClient() {
       };
     }
     return null;
-  }, [serverQuote, selectedPackage, guestCount, nights]);
+  }, [serverQuote, selectedPackage, guestCount, nights, isFreeLand]);
 
-  // Subtotal sewa kavling + orang tambahan + perlengkapan
+  // Subtotal sewa kavling + orang tambahan + perlengkapan + kendaraan
   const rentalSubtotal = useMemo(() => {
     if (serverQuote?.total != null) {
       return serverQuote.total;
@@ -1785,16 +1935,19 @@ export function SpotRedirectClient() {
       accommodationStayLines.reduce(
         (acc: number, l: { amount: number }) => acc + l.amount,
         0,
-      ) || spotPricePerNight * nights;
+      ) || (isFreeLand ? spotPricePerNight * guestCount * nights : spotPricePerNight * nights);
     const extraAmount = extraPersonInfo?.amount || 0;
-    return accomTotal + extraAmount + addonTotal;
+    return accomTotal + extraAmount + addonTotal + vehicleTotal;
   }, [
     serverQuote,
     accommodationStayLines,
     spotPricePerNight,
+    guestCount,
     nights,
     extraPersonInfo,
     addonTotal,
+    vehicleTotal,
+    isFreeLand,
   ]);
 
   const grandTotal = useMemo(() => {
@@ -1806,7 +1959,31 @@ export function SpotRedirectClient() {
     return rentalHalf + totalServiceAndTaxFee;
   }, [rentalSubtotal, totalServiceAndTaxFee]);
 
-  const paymentAmountToPay = paymentScheme === 'DP_50' ? dp50Total : grandTotal;
+  const daysToCheckIn = useMemo(() => {
+    if (!checkInDate) return 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const checkIn = new Date(checkInDate);
+    checkIn.setHours(0, 0, 0, 0);
+    return Math.round(
+      (checkIn.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+    );
+  }, [checkInDate]);
+
+  const canUseDownPayment = useMemo(() => {
+    if (!campsite?.allowDownPayment) return false;
+    if (rentalSubtotal <= 200000) return false;
+    if (daysToCheckIn < 3) return false;
+    return true;
+  }, [campsite?.allowDownPayment, rentalSubtotal, daysToCheckIn]);
+
+  useEffect(() => {
+    if (paymentScheme === 'DP_50' && !canUseDownPayment) {
+      setPaymentScheme('FULL');
+    }
+  }, [canUseDownPayment, paymentScheme]);
+
+  const paymentAmountToPay = paymentScheme === 'DP_50' && canUseDownPayment ? dp50Total : grandTotal;
 
   // Add-on counter helper with strict spot pitch / kavling count limitations
   const handleAddonQty = (addonId: string, delta: number) => {
@@ -1890,11 +2067,17 @@ export function SpotRedirectClient() {
         id: selectedPackage.id,
         name: selectedPackage.name,
         price: spotPricePerNight,
+        pricingModel: selectedPackage.pricingModel,
       },
       checkInDate,
       checkOutDate,
       nights,
       guestCount,
+      motorcycleCount: hasVehiclePricing ? motorcycleCount : 0,
+      carCount: hasVehiclePricing ? carCount : 0,
+      motorcyclePrice,
+      carPrice,
+      vehicleLines,
       extraPersonInfo,
       serverQuote,
       rentalSubtotal,
@@ -2646,7 +2829,13 @@ export function SpotRedirectClient() {
                     <span className="font-bold text-foreground text-xs sm:text-sm">
                       {t.spot.guestsCountWithMax(guestCount, effectiveMaxCapacity)}
                     </span>
-                    {extraPersonInfo && extraPersonInfo.count > 0 && extraPersonInfo.unitPrice > 0 ? (
+                    {isFreeLand ? (
+                      <span className="block text-[10.5px] sm:text-[11px] text-brand-blue dark:text-brand-lime font-semibold mt-0.5">
+                        {lang === 'en'
+                          ? `${rupiah(spotPricePerNight)}/guest/night`
+                          : `${rupiah(spotPricePerNight)}/tamu/malam`}
+                      </span>
+                    ) : extraPersonInfo && extraPersonInfo.count > 0 && extraPersonInfo.unitPrice > 0 ? (
                       <span className="block text-[10.5px] sm:text-[11px] text-brand-blue dark:text-brand-lime font-semibold mt-0.5">
                         {lang === 'en'
                           ? `+${rupiah(extraPersonInfo.unitPrice)}/extra guest/night (${extraPersonInfo.count} extra)`
@@ -2663,8 +2852,8 @@ export function SpotRedirectClient() {
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      disabled={guestCount <= 1}
-                      onClick={() => setGuestCount(Math.max(1, guestCount - 1))}
+                      disabled={guestCount <= effectiveMinGuests}
+                      onClick={() => setGuestCount(Math.max(effectiveMinGuests, guestCount - 1))}
                       className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-border bg-white dark:bg-surface flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer active:scale-95 transition-all"
                       aria-label="Kurangi Tamu"
                     >
@@ -2688,6 +2877,104 @@ export function SpotRedirectClient() {
                     </button>
                   </div>
                 </div>
+
+                {/* Free Land Vehicle Selection */}
+                {hasVehiclePricing && (
+                  <div className="px-4 py-3 sm:px-5 sm:py-3.5 border-t border-border bg-surface/30 dark:bg-surface/50 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <span className="block text-[9px] font-bold uppercase tracking-wider text-foreground-muted">
+                          {t.spot.vehiclesTitle || 'Pilihan Kendaraan (Opsional)'}
+                        </span>
+                        <span className="text-[9.5px] font-semibold text-brand-blue dark:text-brand-lime bg-brand-blue/10 dark:bg-brand-lime/10 px-1.5 py-0.5 rounded-md">
+                          {lang === 'en' ? 'Per Night' : 'Per Malam'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {/* Motor Selector */}
+                      <div className="p-2.5 rounded-2xl bg-white dark:bg-surface border border-border flex items-center justify-between">
+                        <div className="flex items-center gap-2 min-w-0 pr-1">
+                          <div className="w-8 h-8 rounded-xl bg-brand-blue/10 dark:bg-brand-lime/15 flex items-center justify-center text-brand-blue dark:text-brand-lime shrink-0">
+                            <Bike size={16} />
+                          </div>
+                          <div className="min-w-0">
+                            <span className="font-bold text-xs text-foreground block truncate">
+                              {t.spot.motorcycle || 'Motor (Roda Dua)'}
+                            </span>
+                            <span className="text-[10px] text-foreground-muted block">
+                              {motorcyclePrice > 0 ? `+${rupiah(motorcyclePrice)}/malam` : 'Gratis'}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            disabled={motorcycleCount <= 0}
+                            onClick={() => setMotorcycleCount(Math.max(0, motorcycleCount - 1))}
+                            className="w-7 h-7 rounded-full border border-border bg-white dark:bg-surface flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer active:scale-95 transition-all"
+                            aria-label="Kurangi Motor"
+                          >
+                            <Minus size={12} />
+                          </button>
+                          <span className="font-bold text-xs w-4 text-center">
+                            {motorcycleCount}
+                          </span>
+                          <button
+                            type="button"
+                            disabled={motorcycleCount >= 99}
+                            onClick={() => setMotorcycleCount(Math.min(99, motorcycleCount + 1))}
+                            className="w-7 h-7 rounded-full border border-border bg-white dark:bg-surface flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer active:scale-95 transition-all"
+                            aria-label="Tambah Motor"
+                          >
+                            <Plus size={12} />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Mobil Selector */}
+                      <div className="p-2.5 rounded-2xl bg-white dark:bg-surface border border-border flex items-center justify-between">
+                        <div className="flex items-center gap-2 min-w-0 pr-1">
+                          <div className="w-8 h-8 rounded-xl bg-brand-blue/10 dark:bg-brand-lime/15 flex items-center justify-center text-brand-blue dark:text-brand-lime shrink-0">
+                            <Car size={16} />
+                          </div>
+                          <div className="min-w-0">
+                            <span className="font-bold text-xs text-foreground block truncate">
+                              {t.spot.car || 'Mobil (Roda Empat)'}
+                            </span>
+                            <span className="text-[10px] text-foreground-muted block">
+                              {carPrice > 0 ? `+${rupiah(carPrice)}/malam` : 'Gratis'}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            disabled={carCount <= 0}
+                            onClick={() => setCarCount(Math.max(0, carCount - 1))}
+                            className="w-7 h-7 rounded-full border border-border bg-white dark:bg-surface flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer active:scale-95 transition-all"
+                            aria-label="Kurangi Mobil"
+                          >
+                            <Minus size={12} />
+                          </button>
+                          <span className="font-bold text-xs w-4 text-center">
+                            {carCount}
+                          </span>
+                          <button
+                            type="button"
+                            disabled={carCount >= 99}
+                            onClick={() => setCarCount(Math.min(99, carCount + 1))}
+                            className="w-7 h-7 rounded-full border border-border bg-white dark:bg-surface flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer active:scale-95 transition-all"
+                            aria-label="Tambah Mobil"
+                          >
+                            <Plus size={12} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -2826,16 +3113,24 @@ export function SpotRedirectClient() {
                               </span>
                               <span className="text-[10.5px] text-foreground-muted">
                                 {' '}
-                                {t.spot.perNight}
+                                {(pkg.pricingModel || '').toUpperCase() === 'FREE_LAND'
+                                  ? (lang === 'en' ? '/ guest / night' : '/ tamu / malam')
+                                  : t.spot.perNight}
                               </span>
                             </div>
                             <div className="flex flex-col items-end gap-0.5">
-                              <span className="text-[10.5px] font-bold text-foreground bg-white dark:bg-surface px-2 py-0.5 rounded-full border border-border">
-                                {lang === 'en'
-                                  ? `Incl. ${pkg.baseCapacity || 1} (Max. ${pkg.maxOccupancy || pkg.baseCapacity || activeSpot.maxCapacity})`
-                                  : `Termasuk ${pkg.baseCapacity || 1} (Maks. ${pkg.maxOccupancy || pkg.baseCapacity || activeSpot.maxCapacity})`}
-                              </span>
-                              {Number(pkg.extraPersonFee ?? activeSpot.extraPersonFee ?? 0) > 0 ? (
+                              {(pkg.pricingModel || '').toUpperCase() === 'FREE_LAND' ? (
+                                <span className="text-[10.5px] font-bold text-brand-blue dark:text-brand-lime bg-brand-blue/10 dark:bg-brand-lime/10 px-2 py-0.5 rounded-full border border-brand-blue/20 dark:border-brand-lime/30">
+                                  {lang === 'en' ? 'Per Guest + Vehicles' : 'Per Tamu + Kendaraan'}
+                                </span>
+                              ) : (
+                                <span className="text-[10.5px] font-bold text-foreground bg-white dark:bg-surface px-2 py-0.5 rounded-full border border-border">
+                                  {lang === 'en'
+                                    ? `Incl. ${pkg.baseCapacity || 1} (Max. ${pkg.maxOccupancy || pkg.baseCapacity || activeSpot.maxCapacity})`
+                                    : `Termasuk ${pkg.baseCapacity || 1} (Maks. ${pkg.maxOccupancy || pkg.baseCapacity || activeSpot.maxCapacity})`}
+                                </span>
+                              )}
+                              {(pkg.pricingModel || '').toUpperCase() !== 'FREE_LAND' && Number(pkg.extraPersonFee ?? activeSpot.extraPersonFee ?? 0) > 0 ? (
                                 <span className="text-[9.5px] font-semibold text-amber-600">
                                   {lang === 'en'
                                     ? `+${rupiah(Number(pkg.extraPersonFee ?? activeSpot.extraPersonFee))}/extra guest`
@@ -2885,12 +3180,6 @@ export function SpotRedirectClient() {
                       : `/ ${unitDisplay}`;
 
                     const addonImg = getAddonImageUrl(addon);
-                    const cleanAddonDesc = addon.description
-                      ? addon.description
-                          .replace(/<[^>]+>/g, '')
-                          .replace(/&nbsp;/g, ' ')
-                          .trim()
-                      : null;
 
                     return (
                       <div
@@ -2922,7 +3211,7 @@ export function SpotRedirectClient() {
                             )}
                           </div>
 
-                          <div className="min-w-0 flex-1 space-y-0.5">
+                          <div className="min-w-0 flex-1 space-y-1">
                             <div className="flex items-center gap-1.5 flex-wrap">
                               <p
                                 onClick={() => setDetailAddon(addon)}
@@ -2946,12 +3235,6 @@ export function SpotRedirectClient() {
                                 </span>
                               )}
                             </div>
-
-                            {cleanAddonDesc ? (
-                              <p className="text-[11px] sm:text-xs text-foreground-muted line-clamp-1">
-                                {cleanAddonDesc}
-                              </p>
-                            ) : null}
 
                             <p className="text-xs sm:text-[13px] font-extrabold text-brand-blue dark:text-brand-lime pt-0.5 whitespace-nowrap">
                               +{rupiah(addon.price)}{' '}
@@ -3259,7 +3542,13 @@ export function SpotRedirectClient() {
                       <span className="font-bold text-foreground text-xs">
                         {t.spot.guestsCountWithMax(guestCount, effectiveMaxCapacity)}
                       </span>
-                      {extraPersonInfo && extraPersonInfo.count > 0 && extraPersonInfo.unitPrice > 0 ? (
+                      {isFreeLand ? (
+                        <span className="block text-[10px] text-brand-blue dark:text-brand-lime font-semibold mt-0.5">
+                          {lang === 'en'
+                            ? `${rupiah(spotPricePerNight)}/guest/night`
+                            : `${rupiah(spotPricePerNight)}/tamu/malam`}
+                        </span>
+                      ) : extraPersonInfo && extraPersonInfo.count > 0 && extraPersonInfo.unitPrice > 0 ? (
                         <span className="block text-[10px] text-brand-blue dark:text-brand-lime font-semibold mt-0.5">
                           {lang === 'en'
                             ? `+${rupiah(extraPersonInfo.unitPrice)}/extra guest/night`
@@ -3276,8 +3565,8 @@ export function SpotRedirectClient() {
                     <div className="flex items-center gap-1.5">
                       <button
                         type="button"
-                        disabled={guestCount <= 1}
-                        onClick={() => setGuestCount(Math.max(1, guestCount - 1))}
+                        disabled={guestCount <= effectiveMinGuests}
+                        onClick={() => setGuestCount(Math.max(effectiveMinGuests, guestCount - 1))}
                         className="w-6 h-6 rounded-full border border-border bg-white dark:bg-surface flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
                       >
                         <Minus size={11} />
@@ -3299,6 +3588,93 @@ export function SpotRedirectClient() {
                       </button>
                     </div>
                   </div>
+
+                  {/* Free Land Vehicle Selection in Sidebar */}
+                  {hasVehiclePricing && (
+                    <div className="p-2.5 bg-surface/30 dark:bg-surface/50 space-y-2 border-t border-border">
+                      <div className="flex items-center justify-between">
+                        <span className="block text-[9px] font-bold uppercase tracking-wider text-foreground-muted">
+                          {t.spot.vehiclesTitle || 'Pilihan Kendaraan'}
+                        </span>
+                        <span className="text-[9px] font-semibold text-brand-blue dark:text-brand-lime">
+                          {lang === 'en' ? 'Per Night' : 'Per Malam'}
+                        </span>
+                      </div>
+                      <div className="space-y-1.5">
+                        {/* Motor */}
+                        <div className="p-2 rounded-xl bg-white dark:bg-surface border border-border flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 min-w-0 pr-1">
+                            <Bike size={14} className="text-brand-blue dark:text-brand-lime shrink-0" />
+                            <div className="min-w-0">
+                              <span className="font-bold text-xs text-foreground block truncate">
+                                {lang === 'en' ? 'Motorcycle' : 'Motor'}
+                              </span>
+                              <span className="text-[9.5px] text-foreground-muted block">
+                                {motorcyclePrice > 0 ? `+${rupiah(motorcyclePrice)}` : 'Gratis'}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              type="button"
+                              disabled={motorcycleCount <= 0}
+                              onClick={() => setMotorcycleCount(Math.max(0, motorcycleCount - 1))}
+                              className="w-6 h-6 rounded-full border border-border bg-white dark:bg-surface flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                            >
+                              <Minus size={11} />
+                            </button>
+                            <span className="font-bold text-xs w-3 text-center">
+                              {motorcycleCount}
+                            </span>
+                            <button
+                              type="button"
+                              disabled={motorcycleCount >= 99}
+                              onClick={() => setMotorcycleCount(Math.min(99, motorcycleCount + 1))}
+                              className="w-6 h-6 rounded-full border border-border bg-white dark:bg-surface flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                            >
+                              <Plus size={11} />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Mobil */}
+                        <div className="p-2 rounded-xl bg-white dark:bg-surface border border-border flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 min-w-0 pr-1">
+                            <Car size={14} className="text-brand-blue dark:text-brand-lime shrink-0" />
+                            <div className="min-w-0">
+                              <span className="font-bold text-xs text-foreground block truncate">
+                                {lang === 'en' ? 'Car' : 'Mobil'}
+                              </span>
+                              <span className="text-[9.5px] text-foreground-muted block">
+                                {carPrice > 0 ? `+${rupiah(carPrice)}` : 'Gratis'}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              type="button"
+                              disabled={carCount <= 0}
+                              onClick={() => setCarCount(Math.max(0, carCount - 1))}
+                              className="w-6 h-6 rounded-full border border-border bg-white dark:bg-surface flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                            >
+                              <Minus size={11} />
+                            </button>
+                            <span className="font-bold text-xs w-3 text-center">
+                              {carCount}
+                            </span>
+                            <button
+                              type="button"
+                              disabled={carCount >= 99}
+                              onClick={() => setCarCount(Math.min(99, carCount + 1))}
+                              className="w-6 h-6 rounded-full border border-border bg-white dark:bg-surface flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                            >
+                              <Plus size={11} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Price Calculation Breakdown */}
@@ -3316,8 +3692,10 @@ export function SpotRedirectClient() {
                               className="flex justify-between items-center text-[11px]"
                             >
                               <span className="text-foreground-muted/80">
-                                {(line.label || '').replace(/\s*\(\d+\s*(malam|nights?)\)/gi, '').trim() || line.label} ({rupiah(line.unitPrice)} ×{' '}
-                                {line.quantity} {lang === 'en' ? 'nights' : 'malam'})
+                                {isFreeLand
+                                  ? `${line.label || (lang === 'en' ? 'Land fee per guest' : 'Biaya lahan per orang')} (${rupiah(line.unitPrice)} × ${guestCount} ${lang === 'en' ? 'guests' : 'tamu'}${nights > 1 ? ` × ${nights} ${lang === 'en' ? 'nights' : 'malam'}` : ''})`
+                                  : `${(line.label || '').replace(/\s*\(\d+\s*(malam|nights?)\)/gi, '').trim() || line.label} (${rupiah(line.unitPrice)} × ${line.quantity} ${lang === 'en' ? 'nights' : 'malam'})`
+                                }
                               </span>
                               <span className="font-semibold text-foreground shrink-0">
                                 {rupiah(line.amount)}
@@ -3327,14 +3705,39 @@ export function SpotRedirectClient() {
                         ) : (
                           <div className="flex justify-between items-center text-[11px]">
                             <span className="text-foreground-muted/80">
-                              {rupiah(spotPricePerNight)} × {nights} {lang === 'en' ? 'nights' : 'malam'}
+                              {isFreeLand
+                                ? `${rupiah(spotPricePerNight)} × ${guestCount} ${lang === 'en' ? 'guests' : 'tamu'} × ${nights} ${lang === 'en' ? 'nights' : 'malam'}`
+                                : `${rupiah(spotPricePerNight)} × ${nights} ${lang === 'en' ? 'nights' : 'malam'}`
+                              }
                             </span>
                             <span className="font-semibold text-foreground shrink-0">
-                              {rupiah(spotPricePerNight * nights)}
+                              {rupiah(isFreeLand ? spotPricePerNight * guestCount * nights : spotPricePerNight * nights)}
                             </span>
                           </div>
                         )}
                       </div>
+
+                      {/* Vehicle lines */}
+                      {vehicleLines.length > 0 && (
+                        <div className="space-y-1.5 pt-1 border-t border-border/50">
+                          {vehicleLines.map((v, vIdx) => (
+                            <div
+                              key={vIdx}
+                              className="flex justify-between items-center text-[11px]"
+                            >
+                              <span className="text-foreground-muted/80">
+                                {v.code === 'MOTORCYCLE'
+                                  ? `${lang === 'en' ? 'Motorcycle' : 'Motor'} (${rupiah(v.unitPrice)} × ${v.count} unit${nights > 1 ? ` × ${nights} ${lang === 'en' ? 'nights' : 'malam'}` : ''})`
+                                  : `${lang === 'en' ? 'Car' : 'Mobil'} (${rupiah(v.unitPrice)} × ${v.count} unit${nights > 1 ? ` × ${nights} ${lang === 'en' ? 'nights' : 'malam'}` : ''})`
+                                }
+                              </span>
+                              <span className="font-semibold text-foreground shrink-0">
+                                +{rupiah(v.amount)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
 
                       {extraPersonInfo && extraPersonInfo.amount > 0 && (
                         <div className="flex justify-between items-start gap-4 pt-1 border-t border-border/50">
@@ -3394,43 +3797,55 @@ export function SpotRedirectClient() {
                     </div>
 
                     {/* Payment Scheme Choice */}
-                    <div className="space-y-1.5">
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setPaymentScheme('DP_50')}
-                          className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
-                            paymentScheme === 'DP_50'
-                              ? 'border-brand-blue dark:border-brand-lime bg-brand-blue/5 dark:bg-brand-lime/10 ring-2 ring-brand-blue/20 dark:ring-brand-lime/30'
-                              : 'border-border bg-surface/50 hover:bg-surface'
-                          }`}
-                        >
-                          <span className="block text-[11px] font-bold text-foreground">
-                            {t.spot.dp50}
-                          </span>
-                          <span className="block text-xs font-extrabold text-brand-blue dark:text-brand-lime mt-0.5">
-                            {rupiah(dp50Total)}
-                          </span>
-                        </button>
+                    {campsite?.allowDownPayment && (
+                      <div className="space-y-1.5">
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            disabled={!canUseDownPayment}
+                            onClick={() => canUseDownPayment && setPaymentScheme('DP_50')}
+                            className={`p-2.5 rounded-2xl border text-left transition-all ${
+                              !canUseDownPayment
+                                ? 'opacity-50 cursor-not-allowed border-border bg-surface/30'
+                                : paymentScheme === 'DP_50'
+                                  ? 'border-brand-blue dark:border-brand-lime bg-brand-blue/5 dark:bg-brand-lime/10 ring-2 ring-brand-blue/20 dark:ring-brand-lime/30 cursor-pointer'
+                                  : 'border-border bg-surface/50 hover:bg-surface cursor-pointer'
+                            }`}
+                          >
+                            <span className="block text-[11px] font-bold text-foreground">
+                              {t.spot.dp50}
+                            </span>
+                            <span className="block text-xs font-extrabold text-brand-blue dark:text-brand-lime mt-0.5">
+                              {rupiah(dp50Total)}
+                            </span>
+                            {!canUseDownPayment && (
+                              <span className="block text-[9px] text-amber-600 dark:text-amber-400 mt-0.5 font-medium leading-tight">
+                                {rentalSubtotal <= 200000
+                                  ? (lang === 'en' ? 'Min. rent > Rp 200k' : 'Min. sewa > Rp 200rb')
+                                  : (lang === 'en' ? 'Min. 3 days before' : 'Min. H-3 check-in')}
+                              </span>
+                            )}
+                          </button>
 
-                        <button
-                          type="button"
-                          onClick={() => setPaymentScheme('FULL')}
-                          className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
-                            paymentScheme === 'FULL'
-                              ? 'border-brand-blue dark:border-brand-lime bg-brand-blue/5 dark:bg-brand-lime/10 ring-2 ring-brand-blue/20 dark:ring-brand-lime/30'
-                              : 'border-border bg-surface/50 hover:bg-surface'
-                          }`}
-                        >
-                          <span className="block text-[11px] font-bold text-foreground">
-                            {t.spot.payFull}
-                          </span>
-                          <span className="block text-xs font-extrabold text-brand-blue dark:text-brand-lime mt-0.5">
-                            {rupiah(grandTotal)}
-                          </span>
-                        </button>
+                          <button
+                            type="button"
+                            onClick={() => setPaymentScheme('FULL')}
+                            className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                              paymentScheme === 'FULL' || !canUseDownPayment
+                                ? 'border-brand-blue dark:border-brand-lime bg-brand-blue/5 dark:bg-brand-lime/10 ring-2 ring-brand-blue/20 dark:ring-brand-lime/30'
+                                : 'border-border bg-surface/50 hover:bg-surface'
+                            }`}
+                          >
+                            <span className="block text-[11px] font-bold text-foreground">
+                              {t.spot.payFull}
+                            </span>
+                            <span className="block text-xs font-extrabold text-brand-blue dark:text-brand-lime mt-0.5">
+                              {rupiah(grandTotal)}
+                            </span>
+                          </button>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </>
                 ) : (
                   <div className="pt-2 border-t border-border space-y-2.5 text-xs">
@@ -4300,44 +4715,104 @@ export function SpotRedirectClient() {
               <div className="p-4 rounded-2xl bg-surface border border-border space-y-3">
                 {/* Capacity & Extra Guest Breakdown */}
                 <div className="flex flex-col gap-2 pb-2.5 border-b border-border/60 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
-                      {lang === 'en' ? 'Included Guests' : 'Kapasitas Termasuk'}
-                    </span>
-                    <span className="font-bold text-foreground">
-                      {detailPackage.baseCapacity || activeSpot.baseCapacity || 1} {lang === 'en' ? 'Guests' : 'Tamu'}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
-                      {lang === 'en' ? 'Max Capacity' : 'Kapasitas Maksimal'}
-                    </span>
-                    <span className="font-bold text-brand-blue dark:text-brand-lime px-2.5 py-0.5 rounded-full bg-brand-blue/10 dark:bg-brand-lime/10 text-xs">
-                      {t.spot.maxGuests(
-                        detailPackage.maxOccupancy ||
-                          detailPackage.baseCapacity ||
-                          activeSpot.maxCapacity,
-                      )}
-                    </span>
-                  </div>
-                  {Number(detailPackage.extraPersonFee ?? activeSpot.extraPersonFee ?? 0) > 0 ? (
-                    <div className="flex items-center justify-between pt-1 border-t border-dashed border-border/60">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
-                        {lang === 'en' ? 'Extra Guest Fee' : 'Biaya Tamu Tambahan'}
-                      </span>
-                      <span className="font-bold text-amber-600">
-                        +{rupiah(Number(detailPackage.extraPersonFee ?? activeSpot.extraPersonFee))}/{lang === 'en' ? 'guest/night' : 'orang/malam'}
-                      </span>
-                    </div>
+                  {(detailPackage.pricingModel || '').toUpperCase() === 'FREE_LAND' ? (
+                    <>
+                      {(() => {
+                        const hasPkgVehicles =
+                          Number(detailPackage.motorcycleCharge ?? 0) > 0 ||
+                          Number(detailPackage.carCharge ?? 0) > 0;
+                        return (
+                          <>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
+                                {lang === 'en' ? 'Pricing Model' : 'Model Tarif'}
+                              </span>
+                              <span className="font-bold text-brand-blue dark:text-brand-lime px-2.5 py-0.5 rounded-full bg-brand-blue/10 dark:bg-brand-lime/10 text-xs">
+                                {hasPkgVehicles
+                                  ? (lang === 'en' ? 'Per Guest + Vehicle' : 'Per Tamu + Kendaraan')
+                                  : (lang === 'en' ? 'Per Guest' : 'Per Tamu')}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
+                                {lang === 'en' ? 'Max Guests' : 'Kapasitas Tamu'}
+                              </span>
+                              <span className="font-bold text-foreground">
+                                {detailPackage.maxOccupancy ? t.spot.maxGuests(detailPackage.maxOccupancy) : (lang === 'en' ? 'No limit' : 'Tanpa batas')}
+                              </span>
+                            </div>
+                            {hasPkgVehicles && (
+                              <>
+                                {Number(detailPackage.motorcycleCharge ?? 0) > 0 && (
+                                  <div className="flex items-center justify-between pt-1 border-t border-dashed border-border/60">
+                                    <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted flex items-center gap-1">
+                                      <Bike size={13} className="text-brand-blue dark:text-brand-lime" />
+                                      <span>{lang === 'en' ? 'Motorcycle Fee' : 'Biaya Motor'}</span>
+                                    </span>
+                                    <span className="font-bold text-foreground">
+                                      +{rupiah(Number(detailPackage.motorcycleCharge))}/malam
+                                    </span>
+                                  </div>
+                                )}
+                                {Number(detailPackage.carCharge ?? 0) > 0 && (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted flex items-center gap-1">
+                                      <Car size={13} className="text-brand-blue dark:text-brand-lime" />
+                                      <span>{lang === 'en' ? 'Car Fee' : 'Biaya Mobil'}</span>
+                                    </span>
+                                    <span className="font-bold text-foreground">
+                                      +{rupiah(Number(detailPackage.carCharge))}/malam
+                                    </span>
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </>
+                        );
+                      })()}
+                    </>
                   ) : (
-                    <div className="flex items-center justify-between pt-1 border-t border-dashed border-border/60">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
-                        {lang === 'en' ? 'Extra Guest Fee' : 'Biaya Tamu Tambahan'}
-                      </span>
-                      <span className="font-bold text-emerald-600">
-                        {lang === 'en' ? 'Free (up to max capacity)' : 'Gratis (hingga kapasitas maks)'}
-                      </span>
-                    </div>
+                    <>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
+                          {lang === 'en' ? 'Included Guests' : 'Kapasitas Termasuk'}
+                        </span>
+                        <span className="font-bold text-foreground">
+                          {detailPackage.baseCapacity || activeSpot.baseCapacity || 1} {lang === 'en' ? 'Guests' : 'Tamu'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
+                          {lang === 'en' ? 'Max Capacity' : 'Kapasitas Maksimal'}
+                        </span>
+                        <span className="font-bold text-brand-blue dark:text-brand-lime px-2.5 py-0.5 rounded-full bg-brand-blue/10 dark:bg-brand-lime/10 text-xs">
+                          {t.spot.maxGuests(
+                            detailPackage.maxOccupancy ||
+                              detailPackage.baseCapacity ||
+                              activeSpot.maxCapacity,
+                          )}
+                        </span>
+                      </div>
+                      {Number(detailPackage.extraPersonFee ?? activeSpot.extraPersonFee ?? 0) > 0 ? (
+                        <div className="flex items-center justify-between pt-1 border-t border-dashed border-border/60">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
+                            {lang === 'en' ? 'Extra Guest Fee' : 'Biaya Tamu Tambahan'}
+                          </span>
+                          <span className="font-bold text-amber-600">
+                            +{rupiah(Number(detailPackage.extraPersonFee ?? activeSpot.extraPersonFee))}/{lang === 'en' ? 'guest/night' : 'orang/malam'}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between pt-1 border-t border-dashed border-border/60">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
+                            {lang === 'en' ? 'Extra Guest Fee' : 'Biaya Tamu Tambahan'}
+                          </span>
+                          <span className="font-bold text-emerald-600">
+                            {lang === 'en' ? 'Free (up to max capacity)' : 'Gratis (hingga kapasitas maks)'}
+                          </span>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
                 <div>
@@ -4840,12 +5315,31 @@ export function SpotRedirectClient() {
                   <span className="font-bold text-foreground text-xs">
                     {t.spot.guestsCountWithMax(guestCount, effectiveMaxCapacity)}
                   </span>
+                  {isFreeLand ? (
+                    <span className="block text-[10px] text-brand-blue dark:text-brand-lime font-semibold mt-0.5">
+                      {lang === 'en'
+                        ? `${rupiah(spotPricePerNight)}/guest/night`
+                        : `${rupiah(spotPricePerNight)}/tamu/malam`}
+                    </span>
+                  ) : extraPersonInfo && extraPersonInfo.count > 0 && extraPersonInfo.unitPrice > 0 ? (
+                    <span className="block text-[10px] text-brand-blue dark:text-brand-lime font-semibold mt-0.5">
+                      {lang === 'en'
+                        ? `+${rupiah(extraPersonInfo.unitPrice)}/extra guest/night`
+                        : `+${rupiah(extraPersonInfo.unitPrice)}/tamu ekstra/malam`}
+                    </span>
+                  ) : Number(selectedPackage?.extraPersonFee ?? activeSpot?.extraPersonFee ?? 0) > 0 ? (
+                    <span className="block text-[9.5px] text-foreground-muted/70 mt-0.5">
+                      {lang === 'en'
+                        ? `+${rupiah(Number(selectedPackage?.extraPersonFee ?? activeSpot?.extraPersonFee))}/extra guest`
+                        : `+${rupiah(Number(selectedPackage?.extraPersonFee ?? activeSpot?.extraPersonFee))}/tamu tambahan`}
+                    </span>
+                  ) : null}
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    disabled={guestCount <= 1}
-                    onClick={() => setGuestCount(Math.max(1, guestCount - 1))}
+                    disabled={guestCount <= effectiveMinGuests}
+                    onClick={() => setGuestCount(Math.max(effectiveMinGuests, guestCount - 1))}
                     className="w-7 h-7 rounded-full border border-border bg-white dark:bg-surface flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
                   >
                     <Minus size={12} />
@@ -4867,6 +5361,93 @@ export function SpotRedirectClient() {
                   </button>
                 </div>
               </div>
+
+              {/* Free Land Vehicle Selection in Mobile Drawer */}
+              {hasVehiclePricing && (
+                <div className="p-3 bg-surface/30 dark:bg-surface/50 space-y-2 border-t border-border">
+                  <div className="flex items-center justify-between">
+                    <span className="block text-[9.5px] font-bold uppercase tracking-wider text-foreground-muted">
+                      {t.spot.vehiclesTitle || 'Pilihan Kendaraan (Opsional)'}
+                    </span>
+                    <span className="text-[9.5px] font-semibold text-brand-blue dark:text-brand-lime">
+                      {lang === 'en' ? 'Per Night' : 'Per Malam'}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    {/* Motor */}
+                    <div className="p-2.5 rounded-xl bg-white dark:bg-surface border border-border flex items-center justify-between">
+                      <div className="flex items-center gap-2 min-w-0 pr-1">
+                        <Bike size={16} className="text-brand-blue dark:text-brand-lime shrink-0" />
+                        <div className="min-w-0">
+                          <span className="font-bold text-xs text-foreground block truncate">
+                            {t.spot.motorcycle || 'Motor (Roda Dua)'}
+                          </span>
+                          <span className="text-[10px] text-foreground-muted block">
+                            {motorcyclePrice > 0 ? `+${rupiah(motorcyclePrice)}/malam` : 'Gratis'}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          disabled={motorcycleCount <= 0}
+                          onClick={() => setMotorcycleCount(Math.max(0, motorcycleCount - 1))}
+                          className="w-7 h-7 rounded-full border border-border bg-white dark:bg-surface flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                        >
+                          <Minus size={12} />
+                        </button>
+                        <span className="font-bold text-xs w-4 text-center">
+                          {motorcycleCount}
+                        </span>
+                        <button
+                          type="button"
+                          disabled={motorcycleCount >= 99}
+                          onClick={() => setMotorcycleCount(Math.min(99, motorcycleCount + 1))}
+                          className="w-7 h-7 rounded-full border border-border bg-white dark:bg-surface flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                        >
+                          <Plus size={12} />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Mobil */}
+                    <div className="p-2.5 rounded-xl bg-white dark:bg-surface border border-border flex items-center justify-between">
+                      <div className="flex items-center gap-2 min-w-0 pr-1">
+                        <Car size={16} className="text-brand-blue dark:text-brand-lime shrink-0" />
+                        <div className="min-w-0">
+                          <span className="font-bold text-xs text-foreground block truncate">
+                            {t.spot.car || 'Mobil (Roda Empat)'}
+                          </span>
+                          <span className="text-[10px] text-foreground-muted block">
+                            {carPrice > 0 ? `+${rupiah(carPrice)}/malam` : 'Gratis'}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          disabled={carCount <= 0}
+                          onClick={() => setCarCount(Math.max(0, carCount - 1))}
+                          className="w-7 h-7 rounded-full border border-border bg-white dark:bg-surface flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                        >
+                          <Minus size={12} />
+                        </button>
+                        <span className="font-bold text-xs w-4 text-center">
+                          {carCount}
+                        </span>
+                        <button
+                          type="button"
+                          disabled={carCount >= 99}
+                          onClick={() => setCarCount(Math.min(99, carCount + 1))}
+                          className="w-7 h-7 rounded-full border border-border bg-white dark:bg-surface flex items-center justify-center text-foreground hover:bg-surface disabled:opacity-30 cursor-pointer"
+                        >
+                          <Plus size={12} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Add-ons */}
@@ -5008,8 +5589,10 @@ export function SpotRedirectClient() {
                           className="flex justify-between items-center text-[11px]"
                         >
                           <span className="text-foreground-muted/80">
-                            {(line.label || '').replace(/\s*\(\d+\s*(malam|nights?)\)/gi, '').trim() || line.label} ({rupiah(line.unitPrice)} ×{' '}
-                            {line.quantity} {lang === 'en' ? 'nights' : 'malam'})
+                            {isFreeLand
+                              ? `${line.label || (lang === 'en' ? 'Land fee per guest' : 'Biaya lahan per orang')} (${rupiah(line.unitPrice)} × ${guestCount} ${lang === 'en' ? 'guests' : 'tamu'}${nights > 1 ? ` × ${nights} ${lang === 'en' ? 'nights' : 'malam'}` : ''})`
+                              : `${(line.label || '').replace(/\s*\(\d+\s*(malam|nights?)\)/gi, '').trim() || line.label} (${rupiah(line.unitPrice)} × ${line.quantity} ${lang === 'en' ? 'nights' : 'malam'})`
+                            }
                           </span>
                           <span className="font-semibold text-foreground shrink-0">
                             {rupiah(line.amount)}
@@ -5019,14 +5602,39 @@ export function SpotRedirectClient() {
                     ) : (
                       <div className="flex justify-between items-center text-[11px]">
                         <span className="text-foreground-muted/80">
-                          {rupiah(spotPricePerNight)} × {nights} {lang === 'en' ? 'nights' : 'malam'}
+                          {isFreeLand
+                            ? `${rupiah(spotPricePerNight)} × ${guestCount} ${lang === 'en' ? 'guests' : 'tamu'} × ${nights} ${lang === 'en' ? 'nights' : 'malam'}`
+                            : `${rupiah(spotPricePerNight)} × ${nights} ${lang === 'en' ? 'nights' : 'malam'}`
+                          }
                         </span>
                         <span className="font-semibold text-foreground shrink-0">
-                          {rupiah(spotPricePerNight * nights)}
+                          {rupiah(isFreeLand ? spotPricePerNight * guestCount * nights : spotPricePerNight * nights)}
                         </span>
                       </div>
                     )}
                   </div>
+
+                  {/* Vehicle lines in Mobile Drawer */}
+                  {vehicleLines.length > 0 && (
+                    <div className="space-y-1.5 pt-1 border-t border-border/50">
+                      {vehicleLines.map((v, vIdx) => (
+                        <div
+                          key={vIdx}
+                          className="flex justify-between items-center text-[11px]"
+                        >
+                          <span className="text-foreground-muted/80">
+                            {v.code === 'MOTORCYCLE'
+                              ? `${lang === 'en' ? 'Motorcycle' : 'Motor'} (${rupiah(v.unitPrice)} × ${v.count} unit${nights > 1 ? ` × ${nights} ${lang === 'en' ? 'nights' : 'malam'}` : ''})`
+                              : `${lang === 'en' ? 'Car' : 'Mobil'} (${rupiah(v.unitPrice)} × ${v.count} unit${nights > 1 ? ` × ${nights} ${lang === 'en' ? 'nights' : 'malam'}` : ''})`
+                            }
+                          </span>
+                          <span className="font-semibold text-foreground shrink-0">
+                            +{rupiah(v.amount)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   {extraPersonInfo && extraPersonInfo.amount > 0 && (
                     <div className="flex justify-between items-start gap-4 pt-1 border-t border-border/50">
@@ -5086,46 +5694,58 @@ export function SpotRedirectClient() {
                 </div>
 
                 {/* Payment Scheme Choice */}
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-foreground block">
-                    {lang === 'en' ? 'Payment Options' : 'Pilihan Pembayaran'}
-                  </label>
-                  <div className="grid grid-cols-2 gap-2.5">
-                    <button
-                      type="button"
-                      onClick={() => setPaymentScheme('DP_50')}
-                      className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
-                        paymentScheme === 'DP_50'
-                          ? 'border-brand-blue dark:border-brand-lime bg-brand-blue/5 dark:bg-brand-lime/10 ring-2 ring-brand-blue/20 dark:ring-brand-lime/30'
-                          : 'border-border bg-surface/50 hover:bg-surface'
-                      }`}
-                    >
-                      <span className="block text-xs font-bold text-foreground">
-                        {t.spot.dp50}
-                      </span>
-                      <span className="block text-xs font-extrabold text-brand-blue dark:text-brand-lime mt-0.5">
-                        {rupiah(dp50Total)}
-                      </span>
-                    </button>
+                {campsite?.allowDownPayment && (
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-foreground block">
+                      {lang === 'en' ? 'Payment Options' : 'Pilihan Pembayaran'}
+                    </label>
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <button
+                        type="button"
+                        disabled={!canUseDownPayment}
+                        onClick={() => canUseDownPayment && setPaymentScheme('DP_50')}
+                        className={`p-3 rounded-2xl border text-left transition-all ${
+                          !canUseDownPayment
+                            ? 'opacity-50 cursor-not-allowed border-border bg-surface/30'
+                            : paymentScheme === 'DP_50'
+                              ? 'border-brand-blue dark:border-brand-lime bg-brand-blue/5 dark:bg-brand-lime/10 ring-2 ring-brand-blue/20 dark:ring-brand-lime/30 cursor-pointer'
+                              : 'border-border bg-surface/50 hover:bg-surface cursor-pointer'
+                        }`}
+                      >
+                        <span className="block text-xs font-bold text-foreground">
+                          {t.spot.dp50}
+                        </span>
+                        <span className="block text-xs font-extrabold text-brand-blue dark:text-brand-lime mt-0.5">
+                          {rupiah(dp50Total)}
+                        </span>
+                        {!canUseDownPayment && (
+                          <span className="block text-[10px] text-amber-600 dark:text-amber-400 mt-1 font-medium leading-tight">
+                            {rentalSubtotal <= 200000
+                              ? (lang === 'en' ? 'Min. rent > Rp 200k' : 'Min. sewa > Rp 200rb')
+                              : (lang === 'en' ? 'Min. 3 days before' : 'Min. H-3 check-in')}
+                          </span>
+                        )}
+                      </button>
 
-                    <button
-                      type="button"
-                      onClick={() => setPaymentScheme('FULL')}
-                      className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
-                        paymentScheme === 'FULL'
-                          ? 'border-brand-blue dark:border-brand-lime bg-brand-blue/5 dark:bg-brand-lime/10 ring-2 ring-brand-blue/20 dark:ring-brand-lime/30'
-                          : 'border-border bg-surface/50 hover:bg-surface'
-                      }`}
-                    >
-                      <span className="block text-xs font-bold text-foreground">
-                        {t.spot.payFull}
-                      </span>
-                      <span className="block text-xs font-extrabold text-brand-blue dark:text-brand-lime mt-0.5">
-                        {rupiah(grandTotal)}
-                      </span>
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => setPaymentScheme('FULL')}
+                        className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                          paymentScheme === 'FULL' || !canUseDownPayment
+                            ? 'border-brand-blue dark:border-brand-lime bg-brand-blue/5 dark:bg-brand-lime/10 ring-2 ring-brand-blue/20 dark:ring-brand-lime/30'
+                            : 'border-border bg-surface/50 hover:bg-surface'
+                        }`}
+                      >
+                        <span className="block text-xs font-bold text-foreground">
+                          {t.spot.payFull}
+                        </span>
+                        <span className="block text-xs font-extrabold text-brand-blue dark:text-brand-lime mt-0.5">
+                          {rupiah(grandTotal)}
+                        </span>
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
               </>
             ) : (
               <div className="pt-2 border-t border-border space-y-2.5 text-xs">
