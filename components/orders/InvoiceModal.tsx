@@ -57,7 +57,7 @@ const INVOICE_I18N = {
     serviceFee: 'Biaya Layanan',
     vat: 'PPN',
     promoDiscount: (code: string) => `Diskon Promo (${code})`,
-    remainingRentalBalance: 'Sisa Pokok Sewa (Dibayar di H-1)',
+    remainingRentalBalance: 'Sisa Sewa (Dibayar di H-1)',
     totalPaymentDP: 'Total Pembayaran (DP 50%)',
     totalPayment: 'Total Pembayaran',
     footerThanks: 'Terima kasih telah memesan melalui embun.',
