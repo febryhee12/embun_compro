@@ -2681,12 +2681,6 @@ export function SpotRedirectClient() {
                       <span>{translateItemName(activeSpot.tentType, lang)}</span>
                     </>
                   )}
-                  {activeSpot.roomSize && (
-                    <>
-                      <span>·</span>
-                      <span>{activeSpot.roomSize}</span>
-                    </>
-                  )}
                 </p>
               </div>
             </div>
