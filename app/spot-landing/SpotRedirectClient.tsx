@@ -1231,6 +1231,9 @@ export function SpotRedirectClient() {
       ].filter(Boolean).map((s) => String(s).trim().toLowerCase());
 
       return hsList.find((h: any) => {
+        // Abaikan hotspot tipe scene / perpindahan area
+        if (h.type === 'scene' || h.iconStyle === 'arrow_up') return false;
+
         const hIds = [h.blockId, h.targetSpotId].filter(Boolean).map((s) => String(s).trim().toLowerCase());
         for (const hid of hIds) {
           if (targetIds.includes(hid)) return true;
@@ -1238,11 +1241,6 @@ export function SpotRedirectClient() {
         const hLabels = [h.targetLabel, h.label, h.text].filter(Boolean).map((s) => String(s).trim().toLowerCase());
         for (const hlabel of hLabels) {
           if (targetNames.includes(hlabel)) return true;
-          for (const tname of targetNames) {
-            if (tname.length >= 2 && (tname === hlabel || hlabel.includes(tname) || tname.includes(hlabel))) {
-              return true;
-            }
-          }
         }
         return false;
       });
@@ -1354,11 +1352,7 @@ export function SpotRedirectClient() {
         pitch: resolvedPitch,
       };
 
-      if (matchPin) {
-        list.unshift(panoItem);
-      } else {
-        list.push(panoItem);
-      }
+      list.push(panoItem);
     };
 
     // 3a. campsite.panoramaSpots
@@ -1387,6 +1381,13 @@ export function SpotRedirectClient() {
         }
       }
     }
+
+    // Urutkan agar panorama yang memuat pin spot ini selalu muncul pertama kali
+    list.sort((a, b) => {
+      const aScore = a.category === 'panorama_linked' ? 1 : 0;
+      const bScore = b.category === 'panorama_linked' ? 1 : 0;
+      return bScore - aScore;
+    });
 
     return list;
   }, [activeSpot, campsite]);

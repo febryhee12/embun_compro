@@ -75,6 +75,9 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
       ].filter(Boolean).map((s) => String(s).trim().toLowerCase());
 
       return hsList.find((h: any) => {
+        // Abaikan hotspot tipe scene / perpindahan area
+        if (h.type === 'scene' || h.iconStyle === 'arrow_up') return false;
+
         const hIds = [h.blockId, h.targetSpotId].filter(Boolean).map((s) => String(s).trim().toLowerCase());
         for (const hid of hIds) {
           if (targetIds.includes(hid)) return true;
@@ -82,11 +85,6 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
         const hLabels = [h.targetLabel, h.label, h.text].filter(Boolean).map((s) => String(s).trim().toLowerCase());
         for (const hlabel of hLabels) {
           if (targetNames.includes(hlabel)) return true;
-          for (const tname of targetNames) {
-            if (tname.length >= 2 && (tname === hlabel || hlabel.includes(tname) || tname.includes(hlabel))) {
-              return true;
-            }
-          }
         }
         return false;
       });
@@ -147,11 +145,7 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
         category: matchPin || isLinked ? 'panorama_linked' : (p.category || 'campsite_panorama'),
       };
 
-      if (matchPin || isLinked) {
-        list.unshift(item);
-      } else {
-        list.push(item);
-      }
+      list.push(item);
     };
 
     // 1. Check spot.linkedPanoramaSpotId
@@ -192,6 +186,13 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
       );
       p360.forEach((p: any) => addPano(p));
     }
+
+    // Urutkan agar panorama yang memuat pin spot ini selalu muncul pertama kali
+    list.sort((a, b) => {
+      const aScore = a.category === 'panorama_linked' ? 1 : 0;
+      const bScore = b.category === 'panorama_linked' ? 1 : 0;
+      return bScore - aScore;
+    });
 
     return list;
   }, [spot]);
