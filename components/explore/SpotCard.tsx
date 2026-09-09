@@ -30,6 +30,9 @@ export interface SpotData {
   photos?: Array<{ url: string; category?: string }>;
   images?: string[];
   panoramaPhotos?: any[];
+  linkedPanoramaSpotId?: string | null;
+  linkedPanoramaYaw?: number | null;
+  linkedPanoramaPitch?: number | null;
   viewOptions?: string[];
   facilities?: string[];
   campsite: {

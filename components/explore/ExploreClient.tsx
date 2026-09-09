@@ -234,6 +234,9 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                   label: ps.label || ps.description || 'Tur 360° Kawasan',
                   imageUrl: ps.imageUrl,
                   category: 'panorama_campsite',
+                  hotspots: ps.hotspots,
+                  yaw: ps.yaw,
+                  pitch: ps.pitch,
                 });
               });
             }
@@ -253,6 +256,7 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                 rating: camp.rating ? Number(camp.rating) : 0,
                 reviewCount: camp.reviewCount ? Number(camp.reviewCount) : 0,
                 panoramaSpots: camp.panoramaSpots || [],
+                maps: camp.maps || [],
               },
             });
           }

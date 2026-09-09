@@ -41,29 +41,159 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
 
   const panoramaList: any[] = React.useMemo(() => {
     if (!spot) return [];
-    if (Array.isArray(spot.panoramaPhotos) && spot.panoramaPhotos.length > 0) {
-      return spot.panoramaPhotos;
+    const list: any[] = [];
+    const addedUrls = new Set<string>();
+
+    const parseHotspotsList = (raw: any): any[] => {
+      if (Array.isArray(raw)) return raw;
+      if (typeof raw === 'string' && raw.trim().length > 0) {
+        try {
+          const parsed = JSON.parse(raw);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch {
+          return [];
+        }
+      }
+      return [];
+    };
+
+    const findMatchingPin = (rawHotspots: any, targetSpot: any) => {
+      if (!targetSpot) return null;
+      const hsList = parseHotspotsList(rawHotspots);
+      if (hsList.length === 0) return null;
+
+      const targetIds = [
+        targetSpot.id,
+        targetSpot.blockId,
+        targetSpot.shareCode,
+      ].filter(Boolean).map((s) => String(s).trim().toLowerCase());
+
+      const targetNames = [
+        targetSpot.name,
+        targetSpot.blockNumber,
+        targetSpot.label,
+      ].filter(Boolean).map((s) => String(s).trim().toLowerCase());
+
+      return hsList.find((h: any) => {
+        const hIds = [h.blockId, h.targetSpotId].filter(Boolean).map((s) => String(s).trim().toLowerCase());
+        for (const hid of hIds) {
+          if (targetIds.includes(hid)) return true;
+        }
+        const hLabels = [h.targetLabel, h.label, h.text].filter(Boolean).map((s) => String(s).trim().toLowerCase());
+        for (const hlabel of hLabels) {
+          if (targetNames.includes(hlabel)) return true;
+          for (const tname of targetNames) {
+            if (tname.length >= 2 && (tname === hlabel || hlabel.includes(tname) || tname.includes(hlabel))) {
+              return true;
+            }
+          }
+        }
+        return false;
+      });
+    };
+
+    const addPano = (p: any, isLinked = false) => {
+      const url = (p.imageUrl || p.url || p.panoramaImageUrl || '').trim();
+      if (!url || addedUrls.has(url)) return;
+      addedUrls.add(url);
+
+      const rawHs = p.panoramaHotspots || p.hotspots || [];
+      const matchPin = findMatchingPin(rawHs, spot);
+      const pinYaw = matchPin?.yaw !== undefined && matchPin?.yaw !== null ? Number(matchPin.yaw) : null;
+      const pinPitch = matchPin?.pitch !== undefined && matchPin?.pitch !== null ? Number(matchPin.pitch) : null;
+
+      const explicitYaw =
+        isLinked &&
+        spot.linkedPanoramaYaw !== undefined &&
+        spot.linkedPanoramaYaw !== null &&
+        !isNaN(Number(spot.linkedPanoramaYaw))
+          ? Number(spot.linkedPanoramaYaw)
+          : null;
+      const explicitPitch =
+        isLinked &&
+        spot.linkedPanoramaPitch !== undefined &&
+        spot.linkedPanoramaPitch !== null &&
+        !isNaN(Number(spot.linkedPanoramaPitch))
+          ? Number(spot.linkedPanoramaPitch)
+          : null;
+
+      const resolvedYaw = explicitYaw !== null
+        ? explicitYaw
+        : pinYaw !== null
+          ? pinYaw
+          : (p.panoramaYaw !== undefined && p.panoramaYaw !== null && !isNaN(Number(p.panoramaYaw)))
+            ? Number(p.panoramaYaw)
+            : (p.yaw !== undefined && p.yaw !== null && !isNaN(Number(p.yaw)))
+              ? Number(p.yaw)
+              : 0;
+
+      const resolvedPitch = explicitPitch !== null
+        ? explicitPitch
+        : pinPitch !== null
+          ? pinPitch
+          : (p.panoramaPitch !== undefined && p.panoramaPitch !== null && !isNaN(Number(p.panoramaPitch)))
+            ? Number(p.panoramaPitch)
+            : (p.pitch !== undefined && p.pitch !== null && !isNaN(Number(p.pitch)))
+              ? Number(p.pitch)
+              : 0;
+
+      const item = {
+        id: p.id || `pano-${list.length}`,
+        label: p.label || p.description || p.caption || (isLinked ? `${spot.name} (View 360°)` : 'Tur 360° Kawasan'),
+        imageUrl: url,
+        hotspots: rawHs,
+        yaw: resolvedYaw,
+        pitch: resolvedPitch,
+        category: matchPin || isLinked ? 'panorama_linked' : (p.category || 'campsite_panorama'),
+      };
+
+      if (matchPin || isLinked) {
+        list.unshift(item);
+      } else {
+        list.push(item);
+      }
+    };
+
+    // 1. Check spot.linkedPanoramaSpotId
+    if (spot.linkedPanoramaSpotId && Array.isArray((spot.campsite as any)?.panoramaSpots)) {
+      const linked = (spot.campsite as any).panoramaSpots.find(
+        (ps: any) => ps.id === spot.linkedPanoramaSpotId,
+      );
+      if (linked) addPano(linked, true);
     }
-    if (
-      Array.isArray((spot.campsite as any)?.panoramaSpots) &&
-      (spot.campsite as any).panoramaSpots.length > 0
-    ) {
-      return (spot.campsite as any).panoramaSpots;
+
+    // 2. Interior panoramaPhotos
+    if (Array.isArray(spot.panoramaPhotos)) {
+      spot.panoramaPhotos.forEach((p: any) => addPano(p));
     }
-    // Fallback to photos if category 360
-    if (Array.isArray(spot.photos)) {
+
+    // 3. Campsite panoramaSpots
+    if (Array.isArray((spot.campsite as any)?.panoramaSpots)) {
+      (spot.campsite as any).panoramaSpots.forEach((p: any) => addPano(p));
+    }
+
+    // 4. Campsite maps markers
+    if (Array.isArray((spot.campsite as any)?.maps)) {
+      for (const m of (spot.campsite as any).maps) {
+        if (Array.isArray(m.markers)) {
+          for (const marker of m.markers) {
+            if (marker.type === 'panorama' || marker.panoramaImageUrl) {
+              addPano(marker);
+            }
+          }
+        }
+      }
+    }
+
+    // 5. Fallback photos category 360
+    if (list.length === 0 && Array.isArray(spot.photos)) {
       const p360 = spot.photos.filter((p: any) =>
         (p.category || '').toLowerCase().includes('360'),
       );
-      if (p360.length > 0) {
-        return p360.map((p: any, idx: number) => ({
-          id: p.id || `pano-${idx}`,
-          label: p.caption || `Spot 360° ${idx + 1}`,
-          imageUrl: p.url,
-        }));
-      }
+      p360.forEach((p: any) => addPano(p));
     }
-    return [];
+
+    return list;
   }, [spot]);
 
   // Handle ESC key to close
@@ -170,8 +300,11 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
                       setActivePanoramaIdx(targetIdx);
                       if (pannellumViewerRef.current) {
                         try {
+                          const targetPano = panoramaList[targetIdx];
                           pannellumViewerRef.current.loadScene(
-                            panoramaList[targetIdx].id,
+                            targetPano.id,
+                            targetPano.pitch !== undefined ? Number(targetPano.pitch) : 0,
+                            targetPano.yaw !== undefined ? Number(targetPano.yaw) : 0,
                           );
                         } catch (_) {}
                       }
@@ -222,6 +355,16 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
 
         pannellumViewerRef.current.on('load', () => {
           setLoading(false);
+          if (activePano && activePano.yaw !== undefined && activePano.pitch !== undefined) {
+            try {
+              pannellumViewerRef.current?.lookAt(
+                Number(activePano.pitch || 0),
+                Number(activePano.yaw || 0),
+                90,
+                false,
+              );
+            } catch (_) {}
+          }
         });
       } catch (err) {
         console.error('Error init pannellum:', err);
@@ -251,7 +394,11 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
       if (typeof pannellumViewerRef.current.getScene === 'function') {
         const currentScene = pannellumViewerRef.current.getScene();
         if (currentScene !== target.id) {
-          pannellumViewerRef.current.loadScene(target.id);
+          pannellumViewerRef.current.loadScene(
+            target.id,
+            target.pitch !== undefined ? Number(target.pitch) : 0,
+            target.yaw !== undefined ? Number(target.yaw) : 0,
+          );
         }
       }
     } catch (_) {}

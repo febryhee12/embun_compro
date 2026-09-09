@@ -1198,6 +1198,56 @@ export function SpotRedirectClient() {
       return null;
     };
 
+    // Helper untuk mengekstrak array hotspot dengan aman
+    const parseHotspotsList = (raw: any): any[] => {
+      if (Array.isArray(raw)) return raw;
+      if (typeof raw === 'string' && raw.trim().length > 0) {
+        try {
+          const parsed = JSON.parse(raw);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch {
+          return [];
+        }
+      }
+      return [];
+    };
+
+    // Helper untuk mencocokkan pin hotspot dengan spot aktif
+    const findMatchingPin = (rawHotspots: any, spot: any) => {
+      if (!spot) return null;
+      const hsList = parseHotspotsList(rawHotspots);
+      if (hsList.length === 0) return null;
+
+      const targetIds = [
+        spot.id,
+        spot.blockId,
+        spot.shareCode,
+      ].filter(Boolean).map((s) => String(s).trim().toLowerCase());
+
+      const targetNames = [
+        spot.name,
+        spot.blockNumber,
+        spot.label,
+      ].filter(Boolean).map((s) => String(s).trim().toLowerCase());
+
+      return hsList.find((h: any) => {
+        const hIds = [h.blockId, h.targetSpotId].filter(Boolean).map((s) => String(s).trim().toLowerCase());
+        for (const hid of hIds) {
+          if (targetIds.includes(hid)) return true;
+        }
+        const hLabels = [h.targetLabel, h.label, h.text].filter(Boolean).map((s) => String(s).trim().toLowerCase());
+        for (const hlabel of hLabels) {
+          if (targetNames.includes(hlabel)) return true;
+          for (const tname of targetNames) {
+            if (tname.length >= 2 && (tname === hlabel || hlabel.includes(tname) || tname.includes(hlabel))) {
+              return true;
+            }
+          }
+        }
+        return false;
+      });
+    };
+
     // 1. Check activeSpot.linkedPanoramaSpotId (highest priority: linked outdoor panorama with exact camera angle)
     if (activeSpot?.linkedPanoramaSpotId) {
       const linkedPano = findCampsitePano(activeSpot.linkedPanoramaSpotId);
@@ -1207,26 +1257,40 @@ export function SpotRedirectClient() {
         !addedUrls.has(linkedPano.imageUrl)
       ) {
         addedUrls.add(linkedPano.imageUrl);
+        const matchPin = findMatchingPin(linkedPano.hotspots, activeSpot);
+        const pinYaw = matchPin?.yaw !== undefined && matchPin?.yaw !== null ? Number(matchPin.yaw) : null;
+        const pinPitch = matchPin?.pitch !== undefined && matchPin?.pitch !== null ? Number(matchPin.pitch) : null;
+
+        const resolvedYaw =
+          activeSpot.linkedPanoramaYaw !== undefined &&
+          activeSpot.linkedPanoramaYaw !== null &&
+          !isNaN(Number(activeSpot.linkedPanoramaYaw))
+            ? Number(activeSpot.linkedPanoramaYaw)
+            : pinYaw !== null
+              ? pinYaw
+              : linkedPano.yaw !== undefined && linkedPano.yaw !== null
+                ? Number(linkedPano.yaw)
+                : 0;
+
+        const resolvedPitch =
+          activeSpot.linkedPanoramaPitch !== undefined &&
+          activeSpot.linkedPanoramaPitch !== null &&
+          !isNaN(Number(activeSpot.linkedPanoramaPitch))
+            ? Number(activeSpot.linkedPanoramaPitch)
+            : pinPitch !== null
+              ? pinPitch
+              : linkedPano.pitch !== undefined && linkedPano.pitch !== null
+                ? Number(linkedPano.pitch)
+                : 0;
+
         list.push({
           id: linkedPano.id,
           label: `${activeSpot.name} (View 360°)`,
           imageUrl: linkedPano.imageUrl,
           category: 'panorama_linked',
           hotspots: linkedPano.hotspots,
-          yaw:
-            activeSpot.linkedPanoramaYaw !== undefined &&
-            activeSpot.linkedPanoramaYaw !== null
-              ? Number(activeSpot.linkedPanoramaYaw)
-              : linkedPano.yaw !== undefined
-                ? Number(linkedPano.yaw)
-                : 0,
-          pitch:
-            activeSpot.linkedPanoramaPitch !== undefined &&
-            activeSpot.linkedPanoramaPitch !== null
-              ? Number(activeSpot.linkedPanoramaPitch)
-              : linkedPano.pitch !== undefined
-                ? Number(linkedPano.pitch)
-                : 0,
+          yaw: resolvedYaw,
+          pitch: resolvedPitch,
         });
       }
     }
@@ -1259,17 +1323,42 @@ export function SpotRedirectClient() {
       const url = (p?.panoramaImageUrl || p?.imageUrl || p?.url || '').trim();
       if (!url || addedUrls.has(url)) return;
       addedUrls.add(url);
-      list.push({
+      const hs = p.panoramaHotspots || p.hotspots || [];
+      const matchPin = findMatchingPin(hs, activeSpot);
+      const pinYaw = matchPin?.yaw !== undefined && matchPin?.yaw !== null ? Number(matchPin.yaw) : null;
+      const pinPitch = matchPin?.pitch !== undefined && matchPin?.pitch !== null ? Number(matchPin.pitch) : null;
+
+      const resolvedYaw = pinYaw !== null
+        ? pinYaw
+        : (p.panoramaYaw !== undefined && p.panoramaYaw !== null && !isNaN(Number(p.panoramaYaw)))
+          ? Number(p.panoramaYaw)
+          : (p.yaw !== undefined && p.yaw !== null && !isNaN(Number(p.yaw)))
+            ? Number(p.yaw)
+            : 0;
+
+      const resolvedPitch = pinPitch !== null
+        ? pinPitch
+        : (p.panoramaPitch !== undefined && p.panoramaPitch !== null && !isNaN(Number(p.panoramaPitch)))
+          ? Number(p.panoramaPitch)
+          : (p.pitch !== undefined && p.pitch !== null && !isNaN(Number(p.pitch)))
+            ? Number(p.pitch)
+            : 0;
+
+      const panoItem: PanoramaItem = {
         id: p.id || String(Math.random()),
         label: p.label || p.description || 'Tur 360° Kawasan',
         imageUrl: url,
-        category: p.category || 'campsite_panorama',
-        hotspots: p.panoramaHotspots || p.hotspots || [],
-        yaw: p.panoramaYaw !== undefined && p.panoramaYaw !== null ? Number(p.panoramaYaw)
-           : p.yaw !== undefined && p.yaw !== null ? Number(p.yaw) : 0,
-        pitch: p.panoramaPitch !== undefined && p.panoramaPitch !== null ? Number(p.panoramaPitch)
-             : p.pitch !== undefined && p.pitch !== null ? Number(p.pitch) : 0,
-      });
+        category: matchPin ? 'panorama_linked' : 'campsite_panorama',
+        hotspots: hs,
+        yaw: resolvedYaw,
+        pitch: resolvedPitch,
+      };
+
+      if (matchPin) {
+        list.unshift(panoItem);
+      } else {
+        list.push(panoItem);
+      }
     };
 
     // 3a. campsite.panoramaSpots
@@ -1441,8 +1530,11 @@ export function SpotRedirectClient() {
                       setActivePanoramaIdx(targetIdx);
                       if (pannellumViewerRef.current) {
                         try {
+                          const targetPano = panoramaList[targetIdx];
                           pannellumViewerRef.current.loadScene(
-                            panoramaList[targetIdx].id,
+                            targetPano.id,
+                            targetPano.pitch !== undefined ? Number(targetPano.pitch) : 0,
+                            targetPano.yaw !== undefined ? Number(targetPano.yaw) : 0,
                           );
                         } catch (_) {}
                       }
@@ -1489,6 +1581,19 @@ export function SpotRedirectClient() {
             mouseZoom: true,
           },
           scenes: scenesConfig,
+        });
+
+        pannellumViewerRef.current.on('load', () => {
+          if (activePano && activePano.yaw !== undefined && activePano.pitch !== undefined) {
+            try {
+              pannellumViewerRef.current?.lookAt(
+                Number(activePano.pitch || 0),
+                Number(activePano.yaw || 0),
+                90,
+                false,
+              );
+            } catch (_) {}
+          }
         });
       } catch (err) {
         console.error('Error init pannellum:', err);
