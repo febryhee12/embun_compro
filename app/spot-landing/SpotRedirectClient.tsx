@@ -1389,6 +1389,15 @@ export function SpotRedirectClient() {
       return bScore - aScore;
     });
 
+    // Jika spot ini belum memiliki konten 360° (tidak ada pin, tidak ditautkan, dan tidak ada interior):
+    // Sembunyikan tombol Tur 360° pada halaman spot ini
+    const hasSpot360 = list.some(
+      (p) => p.category === 'panorama_linked' || p.category === 'interior_360',
+    );
+    if (!hasSpot360) {
+      return [];
+    }
+
     return list;
   }, [activeSpot, campsite]);
 

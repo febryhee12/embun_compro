@@ -194,6 +194,15 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
       return bScore - aScore;
     });
 
+    // Jika spot ini belum memiliki konten 360° (tidak ada pin, tidak ditautkan, dan tidak ada interior):
+    // Jangan tampilkan 360 untuk spot ini
+    const hasSpot360 = list.some(
+      (p) => p.category === 'panorama_linked' || p.category === 'interior_360',
+    );
+    if (!hasSpot360) {
+      return [];
+    }
+
     return list;
   }, [spot]);
 

@@ -227,17 +227,70 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
         camp.blocks.forEach((b: any) => {
           if (b.status === 'active' || !b.status) {
             const blockPanos = Array.isArray(b.panoramaPhotos) ? [...b.panoramaPhotos] : [];
-            if (blockPanos.length === 0 && Array.isArray(camp.panoramaSpots) && camp.panoramaSpots.length > 0) {
-              camp.panoramaSpots.forEach((ps: any) => {
-                blockPanos.push({
-                  id: ps.id,
-                  label: ps.label || ps.description || 'Tur 360° Kawasan',
-                  imageUrl: ps.imageUrl,
-                  category: 'panorama_campsite',
-                  hotspots: ps.hotspots,
-                  yaw: ps.yaw,
-                  pitch: ps.pitch,
+            if (blockPanos.length === 0) {
+              const allPanos: any[] = [
+                ...(Array.isArray(camp.panoramaSpots) ? camp.panoramaSpots : []),
+                ...(Array.isArray(camp.maps)
+                  ? camp.maps.flatMap((m: any) =>
+                      Array.isArray(m.markers)
+                        ? m.markers.filter(
+                            (marker: any) =>
+                              marker.type === 'panorama' ||
+                              marker.panoramaImageUrl,
+                          )
+                        : [],
+                    )
+                  : []),
+              ];
+
+              allPanos.forEach((ps: any) => {
+                const hs = ps.hotspots || ps.panoramaHotspots;
+                const hsList: any[] = Array.isArray(hs)
+                  ? hs
+                  : typeof hs === 'string' && hs.trim()
+                    ? (() => {
+                        try {
+                          return JSON.parse(hs);
+                        } catch {
+                          return [];
+                        }
+                      })()
+                    : [];
+
+                const targetIds = [b.id, b.blockId, b.shareCode]
+                  .filter(Boolean)
+                  .map((s) => String(s).trim().toLowerCase());
+                const targetNames = [b.name, b.blockNumber, b.label]
+                  .filter(Boolean)
+                  .map((s) => String(s).trim().toLowerCase());
+
+                const isLinked =
+                  b.linkedPanoramaSpotId && ps.id === b.linkedPanoramaSpotId;
+
+                const hasPin = hsList.some((h: any) => {
+                  if (h.type === 'scene' || h.iconStyle === 'arrow_up') return false;
+                  const hIds = [h.blockId, h.targetSpotId]
+                    .filter(Boolean)
+                    .map((s) => String(s).trim().toLowerCase());
+                  if (hIds.some((id) => targetIds.includes(id))) return true;
+                  const hLabels = [h.targetLabel, h.label, h.text]
+                    .filter(Boolean)
+                    .map((s) => String(s).trim().toLowerCase());
+                  if (hLabels.some((l) => targetNames.includes(l))) return true;
+                  return false;
                 });
+
+                if (isLinked || hasPin) {
+                  blockPanos.push({
+                    id: ps.id,
+                    label: ps.label || ps.description || 'Tur 360° Kawasan',
+                    imageUrl: ps.imageUrl || ps.panoramaImageUrl,
+                    category: 'panorama_linked',
+                    hotspots: hsList,
+                    yaw: ps.yaw || ps.panoramaYaw,
+                    pitch: ps.pitch || ps.panoramaPitch,
+                  });
+                }
               });
             }
 
