@@ -2681,6 +2681,26 @@ export function SpotRedirectClient() {
                       <span>{translateItemName(activeSpot.tentType, lang)}</span>
                     </>
                   )}
+                  {(() => {
+                    if (!activeSpot.roomSize) return null;
+                    const s = String(activeSpot.roomSize).trim();
+                    if (
+                      !s ||
+                      s === '0' ||
+                      s === '0m2' ||
+                      s === '0 m2' ||
+                      s === '0m²' ||
+                      Number(s) === 0
+                    ) {
+                      return null;
+                    }
+                    return (
+                      <>
+                        <span>·</span>
+                        <span>{s}</span>
+                      </>
+                    );
+                  })()}
                 </p>
               </div>
             </div>
