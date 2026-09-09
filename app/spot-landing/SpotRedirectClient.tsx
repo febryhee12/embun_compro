@@ -1252,8 +1252,53 @@ export function SpotRedirectClient() {
       });
     }
 
-    // Catatan: Jika spot TIDAK memiliki linked panorama dan TIDAK memiliki foto 360 interior,
-    // list tetap kosong agar TIDAK salah nembak ke panorama titik/spot lain!
+    // 3. Fallback: tambahkan semua panorama level-campsite agar tombol Tur 360°
+    //    tetap muncul meski spot aktif tidak punya linked panorama.
+    //    URL yang sudah ada di list (linked/interior) dilewati (deduplikasi).
+    const addCampsitePanorama = (p: any) => {
+      const url = (p?.panoramaImageUrl || p?.imageUrl || p?.url || '').trim();
+      if (!url || addedUrls.has(url)) return;
+      addedUrls.add(url);
+      list.push({
+        id: p.id || String(Math.random()),
+        label: p.label || p.description || 'Tur 360° Kawasan',
+        imageUrl: url,
+        category: p.category || 'campsite_panorama',
+        hotspots: p.panoramaHotspots || p.hotspots || [],
+        yaw: p.panoramaYaw !== undefined && p.panoramaYaw !== null ? Number(p.panoramaYaw)
+           : p.yaw !== undefined && p.yaw !== null ? Number(p.yaw) : 0,
+        pitch: p.panoramaPitch !== undefined && p.panoramaPitch !== null ? Number(p.panoramaPitch)
+             : p.pitch !== undefined && p.pitch !== null ? Number(p.pitch) : 0,
+      });
+    };
+
+    // 3a. campsite.panoramaSpots
+    if (Array.isArray((campsite as any)?.panoramaSpots)) {
+      for (const p of (campsite as any).panoramaSpots) {
+        addCampsitePanorama(p);
+      }
+    }
+    // 3b. campsite.maps[].markers (type === 'panorama')
+    if (Array.isArray(campsite?.maps)) {
+      for (const m of campsite.maps) {
+        if (Array.isArray(m.markers)) {
+          for (const marker of m.markers) {
+            if (marker.type === 'panorama' || marker.panoramaImageUrl) {
+              addCampsitePanorama(marker);
+            }
+          }
+        }
+      }
+    }
+    // 3c. campsite.mapMarkers (type === 'panorama')
+    if (Array.isArray(campsite?.mapMarkers)) {
+      for (const marker of campsite.mapMarkers) {
+        if (marker.type === 'panorama' || marker.panoramaImageUrl) {
+          addCampsitePanorama(marker);
+        }
+      }
+    }
+
     return list;
   }, [activeSpot, campsite]);
 
