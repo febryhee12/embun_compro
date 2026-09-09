@@ -2699,24 +2699,20 @@ export function SpotRedirectClient() {
                 return (
                   <div className="flex flex-wrap gap-2">
                     {isSpotNonRefundable ? (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs font-bold text-amber-800 dark:text-amber-300">
-                        <ShieldAlert size={14} className="text-amber-600 dark:text-amber-400" />
+                      <span className="inline-flex items-center px-3 py-1.5 rounded-2xl bg-surface border border-border text-xs font-semibold text-foreground">
                         <span>{lang === 'en' ? 'Non-Refundable' : 'Tidak Dapat Direfund'}</span>
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
-                        <ShieldCheck size={14} className="text-emerald-600 dark:text-emerald-400" />
+                      <span className="inline-flex items-center px-3 py-1.5 rounded-2xl bg-surface border border-border text-xs font-semibold text-foreground">
                         <span>{lang === 'en' ? 'Standard Refund' : 'Ikut Kebijakan Embun'}</span>
                       </span>
                     )}
                     {surface ? (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-surface border border-border text-xs font-semibold text-foreground">
-                        {getSurfaceIcon(surface)}
+                      <span className="inline-flex items-center px-3 py-1.5 rounded-2xl bg-surface border border-border text-xs font-semibold text-foreground">
                         <span>{translateItemName(surface, lang)}</span>
                       </span>
                     ) : activeSpot.tentType ? (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-surface border border-border text-xs font-semibold text-foreground">
-                        <Tent size={14} className="text-brand-blue dark:text-brand-lime" />
+                      <span className="inline-flex items-center px-3 py-1.5 rounded-2xl bg-surface border border-border text-xs font-semibold text-foreground">
                         <span>{translateItemName(activeSpot.tentType, lang)}</span>
                       </span>
                     ) : null}
@@ -2724,9 +2720,8 @@ export function SpotRedirectClient() {
                       activeSpot.viewOptions.map((v, vIdx) => (
                         <span
                           key={vIdx}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-brand-blue/5 dark:bg-brand-lime/10 border border-brand-blue/20 dark:border-brand-lime/30 text-xs font-semibold text-brand-blue dark:text-brand-lime"
+                          className="inline-flex items-center px-3 py-1.5 rounded-2xl bg-surface border border-border text-xs font-semibold text-foreground"
                         >
-                          <Trees size={14} />
                           <span>{translateItemName(v, lang)}</span>
                         </span>
                       ))}
