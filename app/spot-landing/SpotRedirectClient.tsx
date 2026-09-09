@@ -2344,21 +2344,13 @@ export function SpotRedirectClient() {
       <main className="max-w-[2520px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 pt-6 pb-12 w-full space-y-8">
         {/* Title & Metadata Header */}
         <div className="space-y-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-brand-blue dark:text-brand-lime bg-brand-blue/10 dark:bg-brand-lime/10 px-2.5 py-0.5 rounded-full border border-brand-blue/20 dark:border-brand-lime/30">
-              {campsite.name}
-            </span>
-            {activeSpot.isEmbunPlus && (
+          {activeSpot.isEmbunPlus && (
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-[10px] font-black uppercase tracking-wider bg-brand-lime text-black px-2.5 py-0.5 rounded-full border border-brand-lime/80 shadow-2xs">
                 Embun Plus
               </span>
-            )}
-            {activeSpot.tentType && (
-              <span className="text-xs font-semibold text-foreground-muted bg-surface px-2.5 py-0.5 rounded-full border border-border">
-                {translateItemName(activeSpot.tentType, lang)}
-              </span>
-            )}
-          </div>
+            </div>
+          )}
 
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground tracking-tight">
             {activeSpot.name}
@@ -2681,8 +2673,20 @@ export function SpotRedirectClient() {
                 <h2 className="text-xl font-bold text-foreground">
                   {t.spot.plotAndUnitIn(campsite.name)}
                 </h2>
-                <p className="text-xs text-foreground-muted mt-1">
-                  {t.spot.maxGuests(effectiveMaxCapacity)}
+                <p className="text-xs text-foreground-muted mt-1 flex flex-wrap items-center gap-1.5">
+                  <span>{t.spot.maxGuests(effectiveMaxCapacity)}</span>
+                  {activeSpot.tentType && (
+                    <>
+                      <span>·</span>
+                      <span>{translateItemName(activeSpot.tentType, lang)}</span>
+                    </>
+                  )}
+                  {activeSpot.roomSize && (
+                    <>
+                      <span>·</span>
+                      <span>{activeSpot.roomSize}</span>
+                    </>
+                  )}
                 </p>
               </div>
             </div>
