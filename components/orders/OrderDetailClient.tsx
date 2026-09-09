@@ -257,7 +257,129 @@ function formatPaymentChannel(channel?: string | null) {
   return channel;
 }
 
+function getRefundStatusStyle(status: string | null | undefined) {
+  switch (status) {
+    case 'DONE':
+      return {
+        label: null, // handled by caller via t.refundStatusDone
+        bg: 'bg-emerald-50 dark:bg-emerald-500/10',
+        border: 'border-emerald-200 dark:border-emerald-500/20',
+        text: 'text-emerald-800 dark:text-emerald-300',
+      };
+    case 'PROCESSING':
+      return {
+        label: null,
+        bg: 'bg-blue-50 dark:bg-blue-500/10',
+        border: 'border-blue-200 dark:border-blue-500/20',
+        text: 'text-blue-800 dark:text-blue-300',
+      };
+    case 'FAILED':
+      return {
+        label: null,
+        bg: 'bg-rose-50 dark:bg-rose-500/10',
+        border: 'border-rose-200 dark:border-rose-500/20',
+        text: 'text-rose-800 dark:text-rose-300',
+      };
+    default: // PENDING or null
+      return {
+        label: null,
+        bg: 'bg-amber-50 dark:bg-amber-500/10',
+        border: 'border-amber-200/80 dark:border-amber-500/20',
+        text: 'text-amber-800 dark:text-amber-300',
+      };
+  }
+}
+
+function RefundInfoCard({ order, t, lang }: { order: any; t: any; lang: string }) {
+  const refundAmount = Number(order.refundAmount) || 0;
+  const refundPercentage = Number(order.refundPercentage) || 0;
+  const refundRoute: string | null = order.refundRoute ?? null;
+  const refundStatus: string | null = order.refundStatus ?? null;
+  const hasBankDetails = order.refundBankHolder && order.refundBankName && order.refundBankNumber;
+  const isManual = refundRoute === 'MANUAL_PAYOUT';
+
+  const statusStyle = getRefundStatusStyle(refundStatus);
+  const statusLabel =
+    refundStatus === 'DONE' ? t.refundStatusDone :
+    refundStatus === 'PROCESSING' ? t.refundStatusProcessing :
+    refundStatus === 'FAILED' ? t.refundStatusFailed :
+    t.refundStatusPending;
+
+  return (
+    <div className="bg-white dark:bg-surface rounded-3xl border border-border p-6 sm:p-7 shadow-2xs space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-border/70 pb-3">
+        <h4 className="font-bold text-xs text-foreground uppercase tracking-wider">
+          {t.refundInfoTitle}
+        </h4>
+        {refundStatus && (
+          <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${statusStyle.bg} ${statusStyle.border} ${statusStyle.text}`}>
+            {statusLabel}
+          </span>
+        )}
+      </div>
+
+      <div className="space-y-3 text-xs">
+        {/* Nominal Refund */}
+        {refundAmount > 0 && (
+          <div className="grid grid-cols-2 gap-3">
+            <div className="p-3.5 rounded-2xl bg-surface border border-border/50 space-y-0.5">
+              <span className="text-foreground-muted block text-[10.5px]">{t.refundAmountLabel}</span>
+              <strong className="text-foreground text-base font-black">{rupiah(refundAmount)}</strong>
+            </div>
+            {refundPercentage > 0 && (
+              <div className="p-3.5 rounded-2xl bg-surface border border-border/50 space-y-0.5">
+                <span className="text-foreground-muted block text-[10.5px]">{t.refundPercentageLabel}</span>
+                <strong className="text-foreground text-base font-black">{Math.round(refundPercentage * 100)}%</strong>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Route info */}
+        {refundRoute === 'AUTO_GATEWAY' && (
+          <div className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-surface/50 border border-border text-foreground-muted text-[11px] leading-relaxed">
+            {t.refundAutoGateway}
+          </div>
+        )}
+
+        {/* Bank Details (MANUAL_PAYOUT) */}
+        {isManual && (
+          <>
+            <div className="pt-1">
+              <span className="text-[10.5px] font-bold uppercase tracking-wider text-foreground-muted block mb-2">
+                {t.refundBankTitle}
+              </span>
+              {hasBankDetails ? (
+                <div className="rounded-2xl border border-border overflow-hidden divide-y divide-border/60">
+                  <div className="px-4 py-3 flex justify-between items-center">
+                    <span className="text-foreground-muted text-[11px]">{t.refundBankHolder}</span>
+                    <span className="font-semibold text-foreground text-[12px]">{order.refundBankHolder}</span>
+                  </div>
+                  <div className="px-4 py-3 flex justify-between items-center">
+                    <span className="text-foreground-muted text-[11px]">{t.refundBankNameLabel}</span>
+                    <span className="font-semibold text-foreground text-[12px]">{order.refundBankName}</span>
+                  </div>
+                  <div className="px-4 py-3 flex justify-between items-center">
+                    <span className="text-foreground-muted text-[11px]">{t.refundBankNumber}</span>
+                    <span className="font-semibold text-foreground text-[12px] font-mono">{order.refundBankNumber}</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3.5 rounded-2xl bg-amber-50/70 dark:bg-amber-500/10 border border-amber-200/80 dark:border-amber-500/20 text-amber-900 dark:text-amber-300 text-[11px] leading-relaxed">
+                  {t.refundNoBankNotice}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function OrderDetailClient() {
+
   const searchParams = useSearchParams();
   const orderId = searchParams.get('id');
   const payToken = searchParams.get('payToken');
@@ -857,24 +979,68 @@ export function OrderDetailClient() {
                   </div>
                 ) : isCancelled ? (
                   /* KARTU STATUS DIBATALKAN */
-                  <div className="bg-white dark:bg-surface rounded-3xl border border-border p-6 sm:p-7 shadow-2xs space-y-4">
-                    <div className="space-y-1.5">
-                      <div className="flex items-center gap-1.5 text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 px-2.5 py-1 rounded-full w-fit">
-                        <XCircle size={14} className="text-neutral-500 dark:text-neutral-400" />
-                        <span className="text-[10.5px] uppercase font-bold tracking-wider">
-                          {t.cancelledBadge}
-                        </span>
+                  <div className="space-y-4">
+                    <div className="bg-white dark:bg-surface rounded-3xl border border-border p-6 sm:p-7 shadow-2xs space-y-4">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-1.5 text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 px-2.5 py-1 rounded-full w-fit">
+                          <XCircle size={14} className="text-neutral-500 dark:text-neutral-400" />
+                          <span className="text-[10.5px] uppercase font-bold tracking-wider">
+                            {t.cancelledBadge}
+                          </span>
+                        </div>
+                        <h2 className="text-lg font-extrabold text-foreground">
+                          {t.cancelledTitle}
+                        </h2>
+                        <p className="text-xs text-foreground-muted max-w-md leading-relaxed">
+                          {t.cancelledDesc}
+                        </p>
                       </div>
-                      <h2 className="text-lg font-extrabold text-foreground">
-                        {t.cancelledTitle}
-                      </h2>
-                      <p className="text-xs text-foreground-muted max-w-md leading-relaxed">
-                        {t.cancelledDesc}
-                      </p>
+                      <div className="space-y-1 text-[11px] font-mono p-3 rounded-2xl bg-neutral-50 dark:bg-surface/50 border border-border text-foreground-muted">
+                        <div>{t.transactionNo} <span className="font-semibold text-foreground">{order.id}</span></div>
+                        {order.cancelledAt && (
+                          <div>{t.cancelledOn} <span className="font-medium text-foreground">{formatDateDisplay(order.cancelledAt, lang)}</span></div>
+                        )}
+                        {order.cancelReason && (
+                          <div>{t.cancelReasonLabel}: <span className="font-medium text-foreground">{order.cancelReason}</span></div>
+                        )}
+                      </div>
                     </div>
-                    <div className="p-3 rounded-2xl bg-neutral-50 dark:bg-surface/50 border border-border text-foreground-muted text-[11px] font-mono">
-                      {t.transactionNo} <span className="font-semibold text-foreground">{order.id}</span>
+
+                    {/* REFUND INFO CARD — tampil jika ada refundAmount */}
+                    {(Number(order.refundAmount) > 0) && (
+                      <RefundInfoCard order={order} t={t} lang={lang} />
+                    )}
+                  </div>
+                ) : order?.status === 'REFUNDED' ? (
+                  /* KARTU STATUS DIREFUND */
+                  <div className="space-y-4">
+                    <div className="bg-white dark:bg-surface rounded-3xl border border-emerald-200 dark:border-emerald-500/20 p-6 sm:p-7 shadow-2xs space-y-4">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-1.5 text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 px-2.5 py-1 rounded-full w-fit">
+                          <Check size={14} />
+                          <span className="text-[10.5px] uppercase font-bold tracking-wider">
+                            {t.refundedBadge}
+                          </span>
+                        </div>
+                        <h2 className="text-lg font-extrabold text-foreground">
+                          {t.refundedTitle}
+                        </h2>
+                        <p className="text-xs text-foreground-muted max-w-md leading-relaxed">
+                          {t.refundedDesc}
+                        </p>
+                      </div>
+                      <div className="space-y-1 text-[11px] font-mono p-3 rounded-2xl bg-neutral-50 dark:bg-surface/50 border border-border text-foreground-muted">
+                        <div>{t.transactionNo} <span className="font-semibold text-foreground">{order.id}</span></div>
+                        {order.cancelledAt && (
+                          <div>{t.cancelledOn} <span className="font-medium text-foreground">{formatDateDisplay(order.cancelledAt, lang)}</span></div>
+                        )}
+                        {order.refundedAt && (
+                          <div>{t.refundDoneAt} <span className="font-medium text-emerald-700 dark:text-emerald-400">{formatDateDisplay(order.refundedAt, lang)}</span></div>
+                        )}
+                      </div>
                     </div>
+
+                    <RefundInfoCard order={order} t={t} lang={lang} />
                   </div>
                 ) : isPending ? (
                   /* KARTU STATUS MENUNGGU PEMBAYARAN */
@@ -914,6 +1080,7 @@ export function OrderDetailClient() {
                     </div>
                   </div>
                 ) : null}
+
 
                 {/* ════════════════════════════════════════════════════════════════
                     2. CARD SKEMA DP 50% (JIKA BERLAKU)
