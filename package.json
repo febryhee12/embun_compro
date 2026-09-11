@@ -6,7 +6,6 @@
     "dev": "next dev",
     "build": "next build",
     "deploy:do": "./deploy-to-do.sh",
-    "deploy:staging": "./deploy-to-staging.sh",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
