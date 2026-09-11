@@ -71,6 +71,7 @@ const POPULAR_BANKS = [
 
 type FormState = {
   ownerName: string;
+  companyName: string;
   email: string;
   phone: string;
   password: string;
@@ -95,6 +96,7 @@ type FormState = {
 
 const initialForm: FormState = {
   ownerName: '',
+  companyName: '',
   email: '',
   phone: '',
   password: '',
@@ -160,6 +162,7 @@ type PartnerApplicationResult = {
   id: string;
   status: string;
   ownerName: string;
+  companyName?: string | null;
   email: string;
   phone: string;
   ktpNumber?: string;
@@ -205,6 +208,7 @@ const SECTION_TITLE_MAP: Record<string, string> = {
 const FIELD_TITLE_MAP: Record<string, string> = {
   // Owner
   ownerName: 'Nama Pemilik / PIC',
+  companyName: 'Nama Perusahaan / PT',
   email: 'Email Terdaftar',
   phone: 'Nomor WhatsApp PIC',
   owner: 'Akun & Kontak Pemilik',
@@ -542,6 +546,7 @@ export default function MitraRegisterPage() {
   const populateFormFromResult = (app: PartnerApplicationResult) => {
     setForm({
       ownerName: app.ownerName || '',
+      companyName: app.companyName || '',
       email: app.email || '',
       phone: app.phone ? normalizePhone(app.phone) : '',
       password: authPassword || login.password || form.password || '',
@@ -1185,6 +1190,25 @@ export default function MitraRegisterPage() {
                           </div>
                         )}
 
+                        {/* companyName */}
+                        {isFieldNeedsRevision('companyName', 'owner') && (
+                          <div className="space-y-1.5">
+                            <label className="block text-xs font-bold text-neutral-800">
+                              Nama Perusahaan / PT (Opsional)
+                            </label>
+                            <input
+                              type="text"
+                              value={form.companyName}
+                              onChange={(e) => update('companyName', e.target.value)}
+                              placeholder="Contoh: PT Wisata Alam Nusantara"
+                              className="w-full px-4 py-2.5 bg-white border border-neutral-300 rounded-xl text-xs sm:text-sm focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none font-medium text-neutral-900"
+                            />
+                            {result.companyName && (
+                              <span className="text-[11px] text-neutral-400 block">Data sebelumnya: {result.companyName}</span>
+                            )}
+                          </div>
+                        )}
+
                         {/* 2. email */}
                         {isFieldNeedsRevision('email', 'owner') && (
                           <div className="space-y-1.5">
@@ -1644,6 +1668,12 @@ export default function MitraRegisterPage() {
                             <span className="sm:col-span-1 text-xs text-neutral-400 font-medium">Nama Lengkap</span>
                             <span className="sm:col-span-2 text-xs sm:text-sm text-neutral-900 font-semibold">{result.ownerName}</span>
                           </div>
+                          {result.companyName && (
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-3 first:pt-0 last:pb-0">
+                              <span className="sm:col-span-1 text-xs text-neutral-400 font-medium">Nama Perusahaan / PT</span>
+                              <span className="sm:col-span-2 text-xs sm:text-sm text-neutral-900 font-semibold">{result.companyName}</span>
+                            </div>
+                          )}
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-3 first:pt-0 last:pb-0">
                             <span className="sm:col-span-1 text-xs text-neutral-400 font-medium">Email Terdaftar</span>
                             <span className="sm:col-span-2 text-xs sm:text-sm text-neutral-900 font-semibold">{result.email}</span>
@@ -1929,6 +1959,22 @@ export default function MitraRegisterPage() {
                             value={form.ownerName}
                             onChange={(e) => update('ownerName', e.target.value)}
                             placeholder="Contoh: Budi Santoso"
+                            className="w-full pl-10 pr-4 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
+                          Nama Perusahaan / PT <span className="text-neutral-400 text-[10px] font-normal lowercase">(opsional)</span>
+                        </label>
+                        <div className="relative">
+                          <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                          <input
+                            type="text"
+                            value={form.companyName}
+                            onChange={(e) => update('companyName', e.target.value)}
+                            placeholder="Contoh: PT Wisata Alam Nusantara (kosongkan jika perorangan)"
                             className="w-full pl-10 pr-4 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all"
                           />
                         </div>
