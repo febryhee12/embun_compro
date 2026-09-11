@@ -19,7 +19,8 @@ export function resolveAssetUrl(raw?: string): string {
     cleanKey.startsWith('panoramas/') ||
     cleanKey.startsWith('partners/')
   ) {
-    return `https://media-staging.embun.app/${cleanKey}`;
+    const mediaBase = process.env.NEXT_PUBLIC_MEDIA_URL || 'https://media-staging.embun.app';
+    return `${mediaBase}/${cleanKey}`;
   }
   const cleanPath = `/${cleanKey}`;
   const host = API_BASE_URL.replace(/\/api\/?$/, '');
