@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Lock, Eye, EyeOff, CheckCircle2, AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Lock, Eye, EyeOff, CheckCircle2, ArrowRight, ShieldCheck } from 'lucide-react';
 import { API_BASE_URL } from '@/lib/api-client';
 
 function ResetPasswordForm() {
@@ -119,35 +119,21 @@ function ResetPasswordForm() {
           </div>
         ) : !tokenValid ? (
           <div className="text-center py-4 space-y-6">
-            <div className="w-14 h-14 bg-red-50 border border-red-200 text-red-600 rounded-2xl flex items-center justify-center mx-auto">
-              <AlertCircle className="w-7 h-7" />
-            </div>
             <div>
-              <h2 className="text-xl font-bold text-[#191919] mb-1.5">
+              <h2 className="text-xl font-bold text-[#191919] mb-2">
                 Tautan Tidak Valid
               </h2>
-              <p className="text-xs text-neutral-500 leading-relaxed max-w-xs mx-auto">
-                {error || 'Tautan pengaturan ulang kata sandi sudah kedaluwarsa atau tidak dapat digunakan.'}
+              <p className="text-xs sm:text-sm text-neutral-500 leading-relaxed max-w-sm mx-auto">
+                Tautan ini sudah pernah digunakan atau masa berlakunya telah berakhir. Silakan minta tautan baru jika Anda ingin mengatur ulang kata sandi akun pendaftaran.
               </p>
             </div>
-            <div className="space-y-2">
-              <button
-                type="button"
-                onClick={() => router.push('/mitra/register')}
-                className="w-full flex items-center justify-center py-3 px-4 rounded-xl shadow-sm text-xs font-bold text-white bg-[#0841B5] hover:bg-[#063390] transition-all cursor-pointer"
-              >
-                Minta Tautan di Halaman Pendaftaran Mitra
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  window.location.href = 'https://app.embun.app/login';
-                }}
-                className="w-full flex items-center justify-center py-3 px-4 border border-[#E5E7EB] rounded-xl text-xs font-bold text-neutral-700 bg-white hover:bg-neutral-50 transition-all cursor-pointer"
-              >
-                Minta Tautan di Halaman Masuk Dashboard
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => router.push('/mitra/register')}
+              className="w-full flex items-center justify-center py-3.5 px-4 rounded-xl shadow-sm text-sm font-bold text-white bg-[#0841B5] hover:bg-[#063390] transition-all cursor-pointer"
+            >
+              Kembali ke Halaman Pendaftaran Mitra
+            </button>
           </div>
         ) : success ? (
           <div className="text-center py-4 space-y-6">
