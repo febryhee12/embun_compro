@@ -98,10 +98,10 @@ function ResetPasswordForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-surface-variant/30 p-4">
-      <div className="w-full max-w-md bg-surface p-8 rounded-3xl shadow-xl border border-surface-variant">
-        <div className="flex justify-center mb-8">
-          <div className="h-16 w-16 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/30 p-3">
+    <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] p-4 text-[#191919]">
+      <div className="w-full max-w-md bg-white p-8 sm:p-10 rounded-3xl shadow-xl border border-[#E5E7EB]">
+        <div className="flex justify-center mb-6">
+          <div className="h-16 w-16 bg-[#0841B5] rounded-2xl flex items-center justify-center shadow-lg shadow-[#0841B5]/30 p-3.5">
             <img
               src="/logo-embun-white.svg"
               alt="Embun"
@@ -112,8 +112,8 @@ function ResetPasswordForm() {
 
         {verifying ? (
           <div className="py-12 text-center flex flex-col items-center">
-            <div className="w-10 h-10 border-3 border-primary/30 border-t-primary rounded-full animate-spin mb-4" />
-            <p className="text-sm font-semibold text-foreground">
+            <div className="w-10 h-10 border-3 border-[#0841B5]/30 border-t-[#0841B5] rounded-full animate-spin mb-4" />
+            <p className="text-sm font-semibold text-[#191919]">
               Memverifikasi tautan reset password...
             </p>
           </div>
@@ -123,10 +123,10 @@ function ResetPasswordForm() {
               <AlertCircle className="w-7 h-7" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-foreground mb-1.5">
+              <h2 className="text-xl font-bold text-[#191919] mb-1.5">
                 Tautan Tidak Valid
               </h2>
-              <p className="text-xs text-secondary leading-relaxed max-w-xs mx-auto">
+              <p className="text-xs text-neutral-500 leading-relaxed max-w-xs mx-auto">
                 {error || 'Tautan pengaturan ulang kata sandi sudah kedaluwarsa atau tidak dapat digunakan.'}
               </p>
             </div>
@@ -134,14 +134,16 @@ function ResetPasswordForm() {
               <button
                 type="button"
                 onClick={() => router.push('/mitra/register')}
-                className="w-full flex items-center justify-center py-3 px-4 rounded-xl shadow-sm text-xs font-semibold text-primary-foreground bg-primary hover:bg-primary/90 transition-all cursor-pointer"
+                className="w-full flex items-center justify-center py-3 px-4 rounded-xl shadow-sm text-xs font-bold text-white bg-[#0841B5] hover:bg-[#063390] transition-all cursor-pointer"
               >
                 Minta Tautan di Halaman Pendaftaran Mitra
               </button>
               <button
                 type="button"
-                onClick={() => router.push('/login')}
-                className="w-full flex items-center justify-center py-3 px-4 border border-surface-variant rounded-xl text-xs font-semibold text-foreground bg-surface hover:bg-surface-variant/40 transition-all cursor-pointer"
+                onClick={() => {
+                  window.location.href = 'https://app.embun.app/login';
+                }}
+                className="w-full flex items-center justify-center py-3 px-4 border border-[#E5E7EB] rounded-xl text-xs font-bold text-neutral-700 bg-white hover:bg-neutral-50 transition-all cursor-pointer"
               >
                 Minta Tautan di Halaman Masuk Dashboard
               </button>
@@ -153,10 +155,10 @@ function ResetPasswordForm() {
               <CheckCircle2 className="w-8 h-8" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-foreground mb-1.5">
+              <h2 className="text-xl font-bold text-[#191919] mb-1.5">
                 Kata Sandi Berhasil Diubah!
               </h2>
-              <p className="text-xs text-secondary leading-relaxed max-w-xs mx-auto">
+              <p className="text-xs text-neutral-500 leading-relaxed max-w-xs mx-auto">
                 {userInfo.accountType === 'PARTNER_APPLICATION'
                   ? 'Kata sandi pendaftaran mitra Anda telah aktif. Silakan masuk untuk memantau status pengajuan atau memperbaiki data berkas.'
                   : 'Kata sandi baru Anda telah aktif. Silakan masuk kembali ke dashboard menggunakan kata sandi baru.'}
@@ -164,8 +166,14 @@ function ResetPasswordForm() {
             </div>
             <button
               type="button"
-              onClick={() => router.push(userInfo.accountType === 'PARTNER_APPLICATION' ? '/mitra/register' : '/login')}
-              className="w-full flex items-center justify-center py-3.5 px-4 rounded-xl shadow-sm text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 transition-all cursor-pointer"
+              onClick={() => {
+                if (userInfo.accountType === 'PARTNER_APPLICATION') {
+                  router.push('/mitra/register');
+                } else {
+                  window.location.href = 'https://app.embun.app/login';
+                }
+              }}
+              className="w-full flex items-center justify-center py-3.5 px-4 rounded-xl shadow-sm text-sm font-bold text-white bg-[#0841B5] hover:bg-[#063390] transition-all cursor-pointer"
             >
               {userInfo.accountType === 'PARTNER_APPLICATION'
                 ? 'Masuk ke Status Pengajuan Mitra'
@@ -175,33 +183,33 @@ function ResetPasswordForm() {
           </div>
         ) : (
           <>
-            <div className="flex items-center gap-2 justify-center mb-1 text-primary">
-              <ShieldCheck className="w-5 h-5" />
-              <span className="text-xs font-bold uppercase tracking-wider">Keamanan Akun</span>
+            <div className="flex items-center gap-1.5 justify-center mb-1 text-[#0841B5]">
+              <ShieldCheck className="w-4 h-4" />
+              <span className="text-[11px] font-bold uppercase tracking-wider">Keamanan Akun</span>
             </div>
-            <h1 className="text-2xl font-bold text-center text-foreground mb-1">
+            <h1 className="text-2xl font-bold text-center text-[#191919] mb-1">
               Buat Kata Sandi Baru
             </h1>
             {userInfo.email && (
-              <p className="text-center text-secondary mb-6 text-xs">
-                Untuk akun: <strong className="text-foreground">{userInfo.email}</strong>
+              <p className="text-center text-neutral-500 mb-6 text-xs">
+                Untuk akun: <strong className="text-neutral-900">{userInfo.email}</strong>
               </p>
             )}
 
             {error && (
-              <div className="mb-6 p-4 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100 text-center">
+              <div className="mb-6 p-3.5 bg-red-50 text-red-600 text-xs font-semibold rounded-xl border border-red-200 text-center">
                 {error}
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
                   Kata Sandi Baru
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-secondary" />
+                    <Lock className="h-4 w-4 text-neutral-400" />
                   </div>
                   <input
                     type={showPassword ? 'text' : 'password'}
@@ -209,27 +217,27 @@ function ResetPasswordForm() {
                     minLength={6}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="block w-full pl-11 pr-12 py-3 bg-background border border-surface-variant rounded-xl text-sm focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                    className="block w-full pl-10 pr-12 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm text-[#191919] placeholder:text-neutral-400 focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all"
                     placeholder="Minimal 6 karakter"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-secondary hover:text-foreground transition-colors cursor-pointer"
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-neutral-400 hover:text-neutral-700 transition-colors cursor-pointer"
                     tabIndex={-1}
                   >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
                   Ulangi Kata Sandi Baru
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-secondary" />
+                    <Lock className="h-4 w-4 text-neutral-400" />
                   </div>
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
@@ -237,16 +245,16 @@ function ResetPasswordForm() {
                     minLength={6}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="block w-full pl-11 pr-12 py-3 bg-background border border-surface-variant rounded-xl text-sm focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                    className="block w-full pl-10 pr-12 py-3 bg-[#F4F7F6] border border-[#E5E7EB] rounded-xl text-sm text-[#191919] placeholder:text-neutral-400 focus:bg-white focus:border-[#0841B5] focus:ring-2 focus:ring-[#0841B5]/20 outline-none transition-all"
                     placeholder="Ulangi kata sandi baru"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-secondary hover:text-foreground transition-colors cursor-pointer"
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-neutral-400 hover:text-neutral-700 transition-colors cursor-pointer"
                     tabIndex={-1}
                   >
-                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
@@ -254,7 +262,7 @@ function ResetPasswordForm() {
               <button
                 type="submit"
                 disabled={loading || !newPassword || !confirmPassword}
-                className="w-full flex items-center justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 transition-all mt-6 cursor-pointer"
+                className="w-full flex items-center justify-center py-3.5 px-4 rounded-xl shadow-sm text-sm font-bold text-white bg-[#0841B5] hover:bg-[#063390] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0841B5] disabled:opacity-50 transition-all mt-6 cursor-pointer"
               >
                 {loading ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -277,8 +285,8 @@ export default function ResetPasswordPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-surface-variant/30">
-          <div className="w-10 h-10 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
+          <div className="w-10 h-10 border-3 border-[#0841B5]/30 border-t-[#0841B5] rounded-full animate-spin" />
         </div>
       }
     >
