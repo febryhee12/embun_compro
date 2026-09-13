@@ -26,6 +26,7 @@ export interface SpotData {
   weekendPrice: number;
   holidayPrice: number;
   isEmbunPlus?: boolean;
+  embunPlusPriority?: number | null;
   shareCode?: string;
   photos?: Array<{ url: string; category?: string }>;
   images?: string[];
@@ -42,6 +43,7 @@ export interface SpotData {
     address?: string;
     city?: string;
     province?: string;
+    facilities?: unknown[];
     mapImageUrl?: string;
     addons?: any[];
     rating?: number;
@@ -140,17 +142,13 @@ export function SpotCard({
   const handlePrev = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setPhotoIndex((prev) =>
-      prev === 0 ? validPhotos.length - 1 : prev - 1,
-    );
+    setPhotoIndex((prev) => (prev === 0 ? validPhotos.length - 1 : prev - 1));
   };
 
   const handleNext = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setPhotoIndex((prev) =>
-      prev === validPhotos.length - 1 ? 0 : prev + 1,
-    );
+    setPhotoIndex((prev) => (prev === validPhotos.length - 1 ? 0 : prev + 1));
   };
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
@@ -237,7 +235,9 @@ export function SpotCard({
               {spot.name}
             </span>
             <span className="text-[10px] text-foreground-muted">
-              {isTour360Mode ? 'Tur Virtual 360°' : (spot.tentType || 'Spot Camp')}
+              {isTour360Mode
+                ? 'Tur Virtual 360°'
+                : spot.tentType || 'Spot Camp'}
             </span>
           </div>
         )}
@@ -265,7 +265,6 @@ export function SpotCard({
             </button>
           ) : null}
         </div>
-
 
         {/* Prev / Next Arrows on Hover */}
         {validPhotos.length > 1 && isHovered && (
@@ -314,9 +313,7 @@ export function SpotCard({
             (Number(spot.campsite?.rating) || 0) > 0 && (
               <div className="flex items-center gap-1 shrink-0 font-semibold text-foreground">
                 <Star size={12} className="fill-amber-500 text-amber-500" />
-                <span>
-                  {Number(spot.campsite?.rating).toFixed(1)}
-                </span>
+                <span>{Number(spot.campsite?.rating).toFixed(1)}</span>
               </div>
             )}
         </div>

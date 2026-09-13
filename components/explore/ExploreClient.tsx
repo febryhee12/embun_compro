@@ -25,10 +25,14 @@ import { GuestAuthModal } from '@/components/explore/GuestAuthModal';
 import { Tour360Modal } from '@/components/explore/Tour360Modal';
 import { EXPLORE_I18N, type Language } from '@/lib/explore-i18n';
 import {
-  Tent,
-  Star,
-  ArrowRight,
-} from 'lucide-react';
+  campsiteDistance,
+  matchesSpotSearch,
+  orderDiscovery,
+  publishedBlockIds,
+  spotSearchRelevance,
+  type DiscoveryLocation,
+} from '@/lib/discovery';
+import { Tent, Star, ArrowRight } from 'lucide-react';
 
 export const VIEW_SECTIONS = [
   { id: 'all', label: 'Semua' },
@@ -50,7 +54,11 @@ export const matchesSpotView = (spot: SpotData, viewId: string): boolean => {
 
   const rawViews = spot.viewOptions || (spot as any).view_options || [];
   const spotViews: string[] = Array.isArray(rawViews)
-    ? rawViews.map((v: any) => String(v || '').toLowerCase().trim())
+    ? rawViews.map((v: any) =>
+        String(v || '')
+          .toLowerCase()
+          .trim(),
+      )
     : [];
 
   if (viewId === 'pantai') {
@@ -78,21 +86,15 @@ export const matchesSpotView = (spot: SpotData, viewId: string): boolean => {
     );
   }
   if (viewId === 'gunung') {
-    return spotViews.some((v) => v.includes('gunung') || v.includes('mountain'));
+    return spotViews.some(
+      (v) => v.includes('gunung') || v.includes('mountain'),
+    );
   }
   if (viewId === 'hutan') {
-    return spotViews.some(
-      (v) =>
-        v.includes('hutan') ||
-        v.includes('forest'),
-    );
+    return spotViews.some((v) => v.includes('hutan') || v.includes('forest'));
   }
   if (viewId === 'pinus') {
-    return spotViews.some(
-      (v) =>
-        v.includes('pinus') ||
-        v.includes('pine'),
-    );
+    return spotViews.some((v) => v.includes('pinus') || v.includes('pine'));
   }
   if (viewId === 'sawah') {
     return spotViews.some(
@@ -120,10 +122,57 @@ export interface ExploreClientProps {
   initialLang?: Language;
 }
 
+const discover = (spots: SpotData[], date: Date, salt = 0) =>
+  orderDiscovery(
+    spots,
+    (spot) => spot.id,
+    (spot) => spot.campsite.id,
+    date,
+    salt,
+  );
+
+const sortNearby = (spots: SpotData[], distances: Map<string, number | null>) =>
+  [...spots].sort(
+    (first, second) =>
+      (distances.get(first.campsite.id) ?? Infinity) -
+      (distances.get(second.campsite.id) ?? Infinity),
+  );
+
 export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [campsites, setCampsites] = useState<any[]>([]);
+  const [location, setLocation] = useState<DiscoveryLocation | null>(null);
+  const [discoveryDate] = useState(() => new Date());
+
+  useEffect(() => {
+    let active = true;
+    navigator.geolocation?.getCurrentPosition(
+      ({ coords }) => {
+        if (active)
+          setLocation({
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+          });
+      },
+      () => {},
+      { timeout: 8000, maximumAge: 300000 },
+    );
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const distances = useMemo(
+    () =>
+      new Map<string, number | null>(
+        campsites.map((camp) => [camp.id, campsiteDistance(camp, location)]),
+      ),
+    [campsites, location],
+  );
+  const hasNearbyLocation = [...distances.values()].some(
+    (distance) => distance !== null,
+  );
 
   // Language state (defaults to 'id', persist in localStorage)
   const [lang, setLang] = useState<Language>(initialLang || 'id');
@@ -175,7 +224,6 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
     window.location.href = `/spot/${spot.shareCode || spot.id}`;
   };
 
-
   // 1. Initial Data Fetch
   useEffect(() => {
     setCurrentUser(getStoredGuestProfile());
@@ -221,15 +269,24 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
   const allSpots: SpotData[] = useMemo(() => {
     const list: SpotData[] = [];
     campsites.forEach((camp) => {
-      const campHasBlocks = Array.isArray(camp.blocks) && camp.blocks.length > 0;
+      const campHasBlocks =
+        Array.isArray(camp.blocks) && camp.blocks.length > 0;
+      const pinnedIds = publishedBlockIds(camp);
 
       if (campHasBlocks) {
         camp.blocks.forEach((b: any) => {
-          if (b.status === 'active' || !b.status) {
-            const blockPanos = Array.isArray(b.panoramaPhotos) ? [...b.panoramaPhotos] : [];
+          if (
+            (b.status === 'active' || !b.status) &&
+            pinnedIds.has(String(b.id))
+          ) {
+            const blockPanos = Array.isArray(b.panoramaPhotos)
+              ? [...b.panoramaPhotos]
+              : [];
             if (blockPanos.length === 0) {
               const allPanos: any[] = [
-                ...(Array.isArray(camp.panoramaSpots) ? camp.panoramaSpots : []),
+                ...(Array.isArray(camp.panoramaSpots)
+                  ? camp.panoramaSpots
+                  : []),
                 ...(Array.isArray(camp.maps)
                   ? camp.maps.flatMap((m: any) =>
                       Array.isArray(m.markers)
@@ -268,7 +325,8 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                   b.linkedPanoramaSpotId && ps.id === b.linkedPanoramaSpotId;
 
                 const hasPin = hsList.some((h: any) => {
-                  if (h.type === 'scene' || h.iconStyle === 'arrow_up') return false;
+                  if (h.type === 'scene' || h.iconStyle === 'arrow_up')
+                    return false;
                   const hIds = [h.blockId, h.targetSpotId]
                     .filter(Boolean)
                     .map((s) => String(s).trim().toLowerCase());
@@ -304,6 +362,7 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                 address: camp.address,
                 city: camp.city,
                 province: camp.province,
+                facilities: camp.facilities,
                 mapImageUrl: camp.mapImageUrl,
                 addons: camp.addons || [],
                 rating: camp.rating ? Number(camp.rating) : 0,
@@ -322,23 +381,13 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
   // 3. Filtered Spots (for explicit search / category filter mode)
   const filteredSpots = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
-    return allSpots.filter((spot) => {
+    const candidates = allSpots.filter((spot) => {
       // Search text query
-      const matchSearch =
-        !q ||
-        spot.name.toLowerCase().includes(q) ||
-        spot.campsite.name.toLowerCase().includes(q) ||
-        (spot.campsite.address &&
-          spot.campsite.address.toLowerCase().includes(q)) ||
-        (spot.campsite.city &&
-          spot.campsite.city.toLowerCase().includes(q)) ||
-        (spot.campsite.province &&
-          spot.campsite.province.toLowerCase().includes(q)) ||
-        (spot.tentType && spot.tentType.toLowerCase().includes(q)) ||
-        (spot.bedType && spot.bedType.toLowerCase().includes(q)) ||
-        (spot.blockNumber && spot.blockNumber.toLowerCase().includes(q)) ||
-        (Array.isArray(spot.facilities) &&
-          spot.facilities.some((f: string) => f.toLowerCase().includes(q)));
+      const matchSearch = matchesSpotSearch(
+        spot as unknown as Record<string, unknown>,
+        spot.campsite,
+        q,
+      );
 
       // City filter
       let matchCity = true;
@@ -360,7 +409,7 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
         if (selectedCategory === 'plus') {
           matchCat = !!spot.isEmbunPlus;
         } else if (selectedCategory === 'nearby') {
-          matchCat = !spot.isEmbunPlus;
+          matchCat = true;
         } else if (selectedCategory.startsWith('view:')) {
           const viewKey = selectedCategory.replace('view:', '').toLowerCase();
           matchCat = matchesSpotView(spot, viewKey);
@@ -374,7 +423,26 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
 
       return matchSearch && matchCity && matchCat;
     });
-  }, [allSpots, searchQuery, selectedCategory, selectedCity]);
+    if (selectedCategory === 'nearby') {
+      return sortNearby(discover(candidates, discoveryDate), distances);
+    }
+    return [2, 1, 0].flatMap((relevance) =>
+      discover(
+        candidates.filter(
+          (spot) =>
+            spotSearchRelevance(spot.name, spot.campsite.name, q) === relevance,
+        ),
+        discoveryDate,
+      ),
+    );
+  }, [
+    allSpots,
+    searchQuery,
+    selectedCategory,
+    selectedCity,
+    distances,
+    discoveryDate,
+  ]);
 
   // 4. Section Data Computations
   const [failedCampsiteImages, setFailedCampsiteImages] = useState<Set<string>>(
@@ -411,8 +479,16 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
 
   // Section 1: Embun Plus (Paling Atas) - True Embun Plus units only (limit 10 preview)
   const embunPlusSpots = useMemo(() => {
-    return allSpots.filter((s) => s.isEmbunPlus);
-  }, [allSpots]);
+    return discover(
+      allSpots.filter((s) => s.isEmbunPlus),
+      discoveryDate,
+      1,
+    ).sort(
+      (first, second) =>
+        (first.embunPlusPriority ?? Infinity) -
+        (second.embunPlusPriority ?? Infinity),
+    );
+  }, [allSpots, discoveryDate]);
 
   const displayedEmbunPlusSpots = useMemo(() => {
     return embunPlusSpots.slice(0, 10);
@@ -420,9 +496,8 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
 
   // Section 2: Spot Terdekat Sekitar Anda (limit 10 preview)
   const nearbySpots = useMemo(() => {
-    const nonPlus = allSpots.filter((s) => !s.isEmbunPlus);
-    return nonPlus.length > 0 ? nonPlus : allSpots;
-  }, [allSpots]);
+    return sortNearby(discover(allSpots, discoveryDate, 2), distances);
+  }, [allSpots, distances, discoveryDate]);
 
   const displayedNearbySpots = useMemo(() => {
     return nearbySpots.slice(0, 10);
@@ -432,8 +507,12 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
   const [selectedViewTab, setSelectedViewTab] = useState('all');
 
   const spotsByView = useMemo(() => {
-    return allSpots.filter((s) => matchesSpotView(s, selectedViewTab));
-  }, [allSpots, selectedViewTab]);
+    return discover(
+      allSpots.filter((s) => matchesSpotView(s, selectedViewTab)),
+      discoveryDate,
+      6,
+    );
+  }, [allSpots, selectedViewTab, discoveryDate]);
 
   // Tampilkan hingga 10 spot agar baris grid terisi penuh & seimbang (2 baris penuh di grid 5 kolom)
   const displayedViewSpots = useMemo(() => {
@@ -447,13 +526,19 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
 
   // Section 4: Jelajahi Lokasi Campsite (limit 8 preview)
   const displayedCampsites = useMemo(() => {
-    return campsites.slice(0, 8);
-  }, [campsites]);
+    return orderDiscovery(
+      campsites,
+      (camp) => camp.id,
+      (camp) => camp.id,
+      discoveryDate,
+      7,
+    ).slice(0, 8);
+  }, [campsites, discoveryDate]);
 
   // Section 5: Spot Lainnya (dilimit bertahap seperti e-commerce: 10 spot pertama, lalu load more)
   const otherSpots = useMemo(() => {
-    return allSpots;
-  }, [allSpots]);
+    return discover(allSpots, discoveryDate, 4);
+  }, [allSpots, discoveryDate]);
 
   const [visibleOtherSpotsCount, setVisibleOtherSpotsCount] = useState(10);
 
@@ -551,21 +636,41 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                   {searchQuery
                     ? `${lang === 'en' ? 'Search Results' : 'Hasil Pencarian'}: "${searchQuery}"`
                     : selectedCategory !== 'all'
-                    ? `${lang === 'en' ? 'Category' : 'Kategori'}: ${
-                        selectedCategory === 'plus'
-                          ? (lang === 'en' ? 'Top Pick: Premium Nature Stays' : 'Pilihan Penginapan Premium')
-                          : selectedCategory === 'nearby'
-                          ? (lang === 'en' ? 'Nearby Nature Getaways' : 'Spot Terdekat')
-                          : selectedCategory.startsWith('view:')
-                          ? t.views[selectedCategory.replace('view:', '') as keyof typeof t.views] ||
-                            VIEW_SECTIONS.find(
-                              (v) =>
-                                v.id === selectedCategory.replace('view:', ''),
-                            )?.label || selectedCategory
-                          : (t.categories[selectedCategory as keyof typeof t.categories] ||
-                            CATEGORIES.find((c) => c.id === selectedCategory)?.label || selectedCategory)
-                      }`
-                    : `${lang === 'en' ? 'Destination' : 'Destinasi'}: ${selectedCity}`}
+                      ? `${lang === 'en' ? 'Category' : 'Kategori'}: ${
+                          selectedCategory === 'plus'
+                            ? lang === 'en'
+                              ? 'Top Pick: Premium Nature Stays'
+                              : 'Pilihan Penginapan Premium'
+                            : selectedCategory === 'nearby'
+                              ? hasNearbyLocation
+                                ? lang === 'en'
+                                  ? 'Nearby Nature Getaways'
+                                  : 'Spot Terdekat'
+                                : lang === 'en'
+                                  ? 'Explore Spots'
+                                  : 'Jelajahi Spot'
+                              : selectedCategory.startsWith('view:')
+                                ? t.views[
+                                    selectedCategory.replace(
+                                      'view:',
+                                      '',
+                                    ) as keyof typeof t.views
+                                  ] ||
+                                  VIEW_SECTIONS.find(
+                                    (v) =>
+                                      v.id ===
+                                      selectedCategory.replace('view:', ''),
+                                  )?.label ||
+                                  selectedCategory
+                                : t.categories[
+                                    selectedCategory as keyof typeof t.categories
+                                  ] ||
+                                  CATEGORIES.find(
+                                    (c) => c.id === selectedCategory,
+                                  )?.label ||
+                                  selectedCategory
+                        }`
+                      : `${lang === 'en' ? 'Destination' : 'Destinasi'}: ${selectedCity}`}
                 </h2>
                 <p className="text-xs text-foreground-muted">
                   {lang === 'en'
@@ -589,7 +694,10 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
 
             {filteredSpots.length === 0 ? (
               <div className="text-center py-16 bg-surface/50 rounded-3xl border border-border p-6">
-                <Tent size={40} className="mx-auto text-foreground-muted mb-2" />
+                <Tent
+                  size={40}
+                  className="mx-auto text-foreground-muted mb-2"
+                />
                 <h3 className="font-bold text-sm text-foreground">
                   {t.sections.noSpotsFound}
                 </h3>
@@ -665,10 +773,18 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                 <div className="flex items-end justify-between border-b border-border pb-3">
                   <div>
                     <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
-                      {t.sections.nearbyTitle}
+                      {hasNearbyLocation
+                        ? t.sections.nearbyTitle
+                        : lang === 'en'
+                          ? 'Explore Spots'
+                          : 'Jelajahi Spot'}
                     </h2>
                     <p className="text-xs text-foreground-muted">
-                      {t.sections.nearbySubtitle}
+                      {hasNearbyLocation
+                        ? t.sections.nearbySubtitle
+                        : lang === 'en'
+                          ? 'Camping and outdoor stays across destinations.'
+                          : 'Pilihan camping dan penginapan alam di berbagai destinasi.'}
                     </p>
                   </div>
                 </div>
@@ -724,7 +840,8 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                 >
                   {VIEW_SECTIONS.map((v) => {
                     const isSelected = selectedViewTab === v.id;
-                    const viewLabel = t.views[v.id as keyof typeof t.views] || v.label;
+                    const viewLabel =
+                      t.views[v.id as keyof typeof t.views] || v.label;
                     return (
                       <button
                         key={v.id}
@@ -736,7 +853,9 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                             : 'bg-surface hover:bg-surface-variant text-foreground-muted hover:text-foreground border border-border/80 dark:hover:border-white/20'
                         }`}
                       >
-                        <span className="whitespace-nowrap tracking-tight">{viewLabel}</span>
+                        <span className="whitespace-nowrap tracking-tight">
+                          {viewLabel}
+                        </span>
                       </button>
                     );
                   })}
@@ -745,12 +864,19 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                 {/* Spot Cards Grid */}
                 {spotsByView.length === 0 ? (
                   <div className="text-center py-12 bg-surface/50 rounded-3xl border border-border p-6">
-                    <Tent size={36} className="mx-auto text-foreground-muted mb-2" />
+                    <Tent
+                      size={36}
+                      className="mx-auto text-foreground-muted mb-2"
+                    />
                     <h4 className="font-bold text-sm text-foreground">
-                      {lang === 'en' ? 'No spots found for this scenery yet' : 'Belum ada spot untuk pemandangan ini'}
+                      {lang === 'en'
+                        ? 'No spots found for this scenery yet'
+                        : 'Belum ada spot untuk pemandangan ini'}
                     </h4>
                     <p className="text-xs text-foreground-muted mt-1">
-                      {lang === 'en' ? 'Spots with this scenery will be added soon by campsite partners.' : 'Pilihan spot dengan pemandangan ini akan segera ditambahkan oleh mitra campsite.'}
+                      {lang === 'en'
+                        ? 'Spots with this scenery will be added soon by campsite partners.'
+                        : 'Pilihan spot dengan pemandangan ini akan segera ditambahkan oleh mitra campsite.'}
                     </p>
                   </div>
                 ) : (
@@ -827,23 +953,30 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                             />
                           ) : (
                             <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-emerald-950 via-[#0841b5] to-slate-900 text-white p-4 text-center">
-                              <span className="font-bold text-xs">{camp.name}</span>
+                              <span className="font-bold text-xs">
+                                {camp.name}
+                              </span>
                               <span className="text-[10px] text-white/70">
-                                {camp.address || (lang === 'en' ? 'Nature Tourist Area' : 'Kawasan Wisata Alam')}
+                                {camp.address ||
+                                  (lang === 'en'
+                                    ? 'Nature Tourist Area'
+                                    : 'Kawasan Wisata Alam')}
                               </span>
                             </div>
                           )}
-                          {(camp.reviewCount ?? 0) > 0 && (Number(camp.rating) || 0) > 0 && (
-                            <div className="absolute top-3 right-3 bg-white/95 dark:bg-surface/95 backdrop-blur-xs px-2.5 py-1 rounded-full text-[11px] font-bold text-foreground shadow-xs flex items-center gap-1">
-                              <Star
-                                size={12}
-                                className="fill-amber-500 text-amber-500"
-                              />
-                              <span>{Number(camp.rating).toFixed(1)}</span>
-                            </div>
-                          )}
+                          {(camp.reviewCount ?? 0) > 0 &&
+                            (Number(camp.rating) || 0) > 0 && (
+                              <div className="absolute top-3 right-3 bg-white/95 dark:bg-surface/95 backdrop-blur-xs px-2.5 py-1 rounded-full text-[11px] font-bold text-foreground shadow-xs flex items-center gap-1">
+                                <Star
+                                  size={12}
+                                  className="fill-amber-500 text-amber-500"
+                                />
+                                <span>{Number(camp.rating).toFixed(1)}</span>
+                              </div>
+                            )}
                           <div className="absolute bottom-3 left-3 bg-black/75 backdrop-blur-xs px-3 py-1 rounded-full text-[11px] font-semibold text-white shadow-xs">
-                            {spotCount} {lang === 'en' ? 'Spot Units' : 'Pilihan Unit Spot'}
+                            {spotCount}{' '}
+                            {lang === 'en' ? 'Spot Units' : 'Pilihan Unit Spot'}
                           </div>
                         </div>
 
@@ -852,7 +985,10 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                             {camp.name}
                           </h4>
                           <p className="text-xs text-foreground-muted line-clamp-1">
-                            {camp.address || (lang === 'en' ? 'Nature Tourist Area' : 'Kawasan Wisata Alam')}
+                            {camp.address ||
+                              (lang === 'en'
+                                ? 'Nature Tourist Area'
+                                : 'Kawasan Wisata Alam')}
                           </p>
                         </div>
                       </div>
@@ -903,7 +1039,10 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
                 {visibleOtherSpotsCount < otherSpots.length && (
                   <div className="flex flex-col items-center justify-center pt-4 space-y-2.5">
                     <p className="text-xs text-foreground-muted">
-                      {t.sections.showingSpots(displayedOtherSpots.length, otherSpots.length)}
+                      {t.sections.showingSpots(
+                        displayedOtherSpots.length,
+                        otherSpots.length,
+                      )}
                     </p>
                     <button
                       type="button"
@@ -921,7 +1060,6 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
           </div>
         )}
       </main>
-
 
       {/* ═══ 4. FOOTER ═══ */}
       <ExploreFooter lang={lang} onToggleLanguage={toggleLanguage} />
@@ -948,4 +1086,3 @@ export function ExploreClient({ initialLang }: ExploreClientProps = {}) {
     </div>
   );
 }
-
