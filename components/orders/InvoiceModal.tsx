@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { X, Printer } from 'lucide-react';
-import { rupiah } from '@/lib/api-client';
+import { rupiah, API_BASE_URL } from '@/lib/api-client';
 import { type Language } from '@/lib/account-i18n';
 
 export interface AddonLine {
@@ -63,7 +63,8 @@ const INVOICE_I18N = {
     footerThanks: 'Terima kasih telah memesan melalui embun.',
     footerLegal: 'Invoice ini diterbitkan secara otomatis dan sah tanpa tanda tangan.',
     modalTitle: 'Invoice Resmi Embun',
-    printBtn: 'Cetak / Unduh PDF',
+    printBtn: 'Cetak',
+    downloadInvoice: 'Unduh Invoice',
     close: 'Tutup',
   },
   en: {
@@ -101,7 +102,8 @@ const INVOICE_I18N = {
     footerThanks: 'Thank you for booking through Embun.',
     footerLegal: 'This invoice is computer generated and valid without signature.',
     modalTitle: 'Official Embun Invoice',
-    printBtn: 'Print / Download PDF',
+    printBtn: 'Print',
+    downloadInvoice: 'Download Invoice',
     close: 'Close',
   },
 };
@@ -475,13 +477,23 @@ export function InvoiceModal({
           </div>
 
           <div className="flex items-center gap-2">
+            {order?.id && (
+              <a
+                href={`${API_BASE_URL}/orders/${order.id}/invoice.pdf`}
+                target="_blank"
+                rel="noopener noreferrer"
+                download
+                className="px-4 py-2 rounded-full bg-brand-blue hover:bg-brand-blue-hover dark:bg-brand-lime dark:text-black dark:hover:bg-brand-lime/90 text-white text-xs font-bold transition-all shadow-xs cursor-pointer inline-flex items-center justify-center"
+              >
+                {t.downloadInvoice}
+              </a>
+            )}
             <button
               type="button"
               onClick={handlePrint}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-brand-blue hover:bg-brand-blue-hover dark:bg-brand-lime dark:text-black dark:hover:bg-brand-lime/90 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+              className="px-3.5 py-2 rounded-full border border-border hover:bg-surface text-xs font-bold text-foreground transition-colors cursor-pointer"
             >
-              <Printer size={14} />
-              <span>{t.printBtn}</span>
+              {t.printBtn}
             </button>
             <button
               type="button"
