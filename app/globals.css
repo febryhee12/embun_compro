@@ -206,6 +206,15 @@ div.pnlm-about-msg,
   pointer-events: none !important;
 }
 
+/* Hide Pannellum default raw error message box */
+.pnlm-error-msg,
+div.pnlm-error-msg {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 /* Leaflet custom popup styling */
 .embun-leaflet-popup .leaflet-popup-content-wrapper {
   border-radius: 1.5rem !important;

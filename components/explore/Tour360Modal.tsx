@@ -28,6 +28,52 @@ function loadPannellum(): Promise<any> {
   return pannellumPromise;
 }
 
+function parseHotspotsList(raw: any): any[] {
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw === 'string' && raw.trim().length > 0) {
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+function findMatchingPin(rawHotspots: any, targetSpot: any) {
+  if (!targetSpot) return null;
+  const hsList = parseHotspotsList(rawHotspots);
+  if (hsList.length === 0) return null;
+
+  const targetIds = [
+    targetSpot.id,
+    targetSpot.blockId,
+    targetSpot.shareCode,
+  ].filter(Boolean).map((s) => String(s).trim().toLowerCase());
+
+  const targetNames = [
+    targetSpot.name,
+    targetSpot.blockNumber,
+    targetSpot.label,
+  ].filter(Boolean).map((s) => String(s).trim().toLowerCase());
+
+  return hsList.find((h: any) => {
+    // Abaikan hotspot tipe scene / perpindahan area
+    if (h.type === 'scene' || h.iconStyle === 'arrow_up') return false;
+
+    const hIds = [h.blockId, h.targetSpotId].filter(Boolean).map((s) => String(s).trim().toLowerCase());
+    for (const hid of hIds) {
+      if (targetIds.includes(hid)) return true;
+    }
+    const hLabels = [h.targetLabel, h.label, h.text].filter(Boolean).map((s) => String(s).trim().toLowerCase());
+    for (const hlabel of hLabels) {
+      if (targetNames.includes(hlabel)) return true;
+    }
+    return false;
+  });
+}
+
 interface Tour360ModalProps {
   spot: SpotData | null;
   onClose: () => void;
@@ -36,6 +82,8 @@ interface Tour360ModalProps {
 export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
   const [activePanoramaIdx, setActivePanoramaIdx] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
   const panoramaContainerRef = useRef<HTMLDivElement | null>(null);
   const pannellumViewerRef = useRef<any>(null);
 
@@ -43,52 +91,6 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
     if (!spot) return [];
     const list: any[] = [];
     const addedUrls = new Set<string>();
-
-    const parseHotspotsList = (raw: any): any[] => {
-      if (Array.isArray(raw)) return raw;
-      if (typeof raw === 'string' && raw.trim().length > 0) {
-        try {
-          const parsed = JSON.parse(raw);
-          return Array.isArray(parsed) ? parsed : [];
-        } catch {
-          return [];
-        }
-      }
-      return [];
-    };
-
-    const findMatchingPin = (rawHotspots: any, targetSpot: any) => {
-      if (!targetSpot) return null;
-      const hsList = parseHotspotsList(rawHotspots);
-      if (hsList.length === 0) return null;
-
-      const targetIds = [
-        targetSpot.id,
-        targetSpot.blockId,
-        targetSpot.shareCode,
-      ].filter(Boolean).map((s) => String(s).trim().toLowerCase());
-
-      const targetNames = [
-        targetSpot.name,
-        targetSpot.blockNumber,
-        targetSpot.label,
-      ].filter(Boolean).map((s) => String(s).trim().toLowerCase());
-
-      return hsList.find((h: any) => {
-        // Abaikan hotspot tipe scene / perpindahan area
-        if (h.type === 'scene' || h.iconStyle === 'arrow_up') return false;
-
-        const hIds = [h.blockId, h.targetSpotId].filter(Boolean).map((s) => String(s).trim().toLowerCase());
-        for (const hid of hIds) {
-          if (targetIds.includes(hid)) return true;
-        }
-        const hLabels = [h.targetLabel, h.label, h.text].filter(Boolean).map((s) => String(s).trim().toLowerCase());
-        for (const hlabel of hLabels) {
-          if (targetNames.includes(hlabel)) return true;
-        }
-        return false;
-      });
-    };
 
     const addPano = (p: any, isLinked = false) => {
       const url = (p.imageUrl || p.url || p.panoramaImageUrl || '').trim();
@@ -237,6 +239,7 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
     if (!spot || panoramaList.length === 0) return;
     let destroyed = false;
     setLoading(true);
+    setLoadError(false);
 
     const init = async () => {
       const pannellum = await loadPannellum();
@@ -251,22 +254,41 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
         }
 
         const container = panoramaContainerRef.current;
-        if (!container) return;
         container.innerHTML = '';
 
         const scenesConfig: Record<string, any> = {};
         panoramaList.forEach((pano) => {
-          const rawHotspots: any[] = (() => {
-            const hs = (pano as any).hotspots;
-            if (Array.isArray(hs)) return hs;
-            if (typeof hs === 'string' && hs.trim().length > 0) {
-              try {
-                return JSON.parse(hs);
-              } catch {
-                return [];
-              }
+          const rawHotspots = parseHotspotsList(
+            pano.hotspots || pano.panoramaHotspots,
+          );
+
+          // Auto-inject linked spot pin if this is a spot's default panorama
+          const activeSpotPin = (() => {
+            if (!spot || !pano.isDefaultPanorama) return null;
+            if (findMatchingPin(rawHotspots, spot)) return null;
+            if (
+              spot.linkedPanoramaYaw !== undefined &&
+              spot.linkedPanoramaPitch !== undefined
+            ) {
+              return {
+                pitch: Number(spot.linkedPanoramaPitch || 0),
+                yaw: Number(spot.linkedPanoramaYaw || 0),
+                type: 'custom',
+                createTooltipFunc: (hotSpotDiv: HTMLElement) => {
+                  hotSpotDiv.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer; transform: translate(-50%, -50%);" onmouseover="this.style.transform='translate(-50%, -50%) scale(1.1)'" onmouseout="this.style.transform='translate(-50%, -50%) scale(1)'">
+                      <div style="background: rgba(15, 23, 42, 0.9); color: #ffffff; padding: 4px 10px; border-radius: 9999px; font-size: 11px; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 4px 14px rgba(0,0,0,0.6); white-space: nowrap; margin-bottom: 5px; backdrop-filter: blur(4px);">
+                        ${spot.name}
+                      </div>
+                      <div style="width: 36px; height: 36px; border-radius: 50%; background: #0841b5; border: 2.5px solid #ffffff; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,0.7); backdrop-filter: blur(4px);">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                      </div>
+                    </div>
+                  `;
+                },
+              };
             }
-            return [];
+            return null;
           })();
 
           const pannellumHotSpots = rawHotspots.map((h: any) => {
@@ -325,6 +347,10 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
             };
           });
 
+          if (activeSpotPin) {
+            pannellumHotSpots.push(activeSpotPin);
+          }
+
           // Ensure URL has ?pano=360 so it never reuses non-CORS <img> cached entry in Incognito/Mobile
           const rawPanoUrl = resolveAssetUrl(pano.imageUrl);
           const safePanoUrl = rawPanoUrl
@@ -364,7 +390,10 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
         });
 
         pannellumViewerRef.current.on('load', () => {
-          setLoading(false);
+          if (!destroyed) {
+            setLoading(false);
+            setLoadError(false);
+          }
           if (activePano && activePano.yaw !== undefined && activePano.pitch !== undefined) {
             try {
               pannellumViewerRef.current?.lookAt(
@@ -376,9 +405,20 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
             } catch (_) {}
           }
         });
+
+        pannellumViewerRef.current.on('error', (err: any) => {
+          console.error('Pannellum error:', err);
+          if (!destroyed) {
+            setLoading(false);
+            setLoadError(true);
+          }
+        });
       } catch (err) {
         console.error('Error init pannellum:', err);
-        setLoading(false);
+        if (!destroyed) {
+          setLoading(false);
+          setLoadError(true);
+        }
       }
     };
 
@@ -393,7 +433,7 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
         pannellumViewerRef.current = null;
       }
     };
-  }, [spot, panoramaList]);
+  }, [spot, panoramaList, retryKey]);
 
   // Switch scene when activePanoramaIdx changes
   useEffect(() => {
@@ -513,11 +553,49 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
               onContextMenu={(e) => e.preventDefault()}
             />
 
+            {/* Clean Error Dialog */}
+            {loadError && (
+              <div className="absolute inset-0 z-30 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-200">
+                <div className="max-w-sm w-full bg-neutral-900 border border-white/10 rounded-2xl p-6 text-center shadow-2xl space-y-4">
+                  <div className="space-y-1.5">
+                    <h3 className="text-white font-semibold text-sm">
+                      Foto 360° belum dapat dimuat
+                    </h3>
+                    <p className="text-neutral-400 text-xs leading-relaxed">
+                      Pemuatan gambar terhalang oleh pengaturan privasi atau pemblokir di browser Anda. Silakan nonaktifkan pemblokir untuk situs ini lalu coba lagi.
+                    </p>
+                  </div>
+                  <div className="flex gap-2.5 pt-1">
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="flex-1 py-2 rounded-lg border border-white/15 text-white/80 hover:text-white hover:bg-white/5 text-xs font-medium transition-all cursor-pointer"
+                    >
+                      Tutup
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLoadError(false);
+                        setLoading(true);
+                        setRetryKey((k) => k + 1);
+                      }}
+                      className="flex-1 py-2 rounded-lg bg-white text-black hover:bg-white/90 text-xs font-semibold transition-all cursor-pointer"
+                    >
+                      Coba Lagi
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Hint at bottom */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-xs font-semibold text-white/90 flex items-center gap-2 pointer-events-none shadow-2xl z-20">
-              <RotateCw size={14} className="text-brand-lime animate-spin" />
-              <span>Geser layar / mouse untuk berputar 360°</span>
-            </div>
+            {!loadError && (
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-xs font-semibold text-white/90 flex items-center gap-2 pointer-events-none shadow-2xl z-20">
+                <RotateCw size={14} className="text-brand-lime animate-spin" />
+                <span>Geser layar / mouse untuk berputar 360°</span>
+              </div>
+            )}
           </>
         )}
       </div>
