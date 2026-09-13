@@ -219,29 +219,29 @@ export function InvoiceDocument({
   const baseRental = Math.max(0, fullRental - totalPaidAddons);
 
   return (
-    <div className="bg-white mx-auto p-8 sm:p-10 rounded-2xl border border-neutral-200/80 shadow-md max-w-[780px] text-neutral-900 text-xs font-sans print:shadow-none print:border-none print:p-0 print:max-w-none print:m-0">
+    <div className="bg-white mx-auto p-5 sm:p-8 md:p-10 rounded-2xl border border-neutral-200/80 shadow-md max-w-[780px] text-neutral-900 text-xs font-sans print:shadow-none print:border-none print:p-0 print:max-w-none print:m-0">
       {/* 1. HEADER (Logo + PT di kiri, INVOICE + No di kanan) */}
-      <div className="flex items-start justify-between gap-6 pb-6">
-        <div className="space-y-1.5">
+      <div className="flex items-start justify-between gap-4 pb-4 sm:pb-6">
+        <div className="space-y-1">
           <img
             src="/images/logo/primary_blue.svg"
             alt="Embun"
-            className="h-8 w-auto object-contain"
+            className="h-6 sm:h-7 w-auto object-contain"
           />
-          <p className="text-[11px] font-bold text-neutral-900 pt-1">
+          <p className="text-[10px] sm:text-[11px] font-bold text-neutral-900 pt-0.5">
             PT Alam Kelana Digital
           </p>
-          <p className="text-[9.5px] text-neutral-500">support@embun.app</p>
+          <p className="text-[9px] sm:text-[9.5px] text-neutral-500">support@embun.app</p>
         </div>
 
-        <div className="text-right space-y-1">
-          <h1 className="text-2xl font-black tracking-widest text-[#0841B5]">
+        <div className="text-right space-y-0.5 sm:space-y-1">
+          <h1 className="text-lg sm:text-xl font-bold tracking-wider text-[#0841B5]">
             {t.invoiceTitle}
           </h1>
-          <p className="text-[11px] font-bold text-neutral-900">
+          <p className="text-[10px] sm:text-[11px] font-bold text-neutral-900">
             {t.invoiceNumber(shortCode)}
           </p>
-          <p className="text-[10px] text-neutral-500">
+          <p className="text-[9px] sm:text-[10px] text-neutral-500">
             {t.createdOn(formatLongDate(order.createdAt, lang))}
           </p>
         </div>
