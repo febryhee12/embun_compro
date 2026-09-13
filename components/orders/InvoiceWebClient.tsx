@@ -20,6 +20,7 @@ interface InvoiceDataResponse {
 export function InvoiceWebClient() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('id');
+  const isApp = searchParams.get('isApp') === '1';
 
   const [lang, setLang] = useState<Language>('id');
   const [data, setData] = useState<InvoiceDataResponse | null>(null);
@@ -106,51 +107,53 @@ export function InvoiceWebClient() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-neutral-950 text-neutral-900 print:bg-white print:p-0">
-      {/* Top Action Bar (Tokopedia-style web app header) */}
-      <header className="sticky top-0 z-40 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md border-b border-neutral-200/80 dark:border-neutral-800 shadow-2xs print:hidden">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
-          {/* Back & Title */}
-          <div className="flex items-center gap-3 min-w-0">
-            <Link
-              href={`/orders/detail?id=${orderId}`}
-              className="p-2 -ml-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-300 transition-colors cursor-pointer shrink-0"
-              aria-label={lang === 'en' ? 'Back to Order Details' : 'Kembali ke Detail Pesanan'}
-            >
-              <ArrowLeft size={20} className="stroke-[2.2]" />
-            </Link>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="font-extrabold text-sm sm:text-base text-neutral-900 dark:text-white tracking-tight">
-                  Invoice
-                </span>
-                <span className="text-[11px] font-mono text-neutral-600 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 px-2 py-0.5 rounded-md font-bold shrink-0">
-                  {data.shortCode}
-                </span>
+      {/* Top Action Bar (Tokopedia-style web app header: hidden if rendered inside Flutter in-app WebView) */}
+      {!isApp && (
+        <header className="sticky top-0 z-40 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md border-b border-neutral-200/80 dark:border-neutral-800 shadow-2xs print:hidden">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+            {/* Back & Title */}
+            <div className="flex items-center gap-3 min-w-0">
+              <Link
+                href={`/orders/detail?id=${orderId}`}
+                className="p-2 -ml-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-300 transition-colors cursor-pointer shrink-0"
+                aria-label={lang === 'en' ? 'Back to Order Details' : 'Kembali ke Detail Pesanan'}
+              >
+                <ArrowLeft size={20} className="stroke-[2.2]" />
+              </Link>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-extrabold text-sm sm:text-base text-neutral-900 dark:text-white tracking-tight">
+                    Invoice
+                  </span>
+                  <span className="text-[11px] font-mono text-neutral-600 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 px-2 py-0.5 rounded-md font-bold shrink-0">
+                    {data.shortCode}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Action Buttons: Clean 'Unduh Invoice' (NO ICON) + 'Cetak' */}
-          <div className="flex items-center gap-2.5 shrink-0">
-            <button
-              type="button"
-              onClick={handlePrint}
-              className="px-3.5 sm:px-4 py-2 rounded-full border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-xs font-bold text-neutral-700 dark:text-neutral-200 transition-colors cursor-pointer"
-            >
-              {lang === 'en' ? 'Print' : 'Cetak'}
-            </button>
-            <a
-              href={pdfUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              download
-              className="px-4 sm:px-5 py-2 rounded-full bg-[#0841B5] hover:bg-[#073696] text-white text-xs font-bold transition-all shadow-xs cursor-pointer inline-flex items-center justify-center"
-            >
-              {lang === 'en' ? 'Download Invoice' : 'Unduh Invoice'}
-            </a>
+            {/* Action Buttons: Clean 'Unduh Invoice' (NO ICON) + 'Cetak' */}
+            <div className="flex items-center gap-2.5 shrink-0">
+              <button
+                type="button"
+                onClick={handlePrint}
+                className="px-3.5 sm:px-4 py-2 rounded-full border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-xs font-bold text-neutral-700 dark:text-neutral-200 transition-colors cursor-pointer"
+              >
+                {lang === 'en' ? 'Print' : 'Cetak'}
+              </button>
+              <a
+                href={pdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                download
+                className="px-4 sm:px-5 py-2 rounded-full bg-[#0841B5] hover:bg-[#073696] text-white text-xs font-bold transition-all shadow-xs cursor-pointer inline-flex items-center justify-center"
+              >
+                {lang === 'en' ? 'Download Invoice' : 'Unduh Invoice'}
+              </a>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
       {/* Invoice Document Body */}
       <main className="max-w-4xl mx-auto py-6 sm:py-10 px-3 sm:px-6 print:p-0 print:m-0 print:max-w-none">
