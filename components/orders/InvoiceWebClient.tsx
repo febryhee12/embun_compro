@@ -34,7 +34,13 @@ export function InvoiceWebClient() {
     } catch {
       // ignore
     }
-  }, []);
+
+    if (searchParams.get('isDark') === '1') {
+      document.documentElement.classList.add('dark');
+    } else if (searchParams.get('isDark') === '0') {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!orderId) {

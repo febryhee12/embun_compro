@@ -14,12 +14,17 @@ export function CookieConsent() {
   const pathname = usePathname();
   const isEn = pathname?.startsWith('/en');
 
-  // Do not show cookie banner on explore pages per user request:
-  // "untuk halaman compro explore sepertinya tidak perlu cookies"
+  // Do not show cookie banner on explore pages, invoice pages, or inside mobile app:
+  // "untuk dimobile aplikasi privacy cookies ini ngak perlu muncul"
   const isExplorePage = pathname?.includes('/explore');
+  const isInvoicePage = pathname?.includes('/orders/invoice');
+  const isAppMode =
+    typeof window !== 'undefined' &&
+    (window.location.search.includes('isApp=1') ||
+      window.navigator.userAgent.includes('wv'));
 
   useEffect(() => {
-    if (isExplorePage) return;
+    if (isExplorePage || isInvoicePage || isAppMode) return;
 
     // Check if user has already accepted or dismissed the cookie consent
     const consent = localStorage.getItem('embun_cookie_consent');
@@ -28,7 +33,7 @@ export function CookieConsent() {
       const timer = setTimeout(() => setIsVisible(true), 1000);
       return () => clearTimeout(timer);
     }
-  }, [isExplorePage]);
+  }, [isExplorePage, isInvoicePage, isAppMode]);
 
   function handleAccept() {
     localStorage.setItem('embun_cookie_consent', 'accepted');
@@ -40,7 +45,7 @@ export function CookieConsent() {
     setIsVisible(false);
   }
 
-  if (isExplorePage || !isVisible) return null;
+  if (isExplorePage || isInvoicePage || isAppMode || !isVisible) return null;
 
   return (
     <div className="fixed bottom-6 left-6 right-6 md:left-auto md:right-6 md:max-w-md z-50 animate-in fade-in slide-in-from-bottom-5 duration-300">
