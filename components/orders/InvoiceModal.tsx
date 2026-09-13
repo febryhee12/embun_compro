@@ -296,8 +296,8 @@ export function InvoiceDocument({
       </div>
 
       {/* 3. BOOKINGS TABLE (Spot / Kavling, Paket, Qty, Check-in, Check-out, Tamu, Subtotal) */}
-      <div className="mt-5 border border-[#E5E7EB] rounded-lg overflow-hidden">
-        <table className="w-full text-left border-collapse text-[10.5px]">
+      <div className="mt-5 border border-[#E5E7EB] rounded-lg overflow-x-auto">
+        <table className="w-full text-left border-collapse text-[10.5px] min-w-[520px] sm:min-w-0">
           <thead>
             <tr className="bg-[#F3F4F6] text-neutral-800 border-b border-[#E5E7EB]">
               <th className="py-2.5 px-3 font-bold">{t.thSpot}</th>
