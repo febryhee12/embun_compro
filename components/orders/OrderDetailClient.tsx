@@ -24,7 +24,6 @@ import {
   Mail,
   LogIn,
   HelpCircle,
-  Printer,
   FileText,
   PackageCheck,
   ScrollText,
@@ -842,10 +841,9 @@ export function OrderDetailClient() {
                 <button
                   type="button"
                   onClick={() => setIsInvoiceOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-border hover:border-brand-blue dark:hover:border-brand-lime hover:text-brand-blue dark:hover:text-brand-lime bg-white dark:bg-surface text-xs font-bold text-foreground transition-all cursor-pointer shadow-2xs hover:bg-brand-blue/5 dark:hover:bg-brand-lime/10"
+                  className="px-4 py-2 rounded-full border border-border hover:border-brand-blue dark:hover:border-brand-lime hover:text-brand-blue dark:hover:text-brand-lime bg-white dark:bg-surface text-xs font-bold text-foreground transition-all cursor-pointer shadow-2xs hover:bg-brand-blue/5 dark:hover:bg-brand-lime/10"
                   title={t.printInvoice}
                 >
-                  <Printer size={14} className="text-brand-blue dark:text-brand-lime" />
                   <span>{t.printInvoice}</span>
                 </button>
                 {badge && (

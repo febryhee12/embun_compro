@@ -131,7 +131,7 @@ export const ACCOUNT_I18N = {
     },
     orderDetail: {
       title: 'Detail Pesanan',
-      printInvoice: 'Cetak Invoice',
+      printInvoice: 'Unduh Invoice',
       officialTicket: 'Tiket Resmi',
       bookingCode: 'Kode Booking',
       copied: 'Tautan disalin!',
@@ -392,7 +392,7 @@ export const ACCOUNT_I18N = {
     },
     orderDetail: {
       title: 'Order Details',
-      printInvoice: 'Print Invoice',
+      printInvoice: 'Download Invoice',
       officialTicket: 'Official Ticket',
       bookingCode: 'Booking Code',
       copied: 'Link copied!',
