@@ -412,10 +412,13 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
           }
         }, 25000);
 
-        // MutationObserver to catch Pannellum's internal fatal error elements
+        // MutationObserver to catch Pannellum's internal fatal error elements.
+        // Pannellum ALWAYS creates an empty .pnlm-error-msg during init —
+        // only trigger if it actually contains text content.
         try {
           observer = new MutationObserver(() => {
-            if (container.querySelector('.pnlm-error-msg')) {
+            const errorEl = container.querySelector<HTMLElement>('.pnlm-error-msg');
+            if (errorEl && (errorEl.textContent?.trim() || errorEl.children.length > 0)) {
               try {
                 if (pannellumViewerRef.current?.isLoaded?.()) return;
               } catch (_) {}
@@ -425,7 +428,7 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
               }
             }
           });
-          observer.observe(container, { childList: true, subtree: true });
+          observer.observe(container, { childList: true, subtree: true, characterData: true });
         } catch (_) {}
 
         pannellumViewerRef.current = pannellum.viewer(container, {

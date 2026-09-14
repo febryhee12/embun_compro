@@ -1638,10 +1638,14 @@ export function SpotRedirectClient() {
           }
         }, 25000);
 
-        // MutationObserver to catch Pannellum's internal fatal error elements
+        // MutationObserver to catch Pannellum's internal fatal error elements.
+        // Note: Pannellum ALWAYS creates an empty <div class="pnlm-error-msg">
+        // during viewer setup. Only treat it as a real error if it actually
+        // contains text content (i.e. Pannellum populated it with a message).
         try {
           observer = new MutationObserver(() => {
-            if (container.querySelector('.pnlm-error-msg')) {
+            const errorEl = container.querySelector<HTMLElement>('.pnlm-error-msg');
+            if (errorEl && (errorEl.textContent?.trim() || errorEl.children.length > 0)) {
               try {
                 if (pannellumViewerRef.current?.isLoaded?.()) return;
               } catch (_) {}
@@ -1651,7 +1655,7 @@ export function SpotRedirectClient() {
               }
             }
           });
-          observer.observe(container, { childList: true, subtree: true });
+          observer.observe(container, { childList: true, subtree: true, characterData: true });
         } catch (_) {}
 
         pannellumViewerRef.current = pannellum.viewer(container, {
