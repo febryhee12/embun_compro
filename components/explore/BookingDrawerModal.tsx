@@ -96,35 +96,41 @@ function getPackageModelLabel(model?: string): string {
   return 'Paket Pilihan';
 }
 
+let pannellumPromiseDrawer: Promise<any> | null = null;
 function loadPannellum(): Promise<any> {
-  return new Promise((resolve) => {
-    if (typeof window !== 'undefined' && (window as any).pannellum) {
-      return resolve((window as any).pannellum);
-    }
-    if (!document.querySelector('link[data-pannellum]')) {
+  if (typeof window === 'undefined') return Promise.resolve(null);
+  if ((window as any).pannellum) return Promise.resolve((window as any).pannellum);
+  if (pannellumPromiseDrawer) return pannellumPromiseDrawer;
+
+  pannellumPromiseDrawer = new Promise((resolve) => {
+    if (!document.getElementById('pannellum-css')) {
       const link = document.createElement('link');
+      link.id = 'pannellum-css';
       link.rel = 'stylesheet';
       link.href =
         'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css';
-      link.setAttribute('data-pannellum', '1');
       document.head.appendChild(link);
     }
-    if (!document.querySelector('script[data-pannellum]')) {
-      const script = document.createElement('script');
-      script.src =
-        'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js';
-      script.setAttribute('data-pannellum', '1');
-      script.onload = () => resolve((window as any).pannellum);
-      document.head.appendChild(script);
-    } else {
-      const check = setInterval(() => {
-        if ((window as any).pannellum) {
-          clearInterval(check);
-          resolve((window as any).pannellum);
-        }
-      }, 100);
+    const existingScript = document.getElementById('pannellum-js');
+    if (existingScript) {
+      existingScript.remove();
     }
+    const script = document.createElement('script');
+    script.id = 'pannellum-js';
+    script.src =
+      'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js';
+    script.async = true;
+    script.onload = () => resolve((window as any).pannellum);
+    script.onerror = () => {
+      pannellumPromiseDrawer = null;
+      try {
+        script.remove();
+      } catch (_) {}
+      resolve(null);
+    };
+    document.body.appendChild(script);
   });
+  return pannellumPromiseDrawer;
 }
 
 export function BookingDrawerModal({
@@ -218,6 +224,10 @@ export function BookingDrawerModal({
   const [failedPhotoUrls, setFailedPhotoUrls] = useState<Set<string>>(
     new Set(),
   );
+  const [panoLoading, setPanoLoading] = useState(false);
+  const [panoError, setPanoError] = useState(false);
+  const [panoRetryKey, setPanoRetryKey] = useState(0);
+
   const panoramaRef = useRef<HTMLDivElement | null>(null);
   const panoViewerRef = useRef<any>(null);
 
@@ -225,6 +235,8 @@ export function BookingDrawerModal({
   useEffect(() => {
     setPhotoIdx(0);
     setViewMode('photo');
+    setPanoError(false);
+    setPanoLoading(false);
     setCopied(false);
     setIsDownloadDialogOpen(false);
     setSelectedPackageIdx(0);
@@ -285,35 +297,134 @@ export function BookingDrawerModal({
   useEffect(() => {
     if (!spot || viewMode !== '360' || panoramaList.length === 0) return;
     let cancelled = false;
+    let watchdogTimer: any = null;
+    let observer: MutationObserver | null = null;
+    setPanoLoading(true);
+    setPanoError(false);
 
     const init = async () => {
       const p = await loadPannellum();
-      if (cancelled || !p || !panoramaRef.current) return;
+      if (cancelled) return;
+      if (!p || !panoramaRef.current) {
+        if (!cancelled) {
+          setPanoLoading(false);
+          setPanoError(true);
+        }
+        return;
+      }
       if (panoViewerRef.current) {
         try {
           panoViewerRef.current.destroy();
         } catch {}
+        panoViewerRef.current = null;
       }
       const firstPano = panoramaList[0];
-      const panoUrl =
+      const rawPanoUrl =
         typeof firstPano === 'string'
           ? firstPano
           : firstPano?.imageUrl || firstPano?.url || '';
-      if (!panoUrl) return;
-      panoViewerRef.current = p.viewer(panoramaRef.current, {
-        type: 'equirectangular',
-        panorama: resolveAssetUrl(panoUrl),
-        autoLoad: true,
-        autoRotate: -2,
-        compass: true,
-        hfov: 100,
-      });
+      if (!rawPanoUrl) {
+        if (!cancelled) {
+          setPanoLoading(false);
+          setPanoError(true);
+        }
+        return;
+      }
+
+      const fullUrl = resolveAssetUrl(rawPanoUrl);
+      const safePanoUrl = fullUrl
+        ? (fullUrl.includes('?') ? `${fullUrl}&pano=360` : `${fullUrl}?pano=360`)
+        : '';
+
+      const container = panoramaRef.current;
+      container.innerHTML = '';
+
+      if (safePanoUrl) {
+        const testImg = new Image();
+        testImg.crossOrigin = 'anonymous';
+        testImg.onerror = () => {
+          if (!cancelled) {
+            setPanoLoading(false);
+            setPanoError(true);
+          }
+        };
+        testImg.src = safePanoUrl;
+      }
+
+      watchdogTimer = setTimeout(() => {
+        if (!cancelled) {
+          setPanoLoading(false);
+          setPanoError(true);
+        }
+      }, 7000);
+
+      try {
+        observer = new MutationObserver(() => {
+          if (
+            container.querySelector('.pnlm-error-msg') ||
+            container.querySelector('.pnlm-load-box')?.textContent?.toLowerCase().includes('error')
+          ) {
+            if (!cancelled) {
+              setPanoLoading(false);
+              setPanoError(true);
+            }
+          }
+        });
+        observer.observe(container, { childList: true, subtree: true });
+      } catch (_) {}
+
+      try {
+        panoViewerRef.current = p.viewer(container, {
+          type: 'equirectangular',
+          panorama: safePanoUrl,
+          autoLoad: true,
+          crossOrigin: 'anonymous',
+          autoRotate: -2,
+          compass: true,
+          hfov: 100,
+        });
+
+        panoViewerRef.current.on('load', () => {
+          if (watchdogTimer) clearTimeout(watchdogTimer);
+          if (!cancelled) {
+            setPanoLoading(false);
+            setPanoError(false);
+          }
+        });
+
+        panoViewerRef.current.on('error', (err: any) => {
+          if (watchdogTimer) clearTimeout(watchdogTimer);
+          console.error('Drawer 360 error:', err);
+          if (!cancelled) {
+            setPanoLoading(false);
+            setPanoError(true);
+          }
+        });
+
+        panoViewerRef.current.on('errorwithcode', (code: any, err: any) => {
+          if (watchdogTimer) clearTimeout(watchdogTimer);
+          console.error('Drawer 360 errorwithcode:', code, err);
+          if (!cancelled) {
+            setPanoLoading(false);
+            setPanoError(true);
+          }
+        });
+      } catch (err) {
+        if (watchdogTimer) clearTimeout(watchdogTimer);
+        console.error('Error init drawer 360:', err);
+        if (!cancelled) {
+          setPanoLoading(false);
+          setPanoError(true);
+        }
+      }
     };
 
     void init();
 
     return () => {
       cancelled = true;
+      if (watchdogTimer) clearTimeout(watchdogTimer);
+      if (observer) observer.disconnect();
       if (panoViewerRef.current) {
         try {
           panoViewerRef.current.destroy();
@@ -321,7 +432,7 @@ export function BookingDrawerModal({
         panoViewerRef.current = null;
       }
     };
-  }, [spot, viewMode, panoramaList]);
+  }, [spot, viewMode, panoramaList, panoRetryKey]);
 
   const packages: any[] = useMemo(() => {
     if (!spot) return [];
@@ -588,13 +699,62 @@ export function BookingDrawerModal({
                       ref={panoramaRef}
                       className="w-full h-full cursor-grab active:cursor-grabbing"
                     />
-                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 text-[11px] text-white flex items-center gap-1.5 pointer-events-none">
-                      <RotateCw
-                        size={12}
-                        className="text-brand-lime animate-spin"
-                      />
-                      <span>Geser untuk melihat 360°</span>
-                    </div>
+
+                    {/* Loading Indicator */}
+                    {panoLoading && !panoError && (
+                      <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/70 backdrop-blur-xs pointer-events-none">
+                        <div className="w-8 h-8 border-2 border-brand-lime/20 border-t-brand-lime rounded-full animate-spin mb-2" />
+                        <span className="text-[11px] text-neutral-300 font-medium tracking-wide">
+                          Memuat Panorama 360°...
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Clean Error Dialog */}
+                    {panoError && (
+                      <div className="absolute inset-0 z-30 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
+                        <div className="max-w-xs w-full bg-neutral-900 border border-white/10 rounded-2xl p-5 text-center shadow-2xl space-y-3">
+                          <div className="space-y-1">
+                            <h4 className="text-white font-semibold text-xs">
+                              Foto 360° belum dapat dimuat
+                            </h4>
+                            <p className="text-neutral-400 text-[11px] leading-relaxed">
+                              Pemuatan gambar terhalang oleh pengaturan privasi atau pemblokir (adblocker) di browser Anda.
+                            </p>
+                          </div>
+                          <div className="flex gap-2 pt-1">
+                            <button
+                              type="button"
+                              onClick={() => setViewMode('photo')}
+                              className="flex-1 py-1.5 rounded-lg border border-white/15 text-white/80 hover:text-white text-[11px] font-medium transition-all cursor-pointer"
+                            >
+                              Foto Biasa
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPanoError(false);
+                                setPanoLoading(true);
+                                setPanoRetryKey((k) => k + 1);
+                              }}
+                              className="flex-1 py-1.5 rounded-lg bg-white text-black hover:bg-white/90 text-[11px] font-semibold transition-all cursor-pointer"
+                            >
+                              Coba Lagi
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {!panoLoading && !panoError && (
+                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 text-[11px] text-white flex items-center gap-1.5 pointer-events-none">
+                        <RotateCw
+                          size={12}
+                          className="text-brand-lime animate-spin"
+                        />
+                        <span>Geser untuk melihat 360°</span>
+                      </div>
+                    )}
                   </div>
                 ) : viewMode === 'map' && mapImage ? (
                   <div className="w-full h-full relative bg-[#1c2430] flex items-center justify-center p-2">

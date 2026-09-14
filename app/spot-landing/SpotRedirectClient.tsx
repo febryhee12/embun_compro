@@ -414,14 +414,14 @@ function parseHtmlRules(htmlString?: string) {
 }
 
 // Dynamic Pannellum Loader for 360 viewer
-let pannellumPromise: Promise<any> | null = null;
+let pannellumPromiseSpot: Promise<any> | null = null;
 function loadPannellum(): Promise<any> {
   if (typeof window === 'undefined') return Promise.resolve(null);
   if ((window as any).pannellum)
     return Promise.resolve((window as any).pannellum);
-  if (pannellumPromise) return pannellumPromise;
+  if (pannellumPromiseSpot) return pannellumPromiseSpot;
 
-  pannellumPromise = new Promise((resolve) => {
+  pannellumPromiseSpot = new Promise((resolve) => {
     if (!document.getElementById('pannellum-css')) {
       const link = document.createElement('link');
       link.id = 'pannellum-css';
@@ -430,15 +430,26 @@ function loadPannellum(): Promise<any> {
         'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css';
       document.head.appendChild(link);
     }
+    const existingScript = document.getElementById('pannellum-js');
+    if (existingScript) {
+      existingScript.remove();
+    }
     const script = document.createElement('script');
+    script.id = 'pannellum-js';
     script.src =
       'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js';
     script.async = true;
     script.onload = () => resolve((window as any).pannellum);
-    script.onerror = () => resolve(null);
+    script.onerror = () => {
+      pannellumPromiseSpot = null;
+      try {
+        script.remove();
+      } catch (_) {}
+      resolve(null);
+    };
     document.body.appendChild(script);
   });
-  return pannellumPromise;
+  return pannellumPromiseSpot;
 }
 
 // In-memory cache for loaded spot and campsite details to prevent flash/reload on back navigation
@@ -718,6 +729,9 @@ export function SpotRedirectClient() {
 
   const panoramaContainerRef = useRef<HTMLDivElement | null>(null);
   const pannellumViewerRef = useRef<any>(null);
+  const [panoLoadingSpot, setPanoLoadingSpot] = useState(false);
+  const [panoErrorSpot, setPanoErrorSpot] = useState(false);
+  const [panoRetryKeySpot, setPanoRetryKeySpot] = useState(0);
 
   // 1. Initial Load & Fetch Data
   useEffect(() => {
@@ -1468,9 +1482,21 @@ export function SpotRedirectClient() {
       return;
 
     let destroyed = false;
+    let watchdogTimer: any = null;
+    let observer: MutationObserver | null = null;
+    setPanoLoadingSpot(true);
+    setPanoErrorSpot(false);
+
     const initViewer = async () => {
       const pannellum = await loadPannellum();
-      if (destroyed || !pannellum || !panoramaContainerRef.current) return;
+      if (destroyed) return;
+      if (!pannellum || !panoramaContainerRef.current) {
+        if (!destroyed) {
+          setPanoLoadingSpot(false);
+          setPanoErrorSpot(true);
+        }
+        return;
+      }
 
       try {
         if (pannellumViewerRef.current) {
@@ -1573,6 +1599,48 @@ export function SpotRedirectClient() {
         const activePano =
           panoramaList[activePanoramaIdx] || panoramaList[0];
 
+        // 1. Pre-check active panorama image URL to detect fast adblock/CORS blocks
+        const activeRawUrl = resolveAssetUrl(activePano.imageUrl);
+        const activeSafeUrl = activeRawUrl
+          ? (activeRawUrl.includes('?') ? `${activeRawUrl}&pano=360` : `${activeRawUrl}?pano=360`)
+          : '';
+
+        if (activeSafeUrl) {
+          const testImg = new Image();
+          testImg.crossOrigin = 'anonymous';
+          testImg.onerror = () => {
+            if (!destroyed) {
+              setPanoLoadingSpot(false);
+              setPanoErrorSpot(true);
+            }
+          };
+          testImg.src = activeSafeUrl;
+        }
+
+        // 2. Watchdog timeout: if scene doesn't load within 7 seconds, show error dialog
+        watchdogTimer = setTimeout(() => {
+          if (!destroyed) {
+            setPanoLoadingSpot(false);
+            setPanoErrorSpot(true);
+          }
+        }, 7000);
+
+        // 3. MutationObserver to catch Pannellum's internal DOM error elements
+        try {
+          observer = new MutationObserver(() => {
+            if (
+              container.querySelector('.pnlm-error-msg') ||
+              container.querySelector('.pnlm-load-box')?.textContent?.toLowerCase().includes('error')
+            ) {
+              if (!destroyed) {
+                setPanoLoadingSpot(false);
+                setPanoErrorSpot(true);
+              }
+            }
+          });
+          observer.observe(container, { childList: true, subtree: true });
+        } catch (_) {}
+
         pannellumViewerRef.current = pannellum.viewer(container, {
           default: {
             firstScene: activePano.id,
@@ -1594,6 +1662,11 @@ export function SpotRedirectClient() {
         });
 
         pannellumViewerRef.current.on('load', () => {
+          if (watchdogTimer) clearTimeout(watchdogTimer);
+          if (!destroyed) {
+            setPanoLoadingSpot(false);
+            setPanoErrorSpot(false);
+          }
           if (activePano && activePano.yaw !== undefined && activePano.pitch !== undefined) {
             try {
               pannellumViewerRef.current?.lookAt(
@@ -1605,8 +1678,31 @@ export function SpotRedirectClient() {
             } catch (_) {}
           }
         });
+
+        pannellumViewerRef.current.on('error', (err: any) => {
+          if (watchdogTimer) clearTimeout(watchdogTimer);
+          console.error('Spot 360 error:', err);
+          if (!destroyed) {
+            setPanoLoadingSpot(false);
+            setPanoErrorSpot(true);
+          }
+        });
+
+        pannellumViewerRef.current.on('errorwithcode', (code: any, err: any) => {
+          if (watchdogTimer) clearTimeout(watchdogTimer);
+          console.error('Spot 360 errorwithcode:', code, err);
+          if (!destroyed) {
+            setPanoLoadingSpot(false);
+            setPanoErrorSpot(true);
+          }
+        });
       } catch (err) {
+        if (watchdogTimer) clearTimeout(watchdogTimer);
         console.error('Error init pannellum:', err);
+        if (!destroyed) {
+          setPanoLoadingSpot(false);
+          setPanoErrorSpot(true);
+        }
       }
     };
 
@@ -1614,6 +1710,8 @@ export function SpotRedirectClient() {
 
     return () => {
       destroyed = true;
+      if (watchdogTimer) clearTimeout(watchdogTimer);
+      if (observer) observer.disconnect();
       if (pannellumViewerRef.current) {
         try {
           pannellumViewerRef.current.destroy();
@@ -1621,7 +1719,7 @@ export function SpotRedirectClient() {
         pannellumViewerRef.current = null;
       }
     };
-  }, [isGalleryOpen, galleryTab, activePanoramaIdx, panoramaList]);
+  }, [isGalleryOpen, galleryTab, activePanoramaIdx, panoramaList, panoRetryKeySpot]);
 
   // Available addons
   const availableAddons = useMemo(() => {
@@ -4827,13 +4925,61 @@ export function SpotRedirectClient() {
                       onContextMenu={(e) => e.preventDefault()}
                     />
 
-                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-xs font-semibold text-white/90 flex items-center gap-2 pointer-events-none shadow-2xl z-20">
-                      <RotateCw
-                        size={14}
-                        className="text-brand-lime animate-spin"
-                      />
-                      <span>Geser layar / mouse untuk berputar 360°</span>
-                    </div>
+                    {/* Loading Indicator */}
+                    {panoLoadingSpot && !panoErrorSpot && (
+                      <div className="absolute inset-0 z-25 flex flex-col items-center justify-center bg-black/70 backdrop-blur-xs pointer-events-none">
+                        <div className="w-10 h-10 border-3 border-brand-lime/20 border-t-brand-lime rounded-full animate-spin mb-3" />
+                        <span className="text-xs text-neutral-300 font-medium tracking-wide">
+                          Memuat Panorama 360°...
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Clean Error Dialog */}
+                    {panoErrorSpot && (
+                      <div className="absolute inset-0 z-30 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-200">
+                        <div className="max-w-sm w-full bg-neutral-900 border border-white/10 rounded-2xl p-6 text-center shadow-2xl space-y-4">
+                          <div className="space-y-1.5">
+                            <h3 className="text-white font-semibold text-sm">
+                              Foto 360° belum dapat dimuat
+                            </h3>
+                            <p className="text-neutral-400 text-xs leading-relaxed">
+                              Pemuatan gambar terhalang oleh pengaturan privasi atau pemblokir (adblocker) di browser Anda. Silakan nonaktifkan pemblokir untuk situs ini lalu coba lagi.
+                            </p>
+                          </div>
+                          <div className="flex gap-2.5 pt-1">
+                            <button
+                              type="button"
+                              onClick={() => setGalleryTab('photos')}
+                              className="flex-1 py-2 rounded-lg border border-white/15 text-white/80 hover:text-white hover:bg-white/5 text-xs font-medium transition-all cursor-pointer"
+                            >
+                              Galeri Foto
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPanoErrorSpot(false);
+                                setPanoLoadingSpot(true);
+                                setPanoRetryKeySpot((k) => k + 1);
+                              }}
+                              className="flex-1 py-2 rounded-lg bg-white text-black hover:bg-white/90 text-xs font-semibold transition-all cursor-pointer"
+                            >
+                              Coba Lagi
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {!panoLoadingSpot && !panoErrorSpot && (
+                      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-xs font-semibold text-white/90 flex items-center gap-2 pointer-events-none shadow-2xl z-20">
+                        <RotateCw
+                          size={14}
+                          className="text-brand-lime animate-spin"
+                        />
+                        <span>Geser layar / mouse untuk berputar 360°</span>
+                      </div>
+                    )}
                   </>
                 )}
               </div>

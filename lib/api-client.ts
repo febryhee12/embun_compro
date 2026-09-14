@@ -425,6 +425,18 @@ export async function fetchGuestOrder(
   return res.json();
 }
 
+/** `GET /api/orders/:id/invoice-data` — fetch full structured invoice data for public web invoice preview. */
+export async function fetchInvoiceData(orderId: string) {
+  const res = await fetch(`${API_BASE_URL}/orders/${orderId}/invoice-data`, {
+    cache: 'no-store',
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new ApiError(err.message || 'Gagal memuat data invoice.', res.status);
+  }
+  return res.json();
+}
+
 /** `GET /api/guest/me` — refetch the authoritative profile (e.g. after a PATCH elsewhere). */
 export async function fetchGuestProfile() {
   const res = await fetch(`${API_BASE_URL}/guest/me`, {

@@ -6,6 +6,14 @@ import { resolveAssetUrl } from '@/lib/api-client';
 import { SpotData } from './SpotCard';
 
 let pannellumPromise: Promise<any> | null = null;
+export function resetPannellumPromise() {
+  pannellumPromise = null;
+  if (typeof document !== 'undefined') {
+    const existingScript = document.getElementById('pannellum-js');
+    if (existingScript) existingScript.remove();
+  }
+}
+
 function loadPannellum(): Promise<any> {
   if (typeof window === 'undefined') return Promise.resolve(null);
   if ((window as any).pannellum) return Promise.resolve((window as any).pannellum);
@@ -18,11 +26,22 @@ function loadPannellum(): Promise<any> {
       link.href = 'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css';
       document.head.appendChild(link);
     }
+    const existingScript = document.getElementById('pannellum-js');
+    if (existingScript) {
+      existingScript.remove();
+    }
     const script = document.createElement('script');
+    script.id = 'pannellum-js';
     script.src = 'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js';
     script.async = true;
     script.onload = () => resolve((window as any).pannellum);
-    script.onerror = () => resolve(null);
+    script.onerror = () => {
+      pannellumPromise = null;
+      try {
+        script.remove();
+      } catch (_) {}
+      resolve(null);
+    };
     document.body.appendChild(script);
   });
   return pannellumPromise;
@@ -238,12 +257,21 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
   useEffect(() => {
     if (!spot || panoramaList.length === 0) return;
     let destroyed = false;
+    let watchdogTimer: any = null;
+    let observer: MutationObserver | null = null;
     setLoading(true);
     setLoadError(false);
 
     const init = async () => {
       const pannellum = await loadPannellum();
-      if (destroyed || !pannellum || !panoramaContainerRef.current) return;
+      if (destroyed) return;
+      if (!pannellum || !panoramaContainerRef.current) {
+        if (!destroyed) {
+          setLoading(false);
+          setLoadError(true);
+        }
+        return;
+      }
 
       try {
         if (pannellumViewerRef.current) {
@@ -369,6 +397,48 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
         const activePano =
           panoramaList[activePanoramaIdx] || panoramaList[0];
 
+        // 1. Pre-check active panorama image URL to detect fast adblock/CORS blocks
+        const activeRawUrl = resolveAssetUrl(activePano.imageUrl);
+        const activeSafeUrl = activeRawUrl
+          ? (activeRawUrl.includes('?') ? `${activeRawUrl}&pano=360` : `${activeRawUrl}?pano=360`)
+          : '';
+
+        if (activeSafeUrl) {
+          const testImg = new Image();
+          testImg.crossOrigin = 'anonymous';
+          testImg.onerror = () => {
+            if (!destroyed) {
+              setLoading(false);
+              setLoadError(true);
+            }
+          };
+          testImg.src = activeSafeUrl;
+        }
+
+        // 2. Watchdog timeout: if image/scene doesn't load within 7 seconds, show error dialog
+        watchdogTimer = setTimeout(() => {
+          if (!destroyed) {
+            setLoading(false);
+            setLoadError(true);
+          }
+        }, 7000);
+
+        // 3. MutationObserver to catch Pannellum's internal DOM error elements
+        try {
+          observer = new MutationObserver(() => {
+            if (
+              container.querySelector('.pnlm-error-msg') ||
+              container.querySelector('.pnlm-load-box')?.textContent?.toLowerCase().includes('error')
+            ) {
+              if (!destroyed) {
+                setLoading(false);
+                setLoadError(true);
+              }
+            }
+          });
+          observer.observe(container, { childList: true, subtree: true });
+        } catch (_) {}
+
         pannellumViewerRef.current = pannellum.viewer(container, {
           default: {
             firstScene: activePano.id,
@@ -390,6 +460,7 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
         });
 
         pannellumViewerRef.current.on('load', () => {
+          if (watchdogTimer) clearTimeout(watchdogTimer);
           if (!destroyed) {
             setLoading(false);
             setLoadError(false);
@@ -407,13 +478,24 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
         });
 
         pannellumViewerRef.current.on('error', (err: any) => {
+          if (watchdogTimer) clearTimeout(watchdogTimer);
           console.error('Pannellum error:', err);
           if (!destroyed) {
             setLoading(false);
             setLoadError(true);
           }
         });
+
+        pannellumViewerRef.current.on('errorwithcode', (code: any, err: any) => {
+          if (watchdogTimer) clearTimeout(watchdogTimer);
+          console.error('Pannellum errorwithcode:', code, err);
+          if (!destroyed) {
+            setLoading(false);
+            setLoadError(true);
+          }
+        });
       } catch (err) {
+        if (watchdogTimer) clearTimeout(watchdogTimer);
         console.error('Error init pannellum:', err);
         if (!destroyed) {
           setLoading(false);
@@ -426,6 +508,8 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
 
     return () => {
       destroyed = true;
+      if (watchdogTimer) clearTimeout(watchdogTimer);
+      if (observer) observer.disconnect();
       if (pannellumViewerRef.current) {
         try {
           pannellumViewerRef.current.destroy();
@@ -553,6 +637,16 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
               onContextMenu={(e) => e.preventDefault()}
             />
 
+            {/* Loading Indicator */}
+            {loading && !loadError && (
+              <div className="absolute inset-0 z-25 flex flex-col items-center justify-center bg-black/70 backdrop-blur-xs pointer-events-none">
+                <div className="w-10 h-10 border-3 border-brand-lime/20 border-t-brand-lime rounded-full animate-spin mb-3" />
+                <span className="text-xs text-neutral-300 font-medium tracking-wide">
+                  Memuat Panorama 360°...
+                </span>
+              </div>
+            )}
+
             {/* Clean Error Dialog */}
             {loadError && (
               <div className="absolute inset-0 z-30 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-200">
@@ -562,7 +656,7 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
                       Foto 360° belum dapat dimuat
                     </h3>
                     <p className="text-neutral-400 text-xs leading-relaxed">
-                      Pemuatan gambar terhalang oleh pengaturan privasi atau pemblokir di browser Anda. Silakan nonaktifkan pemblokir untuk situs ini lalu coba lagi.
+                      Pemuatan gambar terhalang oleh pengaturan privasi atau pemblokir (adblocker) di browser Anda. Silakan nonaktifkan pemblokir untuk situs ini lalu coba lagi.
                     </p>
                   </div>
                   <div className="flex gap-2.5 pt-1">
@@ -576,6 +670,7 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
                     <button
                       type="button"
                       onClick={() => {
+                        resetPannellumPromise();
                         setLoadError(false);
                         setLoading(true);
                         setRetryKey((k) => k + 1);
@@ -590,7 +685,7 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
             )}
 
             {/* Hint at bottom */}
-            {!loadError && (
+            {!loading && !loadError && (
               <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-xs font-semibold text-white/90 flex items-center gap-2 pointer-events-none shadow-2xl z-20">
                 <RotateCw size={14} className="text-brand-lime animate-spin" />
                 <span>Geser layar / mouse untuk berputar 360°</span>

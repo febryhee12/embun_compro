@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { X, Printer } from 'lucide-react';
-import { rupiah } from '@/lib/api-client';
+import { rupiah, API_BASE_URL } from '@/lib/api-client';
 import { type Language } from '@/lib/account-i18n';
 
 export interface AddonLine {
@@ -63,7 +63,8 @@ const INVOICE_I18N = {
     footerThanks: 'Terima kasih telah memesan melalui embun.',
     footerLegal: 'Invoice ini diterbitkan secara otomatis dan sah tanpa tanda tangan.',
     modalTitle: 'Invoice Resmi Embun',
-    printBtn: 'Cetak / Unduh PDF',
+    printBtn: 'Cetak',
+    downloadInvoice: 'Unduh Invoice',
     close: 'Tutup',
   },
   en: {
@@ -101,7 +102,8 @@ const INVOICE_I18N = {
     footerThanks: 'Thank you for booking through Embun.',
     footerLegal: 'This invoice is computer generated and valid without signature.',
     modalTitle: 'Official Embun Invoice',
-    printBtn: 'Print / Download PDF',
+    printBtn: 'Print',
+    downloadInvoice: 'Download Invoice',
     close: 'Close',
   },
 };
@@ -217,29 +219,29 @@ export function InvoiceDocument({
   const baseRental = Math.max(0, fullRental - totalPaidAddons);
 
   return (
-    <div className="bg-white mx-auto p-8 sm:p-10 rounded-2xl border border-neutral-200/80 shadow-md max-w-[780px] text-neutral-900 text-xs font-sans print:shadow-none print:border-none print:p-0 print:max-w-none print:m-0">
+    <div className="bg-white mx-auto p-5 sm:p-8 md:p-10 rounded-2xl border border-neutral-200/80 shadow-md max-w-[780px] text-neutral-900 text-xs font-sans print:shadow-none print:border-none print:p-0 print:max-w-none print:m-0">
       {/* 1. HEADER (Logo + PT di kiri, INVOICE + No di kanan) */}
-      <div className="flex items-start justify-between gap-6 pb-6">
-        <div className="space-y-1.5">
+      <div className="flex items-start justify-between gap-4 pb-4 sm:pb-6">
+        <div className="space-y-1">
           <img
             src="/images/logo/primary_blue.svg"
             alt="Embun"
-            className="h-8 w-auto object-contain"
+            className="h-6 sm:h-7 w-auto object-contain"
           />
-          <p className="text-[11px] font-bold text-neutral-900 pt-1">
+          <p className="text-[10px] sm:text-[11px] font-bold text-neutral-900 pt-0.5">
             PT Alam Kelana Digital
           </p>
-          <p className="text-[9.5px] text-neutral-500">support@embun.app</p>
+          <p className="text-[9px] sm:text-[9.5px] text-neutral-500">support@embun.app</p>
         </div>
 
-        <div className="text-right space-y-1">
-          <h1 className="text-2xl font-black tracking-widest text-[#0841B5]">
+        <div className="text-right space-y-0.5 sm:space-y-1">
+          <h1 className="text-lg sm:text-xl font-bold tracking-wider text-[#0841B5]">
             {t.invoiceTitle}
           </h1>
-          <p className="text-[11px] font-bold text-neutral-900">
+          <p className="text-[10px] sm:text-[11px] font-bold text-neutral-900">
             {t.invoiceNumber(shortCode)}
           </p>
-          <p className="text-[10px] text-neutral-500">
+          <p className="text-[9px] sm:text-[10px] text-neutral-500">
             {t.createdOn(formatLongDate(order.createdAt, lang))}
           </p>
         </div>
@@ -294,8 +296,8 @@ export function InvoiceDocument({
       </div>
 
       {/* 3. BOOKINGS TABLE (Spot / Kavling, Paket, Qty, Check-in, Check-out, Tamu, Subtotal) */}
-      <div className="mt-5 border border-[#E5E7EB] rounded-lg overflow-hidden">
-        <table className="w-full text-left border-collapse text-[10.5px]">
+      <div className="mt-5 border border-[#E5E7EB] rounded-lg overflow-x-auto">
+        <table className="w-full text-left border-collapse text-[10.5px] min-w-[520px] sm:min-w-0">
           <thead>
             <tr className="bg-[#F3F4F6] text-neutral-800 border-b border-[#E5E7EB]">
               <th className="py-2.5 px-3 font-bold">{t.thSpot}</th>
@@ -475,13 +477,23 @@ export function InvoiceModal({
           </div>
 
           <div className="flex items-center gap-2">
+            {order?.id && (
+              <a
+                href={`${API_BASE_URL}/orders/${order.id}/invoice.pdf`}
+                target="_blank"
+                rel="noopener noreferrer"
+                download
+                className="px-4 py-2 rounded-full bg-brand-blue hover:bg-brand-blue-hover dark:bg-brand-lime dark:text-black dark:hover:bg-brand-lime/90 text-white text-xs font-bold transition-all shadow-xs cursor-pointer inline-flex items-center justify-center"
+              >
+                {t.downloadInvoice}
+              </a>
+            )}
             <button
               type="button"
               onClick={handlePrint}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-brand-blue hover:bg-brand-blue-hover dark:bg-brand-lime dark:text-black dark:hover:bg-brand-lime/90 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+              className="px-3.5 py-2 rounded-full border border-border hover:bg-surface text-xs font-bold text-foreground transition-colors cursor-pointer"
             >
-              <Printer size={14} />
-              <span>{t.printBtn}</span>
+              {t.printBtn}
             </button>
             <button
               type="button"
