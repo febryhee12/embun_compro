@@ -972,11 +972,33 @@ export function SpotRedirectClient() {
 
   const effectiveMinGuests = useMemo(() => {
     if (isFreeLand) return 1;
-    if (selectedPackage?.baseCapacity) return selectedPackage.baseCapacity;
-    return selectedPackage?.minGuestCount || 1;
-  }, [selectedPackage, isFreeLand]);
+    const model = (selectedPackage?.pricingModel || '').toUpperCase();
+    if (model === 'PER_PERSON_PACKAGE' || model === 'PER_PERSON') {
+      return selectedPackage?.minGuestCount || 1;
+    }
+    return (
+      selectedPackage?.baseCapacity ||
+      activeSpot?.baseCapacity ||
+      selectedPackage?.minGuestCount ||
+      1
+    );
+  }, [selectedPackage, activeSpot, isFreeLand]);
 
-  // Auto-cap guest count jika ganti paket dengan kapasitas maksimal yang lebih kecil
+  // Reset guest count saat berganti paket sesuai baseCapacity paket baru
+  const prevPackageIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (selectedPackage?.id) {
+      if (
+        prevPackageIdRef.current !== null &&
+        prevPackageIdRef.current !== selectedPackage.id
+      ) {
+        setGuestCount(effectiveMinGuests);
+      }
+      prevPackageIdRef.current = selectedPackage.id;
+    }
+  }, [selectedPackage?.id, effectiveMinGuests]);
+
+  // Auto-cap guest count jika berada di luar batas minimal / maksimal paket
   useEffect(() => {
     if (guestCount > effectiveMaxCapacity) {
       setGuestCount(effectiveMaxCapacity);
