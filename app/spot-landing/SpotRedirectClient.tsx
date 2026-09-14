@@ -971,10 +971,34 @@ export function SpotRedirectClient() {
   }, [selectedPackage, activeSpot, isFreeLand]);
 
   const effectiveMinGuests = useMemo(() => {
-    return selectedPackage?.minGuestCount || 1;
-  }, [selectedPackage]);
+    if (isFreeLand) return 1;
+    const model = (selectedPackage?.pricingModel || '').toUpperCase();
+    if (model === 'PER_PERSON_PACKAGE' || model === 'PER_PERSON') {
+      return selectedPackage?.minGuestCount || 1;
+    }
+    return (
+      selectedPackage?.baseCapacity ||
+      activeSpot?.baseCapacity ||
+      selectedPackage?.minGuestCount ||
+      1
+    );
+  }, [selectedPackage, activeSpot, isFreeLand]);
 
-  // Auto-cap guest count jika ganti paket dengan kapasitas maksimal yang lebih kecil
+  // Reset guest count saat berganti paket sesuai baseCapacity paket baru
+  const prevPackageIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (selectedPackage?.id) {
+      if (
+        prevPackageIdRef.current !== null &&
+        prevPackageIdRef.current !== selectedPackage.id
+      ) {
+        setGuestCount(effectiveMinGuests);
+      }
+      prevPackageIdRef.current = selectedPackage.id;
+    }
+  }, [selectedPackage?.id, effectiveMinGuests]);
+
+  // Auto-cap guest count jika berada di luar batas minimal / maksimal paket
   useEffect(() => {
     if (guestCount > effectiveMaxCapacity) {
       setGuestCount(effectiveMaxCapacity);
@@ -1599,46 +1623,39 @@ export function SpotRedirectClient() {
         const activePano =
           panoramaList[activePanoramaIdx] || panoramaList[0];
 
-        // 1. Pre-check active panorama image URL to detect fast adblock/CORS blocks
-        const activeRawUrl = resolveAssetUrl(activePano.imageUrl);
-        const activeSafeUrl = activeRawUrl
-          ? (activeRawUrl.includes('?') ? `${activeRawUrl}&pano=360` : `${activeRawUrl}?pano=360`)
-          : '';
-
-        if (activeSafeUrl) {
-          const testImg = new Image();
-          testImg.crossOrigin = 'anonymous';
-          testImg.onerror = () => {
-            if (!destroyed) {
-              setPanoLoadingSpot(false);
-              setPanoErrorSpot(true);
-            }
-          };
-          testImg.src = activeSafeUrl;
-        }
-
-        // 2. Watchdog timeout: if scene doesn't load within 7 seconds, show error dialog
+        // Watchdog timeout: if scene doesn't load within 25 seconds (allow high-res 360 on mobile), show error dialog
         watchdogTimer = setTimeout(() => {
           if (!destroyed) {
+            try {
+              if (pannellumViewerRef.current?.isLoaded?.()) {
+                setPanoLoadingSpot(false);
+                setPanoErrorSpot(false);
+                return;
+              }
+            } catch (_) {}
             setPanoLoadingSpot(false);
             setPanoErrorSpot(true);
           }
-        }, 7000);
+        }, 25000);
 
-        // 3. MutationObserver to catch Pannellum's internal DOM error elements
+        // MutationObserver to catch Pannellum's internal fatal error elements.
+        // Note: Pannellum ALWAYS creates an empty <div class="pnlm-error-msg">
+        // during viewer setup. Only treat it as a real error if it actually
+        // contains text content (i.e. Pannellum populated it with a message).
         try {
           observer = new MutationObserver(() => {
-            if (
-              container.querySelector('.pnlm-error-msg') ||
-              container.querySelector('.pnlm-load-box')?.textContent?.toLowerCase().includes('error')
-            ) {
+            const errorEl = container.querySelector<HTMLElement>('.pnlm-error-msg');
+            if (errorEl && (errorEl.textContent?.trim() || errorEl.children.length > 0)) {
+              try {
+                if (pannellumViewerRef.current?.isLoaded?.()) return;
+              } catch (_) {}
               if (!destroyed) {
                 setPanoLoadingSpot(false);
                 setPanoErrorSpot(true);
               }
             }
           });
-          observer.observe(container, { childList: true, subtree: true });
+          observer.observe(container, { childList: true, subtree: true, characterData: true });
         } catch (_) {}
 
         pannellumViewerRef.current = pannellum.viewer(container, {
@@ -1680,18 +1697,24 @@ export function SpotRedirectClient() {
         });
 
         pannellumViewerRef.current.on('error', (err: any) => {
-          if (watchdogTimer) clearTimeout(watchdogTimer);
-          console.error('Spot 360 error:', err);
           if (!destroyed) {
+            try {
+              if (pannellumViewerRef.current?.isLoaded?.()) return;
+            } catch (_) {}
+            if (watchdogTimer) clearTimeout(watchdogTimer);
+            console.error('Spot 360 error:', err);
             setPanoLoadingSpot(false);
             setPanoErrorSpot(true);
           }
         });
 
         pannellumViewerRef.current.on('errorwithcode', (code: any, err: any) => {
-          if (watchdogTimer) clearTimeout(watchdogTimer);
-          console.error('Spot 360 errorwithcode:', code, err);
           if (!destroyed) {
+            try {
+              if (pannellumViewerRef.current?.isLoaded?.()) return;
+            } catch (_) {}
+            if (watchdogTimer) clearTimeout(watchdogTimer);
+            console.error('Spot 360 errorwithcode:', code, err);
             setPanoLoadingSpot(false);
             setPanoErrorSpot(true);
           }
@@ -2323,6 +2346,7 @@ export function SpotRedirectClient() {
         googleMapsUrl: campsite.googleMapsUrl,
         checkInTime: campsite.checkInTime,
         checkOutTime: campsite.checkOutTime,
+        allowDownPayment: Boolean(campsite.allowDownPayment),
       },
       spot: {
         id: activeSpot.id,
@@ -3850,8 +3874,8 @@ export function SpotRedirectClient() {
                       ) : Number(selectedPackage?.extraPersonFee ?? activeSpot?.extraPersonFee ?? 0) > 0 ? (
                         <span className="block text-[9.5px] text-foreground-muted/70 mt-0.5">
                           {lang === 'en'
-                            ? `+${rupiah(Number(selectedPackage?.extraPersonFee ?? activeSpot?.extraPersonFee))}/extra guest`
-                            : `+${rupiah(Number(selectedPackage?.extraPersonFee ?? activeSpot?.extraPersonFee))}/tamu tambahan`}
+                            ? `Includes ${selectedPackage?.baseCapacity ?? activeSpot?.baseCapacity ?? 1} guests (+${rupiah(Number(selectedPackage?.extraPersonFee ?? activeSpot?.extraPersonFee))}/extra guest)`
+                            : `Termasuk ${selectedPackage?.baseCapacity ?? activeSpot?.baseCapacity ?? 1} tamu (+${rupiah(Number(selectedPackage?.extraPersonFee ?? activeSpot?.extraPersonFee))}/tamu tambahan)`}
                         </span>
                       ) : null}
                     </div>
@@ -4171,6 +4195,7 @@ export function SpotRedirectClient() {
                   <CancellationPolicyBannerButton
                     checkInDate={checkInDate}
                     nonRefundable={isSpotNonRefundable}
+                    isDownPayment={paymentScheme === 'DP_50' && canUseDownPayment}
                     lang={lang}
                     onClick={() => setShowCancellationModal(true)}
                   />
@@ -4944,7 +4969,7 @@ export function SpotRedirectClient() {
                               Foto 360° belum dapat dimuat
                             </h3>
                             <p className="text-neutral-400 text-xs leading-relaxed">
-                              Pemuatan gambar terhalang oleh pengaturan privasi atau pemblokir (adblocker) di browser Anda. Silakan nonaktifkan pemblokir untuk situs ini lalu coba lagi.
+                              Koneksi internet lambat atau foto panorama sedang dipersiapkan. Silakan ketuk Coba Lagi.
                             </p>
                           </div>
                           <div className="flex gap-2.5 pt-1">
@@ -5694,8 +5719,8 @@ export function SpotRedirectClient() {
                   ) : Number(selectedPackage?.extraPersonFee ?? activeSpot?.extraPersonFee ?? 0) > 0 ? (
                     <span className="block text-[9.5px] text-foreground-muted/70 mt-0.5">
                       {lang === 'en'
-                        ? `+${rupiah(Number(selectedPackage?.extraPersonFee ?? activeSpot?.extraPersonFee))}/extra guest`
-                        : `+${rupiah(Number(selectedPackage?.extraPersonFee ?? activeSpot?.extraPersonFee))}/tamu tambahan`}
+                        ? `Includes ${selectedPackage?.baseCapacity ?? activeSpot?.baseCapacity ?? 1} guests (+${rupiah(Number(selectedPackage?.extraPersonFee ?? activeSpot?.extraPersonFee))}/extra guest)`
+                        : `Termasuk ${selectedPackage?.baseCapacity ?? activeSpot?.baseCapacity ?? 1} tamu (+${rupiah(Number(selectedPackage?.extraPersonFee ?? activeSpot?.extraPersonFee))}/tamu tambahan)`}
                     </span>
                   ) : null}
                 </div>
@@ -6142,6 +6167,7 @@ export function SpotRedirectClient() {
               <CancellationPolicyBannerButton
                 checkInDate={checkInDate}
                 nonRefundable={isSpotNonRefundable}
+                isDownPayment={paymentScheme === 'DP_50' && canUseDownPayment}
                 lang={lang}
                 onClick={() => setShowCancellationModal(true)}
               />
@@ -6282,6 +6308,7 @@ export function SpotRedirectClient() {
         onClose={() => setShowCancellationModal(false)}
         checkInDate={checkInDate}
         nonRefundable={isSpotNonRefundable}
+        isDownPayment={paymentScheme === 'DP_50' && canUseDownPayment}
         lang={lang}
       />
     </div>

@@ -24,7 +24,28 @@ export function computeRefundPolicy(
   checkInDateStr?: string,
   nonRefundable = false,
   lang: 'id' | 'en' = 'id',
+  isDownPayment = false,
 ): RefundPolicyInfo {
+  if (isDownPayment) {
+    return {
+      refundable: false,
+      summaryLabel:
+        lang === 'en'
+          ? 'DP 50% Non-Refundable (Reschedule D-7)'
+          : 'DP 50% Non-Refundable (Bisa Reschedule H-7)',
+      headerTitle:
+        lang === 'en'
+          ? 'Down Payment (DP 50%) — Non-Refundable'
+          : 'Skema DP 50% — Non-Refundable',
+      headerSubtitle:
+        lang === 'en'
+          ? 'Down payment is non-refundable upon cancellation. Reschedule option is available up to 7 days before check-in.'
+          : 'Uang muka (DP) bersifat hangus dan tidak dapat dikembalikan jika Anda membatalkan pesanan. Tersedia opsi Ubah Jadwal paling lambat H-7 sebelum check-in.',
+      freeCancelUntilDate: null,
+      tiers: [],
+    };
+  }
+
   if (nonRefundable) {
     return {
       refundable: false,
@@ -225,6 +246,7 @@ interface CancellationPolicyModalProps {
   onClose: () => void;
   checkInDate?: string;
   nonRefundable?: boolean;
+  isDownPayment?: boolean;
   lang?: 'id' | 'en';
 }
 
@@ -233,11 +255,12 @@ export function CancellationPolicyModal({
   onClose,
   checkInDate,
   nonRefundable = false,
+  isDownPayment = false,
   lang = 'id',
 }: CancellationPolicyModalProps) {
   if (!isOpen) return null;
 
-  const policy = computeRefundPolicy(checkInDate, nonRefundable, lang);
+  const policy = computeRefundPolicy(checkInDate, nonRefundable, lang, isDownPayment);
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
@@ -252,7 +275,9 @@ export function CancellationPolicyModal({
           <div className="flex items-center gap-2">
             <Info size={20} className="text-foreground shrink-0" />
             <h3 className="font-bold text-base sm:text-lg text-foreground">
-              {lang === 'en' ? 'Cancellation Policy' : 'Kebijakan Pembatalan'}
+              {isDownPayment
+                ? (lang === 'en' ? 'Down Payment Policy' : 'Ketentuan Down Payment (DP)')
+                : (lang === 'en' ? 'Cancellation Policy' : 'Kebijakan Pembatalan')}
             </h3>
           </div>
           <button
@@ -276,7 +301,60 @@ export function CancellationPolicyModal({
             </p>
           </div>
 
-          {!policy.refundable && (
+          {isDownPayment ? (
+            <div className="space-y-3">
+              <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3 text-xs text-amber-900 dark:text-amber-200">
+                <Info size={18} className="shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+                <div className="space-y-1">
+                  <p className="font-bold text-amber-800 dark:text-amber-300">
+                    {lang === 'en'
+                      ? 'DP 50% Scheme: Non-Refundable'
+                      : 'Skema DP 50%: Non-Refundable (Uang Muka Hangus)'}
+                  </p>
+                  <p className="leading-relaxed text-[11.5px] text-foreground-muted">
+                    {lang === 'en'
+                      ? 'The down payment is non-refundable if you cancel this reservation or fail to settle the remaining balance before the deadline.'
+                      : 'Uang muka (DP) yang telah dibayarkan bersifat hangus dan tidak dapat dikembalikan jika Anda membatalkan pesanan atau gagal melunasi sisa tagihan tepat waktu.'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-surface/70 border border-border space-y-3 text-xs">
+                <h5 className="font-bold text-foreground">
+                  {lang === 'en' ? 'Key Down Payment Rules' : 'Ketentuan Khusus Down Payment (DP)'}
+                </h5>
+                <ul className="space-y-2.5 text-[11.5px] text-foreground-muted">
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 mt-1.5" />
+                    <span>
+                      <strong className="text-foreground">{lang === 'en' ? 'Reschedule Option (D-7):' : 'Opsi Ubah Jadwal (H-7):'} </strong>
+                      {lang === 'en'
+                        ? 'Reschedule can be requested at most 1 time, at least 7 calendar days before check-in date.'
+                        : 'Pengajuan ubah jadwal (reschedule) hanya dapat dilakukan maksimal 1 kali, paling lambat H-7 sebelum tanggal check-in.'}
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 mt-1.5" />
+                    <span>
+                      <strong className="text-foreground">{lang === 'en' ? 'Online Settlement (D-1):' : 'Pelunasan Online (H-1):'} </strong>
+                      {lang === 'en'
+                        ? 'Remaining balance (50%) must be settled online via the Embun App/Web no later than 24 hours before check-in (D-1 23:59 WIB). No onsite payments.'
+                        : 'Pelunasan sisa tagihan (50%) wajib 100% dilakukan secara online melalui aplikasi/web Embun paling lambat H-1 (24 jam sebelum check-in). Tidak menerima pelunasan tunai di lokasi.'}
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 mt-1.5" />
+                    <span>
+                      <strong className="text-foreground">{lang === 'en' ? 'Campsite Cancellation / Force Majeure:' : 'Pembatalan Pihak Campsite / Force Majeure:'} </strong>
+                      {lang === 'en'
+                        ? 'If the campsite unilaterally cancels or in force majeure events, the DP amount is 100% fully refunded including platform fees.'
+                        : 'Jika pengelola campsite membatalkan pesanan secara sepihak atau terjadi force majeure, uang muka DP dikembalikan 100% penuh termasuk biaya platform.'}
+                    </span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          ) : !policy.refundable ? (
             <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3 text-xs text-amber-900 dark:text-amber-200">
               <ShieldAlert size={18} className="shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
               <div className="space-y-1">
@@ -292,10 +370,10 @@ export function CancellationPolicyModal({
                 </p>
               </div>
             </div>
-          )}
+          ) : null}
 
-          {/* Table */}
-          {policy.tiers.length > 0 && (
+          {/* Table (only when tiers available and not DP) */}
+          {!isDownPayment && policy.tiers.length > 0 && (
             <div className="space-y-2 pt-2">
               <div className="flex items-center justify-between text-xs font-semibold text-foreground-muted pb-2 border-b border-border/70">
                 <span>{lang === 'en' ? 'Cancellation Window' : 'Batas Waktu Pembatalan'}</span>
@@ -349,6 +427,7 @@ export function CancellationPolicyModal({
 interface CancellationPolicyBannerButtonProps {
   checkInDate?: string;
   nonRefundable?: boolean;
+  isDownPayment?: boolean;
   onClick: () => void;
   className?: string;
   lang?: 'id' | 'en';
@@ -357,31 +436,35 @@ interface CancellationPolicyBannerButtonProps {
 export function CancellationPolicyBannerButton({
   checkInDate,
   nonRefundable = false,
+  isDownPayment = false,
   onClick,
   className = '',
   lang = 'id',
 }: CancellationPolicyBannerButtonProps) {
-  const policy = computeRefundPolicy(checkInDate, nonRefundable, lang);
+  const policy = computeRefundPolicy(checkInDate, nonRefundable, lang, isDownPayment);
+  const isAlert = nonRefundable || isDownPayment;
 
   return (
     <button
       type="button"
       onClick={onClick}
       className={`w-full flex items-center justify-between p-3 rounded-2xl ${
-        nonRefundable
+        isAlert
           ? 'bg-amber-500/10 hover:bg-amber-500/15 border-amber-500/30 text-left'
           : 'bg-surface/60 hover:bg-surface dark:bg-surface/80 dark:hover:bg-surface border-border/80 text-left'
       } border transition-all cursor-pointer group shadow-2xs ${className}`}
     >
       <div className="flex items-center gap-2.5 text-xs">
-        {nonRefundable ? (
+        {isDownPayment ? (
+          <Calendar size={15} className="text-amber-600 dark:text-amber-400 shrink-0" />
+        ) : nonRefundable ? (
           <ShieldAlert size={15} className="text-amber-600 dark:text-amber-400 shrink-0" />
         ) : (
           <Calendar size={15} className="text-neutral-700 dark:text-brand-lime shrink-0" />
         )}
         <span
           className={`font-semibold transition-colors ${
-            nonRefundable
+            isAlert
               ? 'text-amber-800 dark:text-amber-300 font-bold'
               : 'text-foreground group-hover:text-brand-blue dark:group-hover:text-brand-lime'
           }`}

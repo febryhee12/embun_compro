@@ -555,6 +555,7 @@ export function CheckoutClient() {
                 <CancellationPolicyBannerButton
                   checkInDate={draft.checkInDate}
                   nonRefundable={isNonRefundable}
+                  isDownPayment={isDP}
                   onClick={() => setShowCancellationModal(true)}
                   lang={lang}
                 />
@@ -882,6 +883,7 @@ export function CheckoutClient() {
               <CancellationPolicyBannerButton
                 checkInDate={draft.checkInDate}
                 nonRefundable={isNonRefundable}
+                isDownPayment={isDP}
                 onClick={() => setShowCancellationModal(true)}
                 lang={lang}
               />
@@ -1067,6 +1069,7 @@ export function CheckoutClient() {
         onClose={() => setShowCancellationModal(false)}
         checkInDate={draft?.checkInDate}
         nonRefundable={isNonRefundable}
+        isDownPayment={isDP}
         lang={lang}
       />
     </div>

@@ -166,6 +166,34 @@ export default async function KebijakanRefundPage({
               <p>
                 For further inquiries regarding the refund status of a specific order, Guests can contact the Embun support team via the help channels available on the Embun App.
               </p>
+
+              <h2>Down Payment (DP 50%) — Non-Refundable</h2>
+              <p>
+                Guests who choose the <strong>Down Payment (DP 50%)</strong> payment scheme are subject to the following special terms:
+              </p>
+              <ul>
+                <li>
+                  <strong>The down payment (DP) is non-refundable and will be forfeited</strong> if the Guest cancels the order or fails to settle the remaining balance before the payment deadline (D-1, 24 hours before check-in).
+                </li>
+                <li>
+                  The Guest has <strong>no cancellation option</strong> for DP orders. The only alternative is a <strong>Reschedule (date change)</strong>.
+                </li>
+                <li>
+                  A reschedule request must be submitted <strong>at least D-7 (7 full calendar days before check-in)</strong>. Requests submitted less than 7 days before check-in will not be accepted.
+                </li>
+                <li>
+                  Reschedule is permitted a <strong>maximum of 1 (one) time</strong> per order.
+                </li>
+                <li>
+                  The remaining balance <strong>must be settled online</strong> via the Embun App or website (using Xendit payment gateway), no later than <strong>D-1 (24 hours before check-in)</strong>.
+                </li>
+                <li>
+                  If the remaining balance is not settled by the deadline, the order will be automatically forfeited and cancelled by the system, and the down payment will not be refunded.
+                </li>
+              </ul>
+              <p>
+                <strong>Exception:</strong> If the campsite unilaterally cancels a DP order (including force majeure), the Guest is entitled to a full refund of the down payment amount already paid, in accordance with the Cancellation by Campsite Management or Force Majeure provision above.
+              </p>
             </>
           ) : (
             <>
@@ -266,6 +294,34 @@ export default async function KebijakanRefundPage({
               </ul>
               <p>
                 Untuk pertanyaan lebih lanjut mengenai status pengembalian dana pada pesanan tertentu, Tamu dapat menghubungi tim dukungan Embun melalui kanal bantuan yang tersedia pada Embun App.
+              </p>
+
+              <h2>Down Payment (DP 50%) — Non-Refundable</h2>
+              <p>
+                Tamu yang memilih skema pembayaran <strong>Uang Muka (Down Payment / DP 50%)</strong> tunduk pada ketentuan khusus berikut:
+              </p>
+              <ul>
+                <li>
+                  <strong>Uang muka (DP) bersifat hangus dan tidak dapat dikembalikan (non-refundable)</strong> jika Tamu membatalkan pesanan atau gagal melunasi sisa tagihan sebelum batas waktu pelunasan (H-1, 24 jam sebelum check-in).
+                </li>
+                <li>
+                  Tamu <strong>tidak memiliki opsi pembatalan</strong> untuk pesanan DP. Satu-satunya alternatif yang tersedia adalah <strong>Reschedule (Ubah Jadwal)</strong>.
+                </li>
+                <li>
+                  Pengajuan reschedule wajib dilakukan <strong>paling lambat H-7 (7 hari kalender penuh sebelum check-in)</strong>. Pengajuan kurang dari 7 hari sebelum check-in tidak akan diterima.
+                </li>
+                <li>
+                  Reschedule diperbolehkan maksimal <strong>1 (satu) kali</strong> per pesanan.
+                </li>
+                <li>
+                  Sisa tagihan <strong>wajib dilunasi secara online</strong> melalui Embun App atau website (menggunakan payment gateway Xendit), paling lambat <strong>H-1 (24 jam sebelum check-in)</strong>.
+                </li>
+                <li>
+                  Jika sisa tagihan tidak dilunasi sebelum batas waktu, pesanan akan otomatis hangus dan dibatalkan oleh sistem, dan uang muka tidak dapat dikembalikan.
+                </li>
+              </ul>
+              <p>
+                <strong>Pengecualian:</strong> Jika pengelola campsite membatalkan pesanan DP secara sepihak (termasuk kondisi force majeure), Tamu berhak atas pengembalian dana penuh atas jumlah uang muka yang telah dibayarkan, sesuai ketentuan Pembatalan oleh Pengelola Campsite atau Force Majeure di atas.
               </p>
             </>
           )}

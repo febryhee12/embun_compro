@@ -28,6 +28,8 @@ import {
   PackageCheck,
   ScrollText,
   RotateCcw,
+  Info,
+  CalendarClock,
 } from 'lucide-react';
 import {
   fetchGuestOrder,
@@ -48,6 +50,7 @@ import { GuestAuthModal } from '@/components/explore/GuestAuthModal';
 import { CompleteProfileModal } from '@/components/explore/CompleteProfileModal';
 import { InvoiceModal, InvoiceDocument } from '@/components/orders/InvoiceModal';
 import { CancelRefundModal } from '@/components/orders/CancelRefundModal';
+import { RescheduleModal } from '@/components/orders/RescheduleModal';
 import { ACCOUNT_I18N, type Language } from '@/lib/account-i18n';
 
 function getOrderBadge(order: any, lang: Language = 'id') {
@@ -393,6 +396,7 @@ export function OrderDetailClient() {
   const [isCompleteProfileOpen, setIsCompleteProfileOpen] = useState(false);
   const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
   const [isCancelRefundOpen, setIsCancelRefundOpen] = useState(false);
+  const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
 
   // Language state (defaults to 'id', persist in localStorage)
   const [lang, setLang] = useState<Language>('id');
@@ -630,7 +634,23 @@ export function OrderDetailClient() {
     return false;
   }, [order, booking?.checkIn, isSettlementExpired]);
 
-  const isActuallyRefundEligible = isPaid && Boolean(order?.refund?.refundEligible);
+  const isActuallyRefundEligible = isPaid && Boolean(order?.refund?.refundEligible) && !isUnsettledDP;
+
+  // Pesanan DP belum lunas: hanya bisa reschedule (H-7, maks 1x), tidak bisa refund/cancel
+  const canRescheduleDP = React.useMemo(() => {
+    if (!isUnsettledDP) return false;
+    if (order?.isRescheduled) return false; // sudah pernah reschedule 1x
+    if (!booking?.checkIn) return false;
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const checkIn = new Date(booking.checkIn);
+    checkIn.setHours(0, 0, 0, 0);
+    const daysToCheckIn = Math.round((checkIn.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return daysToCheckIn >= 7;
+  }, [isUnsettledDP, order?.isRescheduled, booking?.checkIn]);
+
+  // Tamu tetap bisa membatalkan pesanan (termasuk DP yang belum lunas tanpa refund) agar slot campsite terbuka kembali
+  const canCancelOrRefund = canCancel;
 
   const settlementDeadlineFormatted = React.useMemo(() => {
     return formatSettlementDeadline(order?.settlementDeadline, booking?.checkIn, lang);
@@ -1494,8 +1514,47 @@ export function OrderDetailClient() {
                     </div>
                   </div>
 
+                  {/* DP 50% Non-Refundable: info banner + reschedule option */}
+                  {isUnsettledDP && (
+                    <div className="pt-3 border-t border-border/60 space-y-2.5 print:hidden">
+                      <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 px-3.5 py-3 flex gap-3">
+                        <Info size={15} className="text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+                        <div className="space-y-0.5">
+                          <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">
+                            {t.dpNonRefundableTitle}
+                          </p>
+                          <p className="text-[11px] text-amber-700 dark:text-amber-400 leading-relaxed">
+                            {t.dpNonRefundableDesc}
+                          </p>
+                        </div>
+                      </div>
+                      {canRescheduleDP && (
+                        <button
+                          type="button"
+                          onClick={() => setIsRescheduleOpen(true)}
+                          className="w-full py-3 px-4 rounded-full font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs border border-border bg-white dark:bg-surface hover:bg-surface text-foreground-muted hover:text-primary dark:hover:text-primary"
+                        >
+                          <CalendarClock size={14} />
+                          <span>{t.dpRescheduleButton}</span>
+                        </button>
+                      )}
+                      {!canRescheduleDP && !order?.isRescheduled && (
+                        <p className="text-center text-[11px] text-foreground-muted">
+                          {t.dpRescheduleHint}
+                        </p>
+                      )}
+                      {order?.isRescheduled && (
+                        <p className="text-center text-[11px] text-foreground-muted">
+                          {lang === 'id'
+                            ? 'Reschedule sudah digunakan (maks. 1x per pesanan).'
+                            : 'Reschedule already used (max. 1x per order).'}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   {/* Tombol Aksi: Batal / Ajukan Refund */}
-                  {canCancel && (
+                  {canCancelOrRefund && (
                     <div className="pt-3 border-t border-border/60 space-y-2 print:hidden">
                       <button
                         type="button"
@@ -1512,6 +1571,10 @@ export function OrderDetailClient() {
                             ? t.applyRefund
                             : isPending
                             ? t.cancelOrder
+                            : isUnsettledDP
+                            ? (lang === 'id'
+                                ? 'Batalkan Menginap (DP Hangus)'
+                                : 'Cancel Stay (No Refund)')
                             : t.cancelOrderNoRefund}
                         </span>
                       </button>
@@ -1642,6 +1705,16 @@ export function OrderDetailClient() {
           order={order}
           onSuccess={load}
           lang={lang}
+        />
+      )}
+
+      {/* Modal Reschedule untuk pesanan DP belum lunas */}
+      {order && (
+        <RescheduleModal
+          isOpen={isRescheduleOpen}
+          onClose={() => setIsRescheduleOpen(false)}
+          order={order}
+          onSuccess={load}
         />
       )}
     </div>

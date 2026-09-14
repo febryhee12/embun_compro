@@ -116,7 +116,7 @@ export const SPOT_I18N = {
       extraGuestsFormula: (count: number, price: string, nights: number) =>
         `${count} orang × ${price} × ${nights} malam`,
       adminFee: 'Biaya Admin',
-      serviceAndTaxFee: 'Biaya Layanan + PPN',
+      serviceAndTaxFee: 'Biaya Layanan',
       totalBill: 'Total Tagihan',
       dp50: 'DP 50%',
       payFull: 'Bayar Lunas',
@@ -240,7 +240,7 @@ export const SPOT_I18N = {
       extraGuestsFormula: (count: number, price: string, nights: number) =>
         `${count} guests × ${price} × ${nights} nights`,
       adminFee: 'Admin Fee',
-      serviceAndTaxFee: 'Service Fee + VAT',
+      serviceAndTaxFee: 'Service Fee',
       totalBill: 'Total Amount',
       dp50: '50% Deposit',
       payFull: 'Full Payment',
