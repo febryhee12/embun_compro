@@ -222,6 +222,24 @@ export function CheckoutClient() {
     }
   }, []);
 
+  // Hitung ketersediaan Down Payment (DP) - Hook dipanggil sebelum early return sesuai Rules of Hooks
+  const cleanRental = draft
+    ? draft.spotPricePerNight * draft.nights + draft.addonsTotal
+    : 0;
+  const canUseDownPayment = useMemo(() => {
+    if (!draft?.campsite?.allowDownPayment) return false;
+    if (cleanRental <= 200000) return false;
+    if (!draft.checkInDate) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const checkIn = new Date(draft.checkInDate);
+    checkIn.setHours(0, 0, 0, 0);
+    const diff = Math.round(
+      (checkIn.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+    );
+    return diff >= 3;
+  }, [draft?.campsite?.allowDownPayment, draft?.checkInDate, cleanRental]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#fafafa] dark:bg-background flex flex-col items-center justify-center gap-3 text-foreground-muted">
@@ -250,22 +268,6 @@ export function CheckoutClient() {
       </div>
     );
   }
-
-  // Hitung ulang nominal jika skema bayar diubah di checkout
-  const cleanRental = draft.spotPricePerNight * draft.nights + draft.addonsTotal;
-  const canUseDownPayment = useMemo(() => {
-    if (!draft.campsite?.allowDownPayment) return false;
-    if (cleanRental <= 200000) return false;
-    if (!draft.checkInDate) return false;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const checkIn = new Date(draft.checkInDate);
-    checkIn.setHours(0, 0, 0, 0);
-    const diff = Math.round(
-      (checkIn.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
-    );
-    return diff >= 3;
-  }, [draft.campsite?.allowDownPayment, draft.checkInDate, cleanRental]);
 
   const isDP = paymentScheme === 'DP_50' && canUseDownPayment;
   const dpAmount = Math.round(cleanRental * 0.5);
