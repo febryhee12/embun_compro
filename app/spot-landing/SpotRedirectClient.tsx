@@ -2346,6 +2346,7 @@ export function SpotRedirectClient() {
         googleMapsUrl: campsite.googleMapsUrl,
         checkInTime: campsite.checkInTime,
         checkOutTime: campsite.checkOutTime,
+        allowDownPayment: Boolean(campsite.allowDownPayment),
       },
       spot: {
         id: activeSpot.id,
@@ -4194,6 +4195,7 @@ export function SpotRedirectClient() {
                   <CancellationPolicyBannerButton
                     checkInDate={checkInDate}
                     nonRefundable={isSpotNonRefundable}
+                    isDownPayment={paymentScheme === 'DP_50' && canUseDownPayment}
                     lang={lang}
                     onClick={() => setShowCancellationModal(true)}
                   />
@@ -6165,6 +6167,7 @@ export function SpotRedirectClient() {
               <CancellationPolicyBannerButton
                 checkInDate={checkInDate}
                 nonRefundable={isSpotNonRefundable}
+                isDownPayment={paymentScheme === 'DP_50' && canUseDownPayment}
                 lang={lang}
                 onClick={() => setShowCancellationModal(true)}
               />
@@ -6305,6 +6308,7 @@ export function SpotRedirectClient() {
         onClose={() => setShowCancellationModal(false)}
         checkInDate={checkInDate}
         nonRefundable={isSpotNonRefundable}
+        isDownPayment={paymentScheme === 'DP_50' && canUseDownPayment}
         lang={lang}
       />
     </div>
