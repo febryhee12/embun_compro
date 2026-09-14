@@ -234,6 +234,11 @@ export const ACCOUNT_I18N = {
       remainingToPay: 'Sisa Pelunasan',
       settleNow: 'Lunasi Sekarang',
       settleExpired: 'Batas waktu pelunasan telah berakhir',
+      dpNonRefundableTitle: 'Pesanan DP 50% — Non-Refundable',
+      dpNonRefundableDesc:
+        'Down payment yang telah dibayarkan bersifat hangus dan tidak dapat dikembalikan jika Anda membatalkan pesanan. Satu-satunya opsi adalah Ubah Jadwal.',
+      dpRescheduleHint: 'Ajukan paling lambat H-7 sebelum check-in (maks. 1x)',
+      dpRescheduleButton: 'Ubah Jadwal (Reschedule)',
       payNow: 'Bayar Sekarang',
       syncStatus: 'Cek Status Pembayaran',
       backToOrders: 'Kembali ke Pesanan Saya',
@@ -495,6 +500,11 @@ export const ACCOUNT_I18N = {
       remainingToPay: 'Remaining Balance',
       settleNow: 'Pay Balance Now',
       settleExpired: 'Settlement deadline has passed',
+      dpNonRefundableTitle: 'DP 50% Order — Non-Refundable',
+      dpNonRefundableDesc:
+        'Your down payment is non-refundable if you cancel this order. The only available option is to reschedule your stay.',
+      dpRescheduleHint: 'Must be submitted at least D-7 before check-in (max. 1x)',
+      dpRescheduleButton: 'Reschedule Stay',
       payNow: 'Pay Now',
       syncStatus: 'Check Payment Status',
       backToOrders: 'Back to My Orders',
