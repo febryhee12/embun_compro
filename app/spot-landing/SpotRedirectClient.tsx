@@ -971,8 +971,10 @@ export function SpotRedirectClient() {
   }, [selectedPackage, activeSpot, isFreeLand]);
 
   const effectiveMinGuests = useMemo(() => {
+    if (isFreeLand) return 1;
+    if (selectedPackage?.baseCapacity) return selectedPackage.baseCapacity;
     return selectedPackage?.minGuestCount || 1;
-  }, [selectedPackage]);
+  }, [selectedPackage, isFreeLand]);
 
   // Auto-cap guest count jika ganti paket dengan kapasitas maksimal yang lebih kecil
   useEffect(() => {
@@ -3845,8 +3847,8 @@ export function SpotRedirectClient() {
                       ) : Number(selectedPackage?.extraPersonFee ?? activeSpot?.extraPersonFee ?? 0) > 0 ? (
                         <span className="block text-[9.5px] text-foreground-muted/70 mt-0.5">
                           {lang === 'en'
-                            ? `+${rupiah(Number(selectedPackage?.extraPersonFee ?? activeSpot?.extraPersonFee))}/extra guest`
-                            : `+${rupiah(Number(selectedPackage?.extraPersonFee ?? activeSpot?.extraPersonFee))}/tamu tambahan`}
+                            ? `Includes ${selectedPackage?.baseCapacity ?? activeSpot?.baseCapacity ?? 1} guests (+${rupiah(Number(selectedPackage?.extraPersonFee ?? activeSpot?.extraPersonFee))}/extra guest)`
+                            : `Termasuk ${selectedPackage?.baseCapacity ?? activeSpot?.baseCapacity ?? 1} tamu (+${rupiah(Number(selectedPackage?.extraPersonFee ?? activeSpot?.extraPersonFee))}/tamu tambahan)`}
                         </span>
                       ) : null}
                     </div>
@@ -5689,8 +5691,8 @@ export function SpotRedirectClient() {
                   ) : Number(selectedPackage?.extraPersonFee ?? activeSpot?.extraPersonFee ?? 0) > 0 ? (
                     <span className="block text-[9.5px] text-foreground-muted/70 mt-0.5">
                       {lang === 'en'
-                        ? `+${rupiah(Number(selectedPackage?.extraPersonFee ?? activeSpot?.extraPersonFee))}/extra guest`
-                        : `+${rupiah(Number(selectedPackage?.extraPersonFee ?? activeSpot?.extraPersonFee))}/tamu tambahan`}
+                        ? `Includes ${selectedPackage?.baseCapacity ?? activeSpot?.baseCapacity ?? 1} guests (+${rupiah(Number(selectedPackage?.extraPersonFee ?? activeSpot?.extraPersonFee))}/extra guest)`
+                        : `Termasuk ${selectedPackage?.baseCapacity ?? activeSpot?.baseCapacity ?? 1} tamu (+${rupiah(Number(selectedPackage?.extraPersonFee ?? activeSpot?.extraPersonFee))}/tamu tambahan)`}
                     </span>
                   ) : null}
                 </div>
