@@ -339,31 +339,28 @@ export function BookingDrawerModal({
       const container = panoramaRef.current;
       container.innerHTML = '';
 
-      if (safePanoUrl) {
-        const testImg = new Image();
-        testImg.crossOrigin = 'anonymous';
-        testImg.onerror = () => {
-          if (!cancelled) {
-            setPanoLoading(false);
-            setPanoError(true);
-          }
-        };
-        testImg.src = safePanoUrl;
-      }
-
+      // Watchdog timeout: if scene doesn't load within 25 seconds (allow high-res 360 on mobile), show error dialog
       watchdogTimer = setTimeout(() => {
         if (!cancelled) {
+          try {
+            if (panoViewerRef.current?.isLoaded?.()) {
+              setPanoLoading(false);
+              setPanoError(false);
+              return;
+            }
+          } catch (_) {}
           setPanoLoading(false);
           setPanoError(true);
         }
-      }, 7000);
+      }, 25000);
 
+      // MutationObserver to catch Pannellum's internal fatal error elements
       try {
         observer = new MutationObserver(() => {
-          if (
-            container.querySelector('.pnlm-error-msg') ||
-            container.querySelector('.pnlm-load-box')?.textContent?.toLowerCase().includes('error')
-          ) {
+          if (container.querySelector('.pnlm-error-msg')) {
+            try {
+              if (panoViewerRef.current?.isLoaded?.()) return;
+            } catch (_) {}
             if (!cancelled) {
               setPanoLoading(false);
               setPanoError(true);
@@ -393,18 +390,24 @@ export function BookingDrawerModal({
         });
 
         panoViewerRef.current.on('error', (err: any) => {
-          if (watchdogTimer) clearTimeout(watchdogTimer);
-          console.error('Drawer 360 error:', err);
           if (!cancelled) {
+            try {
+              if (panoViewerRef.current?.isLoaded?.()) return;
+            } catch (_) {}
+            if (watchdogTimer) clearTimeout(watchdogTimer);
+            console.error('Drawer 360 error:', err);
             setPanoLoading(false);
             setPanoError(true);
           }
         });
 
         panoViewerRef.current.on('errorwithcode', (code: any, err: any) => {
-          if (watchdogTimer) clearTimeout(watchdogTimer);
-          console.error('Drawer 360 errorwithcode:', code, err);
           if (!cancelled) {
+            try {
+              if (panoViewerRef.current?.isLoaded?.()) return;
+            } catch (_) {}
+            if (watchdogTimer) clearTimeout(watchdogTimer);
+            console.error('Drawer 360 errorwithcode:', code, err);
             setPanoLoading(false);
             setPanoError(true);
           }
@@ -719,7 +722,7 @@ export function BookingDrawerModal({
                               Foto 360° belum dapat dimuat
                             </h4>
                             <p className="text-neutral-400 text-[11px] leading-relaxed">
-                              Pemuatan gambar terhalang oleh pengaturan privasi atau pemblokir (adblocker) di browser Anda.
+                              Koneksi internet lambat atau foto panorama sedang dipersiapkan.
                             </p>
                           </div>
                           <div className="flex gap-2 pt-1">

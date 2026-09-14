@@ -1599,39 +1599,28 @@ export function SpotRedirectClient() {
         const activePano =
           panoramaList[activePanoramaIdx] || panoramaList[0];
 
-        // 1. Pre-check active panorama image URL to detect fast adblock/CORS blocks
-        const activeRawUrl = resolveAssetUrl(activePano.imageUrl);
-        const activeSafeUrl = activeRawUrl
-          ? (activeRawUrl.includes('?') ? `${activeRawUrl}&pano=360` : `${activeRawUrl}?pano=360`)
-          : '';
-
-        if (activeSafeUrl) {
-          const testImg = new Image();
-          testImg.crossOrigin = 'anonymous';
-          testImg.onerror = () => {
-            if (!destroyed) {
-              setPanoLoadingSpot(false);
-              setPanoErrorSpot(true);
-            }
-          };
-          testImg.src = activeSafeUrl;
-        }
-
-        // 2. Watchdog timeout: if scene doesn't load within 7 seconds, show error dialog
+        // Watchdog timeout: if scene doesn't load within 25 seconds (allow high-res 360 on mobile), show error dialog
         watchdogTimer = setTimeout(() => {
           if (!destroyed) {
+            try {
+              if (pannellumViewerRef.current?.isLoaded?.()) {
+                setPanoLoadingSpot(false);
+                setPanoErrorSpot(false);
+                return;
+              }
+            } catch (_) {}
             setPanoLoadingSpot(false);
             setPanoErrorSpot(true);
           }
-        }, 7000);
+        }, 25000);
 
-        // 3. MutationObserver to catch Pannellum's internal DOM error elements
+        // MutationObserver to catch Pannellum's internal fatal error elements
         try {
           observer = new MutationObserver(() => {
-            if (
-              container.querySelector('.pnlm-error-msg') ||
-              container.querySelector('.pnlm-load-box')?.textContent?.toLowerCase().includes('error')
-            ) {
+            if (container.querySelector('.pnlm-error-msg')) {
+              try {
+                if (pannellumViewerRef.current?.isLoaded?.()) return;
+              } catch (_) {}
               if (!destroyed) {
                 setPanoLoadingSpot(false);
                 setPanoErrorSpot(true);
@@ -1680,18 +1669,24 @@ export function SpotRedirectClient() {
         });
 
         pannellumViewerRef.current.on('error', (err: any) => {
-          if (watchdogTimer) clearTimeout(watchdogTimer);
-          console.error('Spot 360 error:', err);
           if (!destroyed) {
+            try {
+              if (pannellumViewerRef.current?.isLoaded?.()) return;
+            } catch (_) {}
+            if (watchdogTimer) clearTimeout(watchdogTimer);
+            console.error('Spot 360 error:', err);
             setPanoLoadingSpot(false);
             setPanoErrorSpot(true);
           }
         });
 
         pannellumViewerRef.current.on('errorwithcode', (code: any, err: any) => {
-          if (watchdogTimer) clearTimeout(watchdogTimer);
-          console.error('Spot 360 errorwithcode:', code, err);
           if (!destroyed) {
+            try {
+              if (pannellumViewerRef.current?.isLoaded?.()) return;
+            } catch (_) {}
+            if (watchdogTimer) clearTimeout(watchdogTimer);
+            console.error('Spot 360 errorwithcode:', code, err);
             setPanoLoadingSpot(false);
             setPanoErrorSpot(true);
           }
@@ -4944,7 +4939,7 @@ export function SpotRedirectClient() {
                               Foto 360° belum dapat dimuat
                             </h3>
                             <p className="text-neutral-400 text-xs leading-relaxed">
-                              Pemuatan gambar terhalang oleh pengaturan privasi atau pemblokir (adblocker) di browser Anda. Silakan nonaktifkan pemblokir untuk situs ini lalu coba lagi.
+                              Koneksi internet lambat atau foto panorama sedang dipersiapkan. Silakan ketuk Coba Lagi.
                             </p>
                           </div>
                           <div className="flex gap-2.5 pt-1">
