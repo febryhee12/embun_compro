@@ -407,7 +407,7 @@ function DummyQrPlaceholder({ className = '' }: { className?: string }) {
                     </span>
                   </div>
                   <div className="flex justify-between text-foreground-muted">
-                    <span>Biaya Layanan + PPN</span>
+                    <span>Biaya Layanan</span>
                     <span className="font-semibold text-foreground">
                       +{rupiah(orderData.serviceFee - orderData.adminFee)}
                     </span>
@@ -415,7 +415,7 @@ function DummyQrPlaceholder({ className = '' }: { className?: string }) {
                 </>
               ) : (
                 <div className="flex justify-between text-foreground-muted">
-                  <span>Biaya Layanan + PPN</span>
+                  <span>Biaya Layanan</span>
                   <span className="font-semibold text-foreground">
                     +{rupiah(orderData.serviceFee)}
                   </span>
