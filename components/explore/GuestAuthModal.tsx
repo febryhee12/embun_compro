@@ -466,13 +466,15 @@ export function GuestAuthModal({
                 >
                   <span>{t.orders}</span>
                 </a>
-                <button
-                  type="button"
-                  onClick={() => setShowLogoutConfirm(true)}
-                  className="w-full py-3.5 px-6 rounded-full border border-border hover:border-red-500/60 dark:hover:border-red-500/60 bg-surface hover:bg-red-500/10 text-foreground hover:text-red-500 dark:hover:text-red-400 text-xs font-bold transition-all flex items-center justify-center cursor-pointer shadow-2xs group"
-                >
-                  <span>{t.logout}</span>
-                </button>
+                {!fromCheckout && (
+                  <button
+                    type="button"
+                    onClick={() => setShowLogoutConfirm(true)}
+                    className="w-full py-3.5 px-6 rounded-full border border-border hover:border-red-500/60 dark:hover:border-red-500/60 bg-surface hover:bg-red-500/10 text-foreground hover:text-red-500 dark:hover:text-red-400 text-xs font-bold transition-all flex items-center justify-center cursor-pointer shadow-2xs group"
+                  >
+                    <span>{t.logout}</span>
+                  </button>
+                )}
               </div>
             </div>
           ) : (

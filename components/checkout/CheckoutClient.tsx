@@ -486,12 +486,12 @@ export function CheckoutClient() {
 
   return (
     <div className="min-h-screen bg-[#fafafa] dark:bg-background text-foreground flex flex-col justify-between">
-      {/* ═══ HEADER ATAS (LOGO RESMI EMBUN EXPLORE & MENU AKUN, TANPA SEARCH) ═══ */}
+      {/* ═══ HEADER ATAS (LOGO RESMI EMBUN EXPLORE, TANPA SEARCH & MENU AKUN) ═══ */}
       <ExploreHeader
-        onOpenAuth={() => setIsAuthOpen(true)}
+        onOpenAuth={() => {}}
         currentUser={currentUser}
         showSearch={false}
-        showUserMenu={true}
+        showUserMenu={false}
         lang={lang}
         onToggleLanguage={toggleLanguage}
       />
