@@ -28,7 +28,7 @@ import {
   PackageCheck,
   ScrollText,
   RotateCcw,
-  Lock,
+  Info,
   CalendarClock,
 } from 'lucide-react';
 import {
@@ -649,8 +649,8 @@ export function OrderDetailClient() {
     return daysToCheckIn >= 7;
   }, [isUnsettledDP, order?.isRescheduled, booking?.checkIn]);
 
-  // Sembunyikan tombol cancel/refund untuk pesanan DP yang belum lunas
-  const canCancelOrRefund = canCancel && !isUnsettledDP;
+  // Tamu tetap bisa membatalkan pesanan (termasuk DP yang belum lunas tanpa refund) agar slot campsite terbuka kembali
+  const canCancelOrRefund = canCancel;
 
   const settlementDeadlineFormatted = React.useMemo(() => {
     return formatSettlementDeadline(order?.settlementDeadline, booking?.checkIn, lang);
@@ -1518,7 +1518,7 @@ export function OrderDetailClient() {
                   {isUnsettledDP && (
                     <div className="pt-3 border-t border-border/60 space-y-2.5 print:hidden">
                       <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 px-3.5 py-3 flex gap-3">
-                        <Lock size={15} className="text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+                        <Info size={15} className="text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
                         <div className="space-y-0.5">
                           <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">
                             {t.dpNonRefundableTitle}
@@ -1553,7 +1553,7 @@ export function OrderDetailClient() {
                     </div>
                   )}
 
-                  {/* Tombol Aksi: Batal / Ajukan Refund (hanya untuk non-DP atau DP sudah lunas) */}
+                  {/* Tombol Aksi: Batal / Ajukan Refund */}
                   {canCancelOrRefund && (
                     <div className="pt-3 border-t border-border/60 space-y-2 print:hidden">
                       <button
@@ -1571,6 +1571,10 @@ export function OrderDetailClient() {
                             ? t.applyRefund
                             : isPending
                             ? t.cancelOrder
+                            : isUnsettledDP
+                            ? (lang === 'id'
+                                ? 'Batalkan Menginap (DP Hangus)'
+                                : 'Cancel Stay (No Refund)')
                             : t.cancelOrderNoRefund}
                         </span>
                       </button>

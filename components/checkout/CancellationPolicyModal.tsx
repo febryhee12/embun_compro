@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Info, X, Calendar, ChevronRight, ShieldAlert, Lock } from 'lucide-react';
+import { Info, X, Calendar, ChevronRight, ShieldAlert } from 'lucide-react';
 
 export interface RefundTier {
   label: string;
@@ -304,7 +304,7 @@ export function CancellationPolicyModal({
           {isDownPayment ? (
             <div className="space-y-3">
               <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3 text-xs text-amber-900 dark:text-amber-200">
-                <Lock size={18} className="shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+                <Info size={18} className="shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
                 <div className="space-y-1">
                   <p className="font-bold text-amber-800 dark:text-amber-300">
                     {lang === 'en'
@@ -456,7 +456,7 @@ export function CancellationPolicyBannerButton({
     >
       <div className="flex items-center gap-2.5 text-xs">
         {isDownPayment ? (
-          <Lock size={15} className="text-amber-600 dark:text-amber-400 shrink-0" />
+          <Calendar size={15} className="text-amber-600 dark:text-amber-400 shrink-0" />
         ) : nonRefundable ? (
           <ShieldAlert size={15} className="text-amber-600 dark:text-amber-400 shrink-0" />
         ) : (
