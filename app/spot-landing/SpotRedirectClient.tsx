@@ -1733,14 +1733,17 @@ export function SpotRedirectClient() {
         }, 25000);
 
         // MutationObserver to catch Pannellum's internal fatal error elements.
+        // Pannellum creates an empty <div class="pnlm-error-msg"><p></p></div> during init with display:none.
+        // Only trigger if it actually contains fatal error text content.
         try {
           observer = new MutationObserver(() => {
             const errorEl = container.querySelector<HTMLElement>('.pnlm-error-msg');
-            if (errorEl && (errorEl.textContent?.trim() || errorEl.children.length > 0)) {
+            if (errorEl && errorEl.textContent?.trim()) {
               try {
                 if (pannellumViewerRef.current?.isLoaded?.()) return;
               } catch (_) {}
               if (!destroyed) {
+                console.error('Pannellum fatal error text detected:', errorEl.textContent);
                 setPanoLoadingSpot(false);
                 setPanoErrorSpot(true);
               }
@@ -5137,7 +5140,10 @@ export function SpotRedirectClient() {
                             <div className="flex items-center bg-black/75 backdrop-blur-md p-1 rounded-full border border-white/20 shadow-xl">
                               <button
                                 type="button"
-                                onClick={() => setGalleryTab('interior_360')}
+                                onClick={() => {
+                                  setActiveInteriorIdx(0);
+                                  setGalleryTab('interior_360');
+                                }}
                                 className={`px-3.5 py-1 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                                   galleryTab === 'interior_360'
                                     ? 'bg-brand-blue text-white shadow-md'
@@ -5158,7 +5164,10 @@ export function SpotRedirectClient() {
                               </button>
                               <button
                                 type="button"
-                                onClick={() => setGalleryTab('360')}
+                                onClick={() => {
+                                  setActivePanoramaIdx(0);
+                                  setGalleryTab('360');
+                                }}
                                 className={`px-3.5 py-1 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                                   galleryTab === '360'
                                     ? 'bg-brand-lime text-black shadow-md'
