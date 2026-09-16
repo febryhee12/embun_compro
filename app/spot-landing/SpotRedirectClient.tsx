@@ -733,6 +733,49 @@ export function SpotRedirectClient() {
   const [panoErrorSpot, setPanoErrorSpot] = useState(false);
   const [panoRetryKeySpot, setPanoRetryKeySpot] = useState(0);
 
+  // Gallery thumbnail auto-scroll ref & active scroll effect
+  const thumbnailRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  useEffect(() => {
+    if (
+      isGalleryOpen &&
+      galleryTab === 'photos' &&
+      thumbnailRefs.current[activePhotoIdx]
+    ) {
+      thumbnailRefs.current[activePhotoIdx]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center',
+      });
+    }
+  }, [activePhotoIdx, isGalleryOpen, galleryTab]);
+
+  // Touch swipe handlers for main gallery photo
+  const touchStartXRef = useRef<number | null>(null);
+  const touchStartYRef = useRef<number | null>(null);
+
+  const handleMainPhotoTouchStart = (e: React.TouchEvent) => {
+    touchStartXRef.current = e.touches[0].clientX;
+    touchStartYRef.current = e.touches[0].clientY;
+  };
+
+  const handleMainPhotoTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartXRef.current === null || touchStartYRef.current === null) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartXRef.current;
+    const deltaY = e.changedTouches[0].clientY - touchStartYRef.current;
+    touchStartXRef.current = null;
+    touchStartYRef.current = null;
+
+    if (Math.abs(deltaX) > 40 && Math.abs(deltaX) > Math.abs(deltaY)) {
+      if (deltaX < 0) {
+        // Swiped left -> next photo
+        setActivePhotoIdx((prev) => (prev === spotPhotos.length - 1 ? 0 : prev + 1));
+      } else {
+        // Swiped right -> prev photo
+        setActivePhotoIdx((prev) => (prev === 0 ? spotPhotos.length - 1 : prev - 1));
+      }
+    }
+  };
+
   // 1. Initial Load & Fetch Data
   useEffect(() => {
     setCurrentUser(getStoredGuestProfile());
@@ -4834,11 +4877,16 @@ export function SpotRedirectClient() {
           >
             {galleryTab === 'photos' && (
               <div className="relative w-full h-full flex flex-col items-center justify-center">
-                <div className="relative max-w-5xl max-h-[75vh] w-full h-full flex items-center justify-center">
+                <div
+                  className="relative max-w-5xl max-h-[75vh] w-full h-full flex items-center justify-center pb-20 sm:pb-24 select-none touch-pan-y"
+                  onTouchStart={handleMainPhotoTouchStart}
+                  onTouchEnd={handleMainPhotoTouchEnd}
+                >
                   <img
                     src={resolveAssetUrl(spotPhotos[activePhotoIdx]?.url)}
                     alt={`Foto ${activePhotoIdx + 1}`}
-                    className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl"
+                    className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl pointer-events-none select-none"
+                    draggable={false}
                   />
 
                   {/* Prev / Next Arrows */}
@@ -4851,7 +4899,7 @@ export function SpotRedirectClient() {
                             prev === 0 ? spotPhotos.length - 1 : prev - 1,
                           )
                         }
-                        className="absolute left-2 sm:left-4 p-3 rounded-full bg-black/60 hover:bg-black/90 text-white transition-all cursor-pointer"
+                        className="absolute left-2 sm:left-4 p-3 rounded-full bg-black/60 hover:bg-black/90 text-white transition-all cursor-pointer z-10"
                       >
                         <ChevronLeft size={24} />
                       </button>
@@ -4862,7 +4910,7 @@ export function SpotRedirectClient() {
                             prev === spotPhotos.length - 1 ? 0 : prev + 1,
                           )
                         }
-                        className="absolute right-2 sm:right-4 p-3 rounded-full bg-black/60 hover:bg-black/90 text-white transition-all cursor-pointer"
+                        className="absolute right-2 sm:right-4 p-3 rounded-full bg-black/60 hover:bg-black/90 text-white transition-all cursor-pointer z-10"
                       >
                         <ChevronRight size={24} />
                       </button>
@@ -4871,26 +4919,37 @@ export function SpotRedirectClient() {
                 </div>
 
                 {/* Bottom Photo Thumbnails */}
-                <div className="absolute bottom-2 inset-x-0 flex justify-center gap-2 overflow-x-auto p-2 no-scrollbar">
-                  {spotPhotos.map((p, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setActivePhotoIdx(idx)}
-                      className={`h-12 w-16 rounded-lg overflow-hidden border-2 transition-all shrink-0 ${
-                        activePhotoIdx === idx
-                          ? 'border-brand-lime scale-105'
-                          : 'border-transparent opacity-50 hover:opacity-100'
-                      }`}
+                {spotPhotos.length > 1 && (
+                  <div className="absolute bottom-3 sm:bottom-4 inset-x-0 z-20 flex justify-center px-3 pointer-events-none">
+                    <div
+                      className="pointer-events-auto flex items-center gap-2 overflow-x-auto no-scrollbar py-2 px-3 rounded-2xl bg-black/80 backdrop-blur-md border border-white/15 max-w-[95vw] sm:max-w-2xl touch-pan-x overscroll-x-contain"
+                      style={{ WebkitOverflowScrolling: 'touch' }}
                     >
-                      <img
-                        src={resolveAssetUrl(p.url)}
-                        alt="thumb"
-                        className="w-full h-full object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
+                      {spotPhotos.map((p, idx) => (
+                        <button
+                          key={idx}
+                          ref={(el) => {
+                            thumbnailRefs.current[idx] = el;
+                          }}
+                          type="button"
+                          onClick={() => setActivePhotoIdx(idx)}
+                          className={`h-12 w-16 sm:h-14 sm:w-20 rounded-lg overflow-hidden border-2 transition-all shrink-0 cursor-pointer ${
+                            activePhotoIdx === idx
+                              ? 'border-brand-lime scale-105 shadow-md shadow-brand-lime/25'
+                              : 'border-white/10 opacity-50 hover:opacity-100 hover:border-white/40'
+                          }`}
+                        >
+                          <img
+                            src={resolveAssetUrl(p.url)}
+                            alt={`Thumbnail ${idx + 1}`}
+                            className="w-full h-full object-cover pointer-events-none select-none"
+                            draggable={false}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
