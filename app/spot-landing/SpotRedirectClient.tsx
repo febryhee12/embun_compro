@@ -3087,7 +3087,7 @@ export function SpotRedirectClient() {
               </div>
             </div>
 
-            {/* ── SPOT INTERIOR 360 CARD (Clean & Bilingual seperti Flutter) ── */}
+            {/* ── SPOT INTERIOR 360 CARD (Clean & Minimalist seperti Flutter) ── */}
             {interiorPanoramaList.length > 0 && (
               <div
                 onClick={() => {
@@ -3095,31 +3095,20 @@ export function SpotRedirectClient() {
                   setGalleryTab('interior_360');
                   setIsGalleryOpen(true);
                 }}
-                className="p-3.5 sm:p-4 rounded-2xl bg-surface border border-border hover:border-brand-blue/40 dark:hover:border-brand-lime/40 transition-all flex items-center justify-between gap-4 cursor-pointer group shadow-2xs"
+                className="p-3.5 sm:p-4 rounded-2xl bg-surface border border-border hover:border-foreground/20 hover:bg-surface-variant/30 transition-all flex items-center justify-between gap-4 cursor-pointer group shadow-2xs"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0">
                   <div className="w-10 h-10 rounded-xl bg-brand-blue/10 dark:bg-brand-lime/10 border border-brand-blue/20 dark:border-brand-lime/20 flex items-center justify-center text-brand-blue dark:text-brand-lime shrink-0 group-hover:scale-105 transition-transform">
                     <RotateCw size={18} className="animate-spin-slow" />
                   </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-foreground group-hover:text-brand-blue dark:group-hover:text-brand-lime transition-colors">
-                      {t.spot.gallery360Interior}
-                    </h4>
-                  </div>
+                  <h4 className="text-sm font-semibold text-foreground truncate">
+                    {t.spot.gallery360Interior}
+                  </h4>
                 </div>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActiveInteriorIdx(0);
-                    setGalleryTab('interior_360');
-                    setIsGalleryOpen(true);
-                  }}
-                  className="px-3.5 py-2 rounded-xl bg-brand-blue hover:bg-brand-blue-hover text-white dark:bg-brand-lime dark:text-black font-bold text-xs shadow-sm hover:scale-103 transition-all shrink-0 cursor-pointer flex items-center gap-1.5"
-                >
-                  <RotateCw size={13} />
-                  <span>{t.spot.view360Interior}</span>
-                </button>
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground-muted group-hover:text-foreground shrink-0 transition-colors">
+                  <span>{lang === 'en' ? 'View 360°' : 'Lihat 360°'}</span>
+                  <ChevronRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
+                </div>
               </div>
             )}
 
