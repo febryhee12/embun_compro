@@ -3014,21 +3014,6 @@ export function SpotRedirectClient() {
 
           {/* Overlay Buttons */}
           <div className="absolute bottom-4 right-4 flex flex-wrap items-center justify-end gap-2 max-w-[90vw]">
-            {interiorPanoramaList.length > 0 && (
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveInteriorIdx(0);
-                  setGalleryTab('interior_360');
-                  setIsGalleryOpen(true);
-                }}
-                className="px-3.5 py-2 rounded-xl bg-brand-blue hover:bg-brand-blue-hover text-white text-xs font-bold shadow-lg flex items-center gap-1.5 hover:scale-103 transition-all cursor-pointer"
-              >
-                <RotateCw size={14} className="animate-spin-slow text-brand-lime" />
-                <span>360° Interior ({interiorPanoramaList.length})</span>
-              </button>
-            )}
-
             {campsitePanoramaList.length > 0 && (
               <button
                 type="button"
@@ -3040,7 +3025,7 @@ export function SpotRedirectClient() {
                 className="px-3.5 py-2 rounded-xl bg-brand-lime text-black text-xs font-bold shadow-lg flex items-center gap-1.5 hover:scale-103 transition-all cursor-pointer"
               >
                 <Compass size={14} className="animate-spin-slow" />
-                <span>Tur Kawasan 360° ({campsitePanoramaList.length})</span>
+                <span>{t.spot.tour360Count(campsitePanoramaList.length)}</span>
               </button>
             )}
 
@@ -3102,36 +3087,38 @@ export function SpotRedirectClient() {
               </div>
             </div>
 
-            {/* ── SPOT INTERIOR 360 CARD (Khusus spot ini, terpisah dari tur kawasan) ── */}
+            {/* ── SPOT INTERIOR 360 CARD (Clean & Bilingual seperti Flutter) ── */}
             {interiorPanoramaList.length > 0 && (
-              <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-brand-blue/15 via-brand-blue/5 to-transparent border border-brand-blue/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-11 h-11 rounded-xl bg-brand-blue/20 border border-brand-blue/40 flex items-center justify-center text-brand-blue dark:text-brand-lime shrink-0">
-                    <RotateCw size={22} className="animate-spin-slow" />
+              <div
+                onClick={() => {
+                  setActiveInteriorIdx(0);
+                  setGalleryTab('interior_360');
+                  setIsGalleryOpen(true);
+                }}
+                className="p-3.5 sm:p-4 rounded-2xl bg-surface border border-border hover:border-brand-blue/40 dark:hover:border-brand-lime/40 transition-all flex items-center justify-between gap-4 cursor-pointer group shadow-2xs"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-brand-blue/10 dark:bg-brand-lime/10 border border-brand-blue/20 dark:border-brand-lime/20 flex items-center justify-center text-brand-blue dark:text-brand-lime shrink-0 group-hover:scale-105 transition-transform">
+                    <RotateCw size={18} className="animate-spin-slow" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
-                      <span>Foto 360° Interior {activeSpot.name}</span>
-                      <span className="text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-full bg-brand-blue/20 text-brand-blue dark:text-brand-lime border border-brand-blue/30">
-                        Khusus Spot Ini
-                      </span>
+                    <h4 className="text-sm font-bold text-foreground group-hover:text-brand-blue dark:group-hover:text-brand-lime transition-colors">
+                      {t.spot.gallery360Interior}
                     </h4>
-                    <p className="text-xs text-foreground-muted mt-0.5">
-                      {interiorPanoramaList.length} foto 360° interaktif di dalam unit ({interiorPanoramaList.map((p) => p.label).join(', ')})
-                    </p>
                   </div>
                 </div>
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setActiveInteriorIdx(0);
                     setGalleryTab('interior_360');
                     setIsGalleryOpen(true);
                   }}
-                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-brand-blue hover:bg-brand-blue-hover text-white dark:bg-brand-lime dark:text-black font-bold text-xs shadow-md hover:scale-103 transition-all shrink-0 cursor-pointer flex items-center justify-center gap-2"
+                  className="px-3.5 py-2 rounded-xl bg-brand-blue hover:bg-brand-blue-hover text-white dark:bg-brand-lime dark:text-black font-bold text-xs shadow-sm hover:scale-103 transition-all shrink-0 cursor-pointer flex items-center gap-1.5"
                 >
-                  <RotateCw size={14} />
-                  <span>Lihat 360° Interior</span>
+                  <RotateCw size={13} />
+                  <span>{t.spot.view360Interior}</span>
                 </button>
               </div>
             )}
@@ -3215,9 +3202,9 @@ export function SpotRedirectClient() {
 
               {/* Catatan Khusus Pengelola Spot (from activeSpot.specificNotes) */}
               {(activeSpot.specificNotes || (activeSpot as any).notes) && (
-                <div className="p-4 sm:p-5 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-xs space-y-2.5 mt-3 shadow-2xs">
+                <div className="p-4 sm:p-5 rounded-2xl bg-surface border border-border text-xs space-y-2.5 mt-3 shadow-2xs">
                   <h4 className="font-bold text-foreground text-sm flex items-center gap-2">
-                    <Info size={16} className="text-amber-600 shrink-0" />
+                    <Info size={16} className="text-brand-blue dark:text-brand-lime shrink-0" />
                     <span>{t.spot.hostNotesTitle}</span>
                   </h4>
                   <TranslatableBox
@@ -3225,7 +3212,7 @@ export function SpotRedirectClient() {
                       activeSpot.specificNotes || (activeSpot as any).notes,
                     )}
                     lang={lang}
-                    listClassName="space-y-1.5 text-foreground/85 list-disc list-inside pl-0.5"
+                    listClassName="space-y-1.5 text-foreground/80 list-disc list-inside pl-0.5"
                   />
                 </div>
               )}
