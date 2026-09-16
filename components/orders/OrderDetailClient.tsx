@@ -1212,32 +1212,43 @@ export function OrderDetailClient() {
                     )}
                   </div>
 
-                  {/* Action Links ke Maps / WA */}
-                  <div className="flex items-center gap-2.5 flex-wrap print:hidden">
-                    {order.campsite?.googleMapsUrl && (
-                      <a
-                        href={order.campsite.googleMapsUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-border hover:bg-surface text-xs font-semibold text-foreground transition-colors hover:text-brand-blue dark:hover:text-brand-lime"
-                      >
-                        <MapPin size={13} className="text-brand-blue dark:text-brand-lime" />
-                        <span>{t.openGoogleMaps}</span>
-                        <ExternalLink size={11} className="text-foreground-muted" />
-                      </a>
-                    )}
-                    {isPaid && !isUnsettledDP && order.campsite?.emergencyWhatsapp && (
-                      <a
-                        href={`https://wa.me/${order.campsite.emergencyWhatsapp.replace(/\D/g, '')}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-500/10 hover:bg-emerald-50 dark:hover:bg-emerald-500/20 text-xs font-semibold text-emerald-800 dark:text-emerald-300 transition-colors"
-                      >
-                        <MessageCircle size={13} className="text-emerald-500" />
-                        <span>{t.contactHost}</span>
-                      </a>
-                    )}
-                  </div>
+                  {/* Action Links ke Maps / WA (Balanced, Minimalist & Neutral) */}
+                  {(Boolean(order.campsite?.googleMapsUrl) ||
+                    Boolean(isPaid && !isUnsettledDP && order.campsite?.emergencyWhatsapp)) && (
+                    <div
+                      className={`grid ${
+                        order.campsite?.googleMapsUrl &&
+                        isPaid &&
+                        !isUnsettledDP &&
+                        order.campsite?.emergencyWhatsapp
+                          ? 'grid-cols-2'
+                          : 'grid-cols-1'
+                      } gap-2 sm:gap-2.5 print:hidden`}
+                    >
+                      {order.campsite?.googleMapsUrl && (
+                        <a
+                          href={order.campsite.googleMapsUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-border/80 bg-surface/50 hover:bg-surface text-xs font-semibold text-foreground transition-all active:scale-[0.99] text-center"
+                        >
+                          <MapPin size={13} className="text-foreground-muted shrink-0" />
+                          <span className="truncate">{t.openGoogleMaps}</span>
+                        </a>
+                      )}
+                      {isPaid && !isUnsettledDP && order.campsite?.emergencyWhatsapp && (
+                        <a
+                          href={`https://wa.me/${order.campsite.emergencyWhatsapp.replace(/\D/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-border/80 bg-surface/50 hover:bg-surface text-xs font-semibold text-foreground transition-all active:scale-[0.99] text-center"
+                        >
+                          <MessageCircle size={13} className="text-foreground-muted shrink-0" />
+                          <span className="truncate">{t.contactHost}</span>
+                        </a>
+                      )}
+                    </div>
+                  )}
 
                   {/* Check-In / Check-Out Grid */}
                   <div className="grid grid-cols-2 gap-3.5 text-xs">
