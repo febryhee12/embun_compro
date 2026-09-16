@@ -627,11 +627,12 @@ export function SpotRedirectClient() {
 
   // Gallery & 360 Lightbox state
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
-  const [galleryTab, setGalleryTab] = useState<'photos' | '360' | 'map'>(
-    'photos',
-  );
+  const [galleryTab, setGalleryTab] = useState<
+    'photos' | 'interior_360' | '360' | 'map'
+  >('photos');
   const [activePhotoIdx, setActivePhotoIdx] = useState(0);
   const [activePanoramaIdx, setActivePanoramaIdx] = useState(0);
+  const [activeInteriorIdx, setActiveInteriorIdx] = useState(0);
 
   // Share & Favorite state
   const [copied, setCopied] = useState(false);
@@ -782,11 +783,18 @@ export function SpotRedirectClient() {
 
     if (typeof window !== 'undefined') {
       const sp = new URLSearchParams(window.location.search);
+      const isInteriorRequested =
+        sp.get('tab') === 'interior_360' ||
+        sp.get('interior360') === 'true' ||
+        sp.get('interior') === '360';
       const is360Requested =
         sp.get('view360') === 'true' ||
         sp.get('tour360') === 'true' ||
         sp.get('tab') === '360';
-      if (is360Requested) {
+      if (isInteriorRequested) {
+        setIsGalleryOpen(true);
+        setGalleryTab('interior_360');
+      } else if (is360Requested) {
         setIsTour360Only(true);
         setIsGalleryOpen(true);
         setGalleryTab('360');
@@ -1205,8 +1213,39 @@ export function SpotRedirectClient() {
     return campsite?.mapImageUrl || '';
   }, [campsite, spotPhotos]);
 
-  // Extract 360 Panoramas
-  const panoramaList = useMemo(() => {
+  // 1. Extract Spot Interior 360 Panoramas (strictly specific to this spot, e.g. tenda / kamar interior)
+  const interiorPanoramaList = useMemo(() => {
+    if (!activeSpot || !Array.isArray(activeSpot.panoramaPhotos)) return [];
+    const list: PanoramaItem[] = [];
+    const addedUrls = new Set<string>();
+
+    activeSpot.panoramaPhotos.forEach((p: any, idx: number) => {
+      const url = (p?.imageUrl || p?.url || '').trim();
+      if (url && !addedUrls.has(url)) {
+        addedUrls.add(url);
+        list.push({
+          id: p.id || `interior-${idx}`,
+          label: p.label || p.category || `Foto ${idx + 1}`,
+          imageUrl: url,
+          category: 'interior_360',
+          yaw:
+            p.yaw !== undefined && p.yaw !== null && !isNaN(Number(p.yaw))
+              ? Number(p.yaw)
+              : 0,
+          pitch:
+            p.pitch !== undefined && p.pitch !== null && !isNaN(Number(p.pitch))
+              ? Number(p.pitch)
+              : 0,
+          hotspots: p.hotspots || [],
+        });
+      }
+    });
+
+    return list;
+  }, [activeSpot]);
+
+  // 2. Extract Campsite Outdoor 360 Panoramas (campsite tour, linked outdoor panorama, walking paths)
+  const campsitePanoramaList = useMemo(() => {
     const list: PanoramaItem[] = [];
     const addedUrls = new Set<string>();
 
@@ -1374,30 +1413,7 @@ export function SpotRedirectClient() {
       }
     }
 
-    // 2. Check activeSpot.panoramaPhotos (interior photos of this spot)
-    if (activeSpot && Array.isArray(activeSpot.panoramaPhotos)) {
-      activeSpot.panoramaPhotos.forEach((p: any) => {
-        const url = p?.imageUrl || p?.url;
-        if (url && !addedUrls.has(url)) {
-          addedUrls.add(url);
-          list.push({
-            id: p.id || String(Math.random()),
-            label:
-              p.label || p.category || `${activeSpot.name} (Interior 360°)`,
-            imageUrl: url,
-            category: p.category || 'interior_360',
-            yaw: p.yaw !== undefined && p.yaw !== null ? Number(p.yaw) : 0,
-            pitch:
-              p.pitch !== undefined && p.pitch !== null ? Number(p.pitch) : 0,
-            hotspots: p.hotspots || [],
-          });
-        }
-      });
-    }
-
-    // 3. Fallback: tambahkan semua panorama level-campsite agar tombol Tur 360°
-    //    tetap muncul meski spot aktif tidak punya linked panorama.
-    //    URL yang sudah ada di list (linked/interior) dilewati (deduplikasi).
+    // 2. Campsite-level outdoor panoramas (campsite tour)
     const addCampsitePanorama = (p: any) => {
       const url = (p?.panoramaImageUrl || p?.imageUrl || p?.url || '').trim();
       if (!url || addedUrls.has(url)) return;
@@ -1436,13 +1452,13 @@ export function SpotRedirectClient() {
       list.push(panoItem);
     };
 
-    // 3a. campsite.panoramaSpots
+    // 2a. campsite.panoramaSpots
     if (Array.isArray((campsite as any)?.panoramaSpots)) {
       for (const p of (campsite as any).panoramaSpots) {
         addCampsitePanorama(p);
       }
     }
-    // 3b. campsite.maps[].markers (type === 'panorama')
+    // 2b. campsite.maps[].markers (type === 'panorama')
     if (Array.isArray(campsite?.maps)) {
       for (const m of campsite.maps) {
         if (Array.isArray(m.markers)) {
@@ -1454,7 +1470,7 @@ export function SpotRedirectClient() {
         }
       }
     }
-    // 3c. campsite.mapMarkers (type === 'panorama')
+    // 2c. campsite.mapMarkers (type === 'panorama')
     if (Array.isArray(campsite?.mapMarkers)) {
       for (const marker of campsite.mapMarkers) {
         if (marker.type === 'panorama' || marker.panoramaImageUrl) {
@@ -1470,17 +1486,17 @@ export function SpotRedirectClient() {
       return bScore - aScore;
     });
 
-    // Jika spot ini belum memiliki konten 360° (tidak ada pin, tidak ditautkan, dan tidak ada interior):
-    // Sembunyikan tombol Tur 360° pada halaman spot ini
-    const hasSpot360 = list.some(
-      (p) => p.category === 'panorama_linked' || p.category === 'interior_360',
-    );
-    if (!hasSpot360) {
+    // Jika spot aktif tidak punya linked panorama atau pin, hanya tampilkan tur jika kawasan punya panorama
+    const hasSpotLinked = list.some((p) => p.category === 'panorama_linked');
+    if (!hasSpotLinked && !isTour360Only && list.length === 0) {
       return [];
     }
 
     return list;
-  }, [activeSpot, campsite]);
+  }, [activeSpot, campsite, isTour360Only]);
+
+  // Combined convenience reference for backward compatibility / fallback
+  const panoramaList = campsitePanoramaList;
 
   // Campsite Hub: all active spots in this campsite
   const campsiteSpots = useMemo(() => {
@@ -1523,30 +1539,61 @@ export function SpotRedirectClient() {
 
   // Synchronize active panorama index when URL contains a specific spot or pano query param
   useEffect(() => {
-    if (typeof window !== 'undefined' && panoramaList.length > 0) {
+    if (typeof window !== 'undefined') {
       const sp = new URLSearchParams(window.location.search);
       const targetSpot = sp.get('spot');
       const targetPano = sp.get('pano');
-      if (targetSpot) {
+
+      // Check interior first if requested or matching
+      if (interiorPanoramaList.length > 0 && targetSpot) {
         const cleanTarget = targetSpot.replace(/^tour360-/, '');
-        const idx = panoramaList.findIndex(
+        const interiorIdx = interiorPanoramaList.findIndex(
           (p) =>
             p.id === cleanTarget ||
             p.id === targetSpot ||
             p.label?.toLowerCase() === targetSpot.toLowerCase(),
         );
-        if (idx >= 0) setActivePanoramaIdx(idx);
-      } else if (targetPano) {
-        const idx = panoramaList.findIndex((p) => p.imageUrl === targetPano);
-        if (idx >= 0) setActivePanoramaIdx(idx);
+        if (interiorIdx >= 0) {
+          setActiveInteriorIdx(interiorIdx);
+          setGalleryTab('interior_360');
+          return;
+        }
+      }
+
+      if (campsitePanoramaList.length > 0) {
+        if (targetSpot) {
+          const cleanTarget = targetSpot.replace(/^tour360-/, '');
+          const idx = campsitePanoramaList.findIndex(
+            (p) =>
+              p.id === cleanTarget ||
+              p.id === targetSpot ||
+              p.label?.toLowerCase() === targetSpot.toLowerCase(),
+          );
+          if (idx >= 0) setActivePanoramaIdx(idx);
+        } else if (targetPano) {
+          const idx = campsitePanoramaList.findIndex((p) => p.imageUrl === targetPano);
+          if (idx >= 0) setActivePanoramaIdx(idx);
+        }
       }
     }
-  }, [panoramaList]);
+  }, [campsitePanoramaList, interiorPanoramaList]);
 
   // Init 360 Pannellum in modal with interactive hotspots
   useEffect(() => {
-    if (!isGalleryOpen || galleryTab !== '360' || panoramaList.length === 0)
+    if (
+      !isGalleryOpen ||
+      (galleryTab !== '360' && galleryTab !== 'interior_360')
+    )
       return;
+
+    const currentList =
+      galleryTab === 'interior_360'
+        ? interiorPanoramaList
+        : campsitePanoramaList;
+    const currentIdx =
+      galleryTab === 'interior_360' ? activeInteriorIdx : activePanoramaIdx;
+
+    if (currentList.length === 0) return;
 
     let destroyed = false;
     let watchdogTimer: any = null;
@@ -1578,7 +1625,7 @@ export function SpotRedirectClient() {
         container.innerHTML = '';
 
         const scenesConfig: Record<string, any> = {};
-        panoramaList.forEach((pano) => {
+        currentList.forEach((pano) => {
           const rawHotspots: any[] = (() => {
             const hs = (pano as any).hotspots;
             if (Array.isArray(hs)) return hs;
@@ -1622,7 +1669,7 @@ export function SpotRedirectClient() {
                 hotSpotDiv.onclick = (e) => {
                   e.stopPropagation();
                   if (h.targetSpotId) {
-                    const targetIdx = panoramaList.findIndex(
+                    const targetIdx = currentList.findIndex(
                       (p) =>
                         p.id === h.targetSpotId ||
                         p.label?.toLowerCase() ===
@@ -1630,10 +1677,14 @@ export function SpotRedirectClient() {
                         p.label?.toLowerCase() === label.toLowerCase(),
                     );
                     if (targetIdx >= 0) {
-                      setActivePanoramaIdx(targetIdx);
+                      if (galleryTab === 'interior_360') {
+                        setActiveInteriorIdx(targetIdx);
+                      } else {
+                        setActivePanoramaIdx(targetIdx);
+                      }
                       if (pannellumViewerRef.current) {
                         try {
-                          const targetPano = panoramaList[targetIdx];
+                          const targetPano = currentList[targetIdx];
                           pannellumViewerRef.current.loadScene(
                             targetPano.id,
                             targetPano.pitch !== undefined ? Number(targetPano.pitch) : 0,
@@ -1664,7 +1715,7 @@ export function SpotRedirectClient() {
         });
 
         const activePano =
-          panoramaList[activePanoramaIdx] || panoramaList[0];
+          currentList[currentIdx] || currentList[0];
 
         // Watchdog timeout: if scene doesn't load within 25 seconds (allow high-res 360 on mobile), show error dialog
         watchdogTimer = setTimeout(() => {
@@ -1682,9 +1733,6 @@ export function SpotRedirectClient() {
         }, 25000);
 
         // MutationObserver to catch Pannellum's internal fatal error elements.
-        // Note: Pannellum ALWAYS creates an empty <div class="pnlm-error-msg">
-        // during viewer setup. Only treat it as a real error if it actually
-        // contains text content (i.e. Pannellum populated it with a message).
         try {
           observer = new MutationObserver(() => {
             const errorEl = container.querySelector<HTMLElement>('.pnlm-error-msg');
@@ -1785,7 +1833,15 @@ export function SpotRedirectClient() {
         pannellumViewerRef.current = null;
       }
     };
-  }, [isGalleryOpen, galleryTab, activePanoramaIdx, panoramaList, panoRetryKeySpot]);
+  }, [
+    isGalleryOpen,
+    galleryTab,
+    activePanoramaIdx,
+    activeInteriorIdx,
+    campsitePanoramaList,
+    interiorPanoramaList,
+    panoRetryKeySpot,
+  ]);
 
   // Available addons
   const availableAddons = useMemo(() => {
@@ -2957,18 +3013,34 @@ export function SpotRedirectClient() {
           )}
 
           {/* Overlay Buttons */}
-          <div className="absolute bottom-4 right-4 flex items-center gap-2">
-            {panoramaList.length > 0 && (
+          <div className="absolute bottom-4 right-4 flex flex-wrap items-center justify-end gap-2 max-w-[90vw]">
+            {interiorPanoramaList.length > 0 && (
               <button
                 type="button"
                 onClick={() => {
+                  setActiveInteriorIdx(0);
+                  setGalleryTab('interior_360');
+                  setIsGalleryOpen(true);
+                }}
+                className="px-3.5 py-2 rounded-xl bg-brand-blue hover:bg-brand-blue-hover text-white text-xs font-bold shadow-lg flex items-center gap-1.5 hover:scale-103 transition-all cursor-pointer"
+              >
+                <RotateCw size={14} className="animate-spin-slow text-brand-lime" />
+                <span>360° Interior ({interiorPanoramaList.length})</span>
+              </button>
+            )}
+
+            {campsitePanoramaList.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  setActivePanoramaIdx(0);
                   setGalleryTab('360');
                   setIsGalleryOpen(true);
                 }}
                 className="px-3.5 py-2 rounded-xl bg-brand-lime text-black text-xs font-bold shadow-lg flex items-center gap-1.5 hover:scale-103 transition-all cursor-pointer"
               >
                 <Compass size={14} className="animate-spin-slow" />
-                <span>{t.spot.tour360Count(panoramaList.length)}</span>
+                <span>Tur Kawasan 360° ({campsitePanoramaList.length})</span>
               </button>
             )}
 
@@ -3029,6 +3101,40 @@ export function SpotRedirectClient() {
                 </p>
               </div>
             </div>
+
+            {/* ── SPOT INTERIOR 360 CARD (Khusus spot ini, terpisah dari tur kawasan) ── */}
+            {interiorPanoramaList.length > 0 && (
+              <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-brand-blue/15 via-brand-blue/5 to-transparent border border-brand-blue/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-11 h-11 rounded-xl bg-brand-blue/20 border border-brand-blue/40 flex items-center justify-center text-brand-blue dark:text-brand-lime shrink-0">
+                    <RotateCw size={22} className="animate-spin-slow" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+                      <span>Foto 360° Interior {activeSpot.name}</span>
+                      <span className="text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-full bg-brand-blue/20 text-brand-blue dark:text-brand-lime border border-brand-blue/30">
+                        Khusus Spot Ini
+                      </span>
+                    </h4>
+                    <p className="text-xs text-foreground-muted mt-0.5">
+                      {interiorPanoramaList.length} foto 360° interaktif di dalam unit ({interiorPanoramaList.map((p) => p.label).join(', ')})
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveInteriorIdx(0);
+                    setGalleryTab('interior_360');
+                    setIsGalleryOpen(true);
+                  }}
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-brand-blue hover:bg-brand-blue-hover text-white dark:bg-brand-lime dark:text-black font-bold text-xs shadow-md hover:scale-103 transition-all shrink-0 cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <RotateCw size={14} />
+                  <span>Lihat 360° Interior</span>
+                </button>
+              </div>
+            )}
 
             {/* ── REAL SPOT SPECIFICATIONS (Tipe Ground / Jenis Alas, View, & Fasilitas Spot) ── */}
             <div className="space-y-4 pb-6 border-b border-border">
@@ -3666,17 +3772,32 @@ export function SpotRedirectClient() {
                     secara visual interaktif.
                   </p>
                 </div>
-                {panoramaList.length > 0 && (
+                {campsitePanoramaList.length > 0 && (
                   <button
                     type="button"
                     onClick={() => {
+                      setActivePanoramaIdx(0);
                       setIsGalleryOpen(true);
                       setGalleryTab('360');
                     }}
                     className="w-full py-3.5 px-6 rounded-full bg-brand-blue hover:bg-brand-blue-hover text-white dark:bg-brand-lime dark:text-black dark:hover:bg-brand-lime/90 font-bold dark:font-black text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
                   >
                     <Compass size={16} />
-                    <span>Buka Tur 360° ({panoramaList.length} Area)</span>
+                    <span>Buka Tur Kawasan 360° ({campsitePanoramaList.length} Area)</span>
+                  </button>
+                )}
+                {interiorPanoramaList.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveInteriorIdx(0);
+                      setIsGalleryOpen(true);
+                      setGalleryTab('interior_360');
+                    }}
+                    className="w-full py-3.5 px-6 rounded-full bg-white dark:bg-surface border border-border hover:bg-surface text-foreground font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
+                  >
+                    <RotateCw size={16} className="text-brand-blue dark:text-brand-lime" />
+                    <span>Lihat 360° Interior ({interiorPanoramaList.length} Foto)</span>
                   </button>
                 )}
                 <div className="pt-2 border-t border-border">
@@ -4818,20 +4939,24 @@ export function SpotRedirectClient() {
               </button>
               <span className="font-bold text-sm truncate max-w-xs sm:max-w-md">
                 {isTour360Only
-                  ? panoramaList[activePanoramaIdx]?.label
-                    ? `${panoramaList[activePanoramaIdx].label} · ${campsite?.name || 'Embun'}`
+                  ? campsitePanoramaList[activePanoramaIdx]?.label
+                    ? `${campsitePanoramaList[activePanoramaIdx].label} · ${campsite?.name || 'Embun'}`
                     : `${campsite?.name || 'Embun'} · Tur 360°`
-                  : `${activeSpot?.name || 'Spot'} · Galeri & Tur`}
+                  : galleryTab === 'interior_360'
+                    ? `${activeSpot?.name || 'Spot'} · 360° Interior`
+                    : galleryTab === '360'
+                      ? `${campsitePanoramaList[activePanoramaIdx]?.label || activeSpot?.name || 'Spot'} · Tur Kawasan 360°`
+                      : `${activeSpot?.name || 'Spot'} · Galeri & Tur`}
               </span>
             </div>
 
-            {/* Gallery Tabs (hidden on mobile view per user request) */}
+            {/* Gallery Tabs */}
             {!isTour360Only && (
-              <div className="hidden sm:flex items-center gap-2">
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
                 <button
                   type="button"
                   onClick={() => setGalleryTab('photos')}
-                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                     galleryTab === 'photos'
                       ? 'bg-white text-black'
                       : 'bg-white/10 text-white hover:bg-white/20'
@@ -4839,24 +4964,43 @@ export function SpotRedirectClient() {
                 >
                   Foto ({spotPhotos.length})
                 </button>
-                {panoramaList.length > 0 && (
+                {interiorPanoramaList.length > 0 && (
                   <button
                     type="button"
-                    onClick={() => setGalleryTab('360')}
-                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                    onClick={() => {
+                      setActiveInteriorIdx(0);
+                      setGalleryTab('interior_360');
+                    }}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                      galleryTab === 'interior_360'
+                        ? 'bg-brand-blue text-white shadow-md'
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                  >
+                    360° Interior ({interiorPanoramaList.length})
+                  </button>
+                )}
+                {campsitePanoramaList.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActivePanoramaIdx(0);
+                      setGalleryTab('360');
+                    }}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                       galleryTab === '360'
                         ? 'bg-brand-lime text-black'
                         : 'bg-white/10 text-white hover:bg-white/20'
                     }`}
                   >
-                    Tur 360° ({panoramaList.length})
+                    Tur Kawasan ({campsitePanoramaList.length})
                   </button>
                 )}
                 {campsite?.mapImageUrl && (
                   <button
                     type="button"
                     onClick={() => setGalleryTab('map')}
-                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                       galleryTab === 'map'
                         ? 'bg-white text-black'
                         : 'bg-white/10 text-white hover:bg-white/20'
@@ -4872,7 +5016,7 @@ export function SpotRedirectClient() {
           {/* Modal Content Body */}
           <div
             className={`flex-1 relative overflow-hidden bg-black flex items-center justify-center ${
-              galleryTab === '360' ? 'p-0' : 'p-4'
+              galleryTab === '360' || galleryTab === 'interior_360' ? 'p-0' : 'p-4'
             }`}
           >
             {galleryTab === 'photos' && (
@@ -4963,109 +5107,199 @@ export function SpotRedirectClient() {
               </div>
             )}
 
-            {galleryTab === '360' && (
+            {(galleryTab === '360' || galleryTab === 'interior_360') && (
               <div className="relative w-full h-full flex flex-col items-center justify-center text-center bg-black">
-                {panoramaList.length === 0 ? (
-                  <div className="max-w-md space-y-3 p-6">
-                    <Compass size={48} className="mx-auto text-brand-lime animate-pulse" />
-                    <h3 className="text-white font-bold text-base">
-                      Tur 360° Segera Hadir
-                    </h3>
-                    <p className="text-neutral-400 text-xs">
-                      Foto panorama 360° interaktif untuk kawasan ini sedang dalam proses pemrosesan & pengunggahan. Silakan jelajahi galeri foto utama terlebih dahulu.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setGalleryTab('photos')}
-                      className="mt-2 px-5 py-2.5 rounded-full bg-brand-lime text-black text-xs font-bold hover:scale-105 transition-transform cursor-pointer"
-                    >
-                      Buka Galeri Foto
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    {panoramaList.length > 1 && (
-                      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex gap-2 bg-black/60 backdrop-blur-md p-1.5 rounded-full border border-white/10 max-w-[90vw] overflow-x-auto no-scrollbar">
-                        {panoramaList.map((pano, pIdx) => (
-                          <button
-                            key={pano.id}
-                            type="button"
-                            onClick={() => setActivePanoramaIdx(pIdx)}
-                            className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
-                              activePanoramaIdx === pIdx
-                                ? 'bg-brand-lime text-black shadow-sm'
-                                : 'text-white/80 hover:text-white hover:bg-white/10'
-                            }`}
-                          >
-                            {pano.label || `Area ${pIdx + 1}`}
-                          </button>
-                        ))}
+                {(() => {
+                  const currentList =
+                    galleryTab === 'interior_360'
+                      ? interiorPanoramaList
+                      : campsitePanoramaList;
+                  const currentIdx =
+                    galleryTab === 'interior_360'
+                      ? activeInteriorIdx
+                      : activePanoramaIdx;
+                  const setCurrentIdx =
+                    galleryTab === 'interior_360'
+                      ? setActiveInteriorIdx
+                      : setActivePanoramaIdx;
+
+                  if (currentList.length === 0) {
+                    return (
+                      <div className="max-w-md space-y-3 p-6">
+                        <Compass
+                          size={48}
+                          className="mx-auto text-brand-lime animate-pulse"
+                        />
+                        <h3 className="text-white font-bold text-base">
+                          {galleryTab === 'interior_360'
+                            ? 'Foto 360° Interior Belum Tersedia'
+                            : 'Tur 360° Kawasan Belum Tersedia'}
+                        </h3>
+                        <p className="text-neutral-400 text-xs">
+                          {galleryTab === 'interior_360'
+                            ? 'Foto panorama 360° interior untuk unit ini belum diunggah. Silakan jelajahi galeri foto utama.'
+                            : 'Foto panorama 360° interaktif untuk kawasan ini sedang dalam proses pemrosesan & pengunggahan.'}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setGalleryTab('photos')}
+                          className="mt-2 px-5 py-2.5 rounded-full bg-brand-lime text-black text-xs font-bold hover:scale-105 transition-transform cursor-pointer"
+                        >
+                          Buka Galeri Foto
+                        </button>
                       </div>
-                    )}
+                    );
+                  }
 
-                    <div
-                      ref={panoramaContainerRef}
-                      className="w-full h-full"
-                      onContextMenu={(e) => e.preventDefault()}
-                    />
+                  return (
+                    <>
+                      {/* Top floating controls: Mode Switcher + Scene Switcher Pills */}
+                      <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 max-w-[95vw]">
+                        {/* 1. Mode Switcher (hanya tampil jika unit punya interior 360 DAN kawasan punya tur 360) */}
+                        {interiorPanoramaList.length > 0 &&
+                          campsitePanoramaList.length > 0 && (
+                            <div className="flex items-center bg-black/75 backdrop-blur-md p-1 rounded-full border border-white/20 shadow-xl">
+                              <button
+                                type="button"
+                                onClick={() => setGalleryTab('interior_360')}
+                                className={`px-3.5 py-1 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                                  galleryTab === 'interior_360'
+                                    ? 'bg-brand-blue text-white shadow-md'
+                                    : 'text-neutral-300 hover:text-white hover:bg-white/10'
+                                }`}
+                              >
+                                <RotateCw
+                                  size={12}
+                                  className={
+                                    galleryTab === 'interior_360'
+                                      ? 'animate-spin-slow'
+                                      : ''
+                                  }
+                                />
+                                <span>
+                                  360° Interior ({interiorPanoramaList.length})
+                                </span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setGalleryTab('360')}
+                                className={`px-3.5 py-1 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                                  galleryTab === '360'
+                                    ? 'bg-brand-lime text-black shadow-md'
+                                    : 'text-neutral-300 hover:text-white hover:bg-white/10'
+                                }`}
+                              >
+                                <Compass
+                                  size={12}
+                                  className={
+                                    galleryTab === '360'
+                                      ? 'animate-spin-slow'
+                                      : ''
+                                  }
+                                />
+                                <span>
+                                  Tur Kawasan ({campsitePanoramaList.length})
+                                </span>
+                              </button>
+                            </div>
+                          )}
 
-                    {/* Loading Indicator */}
-                    {panoLoadingSpot && !panoErrorSpot && (
-                      <div className="absolute inset-0 z-25 flex flex-col items-center justify-center bg-black/70 backdrop-blur-xs pointer-events-none">
-                        <div className="w-10 h-10 border-3 border-brand-lime/20 border-t-brand-lime rounded-full animate-spin mb-3" />
-                        <span className="text-xs text-neutral-300 font-medium tracking-wide">
-                          Memuat Panorama 360°...
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Clean Error Dialog */}
-                    {panoErrorSpot && (
-                      <div className="absolute inset-0 z-30 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-200">
-                        <div className="max-w-sm w-full bg-neutral-900 border border-white/10 rounded-2xl p-6 text-center shadow-2xl space-y-4">
-                          <div className="space-y-1.5">
-                            <h3 className="text-white font-semibold text-sm">
-                              Foto 360° belum dapat dimuat
-                            </h3>
-                            <p className="text-neutral-400 text-xs leading-relaxed">
-                              Koneksi internet lambat atau foto panorama sedang dipersiapkan. Silakan ketuk Coba Lagi.
-                            </p>
+                        {/* 2. Scene Switcher Pills for the ACTIVE mode */}
+                        {currentList.length > 1 && (
+                          <div className="flex gap-1.5 bg-black/70 backdrop-blur-md p-1 rounded-full border border-white/15 max-w-[90vw] overflow-x-auto no-scrollbar">
+                            {currentList.map((pano, pIdx) => (
+                              <button
+                                key={pano.id || pIdx}
+                                type="button"
+                                onClick={() => setCurrentIdx(pIdx)}
+                                className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                                  currentIdx === pIdx
+                                    ? galleryTab === 'interior_360'
+                                      ? 'bg-white text-black shadow-sm'
+                                      : 'bg-brand-lime text-black shadow-sm'
+                                    : 'text-white/80 hover:text-white hover:bg-white/10'
+                                }`}
+                              >
+                                {pano.label ||
+                                  (galleryTab === 'interior_360'
+                                    ? `Foto ${pIdx + 1}`
+                                    : `Area ${pIdx + 1}`)}
+                              </button>
+                            ))}
                           </div>
-                          <div className="flex gap-2.5 pt-1">
-                            <button
-                              type="button"
-                              onClick={() => setGalleryTab('photos')}
-                              className="flex-1 py-2 rounded-lg border border-white/15 text-white/80 hover:text-white hover:bg-white/5 text-xs font-medium transition-all cursor-pointer"
-                            >
-                              Galeri Foto
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setPanoErrorSpot(false);
-                                setPanoLoadingSpot(true);
-                                setPanoRetryKeySpot((k) => k + 1);
-                              }}
-                              className="flex-1 py-2 rounded-lg bg-white text-black hover:bg-white/90 text-xs font-semibold transition-all cursor-pointer"
-                            >
-                              Coba Lagi
-                            </button>
+                        )}
+                      </div>
+
+                      <div
+                        ref={panoramaContainerRef}
+                        className="w-full h-full"
+                        onContextMenu={(e) => e.preventDefault()}
+                      />
+
+                      {/* Loading Indicator */}
+                      {panoLoadingSpot && !panoErrorSpot && (
+                        <div className="absolute inset-0 z-25 flex flex-col items-center justify-center bg-black/70 backdrop-blur-xs pointer-events-none">
+                          <div className="w-10 h-10 border-3 border-brand-lime/20 border-t-brand-lime rounded-full animate-spin mb-3" />
+                          <span className="text-xs text-neutral-300 font-medium tracking-wide">
+                            {galleryTab === 'interior_360'
+                              ? 'Memuat Foto 360° Interior...'
+                              : 'Memuat Tur 360° Kawasan...'}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Clean Error Dialog */}
+                      {panoErrorSpot && (
+                        <div className="absolute inset-0 z-30 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-200">
+                          <div className="max-w-sm w-full bg-neutral-900 border border-white/10 rounded-2xl p-6 text-center shadow-2xl space-y-4">
+                            <div className="space-y-1.5">
+                              <h3 className="text-white font-semibold text-sm">
+                                Foto 360° belum dapat dimuat
+                              </h3>
+                              <p className="text-neutral-400 text-xs leading-relaxed">
+                                Koneksi internet lambat atau foto panorama sedang dipersiapkan. Silakan ketuk Coba Lagi.
+                              </p>
+                            </div>
+                            <div className="flex gap-2.5 pt-1">
+                              <button
+                                type="button"
+                                onClick={() => setGalleryTab('photos')}
+                                className="flex-1 py-2 rounded-lg border border-white/15 text-white/80 hover:text-white hover:bg-white/5 text-xs font-medium transition-all cursor-pointer"
+                              >
+                                Galeri Foto
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setPanoErrorSpot(false);
+                                  setPanoLoadingSpot(true);
+                                  setPanoRetryKeySpot((k) => k + 1);
+                                }}
+                                className="flex-1 py-2 rounded-lg bg-white text-black hover:bg-white/90 text-xs font-semibold transition-all cursor-pointer"
+                              >
+                                Coba Lagi
+                              </button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {!panoLoadingSpot && !panoErrorSpot && (
-                      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-xs font-semibold text-white/90 flex items-center gap-2 pointer-events-none shadow-2xl z-20">
-                        <RotateCw
-                          size={14}
-                          className="text-brand-lime animate-spin"
-                        />
-                        <span>Geser layar / mouse untuk berputar 360°</span>
-                      </div>
-                    )}
-                  </>
-                )}
+                      {!panoLoadingSpot && !panoErrorSpot && (
+                        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-xs font-semibold text-white/90 flex items-center gap-2 pointer-events-none shadow-2xl z-20">
+                          <RotateCw
+                            size={14}
+                            className="text-brand-lime animate-spin"
+                          />
+                          <span>
+                            {galleryTab === 'interior_360'
+                              ? 'Geser layar / mouse untuk melihat interior 360° spot ini'
+                              : 'Geser layar / mouse untuk berputar 360°'}
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             )}
           </div>
