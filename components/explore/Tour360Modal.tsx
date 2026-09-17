@@ -100,13 +100,45 @@ interface Tour360ModalProps {
 
 export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
   const [activePanoramaIdx, setActivePanoramaIdx] = useState(0);
+  const [activeInteriorIdx, setActiveInteriorIdx] = useState(0);
+  const [panoMode, setPanoMode] = useState<'campsite' | 'interior'>('campsite');
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
   const panoramaContainerRef = useRef<HTMLDivElement | null>(null);
   const pannellumViewerRef = useRef<any>(null);
 
-  const panoramaList: any[] = React.useMemo(() => {
+  // 1. Interior 360 photos (strictly for this spot)
+  const interiorPanoramaList: any[] = React.useMemo(() => {
+    if (!spot || !Array.isArray(spot.panoramaPhotos)) return [];
+    const list: any[] = [];
+    const addedUrls = new Set<string>();
+
+    spot.panoramaPhotos.forEach((p: any, idx: number) => {
+      const url = (p.imageUrl || p.url || p.panoramaImageUrl || '').trim();
+      if (!url || addedUrls.has(url)) return;
+      addedUrls.add(url);
+      list.push({
+        id: p.id || `interior-${idx}`,
+        label: p.label || p.description || p.category || `Foto ${idx + 1}`,
+        imageUrl: url,
+        hotspots: p.hotspots || [],
+        yaw:
+          p.yaw !== undefined && p.yaw !== null && !isNaN(Number(p.yaw))
+            ? Number(p.yaw)
+            : 0,
+        pitch:
+          p.pitch !== undefined && p.pitch !== null && !isNaN(Number(p.pitch))
+            ? Number(p.pitch)
+            : 0,
+        category: 'interior_360',
+      });
+    });
+    return list;
+  }, [spot]);
+
+  // 2. Campsite outdoor 360 tour (campsite level scenes)
+  const campsitePanoramaList: any[] = React.useMemo(() => {
     if (!spot) return [];
     const list: any[] = [];
     const addedUrls = new Set<string>();
@@ -177,17 +209,12 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
       if (linked) addPano(linked, true);
     }
 
-    // 2. Interior panoramaPhotos
-    if (Array.isArray(spot.panoramaPhotos)) {
-      spot.panoramaPhotos.forEach((p: any) => addPano(p));
-    }
-
-    // 3. Campsite panoramaSpots
+    // 2. Campsite panoramaSpots
     if (Array.isArray((spot.campsite as any)?.panoramaSpots)) {
       (spot.campsite as any).panoramaSpots.forEach((p: any) => addPano(p));
     }
 
-    // 4. Campsite maps markers
+    // 3. Campsite maps markers
     if (Array.isArray((spot.campsite as any)?.maps)) {
       for (const m of (spot.campsite as any).maps) {
         if (Array.isArray(m.markers)) {
@@ -200,7 +227,7 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
       }
     }
 
-    // 5. Fallback photos category 360
+    // 4. Fallback photos category 360
     if (list.length === 0 && Array.isArray(spot.photos)) {
       const p360 = spot.photos.filter((p: any) =>
         (p.category || '').toLowerCase().includes('360'),
@@ -215,17 +242,22 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
       return bScore - aScore;
     });
 
-    // Jika spot ini belum memiliki konten 360° (tidak ada pin, tidak ditautkan, dan tidak ada interior):
-    // Jangan tampilkan 360 untuk spot ini
-    const hasSpot360 = list.some(
-      (p) => p.category === 'panorama_linked' || p.category === 'interior_360',
-    );
-    if (!hasSpot360) {
-      return [];
-    }
-
     return list;
   }, [spot]);
+
+  // Set initial mode based on availability
+  useEffect(() => {
+    if (campsitePanoramaList.length > 0) {
+      setPanoMode('campsite');
+    } else if (interiorPanoramaList.length > 0) {
+      setPanoMode('interior');
+    }
+  }, [campsitePanoramaList.length, interiorPanoramaList.length]);
+
+  const currentList = panoMode === 'interior' ? interiorPanoramaList : campsitePanoramaList;
+  const currentIdx = panoMode === 'interior' ? activeInteriorIdx : activePanoramaIdx;
+  const setCurrentIdx = panoMode === 'interior' ? setActiveInteriorIdx : setActivePanoramaIdx;
+  const panoramaList = currentList;
 
   // Handle ESC key to close
   useEffect(() => {
@@ -379,10 +411,11 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
             pannellumHotSpots.push(activeSpotPin);
           }
 
-          // Ensure URL has ?pano=360 so it never reuses non-CORS <img> cached entry in Incognito/Mobile
+          // Cache-bust panorama URL to prevent Cloudflare from serving a non-CORS cached response
           const rawPanoUrl = resolveAssetUrl(pano.imageUrl);
+          const cacheBuster = `_cb=${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
           const safePanoUrl = rawPanoUrl
-            ? (rawPanoUrl.includes('?') ? `${rawPanoUrl}&pano=360` : `${rawPanoUrl}?pano=360`)
+            ? (rawPanoUrl.includes('?') ? `${rawPanoUrl}&${cacheBuster}` : `${rawPanoUrl}?${cacheBuster}`)
             : '';
 
           scenesConfig[pano.id] = {
@@ -413,12 +446,12 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
         }, 25000);
 
         // MutationObserver to catch Pannellum's internal fatal error elements.
-        // Pannellum ALWAYS creates an empty .pnlm-error-msg during init —
-        // only trigger if it actually contains text content.
+        // Pannellum ALWAYS creates an empty .pnlm-error-msg during init with display:none —
+        // only trigger if it actually contains fatal error text content.
         try {
           observer = new MutationObserver(() => {
             const errorEl = container.querySelector<HTMLElement>('.pnlm-error-msg');
-            if (errorEl && (errorEl.textContent?.trim() || errorEl.children.length > 0)) {
+            if (errorEl && errorEl.textContent?.trim()) {
               try {
                 if (pannellumViewerRef.current?.isLoaded?.()) return;
               } catch (_) {}
@@ -517,10 +550,10 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
     };
   }, [spot, panoramaList, retryKey]);
 
-  // Switch scene when activePanoramaIdx changes
+  // Switch scene when active index changes
   useEffect(() => {
-    if (!pannellumViewerRef.current || panoramaList.length === 0) return;
-    const target = panoramaList[activePanoramaIdx];
+    if (!pannellumViewerRef.current || currentList.length === 0) return;
+    const target = currentList[currentIdx];
     if (!target) return;
     try {
       if (typeof pannellumViewerRef.current.getScene === 'function') {
@@ -534,11 +567,11 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
         }
       }
     } catch (_) {}
-  }, [activePanoramaIdx, panoramaList]);
+  }, [currentIdx, currentList]);
 
   if (!spot) return null;
 
-  const currentPano = panoramaList[activePanoramaIdx] || panoramaList[0];
+  const currentPano = currentList[currentIdx] || currentList[0];
   const campsiteName = spot.campsite?.name || 'Embun';
   const detailUrl = `/spot/${spot.campsite?.slug || spot.campsite?.id || spot.shareCode || spot.id}`;
 
@@ -557,8 +590,14 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
           </button>
           <div>
             <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-lime text-black">
-                Tur 360°
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                  panoMode === 'interior'
+                    ? 'bg-brand-blue text-white'
+                    : 'bg-brand-lime text-black'
+                }`}
+              >
+                {panoMode === 'interior' ? '360° Interior' : 'Tur 360°'}
               </span>
               <span className="font-bold text-sm truncate max-w-xs sm:max-w-md text-white">
                 {currentPano?.label || spot.name}
@@ -590,14 +629,16 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
 
       {/* Main 360 Viewer Viewport */}
       <div className="flex-1 relative overflow-hidden bg-neutral-950 flex items-center justify-center">
-        {panoramaList.length === 0 ? (
+        {currentList.length === 0 ? (
           <div className="max-w-md space-y-3 text-center p-6">
             <Compass size={48} className="mx-auto text-brand-lime animate-pulse" />
             <h3 className="text-white font-bold text-base">
-              Tur 360° Segera Hadir
+              {panoMode === 'interior' ? 'Foto 360° Interior Segera Hadir' : 'Tur 360° Segera Hadir'}
             </h3>
             <p className="text-neutral-400 text-xs">
-              Foto panorama 360° untuk area ini sedang disiapkan. Silakan kunjungi halaman campsite untuk informasi lengkap.
+              {panoMode === 'interior'
+                ? 'Foto panorama 360° interior untuk unit ini sedang disiapkan.'
+                : 'Foto panorama 360° untuk area ini sedang disiapkan. Silakan kunjungi halaman campsite untuk informasi lengkap.'}
             </p>
             <a
               href={detailUrl}
@@ -608,25 +649,67 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
           </div>
         ) : (
           <>
-            {/* Multi-scene switcher pills */}
-            {panoramaList.length > 1 && (
-              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex gap-2 bg-black/60 backdrop-blur-md p-1.5 rounded-full border border-white/10 max-w-[90vw] overflow-x-auto no-scrollbar">
-                {panoramaList.map((pano, pIdx) => (
+            {/* Top Controls: Mode Switcher + Multi-scene Switcher Pills */}
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 max-w-[90vw]">
+              {interiorPanoramaList.length > 0 && campsitePanoramaList.length > 0 && (
+                <div className="flex items-center bg-black/75 backdrop-blur-md p-1 rounded-full border border-white/20 shadow-xl">
                   <button
-                    key={pano.id || pIdx}
                     type="button"
-                    onClick={() => setActivePanoramaIdx(pIdx)}
-                    className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
-                      activePanoramaIdx === pIdx
-                        ? 'bg-brand-lime text-black shadow-sm'
-                        : 'text-white/80 hover:text-white hover:bg-white/10'
+                    onClick={() => setPanoMode('interior')}
+                    className={`px-3.5 py-1 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                      panoMode === 'interior'
+                        ? 'bg-brand-blue text-white shadow-md'
+                        : 'text-neutral-300 hover:text-white hover:bg-white/10'
                     }`}
                   >
-                    {pano.label || `Area ${pIdx + 1}`}
+                    <RotateCw
+                      size={12}
+                      className={panoMode === 'interior' ? 'animate-spin-slow' : ''}
+                    />
+                    <span>360° Interior ({interiorPanoramaList.length})</span>
                   </button>
-                ))}
-              </div>
-            )}
+                  <button
+                    type="button"
+                    onClick={() => setPanoMode('campsite')}
+                    className={`px-3.5 py-1 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                      panoMode === 'campsite'
+                        ? 'bg-brand-lime text-black shadow-md'
+                        : 'text-neutral-300 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    <Compass
+                      size={12}
+                      className={panoMode === 'campsite' ? 'animate-spin-slow' : ''}
+                    />
+                    <span>Tur Kawasan ({campsitePanoramaList.length})</span>
+                  </button>
+                </div>
+              )}
+
+              {currentList.length > 1 && (
+                <div className="flex gap-2 bg-black/60 backdrop-blur-md p-1.5 rounded-full border border-white/10 max-w-[90vw] overflow-x-auto no-scrollbar">
+                  {currentList.map((pano, pIdx) => (
+                    <button
+                      key={pano.id || pIdx}
+                      type="button"
+                      onClick={() => setCurrentIdx(pIdx)}
+                      className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                        currentIdx === pIdx
+                          ? panoMode === 'interior'
+                            ? 'bg-white text-black shadow-sm'
+                            : 'bg-brand-lime text-black shadow-sm'
+                          : 'text-white/80 hover:text-white hover:bg-white/10'
+                      }`}
+                    >
+                      {pano.label ||
+                        (panoMode === 'interior'
+                          ? `Foto ${pIdx + 1}`
+                          : `Area ${pIdx + 1}`)}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* Pannellum Container */}
             <div
@@ -686,7 +769,11 @@ export function Tour360Modal({ spot, onClose }: Tour360ModalProps) {
             {!loading && !loadError && (
               <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-xs font-semibold text-white/90 flex items-center gap-2 pointer-events-none shadow-2xl z-20">
                 <RotateCw size={14} className="text-brand-lime animate-spin" />
-                <span>Geser layar / mouse untuk berputar 360°</span>
+                <span>
+                  {panoMode === 'interior'
+                    ? 'Geser layar / mouse untuk melihat interior 360° spot ini'
+                    : 'Geser layar / mouse untuk berputar 360°'}
+                </span>
               </div>
             )}
           </>

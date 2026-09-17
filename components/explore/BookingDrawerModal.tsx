@@ -332,8 +332,9 @@ export function BookingDrawerModal({
       }
 
       const fullUrl = resolveAssetUrl(rawPanoUrl);
+      const cacheBuster = `_cb=${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
       const safePanoUrl = fullUrl
-        ? (fullUrl.includes('?') ? `${fullUrl}&pano=360` : `${fullUrl}?pano=360`)
+        ? (fullUrl.includes('?') ? `${fullUrl}&${cacheBuster}` : `${fullUrl}?${cacheBuster}`)
         : '';
 
       const container = panoramaRef.current;
@@ -355,12 +356,12 @@ export function BookingDrawerModal({
       }, 25000);
 
       // MutationObserver to catch Pannellum's internal fatal error elements.
-      // Pannellum ALWAYS creates an empty .pnlm-error-msg during init —
-      // only trigger if it actually contains text content.
+      // Pannellum ALWAYS creates an empty .pnlm-error-msg during init with display:none —
+      // only trigger if it actually contains fatal error text content.
       try {
         observer = new MutationObserver(() => {
           const errorEl = container.querySelector<HTMLElement>('.pnlm-error-msg');
-          if (errorEl && (errorEl.textContent?.trim() || errorEl.children.length > 0)) {
+          if (errorEl && errorEl.textContent?.trim()) {
             try {
               if (panoViewerRef.current?.isLoaded?.()) return;
             } catch (_) {}

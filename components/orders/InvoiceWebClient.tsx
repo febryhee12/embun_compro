@@ -139,11 +139,11 @@ export function InvoiceWebClient() {
             </div>
 
             {/* Action Buttons: Clean 'Unduh Invoice' (NO ICON) + 'Cetak' */}
-            <div className="flex items-center gap-2.5 shrink-0">
+            <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
               <button
                 type="button"
                 onClick={handlePrint}
-                className="px-3.5 sm:px-4 py-2 rounded-full border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-xs font-bold text-neutral-700 dark:text-neutral-200 transition-colors cursor-pointer"
+                className="px-3 sm:px-4 py-2 rounded-full border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-xs font-bold text-neutral-700 dark:text-neutral-200 transition-colors cursor-pointer whitespace-nowrap"
               >
                 {lang === 'en' ? 'Print' : 'Cetak'}
               </button>
@@ -152,7 +152,7 @@ export function InvoiceWebClient() {
                 target="_blank"
                 rel="noopener noreferrer"
                 download
-                className="px-4 sm:px-5 py-2 rounded-full bg-[#0841B5] hover:bg-[#073696] text-white text-xs font-bold transition-all shadow-xs cursor-pointer inline-flex items-center justify-center"
+                className="px-3.5 sm:px-5 py-2 rounded-full bg-[#0841B5] hover:bg-[#073696] text-white text-xs font-bold transition-all shadow-xs cursor-pointer inline-flex items-center justify-center whitespace-nowrap"
               >
                 {lang === 'en' ? 'Download Invoice' : 'Unduh Invoice'}
               </a>

@@ -1,7 +1,6 @@
 'use client';
 
-import React from 'react';
-import { X, Printer } from 'lucide-react';
+import { X, Printer, Download } from 'lucide-react';
 import { rupiah, API_BASE_URL } from '@/lib/api-client';
 import { type Language } from '@/lib/account-i18n';
 
@@ -219,7 +218,7 @@ export function InvoiceDocument({
   const baseRental = Math.max(0, fullRental - totalPaidAddons);
 
   return (
-    <div className="bg-white mx-auto p-5 sm:p-8 md:p-10 rounded-2xl border border-neutral-200/80 shadow-md max-w-[780px] text-neutral-900 text-xs font-sans print:shadow-none print:border-none print:p-0 print:max-w-none print:m-0">
+    <div className="bg-white mx-auto p-4 sm:p-8 md:p-10 rounded-xl sm:rounded-2xl border border-neutral-200/80 shadow-md max-w-[780px] text-neutral-900 text-xs font-sans print:shadow-none print:border-none print:p-0 print:max-w-none print:m-0">
       {/* 1. HEADER (Logo + PT di kiri, INVOICE + No di kanan) */}
       <div className="flex items-start justify-between gap-4 pb-4 sm:pb-6">
         <div className="space-y-1">
@@ -462,52 +461,108 @@ export function InvoiceModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 print:hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-6 overflow-y-auto bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 print:hidden">
       {/* Container Dialog */}
-      <div className="bg-white dark:bg-surface rounded-3xl border border-border shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[92vh]">
+      <div className="bg-white dark:bg-surface rounded-2xl sm:rounded-3xl border border-border shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[94vh] sm:max-h-[92vh]">
         {/* Modal Toolbar */}
-        <div className="px-6 py-4 border-b border-border/80 flex items-center justify-between bg-surface/50 shrink-0">
-          <div className="flex items-center gap-2.5">
-            <span className="font-extrabold text-sm text-foreground">
-              {t.modalTitle}
-            </span>
-            <span className="text-[11px] font-mono text-foreground-muted bg-surface border border-border px-2 py-0.5 rounded-md font-bold">
-              {shortCode}
-            </span>
+        <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-border/80 bg-surface/50 shrink-0">
+          {/* Mobile Toolbar (< sm) */}
+          <div className="sm:hidden flex flex-col gap-2.5">
+            {/* Row 1: Title, Code & Close */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="font-extrabold text-sm text-foreground truncate">
+                  {t.modalTitle}
+                </span>
+                <span className="text-[11px] font-mono text-foreground-muted bg-surface border border-border px-2 py-0.5 rounded-md font-bold shrink-0">
+                  {shortCode}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="p-1.5 -mr-1 rounded-full hover:bg-surface text-foreground-muted hover:text-foreground transition-colors cursor-pointer shrink-0"
+                title={t.close}
+                aria-label={t.close}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Row 2: Action Buttons with generous touch targets */}
+            <div className="flex items-center gap-2">
+              {order?.id && (
+                <a
+                  href={`${API_BASE_URL}/orders/${order.id}/invoice.pdf`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download
+                  className="flex-1 py-2.5 px-3 rounded-xl bg-brand-blue hover:bg-brand-blue-hover dark:bg-brand-lime dark:text-black dark:hover:bg-brand-lime/90 text-white text-xs font-bold transition-all shadow-xs cursor-pointer inline-flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-[0.98]"
+                >
+                  <Download size={14} className="shrink-0" />
+                  <span>{t.downloadInvoice}</span>
+                </a>
+              )}
+              <button
+                type="button"
+                onClick={handlePrint}
+                className={`${
+                  order?.id ? 'flex-1' : 'w-full'
+                } py-2.5 px-3 rounded-xl border border-border hover:bg-surface text-xs font-bold text-foreground transition-colors cursor-pointer inline-flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-[0.98]`}
+              >
+                <Printer size={14} className="shrink-0" />
+                <span>{t.printBtn}</span>
+              </button>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            {order?.id && (
-              <a
-                href={`${API_BASE_URL}/orders/${order.id}/invoice.pdf`}
-                target="_blank"
-                rel="noopener noreferrer"
-                download
-                className="px-4 py-2 rounded-full bg-brand-blue hover:bg-brand-blue-hover dark:bg-brand-lime dark:text-black dark:hover:bg-brand-lime/90 text-white text-xs font-bold transition-all shadow-xs cursor-pointer inline-flex items-center justify-center"
+          {/* Desktop Toolbar (>= sm) */}
+          <div className="hidden sm:flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <span className="font-extrabold text-sm text-foreground">
+                {t.modalTitle}
+              </span>
+              <span className="text-[11px] font-mono text-foreground-muted bg-surface border border-border px-2 py-0.5 rounded-md font-bold">
+                {shortCode}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {order?.id && (
+                <a
+                  href={`${API_BASE_URL}/orders/${order.id}/invoice.pdf`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download
+                  className="px-4 py-2 rounded-full bg-brand-blue hover:bg-brand-blue-hover dark:bg-brand-lime dark:text-black dark:hover:bg-brand-lime/90 text-white text-xs font-bold transition-all shadow-xs cursor-pointer inline-flex items-center justify-center gap-1.5 whitespace-nowrap"
+                >
+                  <Download size={14} />
+                  <span>{t.downloadInvoice}</span>
+                </a>
+              )}
+              <button
+                type="button"
+                onClick={handlePrint}
+                className="px-3.5 py-2 rounded-full border border-border hover:bg-surface text-xs font-bold text-foreground transition-colors cursor-pointer inline-flex items-center justify-center gap-1.5 whitespace-nowrap"
               >
-                {t.downloadInvoice}
-              </a>
-            )}
-            <button
-              type="button"
-              onClick={handlePrint}
-              className="px-3.5 py-2 rounded-full border border-border hover:bg-surface text-xs font-bold text-foreground transition-colors cursor-pointer"
-            >
-              {t.printBtn}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-2 rounded-full hover:bg-surface text-foreground-muted hover:text-foreground transition-colors cursor-pointer"
-              title={t.close}
-            >
-              <X size={18} />
-            </button>
+                <Printer size={14} />
+                <span>{t.printBtn}</span>
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="p-2 rounded-full hover:bg-surface text-foreground-muted hover:text-foreground transition-colors cursor-pointer ml-1"
+                title={t.close}
+                aria-label={t.close}
+              >
+                <X size={18} />
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Modal Body: Kertas A4 Invoice (Tetap light paper untuk print fidelity) */}
-        <div className="overflow-y-auto p-4 sm:p-8 bg-neutral-100/80 dark:bg-black/40 flex-1">
+        <div className="overflow-y-auto p-2.5 sm:p-8 bg-neutral-100/80 dark:bg-black/40 flex-1">
           <InvoiceDocument
             order={order}
             booking={booking}
