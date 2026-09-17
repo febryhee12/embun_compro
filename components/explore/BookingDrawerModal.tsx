@@ -332,8 +332,9 @@ export function BookingDrawerModal({
       }
 
       const fullUrl = resolveAssetUrl(rawPanoUrl);
+      const cacheBuster = `_cb=${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
       const safePanoUrl = fullUrl
-        ? (fullUrl.includes('?') ? `${fullUrl}&pano=360` : `${fullUrl}?pano=360`)
+        ? (fullUrl.includes('?') ? `${fullUrl}&${cacheBuster}` : `${fullUrl}?${cacheBuster}`)
         : '';
 
       const container = panoramaRef.current;

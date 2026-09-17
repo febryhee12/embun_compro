@@ -1699,10 +1699,11 @@ export function SpotRedirectClient() {
             };
           });
 
-          // Ensure URL has ?pano=360 so it never reuses non-CORS <img> cached entry in Incognito/Mobile
+          // Cache-bust panorama URL to prevent Cloudflare from serving a non-CORS cached response
           const rawPanoUrl = resolveAssetUrl(pano.imageUrl);
+          const cacheBuster = `_cb=${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
           const safePanoUrl = rawPanoUrl
-            ? (rawPanoUrl.includes('?') ? `${rawPanoUrl}&pano=360` : `${rawPanoUrl}?pano=360`)
+            ? (rawPanoUrl.includes('?') ? `${rawPanoUrl}&${cacheBuster}` : `${rawPanoUrl}?${cacheBuster}`)
             : '';
 
           scenesConfig[pano.id] = {
